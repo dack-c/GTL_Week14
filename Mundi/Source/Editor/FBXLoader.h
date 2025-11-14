@@ -23,7 +23,8 @@ public:
 
 	// Animation caching
 	bool SaveAnimationToCache(UAnimSequence* Animation, const FString& CachePath);
-	//UAnimSequence* LoadAnimationFromCache(const FString& CachePath);
+	UAnimSequence* LoadAnimationFromCache(const FString& CachePath);
+	bool TryLoadAnimationsFromCache(const FString& NormalizedPath, TArray<UAnimSequence*>& OutAnimations);
 	
 
 protected:
