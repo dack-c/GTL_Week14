@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "AnimationRuntime.h"
+#include "AnimTypes.h"
 
 ETypeAdvanceAnim FAnimationRuntime::AdvanceTime(const bool bAllowLooping, const float MoveDelta, float& InOutTime, const float EndTime)
 {

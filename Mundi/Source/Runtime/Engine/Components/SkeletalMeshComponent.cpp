@@ -3,6 +3,8 @@
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 
+#include "Source/Runtime/Engine/Animation/AnimTypes.h"
+
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
     // 테스트용 기본 메시 설정
@@ -218,6 +220,66 @@ void USkeletalMeshComponent::SetAnimationTime(float InTime)
     }
 }
 
+void USkeletalMeshComponent::GatherNotifies(float DeltaTime)
+{ 
+    if (!CurrentAnimation)
+    {
+        return;
+    }
+  
+    // 이전 틱에 저장 된 PendingNotifies 지우고 시작
+    PendingNotifies.Empty();
+
+    // 시간 업데이트
+    const float PrevTime = CurrentAnimationTime;
+    const float DeltaMove = DeltaTime * PlayRate;
+
+    // 이번 틱 구간 [PrevTime -> PrevTime + DeltaMove]에서 발생한 Notify 수집 
+    CurrentAnimation->GetAnimNotify(PrevTime, DeltaMove, PendingNotifies);
+}
+
+void USkeletalMeshComponent::DispatchAnimNotifies()
+{
+    for (const FPendingAnimNotify& Pending : PendingNotifies)
+    {
+        const FAnimNotifyEvent& Event = *Pending.Event;
+
+        switch (Pending.Type)
+        {
+        case EPendingNotifyType::Trigger:
+            if (Event.Notify)
+            {
+                Event.Notify->Notify(this, CurrentAnimation); 
+            }
+            break;
+            
+        case EPendingNotifyType::StateBegin:
+            if (Event.NotifyState)
+            {
+                Event.NotifyState->NotifyBegin(this, CurrentAnimation, Event.Duration);
+            }
+            break;
+
+        case EPendingNotifyType::StateTick:
+            if(Event.NotifyState)
+            {
+                Event.NotifyState->NotifyTick(this, CurrentAnimation, Event.Duration);
+            }
+            break;
+        case EPendingNotifyType::StateEnd:
+            if (Event.NotifyState)
+            {
+                Event.NotifyState->NotifyEnd(this, CurrentAnimation, Event.Duration);
+            }
+            break;
+
+        default:
+            break;
+        }
+         
+    }
+}
+
 void USkeletalMeshComponent::TickAnimation(float DeltaTime)
 {
     if (!ShouldTickAnimation())
@@ -225,7 +287,11 @@ void USkeletalMeshComponent::TickAnimation(float DeltaTime)
         return;
     }
 
-    TickAnimInstances(DeltaTime);
+    GatherNotifies(DeltaTime);
+
+    TickAnimInstances(DeltaTime); 
+    
+    DispatchAnimNotifies();
 }
 
 bool USkeletalMeshComponent::ShouldTickAnimation() const
@@ -238,9 +304,8 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
     if (!CurrentAnimation || !bIsPlaying)
     {
         return;
-    }
+    } 
 
-    // 1. 시간 업데이트
     CurrentAnimationTime += DeltaTime * PlayRate;
 
     float PlayLength = CurrentAnimation->GetPlayLength();
@@ -261,7 +326,7 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
             CurrentAnimationTime = PlayLength;
             bIsPlaying = false;
         }
-    }
+    } 
 
     // 3. 현재 시간의 포즈 추출
     UAnimDataModel* DataModel = CurrentAnimation->GetDataModel();

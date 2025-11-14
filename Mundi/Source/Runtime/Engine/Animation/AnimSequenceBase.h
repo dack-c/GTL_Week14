@@ -1,7 +1,12 @@
 ﻿#pragma once
 #include "AnimationAsset.h"
-#include "AnimDateModel.h"
+#include "AnimDateModel.h" 
+#include "AnimTypes.h"
 
+class UAnimNotify;
+class UAnimNotifyState;
+struct FAnimNotifyEvent;
+struct FPendingAnimNotify;
 
 /**
  * @brief 제공하는 기능 
@@ -10,14 +15,6 @@
  * 3. 추출 컨텍스트 : FAnimExtractContext - 시간/루핑 정보 전달
  */
 
-
-
-struct FAnimNotifyEvent
-{
-    float TriggerTime;
-    float Duration;
-    FName NotifyName;
-};
 
 
 class UAnimSequenceBase : public UAnimationAsset
@@ -42,4 +39,8 @@ protected:
     
 public:
     UAnimDataModel* GetDataModel() const;
+
+    bool IsNotifyAvailable() const;
+    void GetAnimNotify(const float& StartTime, const float& DeltaTime, TArray<FPendingAnimNotify>& OutNotifies) const;
+    void GetAnimNotifiesFromDeltaPosition(const float& PreviousPosition, const float& CurrentPosition, TArray<FPendingAnimNotify>& OutNotifies) const;
 };

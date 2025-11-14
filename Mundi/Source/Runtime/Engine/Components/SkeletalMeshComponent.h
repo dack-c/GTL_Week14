@@ -1,8 +1,10 @@
 ﻿#pragma once
 #include "SkinnedMeshComponent.h"
 #include "USkeletalMeshComponent.generated.h"
-
+// Include for FPendingAnimNotify and FAnimNotifyEvent types
+#include "Source/Runtime/Engine/Animation/AnimTypes.h"
 class UAnimSequence;
+struct FPendingAnimNotify;
 
 UCLASS(DisplayName="스켈레탈 메시 컴포넌트", Description="스켈레탈 메시를 렌더링하는 컴포넌트입니다")
 class USkeletalMeshComponent : public USkinnedMeshComponent
@@ -73,6 +75,13 @@ public:
      * @brief 애니메이션 재생 속도 가져오기
      */
     float GetPlayRate() const { return PlayRate; }
+
+    /**
+    * @brief Notifies들을 수집하는 함수 
+    */
+    void GatherNotifies(float DeltaTime);
+
+    void DispatchAnimNotifies();
 
 protected:
     /**
@@ -164,10 +173,14 @@ protected:
      */
     TArray<FMatrix> TempFinalSkinningNormalMatrices;
 
+    /**
+    * @brief Notifies들을 한 번에 처리하기 위한 행렬
+    */
+    TArray<FPendingAnimNotify> PendingNotifies;
 
 // FOR TEST!!!
 private:
     float TestTime = 0;
     bool bIsInitialized = false;
-    FTransform TestBoneBasePose;
+    FTransform TestBoneBasePose; 
 };
