@@ -25,6 +25,9 @@ public:
     FAABB GetWorldAABB() const override;
     void OnTransformUpdated() override;
 
+    bool IsGPUSkinningEnable() const { return bEnableGPUSkinning; }
+    void SetGPUSkinningEnable(bool bEnable) { bEnableGPUSkinning = bEnable; } 
+
 // Skeletal Section
 public:
     /**
@@ -47,6 +50,9 @@ protected:
     
     UPROPERTY(EditAnywhere, Category = "Skeletal Mesh", Tooltip = "Skeletal mesh asset to render")
     USkeletalMesh* SkeletalMesh;
+
+    UPROPERTY(EditAnywhere, Category = "Skeletal Mesh", Tooltip = "GPUSkinning Enable")
+    bool bEnableGPUSkinning = false;
 
     /**
      * @brief CPU 스키닝 최종 결과물. 렌더러가 이 데이터를 사용합니다.
@@ -72,5 +78,10 @@ private:
     /**
      * @brief CPU 스키닝에서 진행하기 때문에, Component별로 VertexBuffer를 가지고 스키닝 업데이트를 진행해야함
     */
-    ID3D11Buffer* VertexBuffer = nullptr;
+    ID3D11Buffer* CPUSkinnedVertexBuffer = nullptr;
+    ID3D11Buffer* GPUSkinnedVertexBuffer = nullptr;
+    ID3D11Buffer* SkinningMatrixBuffer = nullptr;
+    ID3D11Buffer* SkinningNormalMatrixBuffer = nullptr;
+    ID3D11ShaderResourceView* SkinningMatrixSRV = nullptr;
+    ID3D11ShaderResourceView* SkinningNormalMatrixSRV = nullptr;
 };

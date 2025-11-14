@@ -13,6 +13,7 @@
 #include "TileCullingStats.h"
 #include "LightStats.h"
 #include "ShadowStats.h"
+#include "SkinningStats.h"
 
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "dwrite")
@@ -98,7 +99,7 @@ static void DrawTextBlock(
 
 void UStatsOverlayD2D::Draw()
 {
-	if (!bInitialized || (!bShowFPS && !bShowMemory && !bShowPicking && !bShowDecal && !bShowTileCulling && !bShowLights && !bShowShadow) || !SwapChain)
+	if (!bInitialized || (!bShowFPS && !bShowMemory && !bShowPicking && !bShowDecal && !bShowTileCulling && !bShowLights && !bShowShadow && !bShowSkinning) || !SwapChain)
 		return;
 
 	ID2D1Factory1* D2dFactory = nullptr;
@@ -371,7 +372,51 @@ void UStatsOverlayD2D::Draw()
 			D2D1::ColorF(0, 0, 0, 0.6f),
 			D2D1::ColorF(D2D1::ColorF::DeepPink));
 
-		NextY += shadowPanelHeight + Space;
+		NextY += 40 + Space;
+	}
+
+	if (bShowSkinning)
+	{
+		// CPU, GPU 합친 스키닝 시간
+		float TotalSkinningTime = 0.0f;
+		// 전체 스켈레탈 렌더 패스 시간
+		float SkeletalPassTime = 0.0f;
+		// 뷰어에서 편집할 때 걸리는 시간
+		float PoseUpdateTime = 0.0f;
+		// GPU 스키닝 시 버퍼 업로드 시간
+		float SkinnigBufferUpdateTime = 0.0f;
+		// GPU 스키닝 시 CPU 시간 -> TotalSkinningTime - SkinnigBufferUpdateTime
+		float CPUTime = 0.0f;
+
+		const FSkinningStats& SkinningStats = FSkinningStatManager::GetInstance().GetStats();
+		FWideString SkinningType = UTF8ToWide(SkinningStats.SkinningType);
+		wchar_t Buf[512];
+		swprintf_s(Buf, L"[Skeleta Stats]\n Skinning Type : %s\n Total Skeletals : %u\n Total Bones : %u\n Total Vertices : %u\n"
+				  L" Editable Bones : %u\n Current Vertices : %u\n"
+				  L" Skeletal Pass Time : %.3f\n Total Skinning Time : %.3f\n Total CPU Time : %.3f\n"
+				  L" GPU Update Time : %.3f\n Editor Update Time : %.3f\n",
+				  SkinningType.c_str(),
+				  SkinningStats.TotalSkeletals,
+				  SkinningStats.TotalBones,
+				  SkinningStats.TotalVertices,
+				  SkinningStats.SelectedBones,
+				  SkinningStats.SelectedVertices,
+				  SkeletalPassTime,
+				  TotalSkinningTime,
+				  CPUTime,
+				  SkinnigBufferUpdateTime,
+				  PoseUpdateTime
+				  );
+
+		const float SkinningPanelHeight = 140.0f;
+		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + SkinningPanelHeight);
+
+		DrawTextBlock(
+			D2dCtx, Dwrite, Buf, rc, 16.0f,
+			D2D1::ColorF(0, 0, 0, 0.6f),
+			D2D1::ColorF(D2D1::ColorF::DeepPink));
+
+		NextY += SkinningPanelHeight + Space;		
 	}
 	
 	D2dCtx->EndDraw();
@@ -454,7 +499,17 @@ void UStatsOverlayD2D::SetShowShadow(bool b)
 	bShowShadow = b;
 }
 
+void UStatsOverlayD2D::SetShowSkinning(bool b)
+{
+	bShowSkinning = b;
+}
+
 void UStatsOverlayD2D::ToggleShadow()
 {
 	bShowShadow = !bShowShadow;
+}
+
+void UStatsOverlayD2D::ToggleSkinning()
+{
+	bShowSkinning = !bShowSkinning;
 }

@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "SkeletalMeshComponent.h"
 
+#include "PlatformTime.h"
+
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
     // 테스트용 기본 메시 설정
@@ -136,8 +138,8 @@ void USkeletalMeshComponent::ForceRecomputePose()
     UpdateComponentSpaceTransforms();
     // ComponentSpace -> Final Skinning Matrices 계산
     UpdateFinalSkinningMatrices();
-    UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);
-    PerformSkinning();
+    UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);    
+    PerformSkinning();    
 }
 
 void USkeletalMeshComponent::UpdateComponentSpaceTransforms()

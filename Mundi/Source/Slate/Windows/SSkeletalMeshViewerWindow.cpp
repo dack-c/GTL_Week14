@@ -231,6 +231,23 @@ void SSkeletalMeshViewerWindow::OnRender()
             ImGui::PopStyleColor(2);
             ImGui::EndGroup();
 
+            ImGui::BeginGroup();
+            ImGui::Text("Skinning Option:");
+            ImGui::Spacing();
+
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.25f, 0.30f, 0.35f, 0.8f));
+            ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.40f, 0.70f, 1.00f, 1.0f));
+
+            bool bEnableGPUSKinning = ActiveState->PreviewActor->GetSkeletalMeshComponent()->IsGPUSkinningEnable();
+            if (ImGui::Checkbox("GPUSkinning", &bEnableGPUSKinning))
+            {
+                ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetGPUSkinningEnable(bEnableGPUSKinning);
+                ApplyBoneTransform(ActiveState);
+            }
+            
+            ImGui::PopStyleColor(2);
+            ImGui::EndGroup();
+
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.35f, 0.45f, 0.60f, 0.7f));
             ImGui::Separator();
@@ -751,6 +768,16 @@ void SSkeletalMeshViewerWindow::LoadSkeletalMesh(const FString& Path)
         {
             LineComp->ClearLines();
             LineComp->SetLineVisible(ActiveState->bShowBones);
+        }
+
+        auto* SelectionManager = World ? World->GetSelectionManager() : nullptr;
+        if (SelectionManager)
+        {
+            
+            if (auto* SelectedSkeletal = Cast<USkinnedMeshComponent>(SelectionManager->GetSelectedComponent()))
+            {
+                ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetGPUSkinningEnable(SelectedSkeletal->IsGPUSkinningEnable());
+            }
         }
 
         UE_LOG("SSkeletalMeshViewerWindow: Loaded skeletal mesh from %s", Path.c_str());

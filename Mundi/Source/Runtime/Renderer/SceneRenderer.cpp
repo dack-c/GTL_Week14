@@ -494,6 +494,10 @@ void FSceneRenderer::RenderShadowDepthPass(FShadowRenderRequest& ShadowRequest, 
 	UINT CurrentVertexStride = 0;
 	D3D11_PRIMITIVE_TOPOLOGY CurrentTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 
+	// GPU 스키닝
+	ID3D11ShaderResourceView* CurrentSkinMatrixSRV = nullptr;
+	ID3D11ShaderResourceView* CurrentSkinNormalMatrixSRV = nullptr;
+
 	for (const FMeshBatchElement& Batch : InShadowBatches)
 	{
 		// 셰이더/픽셀 상태 변경 불필요
@@ -516,11 +520,26 @@ void FSceneRenderer::RenderShadowDepthPass(FShadowRenderRequest& ShadowRequest, 
 			CurrentTopology = Batch.PrimitiveTopology;
 		}
 
+		if (Batch.GPUSkinMatrixSRV != CurrentSkinMatrixSRV || Batch.GPUSkinNormalMatrixSRV != CurrentSkinNormalMatrixSRV)
+		{
+			ID3D11ShaderResourceView* SkinSRVs[2] = { Batch.GPUSkinMatrixSRV, Batch.GPUSkinNormalMatrixSRV};
+			RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, SkinSRVs);
+
+			CurrentSkinMatrixSRV = Batch.GPUSkinMatrixSRV;
+			CurrentSkinNormalMatrixSRV = Batch.GPUSkinNormalMatrixSRV;
+		}
+
 		// 오브젝트별 World 행렬 설정 (VS에서 필요)
 		RHIDevice->SetAndUpdateConstantBuffer(ModelBufferType(Batch.WorldMatrix, Batch.WorldMatrix.InverseAffine().Transpose()));
 
 		// 드로우 콜
 		RHIDevice->GetDeviceContext()->DrawIndexed(Batch.IndexCount, Batch.StartIndex, Batch.BaseVertexIndex);
+	}
+
+	if (CurrentSkinMatrixSRV || CurrentSkinNormalMatrixSRV)
+	{
+		ID3D11ShaderResourceView* NullSRVs[2] = { nullptr, nullptr };
+		RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, NullSRVs);
 	}
 }
 
@@ -1290,6 +1309,10 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 	ID3D11Buffer* CurrentIndexBuffer = nullptr;
 	UINT CurrentVertexStride = 0;
 	D3D11_PRIMITIVE_TOPOLOGY CurrentTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+	// GPU 스키닝
+	ID3D11ShaderResourceView* CurrentSkinMatrixSRV = nullptr;
+	ID3D11ShaderResourceView* CurrentSkinNormalMatrixSRV = nullptr;
+	RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, nullSRVs);
 
 	// 기본 샘플러 미리 가져오기 (루프 내 반복 호출 방지)
 	ID3D11SamplerState* DefaultSampler = RHIDevice->GetSamplerState(RHI_Sampler_Index::Default);
@@ -1388,6 +1411,17 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 			// --- 캐시 업데이트 ---
 			CurrentMaterial = Batch.Material;
 			CurrentInstanceSRV = Batch.InstanceShaderResourceView;
+		}
+
+		if (Batch.GPUSkinMatrixSRV != CurrentSkinMatrixSRV || Batch.GPUSkinNormalMatrixSRV != CurrentSkinNormalMatrixSRV)
+		{
+			// t12, t13
+			ID3D11ShaderResourceView* SkinSRVs[2] = {Batch.GPUSkinMatrixSRV, Batch.GPUSkinNormalMatrixSRV};
+
+			RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, SkinSRVs);
+
+			CurrentSkinMatrixSRV = Batch.GPUSkinMatrixSRV;
+			CurrentSkinNormalMatrixSRV = Batch.GPUSkinNormalMatrixSRV;
 		}
 
 		// 3. IA (Input Assembler) 상태 변경
