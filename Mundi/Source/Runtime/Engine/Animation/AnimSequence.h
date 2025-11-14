@@ -1,6 +1,17 @@
 ﻿#pragma once
 #include "AnimSequenceBase.h"
 
+// Forward declarations
+struct FPoseContext
+{
+    TArray<FTransform> Pose;
+
+    FPoseContext() {}
+    explicit FPoseContext(int32 NumBones)
+    {
+        Pose.SetNum(NumBones);
+    }
+};
 
 class UAnimSequence : public UAnimSequenceBase
 {
@@ -8,20 +19,14 @@ class UAnimSequence : public UAnimSequenceBase
 
 public:
     UAnimSequence();
-    virtual ~UAnimSequence()  = default;
+    virtual ~UAnimSequence() = default;
 
-protected:
-    
-    TArray<FAnimNotifyEvent> Notifies;
+    // Get animation pose at specific time
+    void GetAnimationPose(FPoseContext& OutPoseContext, const FAnimExtractContext& ExtractionContext);
 
-    //TArray<FAnimNotifyTrack> AnimNotifyTracks;
+    // Get bone pose for specific bones
+    void GetBonePose(FPoseContext& OutPoseContext, const FAnimExtractContext& ExtractionContext);
 
-    UAnimDataModel* DataModel;
-
-    float RateScale;
-
-    bool bLoop;
-    
-public:
-    UAnimDataModel* GetDataModel() const;
+    // Override GetPlayLength from base class
+    virtual float GetPlayLength() const override;
 };

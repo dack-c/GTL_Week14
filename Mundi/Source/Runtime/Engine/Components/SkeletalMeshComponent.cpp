@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
 #include "SkeletalMeshComponent.h"
+#include "Source/Runtime/Engine/Animation/AnimDateModel.h"
+#include "Source/Runtime/Engine/Animation/AnimSequence.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
@@ -8,37 +10,29 @@ USkeletalMeshComponent::USkeletalMeshComponent()
 }
 
 
+void USkeletalMeshComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // 1. ResourceManager에서 애니메이션 가져오기
+    UAnimSequence* WalkAnim = RESOURCE.Get<UAnimSequence>("Data/Walking.fbx");
+
+    // 2. SkeletalMeshComponent에 설정
+    SetAnimation(WalkAnim);
+
+    // 3. 재생 시작
+    SetPlaying(true);
+    SetLooping(true);
+}
+
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
-    //// FOR TEST ////
-    if (!SkeletalMesh) { return; } // 부모의 SkeletalMesh 확인
 
-    // 1. 테스트할 뼈 인덱스 (모델에 따라 1, 5, 10 등 바꿔보세요)
-    constexpr int32 TEST_BONE_INDEX = 2;
-    
-    // 3. 테스트 시간 누적
-    if (!bIsInitialized)
-    {
-        TestBoneBasePose = CurrentLocalSpacePose[TEST_BONE_INDEX];
-        bIsInitialized = true;
-    }
-    TestTime += DeltaTime;
+    if (!SkeletalMesh) { return; }
 
-    // 4. sin 함수를 이용해 -1 ~ +1 사이를 왕복하는 회전값 생성
-    // (예: Y축(Yaw)을 기준으로 1초에 1라디안(약 57도)씩 왕복)
-    float Angle = sinf(TestTime * 2.f);
-    FQuat TestRotation = FQuat::FromAxisAngle(FVector(1.f, 0.f, 0.f), Angle);
-    TestRotation.Normalize();
-
-    // 5. [중요] 원본 T-Pose에 테스트 회전을 누적
-    FTransform NewLocalPose = TestBoneBasePose;
-    NewLocalPose.Rotation = TestRotation * TestBoneBasePose.Rotation;
-    
-    // 6. [핵심] 기즈모가 하듯이, 뼈의 로컬 트랜스폼을 강제 설정
-    // (이 함수는 내부적으로 ForceRecomputePose()를 호출함)
-    SetBoneLocalTransform(TEST_BONE_INDEX, NewLocalPose);
-    //// FOR TEST ////
+    // 애니메이션 업데이트
+    TickAnimation(DeltaTime);
 }
 
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
@@ -171,8 +165,137 @@ void USkeletalMeshComponent::UpdateFinalSkinningMatrices()
     {
         const FMatrix& InvBindPose = Skeleton.Bones[BoneIndex].InverseBindPose;
         const FMatrix ComponentPoseMatrix = CurrentComponentSpacePose[BoneIndex].ToMatrix();
-        
+
         TempFinalSkinningMatrices[BoneIndex] = InvBindPose * ComponentPoseMatrix;
         TempFinalSkinningNormalMatrices[BoneIndex] = TempFinalSkinningMatrices[BoneIndex].Inverse().Transpose();
     }
+}
+
+// ============================================================
+// Animation Section
+// ============================================================
+
+void USkeletalMeshComponent::SetAnimation(UAnimSequence* InAnimation)
+{
+    if (CurrentAnimation != InAnimation)
+    {
+        CurrentAnimation = InAnimation;
+        CurrentAnimationTime = 0.0f;
+
+        if (CurrentAnimation)
+        {
+            // 애니메이션이 설정되면 자동으로 재생 시작
+            bIsPlaying = true;
+        }
+    }
+}
+
+void USkeletalMeshComponent::SetAnimationTime(float InTime)
+{
+    CurrentAnimationTime = InTime;
+
+    if (CurrentAnimation)
+    {
+        float PlayLength = CurrentAnimation->GetPlayLength();
+
+        // 루핑 처리
+        if (bIsLooping)
+        {
+            while (CurrentAnimationTime < 0.0f)
+            {
+                CurrentAnimationTime += PlayLength;
+            }
+            while (CurrentAnimationTime > PlayLength)
+            {
+                CurrentAnimationTime -= PlayLength;
+            }
+        }
+        else
+        {
+            // 범위 제한
+            CurrentAnimationTime = FMath::Clamp(CurrentAnimationTime, 0.0f, PlayLength);
+        }
+    }
+}
+
+void USkeletalMeshComponent::TickAnimation(float DeltaTime)
+{
+    if (!ShouldTickAnimation())
+    {
+        return;
+    }
+
+    TickAnimInstances(DeltaTime);
+}
+
+bool USkeletalMeshComponent::ShouldTickAnimation() const
+{
+    return CurrentAnimation != nullptr && bIsPlaying;
+}
+
+void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
+{
+    if (!CurrentAnimation || !bIsPlaying)
+    {
+        return;
+    }
+
+    // 1. 시간 업데이트
+    CurrentAnimationTime += DeltaTime * PlayRate;
+
+    float PlayLength = CurrentAnimation->GetPlayLength();
+
+    // 2. 루핑 처리
+    if (bIsLooping)
+    {
+        if (CurrentAnimationTime >= PlayLength)
+        {
+            CurrentAnimationTime = FMath::Fmod(CurrentAnimationTime, PlayLength);
+        }
+    }
+    else
+    {
+        // 애니메이션 끝에 도달하면 정지
+        if (CurrentAnimationTime >= PlayLength)
+        {
+            CurrentAnimationTime = PlayLength;
+            bIsPlaying = false;
+        }
+    }
+
+    // 3. 현재 시간의 포즈 추출
+    UAnimDataModel* DataModel = CurrentAnimation->GetDataModel();
+    if (!DataModel)
+    {
+        return;
+    }
+
+    const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+    int32 NumBones = DataModel->GetNumBoneTracks();
+
+    // 4. 각 본의 애니메이션 포즈 적용
+    FAnimExtractContext ExtractContext(CurrentAnimationTime, bIsLooping);
+    FPoseContext PoseContext(NumBones);
+
+    CurrentAnimation->GetAnimationPose(PoseContext, ExtractContext);
+
+    // 5. 추출된 포즈를 CurrentLocalSpacePose에 적용
+    const TArray<FBoneAnimationTrack>& BoneTracks = DataModel->GetBoneAnimationTracks();
+
+    for (int32 TrackIdx = 0; TrackIdx < BoneTracks.Num(); ++TrackIdx)
+    {
+        const FBoneAnimationTrack& Track = BoneTracks[TrackIdx];
+
+        // 스켈레톤에서 본 인덱스 찾기
+        int32 BoneIndex = Skeleton.FindBoneIndex(Track.Name);
+
+        if (BoneIndex != INDEX_NONE && BoneIndex < CurrentLocalSpacePose.Num())
+        {
+            // 애니메이션 포즈 적용
+            CurrentLocalSpacePose[BoneIndex] = PoseContext.Pose[TrackIdx];
+        }
+    }
+
+    // 6. 포즈 변경 사항을 스키닝에 반영
+    ForceRecomputePose();
 }

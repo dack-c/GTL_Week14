@@ -35,16 +35,42 @@ public:
 
 
 public:
-    // TODO : 개귀찮은 getter/setter함수 추가 예정
+    // Getter functions
+    const TArray<FBoneAnimationTrack>& GetBoneAnimationTracks() const { return BoneAnimationTracks; }
+    TArray<FBoneAnimationTrack>& GetBoneAnimationTracks() { return BoneAnimationTracks; }
+    float GetPlayLength() const { return PlayLength; }
+    int32 GetFrameRate() const { return FrameRate; }
+    int32 GetNumberOfFrames() const { return NumberOfFrames; }
+    int32 GetNumberOfKeys() const { return NumberOfKeys; }
 
-    
+    // Setter functions (for internal use)
+    void SetPlayLength(float InPlayLength) { PlayLength = InPlayLength; }
+    void SetFrameRate(int32 InFrameRate) { FrameRate = InFrameRate; }
+    void SetNumberOfFrames(int32 InNumberOfFrames) { NumberOfFrames = InNumberOfFrames; }
+    void SetNumberOfKeys(int32 InNumberOfKeys) { NumberOfKeys = InNumberOfKeys; }
+
+    // Track management
+    int32 GetNumBoneTracks() const { return BoneAnimationTracks.Num(); }
+    int32 AddBoneTrack(const FName& BoneName);
+    bool RemoveBoneTrack(const FName& BoneName);
+    int32 FindBoneTrackIndex(const FName& BoneName) const;
+    FBoneAnimationTrack* FindBoneTrack(const FName& BoneName);
+    const FBoneAnimationTrack* FindBoneTrack(const FName& BoneName) const;
+
+    // Key data access
+    bool SetBoneTrackKeys(const FName& BoneName, const TArray<FVector>& PosKeys, const TArray<FQuat>& RotKeys, const TArray<FVector>& ScaleKeys);
+    bool GetBoneTrackTransform(const FName& BoneName, int32 KeyIndex, FTransform& OutTransform) const;
+
+    // Interpolation
+    FTransform EvaluateBoneTrackTransform(const FName& BoneName, float Time, bool bInterpolate = true) const;
+
 private:
     TArray<FBoneAnimationTrack> BoneAnimationTracks;
-    float PlayLength;
-    int32 FrameRate;
-    int32 NumberOfFrames;
-    int32 NumberOfKeys;
-    
+    float PlayLength = 0.0f;
+    int32 FrameRate = 30;
+    int32 NumberOfFrames = 0;
+    int32 NumberOfKeys = 0;
+
     //FAnimationCurveData CurveData;
-    
+
 };

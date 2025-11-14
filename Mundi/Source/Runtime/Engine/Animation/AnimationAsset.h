@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Object.h"
+#include "ResourceBase.h"
 
 
 /**
@@ -9,7 +9,7 @@
 
 
 /**
- * @brief 제공하는 기능 
+ * @brief 제공하는 기능
  * 1. 스켈레톤 연결 : 애니메이션과 스켈레톤을 매칭
  * 2. 재생 시간 : GetPlayLength() - 애니메이션 길이
  * 3. 추출 컨텍스트 : FAnimExtractContext - 시간/루핑 정보 전달
@@ -21,7 +21,7 @@ struct FAnimExtractContext
     FAnimExtractContext(double InCurrentTime = 0.0, bool InbLooping = false) : CurrentTime(InCurrentTime), bLooping(InbLooping)
     {
     }
-    // 현재 재생 시간 
+    // 현재 재생 시간
     double CurrentTime;
 
     // 루프 여부
@@ -30,9 +30,9 @@ struct FAnimExtractContext
 
 class USkeleton;
 
-class UAnimationAsset : public UObject
+class UAnimationAsset : public UResourceBase
 {
-    DECLARE_CLASS(UAnimationAsset, UObject)
+    DECLARE_CLASS(UAnimationAsset, UResourceBase)
 
 public:
     UAnimationAsset() = default;
