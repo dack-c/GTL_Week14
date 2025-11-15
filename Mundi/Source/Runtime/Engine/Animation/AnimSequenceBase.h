@@ -24,6 +24,15 @@ public:
     UAnimSequenceBase();
     virtual ~UAnimSequenceBase()  = default;
 
+
+public:
+    UAnimDataModel* GetDataModel() const;
+
+    bool IsNotifyAvailable() const;
+    void GetAnimNotify(const float& StartTime, const float& DeltaTime, TArray<FPendingAnimNotify>& OutNotifies) const;
+    void GetAnimNotifiesFromDeltaPosition(const float& PreviousPosition, const float& CurrentPosition, TArray<FPendingAnimNotify>& OutNotifies) const;
+	void AddPlaySoundNotify(float Time, UAnimNotify* Notify, float Duration = 0.0f);
+
 protected:
     
     TArray<FAnimNotifyEvent> Notifies;
@@ -34,8 +43,6 @@ protected:
 
     float RateScale;
 
-    bool bLoop;
-    
 public:
     UAnimDataModel* GetDataModel() const;
 
@@ -46,4 +53,5 @@ public:
     void GetAnimNotifiesFromDeltaPosition(const float& PreviousPosition, const float& CurrentPosition, TArray<FPendingAnimNotify>& OutNotifies) const;
     
     void AddPlaySoundNotify(float Time, UAnimNotify* Notify, float Duration = 0.0f);
+    bool bLoop;  
 };

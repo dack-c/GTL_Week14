@@ -1,7 +1,15 @@
-﻿#pragma once
+#pragma once
 #include "pch.h"
 #include "AnimNotify.h"
 #include "AnimNotifyState.h"
+
+
+enum class EAnimationMode : uint8
+{
+	AnimationBlueprint,
+	AnimationSingleNode,
+	Custom
+};
 
 enum class EPendingNotifyType : uint8
 {

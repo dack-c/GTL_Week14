@@ -2,8 +2,10 @@
 #include "SkeletalMeshComponent.h"
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
-
+#include "Source/Runtime/Engine/Animation/AnimInstance.h"
+#include "Source/Runtime/Engine/Animation/AnimSingleNodeInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimTypes.h"
+#include "Source/Runtime/Engine/Animation/AnimationAsset.h"
 #include "Source/Runtime/Engine/Animation/AnimNotify_PlaySound.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
@@ -17,32 +19,25 @@ void USkeletalMeshComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    // TEST: Load and play animation
-    // 1. ResourceManager에서 애니메이션 가져오기
-    UAnimSequence* WalkAnim = RESOURCE.Get<UAnimSequence>("Data/JamesWalking.fbx_mixamo.com");
+    // TEST: Load and play animation using UE-style API
+    UAnimationAsset* WalkAnim = RESOURCE.Get<UAnimSequence>("Data/JamesWalking.fbx_mixamo.com");
 
     if (WalkAnim)
     {
         UE_LOG("Animation loaded successfully! Duration: %.2f seconds", WalkAnim->GetPlayLength());
 
-
-        // 2. SkeletalMeshComponent에 설정
-        SetAnimation(WalkAnim);
-
-        // 3. 재생 시작
-        SetPlaying(true);
-        SetLooping(true);
-        SetPlayRate(1.0f);
+        // UE 스타일 API 사용
+        PlayAnimation(WalkAnim, true);
     }
     else
     {
-        UE_LOG("Failed to load animation: Data/James/James.fbx_Take 001");
+        UE_LOG("Failed to load animation: Data/James/James.fbx_mixamo.com");
     }
 
     UAnimNotify_PlaySound* N_PlaySound = NewObject<UAnimNotify_PlaySound>(); 
     N_PlaySound->Sound = UResourceManager::GetInstance().Load<USound>("Data/Audio/CGC1.wav");
 
-    WalkAnim->AddPlaySoundNotify(0.5f, N_PlaySound);
+    static_cast<UAnimSequenceBase*>(WalkAnim)->AddPlaySoundNotify(0.5f, N_PlaySound);
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
@@ -51,8 +46,23 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
     if (!SkeletalMesh) { return; }
 
-    // 애니메이션 업데이트
-    TickAnimation(DeltaTime);
+    // AnimInstance가 있으면 AnimInstance를 통해 애니메이션 업데이트 (권장 경로)
+    if (AnimInstance)
+    {
+        // AnimInstance가 NativeUpdateAnimation에서:
+        // 1. 상태머신 업데이트 (있다면)
+        // 2. 시간 갱신 및 루핑 처리
+        // 3. 포즈 평가 및 SetAnimationPose() 호출
+        // 4. 노티파이 트리거
+        // 5. 커브 업데이트
+        AnimInstance->NativeUpdateAnimation(DeltaTime);
+    }
+    else
+    {
+        // 레거시 경로: AnimInstance 없이 직접 애니메이션 업데이트
+        // (호환성 유지를 위해 남겨둠, 추후 제거 예정)
+        TickAnimation(DeltaTime);
+    }
 }
 
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
@@ -98,6 +108,74 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
         TempFinalSkinningMatrices.Empty();
         TempFinalSkinningNormalMatrices.Empty();
     }
+}
+
+void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
+{
+    if (AnimationMode == InAnimationMode)
+    {
+        return; // 이미 해당 모드
+    }
+
+    AnimationMode = InAnimationMode;
+
+    if (AnimationMode == EAnimationMode::AnimationSingleNode)
+    {
+        // SingleNode 모드: UAnimSingleNodeInstance 생성
+        UAnimSingleNodeInstance* SingleNodeInstance = NewObject<UAnimSingleNodeInstance>();
+        SetAnimInstance(SingleNodeInstance);
+
+        UE_LOG("SetAnimationMode: Switched to AnimationSingleNode mode");
+    }
+    else if (AnimationMode == EAnimationMode::AnimationBlueprint)
+    {
+        // AnimationBlueprint 모드: 커스텀 AnimInstance 설정 대기
+        // (사용자가 SetAnimInstance로 상태머신이 포함된 인스턴스를 설정해야 함)
+        UE_LOG("SetAnimationMode: Switched to AnimationBlueprint mode");
+    }
+}
+
+void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool bLooping)
+{
+    if (!NewAnimToPlay)
+    {
+        StopAnimation();
+        return;
+    }
+
+    // SingleNode 모드로 전환 (AnimSingleNodeInstance 자동 생성)
+    SetAnimationMode(EAnimationMode::AnimationSingleNode);
+
+    UAnimSequence* Sequence = Cast<UAnimSequence>(NewAnimToPlay);
+    if (!Sequence)
+    {
+        UE_LOG("PlayAnimation: Only UAnimSequence assets are supported currently");
+        return;
+    }
+
+    // AnimSingleNodeInstance를 통해 재생
+    UAnimSingleNodeInstance* SingleNodeInstance = Cast<UAnimSingleNodeInstance>(AnimInstance);
+    if (SingleNodeInstance)
+    {
+        SingleNodeInstance->PlaySingleNode(Sequence, bLooping, 1.0f);
+        UE_LOG("PlayAnimation: Playing through AnimSingleNodeInstance");
+    }
+    else
+    {
+        // Fallback: 직접 재생
+        SetAnimation(Sequence);
+        SetLooping(bLooping);
+        SetPlayRate(1.0f);
+        CurrentAnimationTime = 0.0f;
+        SetPlaying(true);
+        UE_LOG("PlayAnimation: Playing directly (fallback)");
+    }
+}
+
+void USkeletalMeshComponent::StopAnimation()
+{
+    SetPlaying(false);
+    CurrentAnimationTime = 0.0f;
 }
 
 void USkeletalMeshComponent::SetBoneLocalTransform(int32 BoneIndex, const FTransform& NewLocalTransform)
@@ -380,6 +458,7 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
     FAnimExtractContext ExtractContext(CurrentAnimationTime, bIsLooping);
     FPoseContext PoseContext(NumBones);
 
+    // 현재 재생시간과 루핑 정보를 담은 ExtractContext 구조체를 기반으로 GetAnimationPose에서 현재 시간에 맞는 본의 행렬을 반환한다
     CurrentAnimation->GetAnimationPose(PoseContext, ExtractContext);
 
     // 5. 추출된 포즈를 CurrentLocalSpacePose에 적용
@@ -449,3 +528,50 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
     // 6. 포즈 변경 사항을 스키닝에 반영
     ForceRecomputePose();
 }
+
+// ============================================================
+// AnimInstance Integration
+// ============================================================
+
+void USkeletalMeshComponent::SetAnimationPose(const TArray<FTransform>& InPose)
+{
+    if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshData())
+    {
+        return;
+    }
+
+    const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+    const int32 NumBones = Skeleton.Bones.Num();
+
+    // 포즈가 스켈레톤과 일치하는지 확인
+    if (InPose.Num() != NumBones)
+    {
+        UE_LOG("SetAnimationPose: Pose size mismatch (%d != %d)", InPose.Num(), NumBones);
+        return;
+    }
+
+    // AnimInstance가 계산한 포즈를 CurrentLocalSpacePose에 복사
+    // 주의: AnimInstance의 포즈는 본 트랙 순서이므로 스켈레톤 본 순서와 매칭해야 함
+    for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
+    {
+        if (BoneIndex < InPose.Num())
+        {
+            CurrentLocalSpacePose[BoneIndex] = InPose[BoneIndex];
+        }
+    }
+
+    // 포즈 변경 사항을 스키닝에 반영
+    ForceRecomputePose();
+}
+
+void USkeletalMeshComponent::SetAnimInstance(UAnimInstance* InAnimInstance)
+{
+    AnimInstance = InAnimInstance;
+
+    if (AnimInstance)
+    {
+        AnimInstance->Initialize(this);
+        UE_LOG("AnimInstance initialized for SkeletalMeshComponent");
+    }
+}
+

@@ -266,6 +266,7 @@
     <ClCompile Include="Source\Runtime\Debug\CrashHandler.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimationAsset.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimationRuntime.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimationStateMachine.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimDataModel.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.cpp" />
@@ -273,11 +274,89 @@
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimSequence.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimSequenceBase.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\Team2AnimInstance.cpp">
+      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerListingLocation>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\</AssemblerListingLocation>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\</BrowseInformationFile>
+      <CompileAs>Default</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DiagnosticsFormat>Column</DiagnosticsFormat>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <EnableASAN>false</EnableASAN>
+      <EnableFuzzer>false</EnableFuzzer>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <GenerateModuleDependencies>false</GenerateModuleDependencies>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ModuleDependenciesFile>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\</ModuleDependenciesFile>
+      <ModuleOutputFile>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\</ModuleOutputFile>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <ObjectFileName>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\</ObjectFileName>
+      <CallingConvention>Cdecl</CallingConvention>
+      <ProgramDataBaseFileName>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\vc143.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\Mundi.pch</PrecompiledHeaderOutputFile>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ShowIncludes>false</ShowIncludes>
+      <SourceDependenciesFile>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\</SourceDependenciesFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <SpectreMitigation>false</SpectreMitigation>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TrackerLogDirectory>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\Mundi.tlog\</TrackerLogDirectory>
+      <TranslateIncludes>false</TranslateIncludes>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <UseFullPaths>true</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <XMLDocumentationFileName>C:\Users\Jungle\Desktop\GTL_Week11\Intermediate\Mundi\Debug\</XMLDocumentationFileName>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <BuildStlModules>false</BuildStlModules>
+      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_EDITOR;_UNICODE;UNICODE;</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Users\Jungle\Desktop\GTL_Week11\Mundi\;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Generated;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Core\Object;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Core\Math;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Core\Containers;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Core\Misc;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Core\Memory;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Engine\GameFramework;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Engine\Scripting;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Engine\Components;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Engine\Collision;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Engine\Spatial;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\RHI;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\Renderer;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\AssetManagement;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Runtime\InputCore;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Editor;C:\Users\Jungle\Desktop\GTL_Week11\Mundi\Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;C:\Users\Jungle\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 /bigobj /MP </AdditionalOptions>
+      <LinkCompiled>true</LinkCompiled>
+    </ClCompile>
     <ClCompile Include="Source\Runtime\Engine\Components\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\SkinnedMeshComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\SkeletalMeshActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\BoneAnchorComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Fade.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimInstance.cpp" />
     <FxCompile Include="Shaders\Materials\Fireball.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">true</ExcludedFromBuild>
@@ -672,14 +751,18 @@
     <ClInclude Include="Source\Runtime\Debug\CrashHandler.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimationAsset.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimationRuntime.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimationStateMachine.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimDateModel.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimInstance.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify_PlaySound.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequence.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequenceBase.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimTypes.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\Team2AnimInstance.h" />
     <ClInclude Include="Source\Runtime\Engine\Audio\Sound.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\AudioComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\CapsuleComponent.h" />
@@ -899,6 +982,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Tools\CodeGenerator\requirements.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Source\Runtime\Engine\Animation\Animinstance\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
