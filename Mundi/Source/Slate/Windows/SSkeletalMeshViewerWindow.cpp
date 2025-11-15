@@ -653,21 +653,29 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
     if (!ActiveState || !ActiveState->Viewport)
         return;
 
-    // Tick the preview world so editor actors (e.g., gizmo) update visibility/state
-    if (ActiveState->World)
-    {
-        ActiveState->World->Tick(DeltaSeconds);
-        if (ActiveState->World->GetGizmoActor())
-            ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
-    }
-
     if (ActiveState && ActiveState->Client)
     {
         ActiveState->Client->Tick(DeltaSeconds);
     }
 
+    if (ActiveState->bTimeChanged)
+    {
+        ActiveState->bBoneLinesDirty = true;
+    }
+
     if (!ActiveState->CurrentAnimation || !ActiveState->CurrentAnimation->GetDataModel())
     {
+        if (ActiveState->World)
+        {
+            ActiveState->World->Tick(DeltaSeconds);
+            if (ActiveState->World->GetGizmoActor())
+                ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
+        }
+        
+        if(ActiveState->bTimeChanged)
+        {
+             ActiveState->bTimeChanged = false;
+        }
         return;
     }
 
@@ -676,6 +684,9 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
     {
         DataModel = ActiveState->CurrentAnimation->GetDataModel();
     }
+
+    bool bIsPlaying = ActiveState->bIsPlaying || ActiveState->bIsPlayingReverse;
+    bool bTimeAdvancedThisFrame = false;
 
     if (DataModel && DataModel->GetPlayLength() > 0.0f)
     {
@@ -694,6 +705,7 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
                     ActiveState->bIsPlaying = false;
                 }
             }
+            bTimeAdvancedThisFrame = true;
         }
         else if (ActiveState->bIsPlayingReverse)
         {
@@ -710,29 +722,44 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
                     ActiveState->bIsPlayingReverse = false;
                 }
             }
+            bTimeAdvancedThisFrame = true;
         }
     }
+
+    bool bUpdateAnimation = bTimeAdvancedThisFrame || ActiveState->bTimeChanged;
 
     if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
     {
         auto SkeletalMeshComponent = ActiveState->PreviewActor->GetSkeletalMeshComponent();
-        if (ActiveState->bIsPlaying || ActiveState->bIsPlayingReverse)
-        {
-            SkeletalMeshComponent->SetPlaying(true);
-        }
         
+        SkeletalMeshComponent->SetPlaying(bIsPlaying);
         SkeletalMeshComponent->SetLooping(ActiveState->bIsLooping);
 
-        bool OriginalPlaying = SkeletalMeshComponent->IsPlaying();
-        if (ActiveState->bRefreshAnimation)
+        if (bUpdateAnimation)
         {
-            SkeletalMeshComponent->SetPlaying(true);
-            ActiveState->bRefreshAnimation = false;
-        }
-        
-        SkeletalMeshComponent->SetAnimationTime(ActiveState->CurrentAnimTime);
+            bool OriginalPlaying = SkeletalMeshComponent->IsPlaying();
+            if (ActiveState->bTimeChanged) 
+            {
+                SkeletalMeshComponent->SetPlaying(true);
+            }
+            
+            SkeletalMeshComponent->SetAnimationTime(ActiveState->CurrentAnimTime);
 
-        SkeletalMeshComponent->SetPlaying(OriginalPlaying);
+            if (ActiveState->bTimeChanged) 
+            {
+                SkeletalMeshComponent->SetPlaying(OriginalPlaying);
+                ActiveState->bTimeChanged = false; 
+            }
+
+            ActiveState->bBoneLinesDirty = true;
+        }
+    }
+
+    if (ActiveState->World)
+    {
+        ActiveState->World->Tick(DeltaSeconds);
+        if (ActiveState->World->GetGizmoActor())
+            ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
     }
 }
 
@@ -1200,7 +1227,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
             {
                 State->CurrentAnimTime = ImClamp(FrameAtMouse * FrameDuration, 0.0f, PlayLength);
                 State->bIsPlaying = false;
-                // TODO: 애니메이션 시스템에 시간 업데이트
+                State->bTimeChanged = true;
             }
         }
 
@@ -1240,7 +1267,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                 if (bHasAnimation)
                 {
                     State->CurrentAnimTime = ImMax(0.0f, State->CurrentAnimTime - FrameDuration); State->bIsPlaying = false;
-                    State->bRefreshAnimation = true;
+                    State->bTimeChanged = true;
                 }
             } 
         }
@@ -1340,7 +1367,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                 if (bHasAnimation)
                 {
                     State->CurrentAnimTime = ImMin(PlayLength, State->CurrentAnimTime + FrameDuration); State->bIsPlaying = false;
-                    State->bRefreshAnimation = true;
+                    State->bTimeChanged = true;
                 }
             } 
         }
@@ -1355,7 +1382,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                 {
                     State->CurrentAnimTime = PlayLength;
                     State->bIsPlaying = false;
-                    State->bRefreshAnimation = true;
+                    State->bTimeChanged = true;
                 }
             } 
         }

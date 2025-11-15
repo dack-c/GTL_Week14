@@ -290,6 +290,11 @@ void USkeletalMeshComponent::SetAnimation(UAnimSequence* InAnimation)
 
 void USkeletalMeshComponent::SetAnimationTime(float InTime)
 {
+    if (CurrentAnimationTime == InTime)
+    {
+        return;
+    }
+    
     CurrentAnimationTime = InTime;
 
     if (CurrentAnimation)
@@ -409,7 +414,7 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
     if (!CurrentAnimation || !bIsPlaying)
     {
         return;
-    } 
+    }
 
     CurrentAnimationTime += DeltaTime * PlayRate;
 
