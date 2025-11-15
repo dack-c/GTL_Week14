@@ -235,6 +235,9 @@ void USkeletalMeshComponent::SetAnimationTime(float InTime)
             // 범위 제한
             CurrentAnimationTime = FMath::Clamp(CurrentAnimationTime, 0.0f, PlayLength);
         }
+
+        /* @todo 애니메이션 갱신을 위해 추가함. 이후, 애니메이션 계산 로직만을 별도로 분리해야 할 필요 존재함 */
+        TickAnimInstances(0.0f);
     }
 }
 

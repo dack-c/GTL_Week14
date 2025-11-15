@@ -29,6 +29,16 @@ bool UAnimSequenceBase::IsNotifyAvailable() const
     return (Notifies.Num() != 0) && (GetPlayLength() > 0.f);
 }
 
+TArray<FAnimNotifyEvent>& UAnimSequenceBase::GetAnimNotifyEvents()
+{
+    return Notifies;
+}
+
+const TArray<FAnimNotifyEvent>& UAnimSequenceBase::GetAnimNotifyEvents() const
+{
+    return Notifies;
+}
+
 void UAnimSequenceBase::GetAnimNotify(const float& StartTime, const float& DeltaTime, TArray<FPendingAnimNotify>& OutNotifies) const
 {
     OutNotifies.Empty();

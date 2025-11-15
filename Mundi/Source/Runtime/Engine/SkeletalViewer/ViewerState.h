@@ -1,6 +1,11 @@
 #pragma once
 
-class UWorld; class FViewport; class FViewportClient; class ASkeletalMeshActor; class USkeletalMesh;
+class ASkeletalMeshActor;
+class FViewport;
+class FViewportClient;
+class UAnimSequence;
+class USkeletalMesh;
+class UWorld;
 
 class ViewerState
 {
@@ -33,18 +38,17 @@ public:
     bool bBoneRotationEditing = false;
 
     // 애니메이션 관련
+    UAnimSequence* CurrentAnimation = nullptr;
     
-    // CurrentAnimation
-    float CurrentAnimTime;
-    float CurrentAnimLength;
-    int32 CurrentAnimTotalFrames;
-    int32 CurrentAnimFrames;
+    float CurrentAnimTime = 0.0f;
+    int32 CurrentAnimFrames = 0;
     
     float TimelineScale = 10.0f;
     float TimelineOffset = 0.0f;
     
-    bool bIsPlaying;
-    bool bIsPlayingReverse;
-    bool bIsRecording;
-    bool bAnimLoop;
+    bool bIsPlaying = false;
+    bool bIsPlayingReverse = false;
+    bool bRefreshAnimation = false; // 애니메이션이 강제로 업데이트 되어야 하는 상태
+    bool bIsRecording = false;
+    bool bAnimLoop = true;
 };
