@@ -6,6 +6,7 @@
 #include "Source/Runtime/Engine/Animation/AnimSingleNodeInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimTypes.h"
 #include "Source/Runtime/Engine/Animation/AnimationAsset.h"
+#include "Source/Runtime/Engine/Animation/AnimNotify_PlaySound.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
@@ -32,6 +33,11 @@ void USkeletalMeshComponent::BeginPlay()
     {
         UE_LOG("Failed to load animation: Data/James/James.fbx_mixamo.com");
     }
+
+    UAnimNotify_PlaySound* N_PlaySound = NewObject<UAnimNotify_PlaySound>(); 
+    N_PlaySound->Sound = UResourceManager::GetInstance().Load<USound>("Data/Audio/CGC1.wav");
+
+    WalkAnim->AddPlaySoundNotify(0.5f, N_PlaySound);
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
