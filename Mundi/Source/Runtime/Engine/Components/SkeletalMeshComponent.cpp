@@ -8,6 +8,8 @@
 #include "Source/Runtime/Engine/Animation/AnimationAsset.h"
 #include "Source/Runtime/Engine/Animation/AnimNotify_PlaySound.h"
 
+#include "PlatformTime.h"
+
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
     // 테스트용 기본 메시 설정 - 애니메이션과 동일한 FBX 사용
@@ -228,8 +230,10 @@ void USkeletalMeshComponent::ForceRecomputePose()
     UpdateComponentSpaceTransforms();
     // ComponentSpace -> Final Skinning Matrices 계산
     UpdateFinalSkinningMatrices();
-    UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);
+    UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);    
+    
     PerformSkinning();
+    
 }
 
 void USkeletalMeshComponent::UpdateComponentSpaceTransforms()

@@ -9,6 +9,7 @@
 #include "SelectionManager.h"
 #include "USlateManager.h"
 #include "BoneAnchorComponent.h"
+#include "SkinningStats.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Collision/Picking.h"
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
@@ -254,7 +255,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                 }
             }
             ImGui::PopStyleColor(2);
-            ImGui::EndGroup();
+            ImGui::EndGroup();           
 
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.35f, 0.45f, 0.60f, 0.7f));
