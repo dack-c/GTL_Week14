@@ -3,6 +3,7 @@
 #include "ObjectFactory.h"
 #include "AnimSequence.h"
 #include "AnimationRuntime.h"
+#include "AnimNotify_PlaySound.h"
 
 #include "AnimTypes.h"
 
@@ -51,7 +52,7 @@ void UAnimSequenceBase::GetAnimNotify(const float& StartTime, const float& Delta
         MaxLoopCount = FMath::Clamp((DesiredDeltaMove / PlayLength), 2.0f, 1000.0f); 
     }
 
-    for (int i = 0; i < MaxLoopCount; ++i)
+    for (int i = 0; i < 1; ++i)
     {
         const ETypeAdvanceAnim AdvanceType = FAnimationRuntime::AdvanceTime(false, DesiredDeltaMove, CurrentPosition, PlayLength);
 
@@ -196,4 +197,20 @@ void UAnimSequenceBase::GetAnimNotifiesFromDeltaPosition(const float& PreviousPo
            
         }
     }
+}
+
+void UAnimSequenceBase::AddPlaySoundNotify(float Time, UAnimNotify* Notify, float Duration)
+{
+    if (!Notify)
+    {
+        return;
+    } 
+
+    FAnimNotifyEvent NewEvent;
+    NewEvent.TriggerTime = Time;
+    NewEvent.Duration = Duration;
+    NewEvent.Notify = Notify;
+    NewEvent.NotifyState = nullptr;
+
+    Notifies.Add(NewEvent); 
 }
