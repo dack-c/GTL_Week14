@@ -1,4 +1,7 @@
 ﻿#pragma once
+#include "SelectionManager.h"
+#include "SkinnedMeshComponent.h"
+#include "StatsOverlayD2D.h"
 #include "UEContainer.h"
 /*
  * 전체 bone 개수
@@ -21,7 +24,8 @@ struct FSkinningStats
     uint32 SelectedBones = 0;
     uint32 SelectedVertices = 0;
 
-    FString SkinningType = "test";
+    FString AllSkeletalSkinningType = "CPU";
+    FString SelectedSkeletalSkinningType = "NONE";
 
     FSkinningStats() {};
 
@@ -32,7 +36,8 @@ struct FSkinningStats
         TotalVertices = other.TotalVertices;
         SelectedBones = other.SelectedBones;
         SelectedVertices = other.SelectedVertices;
-        SkinningType = other.SkinningType;        
+        AllSkeletalSkinningType = other.AllSkeletalSkinningType;
+        SelectedSkeletalSkinningType = other.SelectedSkeletalSkinningType;
     };
 
     void AddStats(const FSkinningStats& other)
@@ -46,11 +51,13 @@ struct FSkinningStats
 
     void Reset()
     {
+        TotalSkeletals = 0;
         TotalBones = 0;
         TotalVertices = 0;
         SelectedBones = 0;
         SelectedVertices = 0;
-        SkinningType.clear();
+        // AllSkeletalSkinningType = "CPU";
+        // SelectedSkeletalSkinningType = "CPU";
     }
 };
 
@@ -78,7 +85,54 @@ public:
         CurrentStats.Reset();
     }
 
-   
+    void SetSelectedSkinningType(const FString& InType)
+    {
+        CurrentStats.SelectedSkeletalSkinningType = InType;
+    }
+
+    void SetAllSkinningType(const FString& InType)
+    {
+        CurrentStats.AllSkeletalSkinningType = InType;
+    }
+
+    void GatherSkinnningStats(TArray<UMeshComponent*>& Components, USelectionManager* SelectionManager)
+    {
+        if(Components.IsEmpty() || !UStatsOverlayD2D::Get().IsSkinningVisible() || !SelectionManager)
+        {
+            return;
+        }
+
+        for (UMeshComponent* MeshComp : Components)
+        {
+            if (USkinnedMeshComponent* SkinnedComp = Cast<USkinnedMeshComponent>(MeshComp))
+            {
+                CurrentStats.TotalSkeletals++;
+                if (USkeletalMesh* SkeletalMesh = SkinnedComp->GetSkeletalMesh())
+                {
+                    CurrentStats.TotalBones += SkeletalMesh->GetBoneCount();
+                    CurrentStats.TotalVertices += SkeletalMesh->GetVertexCount();
+                }
+            }
+        }
+
+        if (USkinnedMeshComponent* SkinnedComp = Cast<USkinnedMeshComponent>(SelectionManager->GetSelectedComponent()))
+        {
+            if (USkeletalMesh* SkeletalMesh = SkinnedComp->GetSkeletalMesh())
+            {
+                CurrentStats.SelectedBones += SkeletalMesh->GetBoneCount();
+                CurrentStats.SelectedVertices += SkeletalMesh->GetVertexCount();				
+            }
+
+            CurrentStats.SelectedSkeletalSkinningType = SkinnedComp->IsGPUSkinningEnable() ? "GPU" : "CPU"; 
+
+        }
+        else
+        {
+            CurrentStats.SelectedBones = 0;
+            CurrentStats.SelectedVertices = 0;
+            CurrentStats.SelectedSkeletalSkinningType = "NONE";
+        }
+    }
 
 private:
     FSkinningStatManager() = default;

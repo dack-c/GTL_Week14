@@ -134,12 +134,14 @@ void USkeletalMeshComponent::ForceRecomputePose()
 {
     if (!SkeletalMesh) { return; } 
 
+    TIME_PROFILE(CPUTime)
     // LocalSpace -> ComponentSpace 계산
     UpdateComponentSpaceTransforms();
     // ComponentSpace -> Final Skinning Matrices 계산
     UpdateFinalSkinningMatrices();
     UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);    
-    PerformSkinning();    
+    PerformSkinning();
+    TIME_PROFILE_END(CPUTime)
 }
 
 void USkeletalMeshComponent::UpdateComponentSpaceTransforms()

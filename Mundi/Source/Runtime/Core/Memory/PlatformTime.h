@@ -102,6 +102,11 @@ struct FTimeProfile
 		swprintf_s(buffer, _countof(buffer), L"%s : %.3fms, Call : %d", std::wstring(Key.begin(), Key.end()).c_str(), Milliseconds, CallCount);
 		return buffer;
 	}
+
+	const double GetTime() const
+	{
+		return Milliseconds;
+	}
 };
 
 typedef FWindowsPlatformTime FPlatformTime;

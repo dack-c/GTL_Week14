@@ -376,40 +376,43 @@ void UStatsOverlayD2D::Draw()
 	}
 
 	if (bShowSkinning)
-	{
-		// CPU, GPU 합친 스키닝 시간
-		float TotalSkinningTime = 0.0f;
+	{		
 		// 전체 스켈레탈 렌더 패스 시간
-		float SkeletalPassTime = 0.0f;
+		double SkeletalPassTime = FScopeCycleCounter::GetTimeProfile("SkeletalPass").GetTime();
 		// 뷰어에서 편집할 때 걸리는 시간
-		float PoseUpdateTime = 0.0f;
+		double PoseUpdateTime = 0.0f;
 		// GPU 스키닝 시 버퍼 업로드 시간
-		float SkinnigBufferUpdateTime = 0.0f;
+		double SkinnigBufferUpdateTime = FScopeCycleCounter::GetTimeProfile("GPUUpdateTime").GetTime();
 		// GPU 스키닝 시 CPU 시간 -> TotalSkinningTime - SkinnigBufferUpdateTime
-		float CPUTime = 0.0f;
+		double CPUTime = FScopeCycleCounter::GetTimeProfile("CPUTime").GetTime() - SkinnigBufferUpdateTime;
 
 		const FSkinningStats& SkinningStats = FSkinningStatManager::GetInstance().GetStats();
-		FWideString SkinningType = UTF8ToWide(SkinningStats.SkinningType);
+		FWideString AllSkinningType = UTF8ToWide(SkinningStats.AllSkeletalSkinningType);
+		FWideString SelectedSkinningType = UTF8ToWide(SkinningStats.SelectedSkeletalSkinningType);
 		wchar_t Buf[512];
-		swprintf_s(Buf, L"[Skeleta Stats]\n Skinning Type : %s\n Total Skeletals : %u\n Total Bones : %u\n Total Vertices : %u\n"
-				  L" Editable Bones : %u\n Current Vertices : %u\n"
-				  L" Skeletal Pass Time : %.3f\n Total Skinning Time : %.3f\n Total CPU Time : %.3f\n"
-				  L" GPU Update Time : %.3f\n Editor Update Time : %.3f\n",
-				  SkinningType.c_str(),
-				  SkinningStats.TotalSkeletals,
-				  SkinningStats.TotalBones,
-				  SkinningStats.TotalVertices,
-				  SkinningStats.SelectedBones,
-				  SkinningStats.SelectedVertices,
-				  SkeletalPassTime,
-				  TotalSkinningTime,
-				  CPUTime,
-				  SkinnigBufferUpdateTime,
-				  PoseUpdateTime
-				  );
+		swprintf_s(
+			Buf,
+			L"[Skeleta Stats]\n All Skinning Type : %s\n Total Skeletals : %u\n Total Bones : %u\n Total Vertices : %u\n"
+			L"[Selected Skeletal]\n"
+			L" Selected Skinning Type : %s\n Editable Bones : %u\n Current Vertices : %u\n"
+			L"[Times]\n"
+			L" Skeletal Pass Time : %.3f\n Total CPU Time : %.3f\n"
+			L" GPU Update Time : %.3f\n Viewer Update Time : %.3f\n",
+			AllSkinningType.c_str(),
+			SkinningStats.TotalSkeletals,
+			SkinningStats.TotalBones,
+			SkinningStats.TotalVertices,
+			SelectedSkinningType.c_str(),
+			SkinningStats.SelectedBones,
+			SkinningStats.SelectedVertices,
+			SkeletalPassTime,
+			CPUTime,
+			SkinnigBufferUpdateTime,
+			PoseUpdateTime
+		);
 
-		const float SkinningPanelHeight = 140.0f;
-		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + SkinningPanelHeight);
+		const float SkinningPanelHeight = 340.0f;
+		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth + 50.0f, NextY + SkinningPanelHeight);
 
 		DrawTextBlock(
 			D2dCtx, Dwrite, Buf, rc, 16.0f,

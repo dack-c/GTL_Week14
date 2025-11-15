@@ -9,6 +9,7 @@
 #include "SelectionManager.h"
 #include "USlateManager.h"
 #include "BoneAnchorComponent.h"
+#include "SkinningStats.h"
 #include "Source/Runtime/Engine/Collision/Picking.h"
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 
@@ -773,8 +774,7 @@ void SSkeletalMeshViewerWindow::LoadSkeletalMesh(const FString& Path)
         auto* SelectionManager = World ? World->GetSelectionManager() : nullptr;
         if (SelectionManager)
         {
-            
-            if (auto* SelectedSkeletal = Cast<USkinnedMeshComponent>(SelectionManager->GetSelectedComponent()))
+            if (auto* SelectedSkeletal = Cast<USkinnedMeshComponent>(SelectionManager->GetSelectedActorComponent()))
             {
                 ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetGPUSkinningEnable(SelectedSkeletal->IsGPUSkinningEnable());
             }

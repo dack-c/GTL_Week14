@@ -48,6 +48,8 @@
 #include "PostProcessing/VignettePass.h"
 #include "FbxLoader.h"
 #include "SkinnedMeshComponent.h"
+#include "SkinningStats.h"
+#include "StatsOverlayD2D.h"
 
 FSceneRenderer::FSceneRenderer(UWorld* InWorld, FSceneView* InView, URenderer* InOwnerRenderer)
 	: World(InWorld)
@@ -165,7 +167,9 @@ void FSceneRenderer::RenderLitPath()
     }
 
 	// Base Pass
+	TIME_PROFILE(SkeletalPass)
 	RenderOpaquePass(View->RenderSettings->GetViewMode());
+	TIME_PROFILE_END(SkeletalPass)
 	RenderDecalPass();
 }
 
@@ -629,6 +633,7 @@ void FSceneRenderer::GatherVisibleProxies()
 	// NOTE: 일단 컴포넌트 단위와 데칼 관련 이슈 해결까지 컬링 무시
 	//// 절두체 컬링 수행 -> 결과가 멤버 변수 PotentiallyVisibleActors에 저장됨
 	//PerformFrustumCulling();
+	FSkinningStatManager::GetInstance().ResetStats();
 
 	const bool bDrawStaticMeshes = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_StaticMeshes);
 	const bool bDrawSkeletalMeshes = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_SkeletalMeshes);
@@ -693,7 +698,7 @@ void FSceneRenderer::GatherVisibleProxies()
 						}
 						else if (MeshComponent->IsA(USkinnedMeshComponent::StaticClass()))
 						{
-						    bShouldAdd = bDrawSkeletalMeshes;
+						    bShouldAdd = bDrawSkeletalMeshes;							
 						}
 
 						if (bShouldAdd)
@@ -752,6 +757,7 @@ void FSceneRenderer::GatherVisibleProxies()
 		CollectComponentsFromActor(EditorActor, true);
 	}
 
+	
 	// Collect from Level Actors (including their Gizmo components)
 	for (AActor* Actor : World->GetActors())
 	{
@@ -801,6 +807,43 @@ void FSceneRenderer::GatherVisibleProxies()
 		ShadowStats.Calculate2DAtlasMemory();
 		ShadowStats.CalculateCubeAtlasMemory();
 	}
+
+	FSkinningStatManager::GetInstance().GatherSkinnningStats(Proxies.Meshes, World->GetSelectionManager());
+	// if (UStatsOverlayD2D::Get().IsSkinningVisible())
+	// {
+	// 	FSkinningStats SkinningStats;
+	// 	for (UMeshComponent* MeshComp : Proxies.Meshes)
+	// 	{
+	// 		if (USkinnedMeshComponent* SkinnedComp = Cast<USkinnedMeshComponent>(MeshComp))
+	// 		{
+	// 			SkinningStats.TotalSkeletals++;
+	// 			if (USkeletalMesh* SkeletalMesh = SkinnedComp->GetSkeletalMesh())
+	// 			{
+	// 				SkinningStats.TotalBones += SkeletalMesh->GetBoneCount();
+	// 				SkinningStats.TotalVertices += SkeletalMesh->GetVertexCount();
+	// 			}
+	// 		}
+	// 	}
+	//
+	// 	if (auto* SelectionManager = World->GetSelectionManager())
+	// 	{
+	// 		if (USkinnedMeshComponent* SkinnedComp = Cast<USkinnedMeshComponent>(SelectionManager->GetSelectedComponent()))
+	// 		{
+	// 			if (USkeletalMesh* SkeletalMesh = SkinnedComp->GetSkeletalMesh())
+	// 			{
+	// 				SkinningStats.SelectedBones += SkeletalMesh->GetBoneCount();
+	// 				SkinningStats.SelectedVertices += SkeletalMesh->GetVertexCount();				
+	// 			}
+	//
+	// 			if (SkinnedComp->IsGPUSkinningEnable())
+	// 			{
+	// 				SkinningStats.SelectedSkeletalSkinningType = "GPU";
+	// 			}
+	// 		}
+	// 	}
+	//
+	// 	FSkinningStatManager::GetInstance().UpdateStats(SkinningStats);
+	// }
 
 	ShadowStats.CalculateTotal();
 	FShadowStatManager::GetInstance().UpdateStats(ShadowStats);

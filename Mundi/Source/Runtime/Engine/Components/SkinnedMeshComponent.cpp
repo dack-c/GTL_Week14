@@ -326,11 +326,11 @@ void USkinnedMeshComponent::PerformSkinning()
    if (!SkeletalMesh || FinalSkinningMatrices.IsEmpty()) { return; }
    if (!bSkinningMatricesDirty) { return; }
 
-   TIME_PROFILE(GPUUpdateTime)
    if (bEnableGPUSkinning &&
       SkinningMatrixBuffer && SkinningNormalMatrixBuffer &&
       !FinalSkinningMatrices.IsEmpty())
    {
+      TIME_PROFILE(GPUUpdateTime)
       D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
       RHIDevice->UpdateStructuredBuffer(SkinningMatrixBuffer,
                                         FinalSkinningMatrices.data(),
@@ -341,11 +341,11 @@ void USkinnedMeshComponent::PerformSkinning()
                                         FinalSkinningNormalMatrices.data(),
                                         sizeof(FMatrix) *
                                         FinalSkinningNormalMatrices.Num());
-
       TIME_PROFILE_END(GPUUpdateTime)
       return;
    }
-   
+
+   TIME_PROFILE(CPUSkinning)
    const TArray<FSkinnedVertex>& SrcVertices = SkeletalMesh->GetSkeletalMeshData()->Vertices;
    const int32 NumVertices = SrcVertices.Num();
    SkinnedVertices.SetNum(NumVertices);
@@ -360,6 +360,7 @@ void USkinnedMeshComponent::PerformSkinning()
       DstVert.Tangent = SkinVertexTangent(SrcVert);
       DstVert.tex = SrcVert.UV;
    }
+   TIME_PROFILE_END(CPUSkinning)
 }
 
 void USkinnedMeshComponent::UpdateSkinningMatrices(const TArray<FMatrix>& InSkinningMatrices, const TArray<FMatrix>& InSkinningNormalMatrices)
