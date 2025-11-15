@@ -75,13 +75,17 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
 {
    if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshData()) { return; }
 
-   if (bSkinningMatricesDirty && !bEnableGPUSkinning)
+   bForceGPUSkinning = GetWorld()->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning);         
+
+   if (bSkinningMatricesDirty && !bForceGPUSkinning)
    {
+      TIME_PROFILE(CPUSkinning)
       bSkinningMatricesDirty = false;
       SkeletalMesh->UpdateVertexBuffer(SkinnedVertices, CPUSkinnedVertexBuffer);
+      TIME_PROFILE_END(CPUSkinning)
    }
 
-   if (bEnableGPUSkinning &&
+   if (bForceGPUSkinning &&
       SkinningMatrixBuffer && SkinningNormalMatrixBuffer &&
       !FinalSkinningMatrices.IsEmpty())
    {
@@ -157,7 +161,7 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
 
       FMeshBatchElement BatchElement;
       TArray<FShaderMacro> ShaderMacros = View->ViewShaderMacros;
-      if (bEnableGPUSkinning)
+      if (bForceGPUSkinning)
       {
          ShaderMacros.Add(FShaderMacro("USE_GPU_SKINNING", "1"));
       }
@@ -177,7 +181,7 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
 
       BatchElement.Material = MaterialToUse;
 
-      if (bEnableGPUSkinning)
+      if (bForceGPUSkinning)
       {
          BatchElement.VertexBuffer = GPUSkinnedVertexBuffer;
          BatchElement.VertexStride = SkeletalMesh->GetGPUSkinnedVertexStride();
@@ -201,7 +205,7 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
       BatchElement.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
       OutMeshBatchElements.Add(BatchElement);
-   }
+   }   
 }
 
 FAABB USkinnedMeshComponent::GetWorldAABB() const
@@ -326,11 +330,10 @@ void USkinnedMeshComponent::PerformSkinning()
    if (!SkeletalMesh || FinalSkinningMatrices.IsEmpty()) { return; }
    if (!bSkinningMatricesDirty) { return; }
 
-   if (bEnableGPUSkinning &&
+   if (bForceGPUSkinning &&
       SkinningMatrixBuffer && SkinningNormalMatrixBuffer &&
       !FinalSkinningMatrices.IsEmpty())
    {
-      TIME_PROFILE(GPUUpdateTime)
       D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
       RHIDevice->UpdateStructuredBuffer(SkinningMatrixBuffer,
                                         FinalSkinningMatrices.data(),
@@ -341,11 +344,10 @@ void USkinnedMeshComponent::PerformSkinning()
                                         FinalSkinningNormalMatrices.data(),
                                         sizeof(FMatrix) *
                                         FinalSkinningNormalMatrices.Num());
-      TIME_PROFILE_END(GPUUpdateTime)
       return;
    }
 
-   TIME_PROFILE(CPUSkinning)
+   //TIME_PROFILE(CPUSkinning)
    const TArray<FSkinnedVertex>& SrcVertices = SkeletalMesh->GetSkeletalMeshData()->Vertices;
    const int32 NumVertices = SrcVertices.Num();
    SkinnedVertices.SetNum(NumVertices);
@@ -360,31 +362,15 @@ void USkinnedMeshComponent::PerformSkinning()
       DstVert.Tangent = SkinVertexTangent(SrcVert);
       DstVert.tex = SrcVert.UV;
    }
-   TIME_PROFILE_END(CPUSkinning)
+   //TIME_PROFILE_END(CPUSkinning)   
 }
 
 void USkinnedMeshComponent::UpdateSkinningMatrices(const TArray<FMatrix>& InSkinningMatrices, const TArray<FMatrix>& InSkinningNormalMatrices)
 {
    FinalSkinningMatrices = InSkinningMatrices;
    FinalSkinningNormalMatrices = InSkinningNormalMatrices;
-   bSkinningMatricesDirty = true;
-   
+   bSkinningMatricesDirty = true;   
 
-   // if (bEnableGPUSkinning &&
-   //    SkinningMatrixBuffer && SkinningNormalMatrixBuffer &&
-   //    !FinalSkinningMatrices.IsEmpty())
-   // {
-   //    D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
-   //    RHIDevice->UpdateStructuredBuffer(SkinningMatrixBuffer,
-   //       FinalSkinningMatrices.data(),
-   //       sizeof(FMatrix) *
-   //       FinalSkinningMatrices.Num());
-   //
-   //    RHIDevice->UpdateStructuredBuffer(SkinningNormalMatrixBuffer,
-   //       FinalSkinningNormalMatrices.data(),
-   //       sizeof(FMatrix) *
-   //       FinalSkinningNormalMatrices.Num());
-   // }
 }
 
 FVector USkinnedMeshComponent::SkinVertexPosition(const FSkinnedVertex& InVertex) const

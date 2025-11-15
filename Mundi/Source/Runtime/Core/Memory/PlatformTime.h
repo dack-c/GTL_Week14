@@ -4,12 +4,8 @@
 #define TIME_PROFILE(Key)\
 FScopeCycleCounter Key##Counter(#Key); //현재 스코프 단위로 측정
 
-
 #define TIME_PROFILE_END(Key)\
 Key##Counter.Finish();
-
-
-
 
 class FWindowsPlatformTime
 {
@@ -163,6 +159,4 @@ private:
 	bool bIsFinish = false;
 	uint64 StartCycles;
 	TStatId UsedStatId;
-
 };
-

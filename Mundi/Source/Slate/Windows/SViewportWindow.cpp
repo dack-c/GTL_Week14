@@ -280,11 +280,14 @@ void SViewportWindow::RenderToolbar()
 		sprintf_s(cameraText, "%s %s", ViewportName.ToString().c_str(), "∨");
 		ImVec2 cameraTextSize = ImGui::CalcTextSize(cameraText);
 		const float CameraButtonWidth = 17.0f + 4.0f + cameraTextSize.x + 16.0f;
-
 		// 사용 가능한 전체 너비와 현재 커서 위치
 		float AvailableWidth = ImGui::GetContentRegionAvail().x;
 		float CursorStartX = ImGui::GetCursorPosX();
 		ImVec2 CurrentCursor = ImGui::GetCursorPos();
+
+		const char* SkinningLabel = "GPU Skinning";
+		ImVec2 SkinningTextSize = ImGui::CalcTextSize(SkinningLabel);
+		const float SkinningButtonWidth = SkinningTextSize.x + 30.0f;
 
 		// 오른쪽부터 역순으로 위치 계산
 		// Switch는 오른쪽 끝
@@ -298,6 +301,11 @@ void SViewportWindow::RenderToolbar()
 
 		// Camera는 ViewMode 왼쪽 (ViewMode 너비에 따라 위치 변동)
 		float CameraX = ViewModeX - ButtonSpacing - CameraButtonWidth;
+
+		float SkinningX = CameraX - ButtonSpacing - SkinningButtonWidth;
+
+		ImGui::SetCursorPos(ImVec2(SkinningX, CurrentCursor.y));
+		RenderGPUSkinningButton();
 
 		// 버튼들을 순서대로 그리기 (Y 위치는 동일하게 유지)
 		ImGui::SetCursorPos(ImVec2(CameraX, CurrentCursor.y));
@@ -1997,6 +2005,25 @@ void SViewportWindow::RenderViewportLayoutSwitchButton()
 
 	ImGui::PopStyleColor(3);
 	ImGui::PopStyleVar(1);
+}
+
+void SViewportWindow::RenderGPUSkinningButton()
+{
+	if (!ViewportClient || !ViewportClient->GetWorld())
+	{
+		return;
+	}
+	URenderSettings& RenderSettings = ViewportClient->GetWorld()->GetRenderSettings();
+	bool bGPUSkinning = RenderSettings.IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning);
+
+	ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.25f, 0.30f, 0.35f, 0.8f));
+	if (ImGui::Checkbox("##GPUSkinning", &bGPUSkinning))
+	{
+		RenderSettings.ToggleShowFlag(EEngineShowFlags::SF_GPUSkinning);
+	}
+	ImGui::SameLine();
+	ImGui::TextUnformatted("GPU Skinning");
+	ImGui::PopStyleColor();
 }
 
 void SViewportWindow::HandleDropTarget()

@@ -25,8 +25,7 @@ public:
     FAABB GetWorldAABB() const override;
     void OnTransformUpdated() override;
 
-    bool IsGPUSkinningEnable() const { return bEnableGPUSkinning; }
-    void SetGPUSkinningEnable(bool bEnable) { bEnableGPUSkinning = bEnable; } 
+    bool IsGPUSkinningEnable() const { return bForceGPUSkinning; }    
 
 // Skeletal Section
 public:
@@ -51,8 +50,7 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Skeletal Mesh", Tooltip = "Skeletal mesh asset to render")
     USkeletalMesh* SkeletalMesh;
 
-    UPROPERTY(EditAnywhere, Category = "Skeletal Mesh", Tooltip = "GPUSkinning Enable")
-    bool bEnableGPUSkinning = false;
+    bool bForceGPUSkinning = false;
 
     /**
      * @brief CPU 스키닝 최종 결과물. 렌더러가 이 데이터를 사용합니다.

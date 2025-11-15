@@ -1,16 +1,14 @@
 ﻿#pragma once
-#include "SelectionManager.h"
 #include "SkinnedMeshComponent.h"
 #include "StatsOverlayD2D.h"
 #include "UEContainer.h"
-/*
- * 전체 bone 개수
- * 전체 vertex 개수
- * 전체 시간
- * 선택된 bone 개수
- * 선택된 vertex 개수
- * 선택된 놈 시간
- */
+
+#define UPDATE_SKINNING_STATS(Meshes)\
+FSkinningStatManager::GetInstance().GatherSkinnningStats(Meshes);
+
+#define UPDATE_SKINNING_TYPE(bIsGPU)\
+FSkinningStatManager::GetInstance().UpdateSkinningType(bIsGPU);    
+
 struct FSkinningStats
 {
     // 전체 스켈레탈 개수
@@ -20,12 +18,7 @@ struct FSkinningStats
     // 전체 정점 개수
     uint32 TotalVertices = 0;
 
-    // Viewer의 Bone 개수(Selected Skeletal Bones)
-    uint32 SelectedBones = 0;
-    uint32 SelectedVertices = 0;
-
-    FString AllSkeletalSkinningType = "CPU";
-    FString SelectedSkeletalSkinningType = "NONE";
+    FString SkinningType = "CPU";
 
     FSkinningStats() {};
 
@@ -34,10 +27,7 @@ struct FSkinningStats
         TotalSkeletals = other.TotalSkeletals;
         TotalBones = other.TotalBones;
         TotalVertices = other.TotalVertices;
-        SelectedBones = other.SelectedBones;
-        SelectedVertices = other.SelectedVertices;
-        AllSkeletalSkinningType = other.AllSkeletalSkinningType;
-        SelectedSkeletalSkinningType = other.SelectedSkeletalSkinningType;
+        SkinningType = other.SkinningType;
     };
 
     void AddStats(const FSkinningStats& other)
@@ -45,8 +35,6 @@ struct FSkinningStats
         TotalSkeletals += other.TotalSkeletals;
         TotalBones += other.TotalBones;
         TotalVertices += other.TotalVertices;
-        SelectedBones += other.SelectedBones;
-        SelectedVertices += other.SelectedVertices;         
     }
 
     void Reset()
@@ -54,10 +42,6 @@ struct FSkinningStats
         TotalSkeletals = 0;
         TotalBones = 0;
         TotalVertices = 0;
-        SelectedBones = 0;
-        SelectedVertices = 0;
-        // AllSkeletalSkinningType = "CPU";
-        // SelectedSkeletalSkinningType = "CPU";
     }
 };
 
@@ -85,19 +69,14 @@ public:
         CurrentStats.Reset();
     }
 
-    void SetSelectedSkinningType(const FString& InType)
+    void UpdateSkinningType(bool bEnableGPUSkinning)
     {
-        CurrentStats.SelectedSkeletalSkinningType = InType;
+        CurrentStats.SkinningType = bEnableGPUSkinning ? "GPU" : "CPU";
     }
 
-    void SetAllSkinningType(const FString& InType)
+    void GatherSkinnningStats(TArray<UMeshComponent*>& Components)
     {
-        CurrentStats.AllSkeletalSkinningType = InType;
-    }
-
-    void GatherSkinnningStats(TArray<UMeshComponent*>& Components, USelectionManager* SelectionManager)
-    {
-        if(Components.IsEmpty() || !UStatsOverlayD2D::Get().IsSkinningVisible() || !SelectionManager)
+        if(Components.IsEmpty() || !UStatsOverlayD2D::Get().IsSkinningVisible())
         {
             return;
         }
@@ -113,24 +92,6 @@ public:
                     CurrentStats.TotalVertices += SkeletalMesh->GetVertexCount();
                 }
             }
-        }
-
-        if (USkinnedMeshComponent* SkinnedComp = Cast<USkinnedMeshComponent>(SelectionManager->GetSelectedComponent()))
-        {
-            if (USkeletalMesh* SkeletalMesh = SkinnedComp->GetSkeletalMesh())
-            {
-                CurrentStats.SelectedBones += SkeletalMesh->GetBoneCount();
-                CurrentStats.SelectedVertices += SkeletalMesh->GetVertexCount();				
-            }
-
-            CurrentStats.SelectedSkeletalSkinningType = SkinnedComp->IsGPUSkinningEnable() ? "GPU" : "CPU"; 
-
-        }
-        else
-        {
-            CurrentStats.SelectedBones = 0;
-            CurrentStats.SelectedVertices = 0;
-            CurrentStats.SelectedSkeletalSkinningType = "NONE";
         }
     }
 

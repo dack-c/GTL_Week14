@@ -377,41 +377,29 @@ void UStatsOverlayD2D::Draw()
 
 	if (bShowSkinning)
 	{		
-		// 전체 스켈레탈 렌더 패스 시간
-		double SkeletalPassTime = FScopeCycleCounter::GetTimeProfile("SkeletalPass").GetTime();
-		// 뷰어에서 편집할 때 걸리는 시간
-		double PoseUpdateTime = 0.0f;
-		// GPU 스키닝 시 버퍼 업로드 시간
-		double SkinnigBufferUpdateTime = FScopeCycleCounter::GetTimeProfile("GPUUpdateTime").GetTime();
-		// GPU 스키닝 시 CPU 시간 -> TotalSkinningTime - SkinnigBufferUpdateTime
-		double CPUTime = FScopeCycleCounter::GetTimeProfile("CPUTime").GetTime() - SkinnigBufferUpdateTime;
+		// GPU 스키닝
+		double GPUSkinning = GET_GPU_STAT("GPUSkinning")
+		// CPU 스키닝
+		double CPUSkinning = FScopeCycleCounter::GetTimeProfile("CPUSkinning").GetTime();
 
 		const FSkinningStats& SkinningStats = FSkinningStatManager::GetInstance().GetStats();
-		FWideString AllSkinningType = UTF8ToWide(SkinningStats.AllSkeletalSkinningType);
-		FWideString SelectedSkinningType = UTF8ToWide(SkinningStats.SelectedSkeletalSkinningType);
+		FWideString AllSkinningType = UTF8ToWide(SkinningStats.SkinningType);		
 		wchar_t Buf[512];
 		swprintf_s(
 			Buf,
-			L"[Skeleta Stats]\n All Skinning Type : %s\n Total Skeletals : %u\n Total Bones : %u\n Total Vertices : %u\n"
-			L"[Selected Skeletal]\n"
-			L" Selected Skinning Type : %s\n Editable Bones : %u\n Current Vertices : %u\n"
+			L"[Skeletal Stats]\n All Skinning Type : %s\n Total Skeletals : %u\n Total Bones : %u\n Total Vertices : %u\n"
 			L"[Times]\n"
-			L" Skeletal Pass Time : %.3f\n Total CPU Time : %.3f\n"
-			L" GPU Update Time : %.3f\n Viewer Update Time : %.3f\n",
+			L" CPU Skinning : %.3f\n"
+			L" GPU Skinning : %.3f\n",
 			AllSkinningType.c_str(),
 			SkinningStats.TotalSkeletals,
 			SkinningStats.TotalBones,
 			SkinningStats.TotalVertices,
-			SelectedSkinningType.c_str(),
-			SkinningStats.SelectedBones,
-			SkinningStats.SelectedVertices,
-			SkeletalPassTime,
-			CPUTime,
-			SkinnigBufferUpdateTime,
-			PoseUpdateTime
+			CPUSkinning,
+			GPUSkinning
 		);
 
-		const float SkinningPanelHeight = 340.0f;
+		const float SkinningPanelHeight = 180.0f;
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth + 50.0f, NextY + SkinningPanelHeight);
 
 		DrawTextBlock(
