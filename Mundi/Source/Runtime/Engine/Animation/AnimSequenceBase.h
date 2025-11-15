@@ -31,7 +31,9 @@ public:
     bool IsNotifyAvailable() const;
     void GetAnimNotify(const float& StartTime, const float& DeltaTime, TArray<FPendingAnimNotify>& OutNotifies) const;
     void GetAnimNotifiesFromDeltaPosition(const float& PreviousPosition, const float& CurrentPosition, TArray<FPendingAnimNotify>& OutNotifies) const;
-	void AddPlaySoundNotify(float Time, UAnimNotify* Notify, float Duration = 0.0f);
+    TArray<FAnimNotifyEvent>& GetAnimNotifyEvents();
+    const TArray<FAnimNotifyEvent>& GetAnimNotifyEvents() const;
+    void AddPlaySoundNotify(float Time, UAnimNotify* Notify, float Duration = 0.0f);
 
 protected:
     
@@ -43,15 +45,5 @@ protected:
 
     float RateScale;
 
-public:
-    UAnimDataModel* GetDataModel() const;
-
-    bool IsNotifyAvailable() const;
-    TArray<FAnimNotifyEvent>& GetAnimNotifyEvents();
-    const TArray<FAnimNotifyEvent>& GetAnimNotifyEvents() const;
-    void GetAnimNotify(const float& StartTime, const float& DeltaTime, TArray<FPendingAnimNotify>& OutNotifies) const;
-    void GetAnimNotifiesFromDeltaPosition(const float& PreviousPosition, const float& CurrentPosition, TArray<FPendingAnimNotify>& OutNotifies) const;
-    
-    void AddPlaySoundNotify(float Time, UAnimNotify* Notify, float Duration = 0.0f);
     bool bLoop;  
 };
