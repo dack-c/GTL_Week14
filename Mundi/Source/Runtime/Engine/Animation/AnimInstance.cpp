@@ -2,6 +2,9 @@
 #include "AnimInstance.h"
 #include "SkeletalMeshComponent.h"
 #include "AnimTypes.h"
+#include "AnimationStateMachine.h"
+#include "AnimSequence.h"
+
 
 // ============================================================
 // Initialization & Setup
@@ -23,6 +26,12 @@ void UAnimInstance::Initialize(USkeletalMeshComponent* InComponent)
 
 void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
+    // 상태머신이 있으면 먼저 ProcessState 호출
+    if (AnimStateMachine)
+    {
+        AnimStateMachine->ProcessState(DeltaSeconds);
+    }
+
     if (!CurrentPlayState.bIsPlaying || !CurrentPlayState.Sequence)
     {
         return;
@@ -223,4 +232,19 @@ void UAnimInstance::UpdateAnimationCurves()
         // 커브 값을 컴포넌트나 다른 시스템에 전달
     }
     */
+}
+
+// ============================================================
+// State Machine & Parameters
+// ============================================================
+
+void UAnimInstance::SetStateMachine(UAnimationStateMachine* InStateMachine)
+{
+    AnimStateMachine = InStateMachine;
+
+    if (AnimStateMachine)
+    {
+        AnimStateMachine->Initialize(this);
+        UE_LOG("AnimInstance: StateMachine set and initialized");
+    }
 }

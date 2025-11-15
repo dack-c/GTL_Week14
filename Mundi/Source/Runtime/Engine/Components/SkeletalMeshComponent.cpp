@@ -3,7 +3,9 @@
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
+#include "Source/Runtime/Engine/Animation/AnimSingleNodeInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimTypes.h"
+#include "Source/Runtime/Engine/Animation/AnimationAsset.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
@@ -16,26 +18,19 @@ void USkeletalMeshComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    // TEST: Load and play animation
-    // 1. ResourceManager에서 애니메이션 가져오기
-    UAnimSequence* WalkAnim = RESOURCE.Get<UAnimSequence>("Data/JamesWalking.fbx_mixamo.com");
+    // TEST: Load and play animation using UE-style API
+    UAnimationAsset* WalkAnim = RESOURCE.Get<UAnimSequence>("Data/JamesWalking.fbx_mixamo.com");
 
     if (WalkAnim)
     {
         UE_LOG("Animation loaded successfully! Duration: %.2f seconds", WalkAnim->GetPlayLength());
 
-
-        // 2. SkeletalMeshComponent에 설정
-        SetAnimation(WalkAnim);
-
-        // 3. 재생 시작
-        SetPlaying(true);
-        SetLooping(true);
-        SetPlayRate(1.0f);
+        // UE 스타일 API 사용
+        PlayAnimation(WalkAnim, true);
     }
     else
     {
-        UE_LOG("Failed to load animation: Data/James/James.fbx_Take 001");
+        UE_LOG("Failed to load animation: Data/James/James.fbx_mixamo.com");
     }
 }
 
@@ -45,14 +40,21 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
     if (!SkeletalMesh) { return; }
 
-    // AnimInstance가 있으면 AnimInstance를 통해 애니메이션 업데이트
+    // AnimInstance가 있으면 AnimInstance를 통해 애니메이션 업데이트 (권장 경로)
     if (AnimInstance)
     {
+        // AnimInstance가 NativeUpdateAnimation에서:
+        // 1. 상태머신 업데이트 (있다면)
+        // 2. 시간 갱신 및 루핑 처리
+        // 3. 포즈 평가 및 SetAnimationPose() 호출
+        // 4. 노티파이 트리거
+        // 5. 커브 업데이트
         AnimInstance->NativeUpdateAnimation(DeltaTime);
     }
     else
     {
-        // 기존 방식: 직접 애니메이션 업데이트
+        // 레거시 경로: AnimInstance 없이 직접 애니메이션 업데이트
+        // (호환성 유지를 위해 남겨둠, 추후 제거 예정)
         TickAnimation(DeltaTime);
     }
 }
@@ -100,6 +102,74 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
         TempFinalSkinningMatrices.Empty();
         TempFinalSkinningNormalMatrices.Empty();
     }
+}
+
+void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
+{
+    if (AnimationMode == InAnimationMode)
+    {
+        return; // 이미 해당 모드
+    }
+
+    AnimationMode = InAnimationMode;
+
+    if (AnimationMode == EAnimationMode::AnimationSingleNode)
+    {
+        // SingleNode 모드: UAnimSingleNodeInstance 생성
+        UAnimSingleNodeInstance* SingleNodeInstance = NewObject<UAnimSingleNodeInstance>();
+        SetAnimInstance(SingleNodeInstance);
+
+        UE_LOG("SetAnimationMode: Switched to AnimationSingleNode mode");
+    }
+    else if (AnimationMode == EAnimationMode::AnimationBlueprint)
+    {
+        // AnimationBlueprint 모드: 커스텀 AnimInstance 설정 대기
+        // (사용자가 SetAnimInstance로 상태머신이 포함된 인스턴스를 설정해야 함)
+        UE_LOG("SetAnimationMode: Switched to AnimationBlueprint mode");
+    }
+}
+
+void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool bLooping)
+{
+    if (!NewAnimToPlay)
+    {
+        StopAnimation();
+        return;
+    }
+
+    // SingleNode 모드로 전환 (AnimSingleNodeInstance 자동 생성)
+    SetAnimationMode(EAnimationMode::AnimationSingleNode);
+
+    UAnimSequence* Sequence = Cast<UAnimSequence>(NewAnimToPlay);
+    if (!Sequence)
+    {
+        UE_LOG("PlayAnimation: Only UAnimSequence assets are supported currently");
+        return;
+    }
+
+    // AnimSingleNodeInstance를 통해 재생
+    UAnimSingleNodeInstance* SingleNodeInstance = Cast<UAnimSingleNodeInstance>(AnimInstance);
+    if (SingleNodeInstance)
+    {
+        SingleNodeInstance->PlaySingleNode(Sequence, bLooping, 1.0f);
+        UE_LOG("PlayAnimation: Playing through AnimSingleNodeInstance");
+    }
+    else
+    {
+        // Fallback: 직접 재생
+        SetAnimation(Sequence);
+        SetLooping(bLooping);
+        SetPlayRate(1.0f);
+        CurrentAnimationTime = 0.0f;
+        SetPlaying(true);
+        UE_LOG("PlayAnimation: Playing directly (fallback)");
+    }
+}
+
+void USkeletalMeshComponent::StopAnimation()
+{
+    SetPlaying(false);
+    CurrentAnimationTime = 0.0f;
 }
 
 void USkeletalMeshComponent::SetBoneLocalTransform(int32 BoneIndex, const FTransform& NewLocalTransform)
@@ -495,3 +565,4 @@ void USkeletalMeshComponent::SetAnimInstance(UAnimInstance* InAnimInstance)
         UE_LOG("AnimInstance initialized for SkeletalMeshComponent");
     }
 }
+

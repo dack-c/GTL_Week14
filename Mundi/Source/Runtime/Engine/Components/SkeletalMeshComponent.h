@@ -3,6 +3,7 @@
 #include "USkeletalMeshComponent.generated.h"
 // Include for FPendingAnimNotify and FAnimNotifyEvent types
 #include "Source/Runtime/Engine/Animation/AnimTypes.h"
+class UAnimationAsset;
 class UAnimSequence;
 class UAnimInstance;
 struct FPendingAnimNotify;
@@ -16,12 +17,17 @@ public:
     USkeletalMeshComponent();
     ~USkeletalMeshComponent() override = default;
 
+public:
     void BeginPlay() override;
     void TickComponent(float DeltaTime) override;
     void SetSkeletalMesh(const FString& PathFileName) override;
 
 // Animation Section
 public:
+
+
+    void SetAnimationMode(EAnimationMode InAnimationMode);
+
     /**
      * @brief 재생할 애니메이션 설정
      * @param InAnimation 재생할 UAnimSequence
@@ -78,7 +84,22 @@ public:
     float GetPlayRate() const { return PlayRate; }
 
     /**
-    * @brief Notifies들을 수집하는 함수 
+     * @brief UE 스타일 애니메이션 재생 API
+     * @param NewAnimToPlay 재생할 애니메이션 에셋
+     * @param bLooping 루프 여부
+     *
+     * AnimInstance를 비활성화하고 단일 애니메이션을 직접 재생합니다.
+     * (SingleNode Animation Mode 흉내)
+     */
+    void PlayAnimation(class UAnimationAsset* NewAnimToPlay, bool bLooping);
+
+    /**
+     * @brief 현재 재생 중인 애니메이션 정지
+     */
+    void StopAnimation();
+
+    /**
+    * @brief Notifies들을 수집하는 함수
     */
     void GatherNotifies(float DeltaTime);
 
@@ -136,6 +157,8 @@ protected:
     /** 애니메이션 인스턴스 (향후 확장) */
     UPROPERTY()
     UAnimInstance* AnimInstance = nullptr;
+
+    EAnimationMode AnimationMode = EAnimationMode::AnimationBlueprint;
 
 // Editor Section
 public:
