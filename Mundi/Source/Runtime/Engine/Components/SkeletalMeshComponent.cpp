@@ -371,6 +371,7 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
     FAnimExtractContext ExtractContext(CurrentAnimationTime, bIsLooping);
     FPoseContext PoseContext(NumBones);
 
+    // 현재 재생시간과 루핑 정보를 담은 ExtractContext 구조체를 기반으로 GetAnimationPose에서 현재 시간에 맞는 본의 행렬을 반환한다
     CurrentAnimation->GetAnimationPose(PoseContext, ExtractContext);
 
     // 5. 추출된 포즈를 CurrentLocalSpacePose에 적용
