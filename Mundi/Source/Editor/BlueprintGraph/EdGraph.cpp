@@ -33,7 +33,7 @@ void UEdGraph::RemoveNode(UEdGraphNode* Node)
     }
 }
 
-void UEdGraph::RemoveNode(int32 NodeID)
+void UEdGraph::RemoveNode(uint32 NodeID)
 {
     for (UEdGraphNode* Node : Nodes)
     {
@@ -43,15 +43,16 @@ void UEdGraph::RemoveNode(int32 NodeID)
             {
                 Pin->BreakAllLinks();
             }
+            
+            Nodes.Remove(Node);
+            DeleteObject(Node);
+            
+            break;
         }
-        Nodes.Remove(Node);
-        DeleteObject(Node);
-
-        break;
     }
 }
 
-UEdGraphPin* UEdGraph::FindPin(int32 PinID)
+UEdGraphPin* UEdGraph::FindPin(uint32 PinID) const
 {
     for (UEdGraphNode* Node : Nodes)
     {

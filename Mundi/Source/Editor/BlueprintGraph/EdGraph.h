@@ -28,10 +28,10 @@ public:
      * @brief 노드를 그래프에서 제거
      * @note 그래프에서 제거된 노드는 delete를 통해 해제된다.
      */
-    void RemoveNode(int32 NodeID);
+    void RemoveNode(uint32 NodeID);
 
     /** @brief ID로 그래프 내의 핀을 탐색 */
-    UEdGraphPin* FindPin(int32 PinID);
+    UEdGraphPin* FindPin(uint32 PinID) const;
 
     /** @brief 그래프의 노드에 고유한 ID를 발급한다. */
     int32 GetNextUniqueID();
