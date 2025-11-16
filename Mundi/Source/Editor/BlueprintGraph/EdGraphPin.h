@@ -19,7 +19,7 @@ class UEdGraphPin : public UObject
     
 public:
     /** @note UObject UUID와 동일한 값 사용 */
-    int32 PinID;
+    uint32 PinID;
     FString PinName;
     FEdGraphPinType PinType;
     EEdGraphPinDirection Direction;
@@ -33,7 +33,7 @@ public:
 
 public:
     /** @note RTTI 지원용 디폴트 생성자 */
-    UEdGraphPin() = default; 
+    UEdGraphPin() : PinID(UUID) {} 
     
     UEdGraphPin(UEdGraphNode* InOwner, EEdGraphPinDirection InDir, FName InCategory, const FString& InName)
         : PinID(UUID)

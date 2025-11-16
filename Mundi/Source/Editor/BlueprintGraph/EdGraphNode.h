@@ -26,7 +26,7 @@ public:
     ImColor TitleColor = ImColor(255, 255, 255);
 
     /** @note UEdGraph가 발급해주는 ID 사용 */
-    int32 NodeID;
+    uint32 NodeID;
 
 public:
     UEdGraphNode() = default;

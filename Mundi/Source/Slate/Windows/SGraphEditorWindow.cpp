@@ -279,8 +279,8 @@ void SGraphEditorWindow::HandleDeletion()
             {
                 // Link ID에서 Pin ID들을 역산
                 LinkId LinkID = static_cast<LinkId>(DestroyedLinkID_UI);
-                int32 StartPinID = static_cast<int32>(LinkID >> 32);
-                int32 EndPinID = static_cast<int32>(LinkID & 0xFFFFFFFF);
+                uint32 StartPinID = static_cast<uint32>(LinkID >> 32);
+                uint32 EndPinID = static_cast<uint32>(LinkID & 0xFFFFFFFF);
 
                 UEdGraphPin* StartPin = Graph->FindPin(StartPinID);
                 UEdGraphPin* EndPin = Graph->FindPin(EndPinID);
@@ -298,7 +298,7 @@ void SGraphEditorWindow::HandleDeletion()
         {
             if (ed::AcceptDeletedItem())
             {
-                int32 NodeID = (int32)(uintptr_t)DestroyedNodeID_UI;
+                uint32 NodeID = (uint32)(uintptr_t)DestroyedNodeID_UI;
                 Graph->RemoveNode(NodeID);
             }
         }
