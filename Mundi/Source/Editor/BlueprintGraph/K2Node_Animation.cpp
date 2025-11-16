@@ -7,7 +7,7 @@
 namespace ed = ax::NodeEditor;
 
 // ----------------------------------------------------------------
-//	[AnimSequence] 애니메이션 시퀀스 노드 (K2Node_Literal.cpp에서 이동)
+//	[AnimSequence] 애니메이션 시퀀스 노드 
 // ----------------------------------------------------------------
 
 IMPLEMENT_CLASS(UK2Node_AnimSequence, UK2Node)
@@ -78,6 +78,33 @@ void UK2Node_AnimSequence::RenderBody()
     ed::Resume();
 }
 
+// ----------------------------------------------------------------
+//	[AnimStateEntry] 애니메이션 상태 머신 진입점
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_AnimStateEntry, UK2Node)
+
+void UK2Node_AnimStateEntry::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, " "); // 핀 이름을 비워두어 깔끔하게 표시
+
+    TitleColor = ImColor(150, 150, 150);
+}
+
+void UK2Node_AnimStateEntry::RenderBody()
+{
+}
+
+void UK2Node_AnimStateEntry::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+
+    ActionRegistrar.AddAction(Spawner);
+}
+
 void UK2Node_AnimSequence::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -96,14 +123,14 @@ IMPLEMENT_CLASS(UK2Node_AnimState, UK2Node)
 
 void UK2Node_AnimState::AllocateDefaultPins()
 {
+    // 상태 머신 그래프의 흐름(Flow)을 위한 Exec 핀
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Exec, "Enter");
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, "Exit");
+
     // FAnimationState의 멤버에 해당하는 핀들
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::AnimSequence, "Animation");
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "Looping");
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Float, "PlayRate");
-
-    // 상태 머신 그래프의 흐름(Flow)을 위한 Exec 핀
-    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Exec, "Enter");
-    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, "Exit");
 
     TitleColor = ImColor(200, 100, 100); 
 }
@@ -133,13 +160,13 @@ IMPLEMENT_CLASS(UK2Node_AnimTransition, UK2Node)
 
 void UK2Node_AnimTransition::AllocateDefaultPins()
 {
+    // 상태 머신 그래프의 흐름(Flow)을 위한 Exec 핀
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Exec, "Execute"); 
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, "Transition To");
+    
     // FStateTransition의 멤버에 해당하는 핀들
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "Can Transition");
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Float, "Blend Time");
-
-    // 상태 머신 그래프의 흐름(Flow)을 위한 Exec 핀
-    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Exec, "Execute"); 
-    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, "Transition To"); 
 
     TitleColor = ImColor(100, 100, 200);
 }

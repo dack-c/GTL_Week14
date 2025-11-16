@@ -29,6 +29,31 @@ public:
 };
 
 // ----------------------------------------------------------------
+//	[AnimStateEntry] 애니메이션 상태 머신 진입점
+// ----------------------------------------------------------------
+
+UCLASS(DisplayName = "UK2Node_AnimStateEntry", Description = "애니메이션 상태 머신의 진입점 노드입니다.")
+class UK2Node_AnimStateEntry : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_AnimStateEntry, UK2Node);
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "애니메이션 진입점"; }
+    virtual FString GetMenuCategory() const override { return "Animation"; };
+    virtual bool IsNodePure() const override { return false; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+
+    /**
+     * @note 이 노드는 사용자가 메뉴에서 직접 스폰(spawn)하는 것이 아니라, 에디터를 실행 시 최초 한 번만 생성해야 한다.
+     *       그러나, 현재는 디버깅용으로 스폰을 가능하게 설정해둔다.
+     * @todo 애니메이션 그래프 편집기 제작이 완료되면 GetMenuActions의 구현부를 지운다.
+     */
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+// ----------------------------------------------------------------
 //	[AnimState] 애니메이션 상태 노드
 // ----------------------------------------------------------------
 
