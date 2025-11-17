@@ -41,7 +41,7 @@ public:
     virtual bool IsNodePure() const override { return true; } // 순수 노드로 처리
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
-    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin) override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
     
     // --- UK2Node 인터페이스 ---
 public:
@@ -64,7 +64,7 @@ public:
     virtual bool IsNodePure() const override { return true; } // 순수 노드로 처리
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override; 
-    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin) override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
 
     // --- UK2Node 인터페이스 ---
 public:
@@ -74,6 +74,11 @@ public:
 
 // ----------------------------------------------------------------
 //	[Debug] 값 확인(Watch) 노드
+// ----------------------------------------------------------------
+// @note 주의사항 
+//   - 값 확인은 컨텍스트가 없는 노드에 대해서만 유효하다.
+// @todo 값 확인 노드에 컨텍스트를 연결할 방법에 대해서 생각해본다.
+// 
 // ----------------------------------------------------------------
 
 UCLASS(DisplayName="UK2Node_Watch_Int", Description="입력된 Int 값을 노드 위에 실시간으로 표시합니다.")

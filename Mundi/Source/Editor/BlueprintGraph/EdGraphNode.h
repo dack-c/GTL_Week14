@@ -1,4 +1,6 @@
 ﻿#pragma once
+
+#include "BlueprintTypes.h"
 #include "EdGraphPin.h"
 
 UCLASS(DisplayName="UEdGraphNode", Description="블루프린트 노드 베이스")
@@ -50,7 +52,7 @@ public:
     virtual FString GetNodeTitle() const { return "Base Node"; }
 
     /** @brief 특정 핀에 대한 값을 평가해서 반환한다(블루프린트 표현식 용). */
-    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin) { return FBlueprintValue{}; }
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) { return FBlueprintValue{}; }
 
     /** @brief UUID를 PinID로 활용해서 핀을 생성한다. */
     UEdGraphPin* CreatePin(EEdGraphPinDirection Dir, FName PinCategory, const FString& PinName, const FString& DefaultValue = "")

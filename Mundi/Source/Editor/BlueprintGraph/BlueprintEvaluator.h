@@ -16,7 +16,7 @@ public:
      * @todo 연결이 없을 경우 처리를 각 클래스별로 구현한다 (현재는 제대로 작동하지 않는다).
      */
     template <typename T>
-    static T EvaluateInput(const UEdGraphPin* InputPin)
+    static T EvaluateInput(const UEdGraphPin* InputPin, FBlueprintContext* Context)
     {
         if (!InputPin)
         {
@@ -30,7 +30,7 @@ public:
 
             if (SourcePin && SourcePin->OwningNode)
             {
-                FBlueprintValue Result = SourcePin->OwningNode->EvaluatePin(SourcePin);
+                FBlueprintValue Result = SourcePin->OwningNode->EvaluatePin(SourcePin, Context);
                 return Result.Get<T>();
             }
         }

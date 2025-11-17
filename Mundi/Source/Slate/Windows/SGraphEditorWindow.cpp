@@ -265,6 +265,21 @@ void SGraphEditorWindow::HandleCreation()
                 OutputPin->MakeLinkTo(InputPin);
             }
         }
+
+        ed::PinId DraggingPinID_UI = 0;
+        if (ed::QueryNewNode(&DraggingPinID_UI))
+        {
+            if (ed::AcceptNewItem(ImColor(255, 50, 50), 2.0f))
+            {
+                int32 PinID = (int32)(uintptr_t)DraggingPinID_UI;
+                UEdGraphPin* DraggingPin = Graph->FindPin(PinID);
+
+                if (DraggingPin)
+                {
+                    DraggingPin->BreakAllLinks();
+                }
+            }
+        }
     }
     ed::EndCreate();
 }
