@@ -78,6 +78,15 @@ void UK2Node_AnimSequence::RenderBody()
     ed::Resume();
 }
 
+FBlueprintValue UK2Node_AnimSequence::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (OutputPin->PinName == "Value")
+    {
+        return Value;
+    }
+    return nullptr;
+}
+
 // ----------------------------------------------------------------
 //	[AnimStateEntry] 애니메이션 상태 머신 진입점
 // ----------------------------------------------------------------
@@ -86,7 +95,7 @@ IMPLEMENT_CLASS(UK2Node_AnimStateEntry, UK2Node)
 
 void UK2Node_AnimStateEntry::AllocateDefaultPins()
 {
-    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, " "); // 핀 이름을 비워두어 깔끔하게 표시
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, "Entry"); 
 
     TitleColor = ImColor(150, 150, 150);
 }
@@ -129,8 +138,8 @@ void UK2Node_AnimState::AllocateDefaultPins()
 
     // FAnimationState의 멤버에 해당하는 핀들
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::AnimSequence, "Animation");
-    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "Looping");
-    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Float, "PlayRate");
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "Looping", "false");
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Float, "PlayRate", "1.0");
 
     TitleColor = ImColor(200, 100, 100); 
 }

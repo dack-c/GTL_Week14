@@ -15,7 +15,8 @@
 using FBlueprintValueType = std::variant<
     int32,
     float,
-    bool
+    bool,
+    UAnimSequence*
 >;
 
 /**

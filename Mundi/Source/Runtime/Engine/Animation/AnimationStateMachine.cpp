@@ -68,6 +68,14 @@ const FAnimationState* UAnimationStateMachine::FindState(const FName& StateName)
     return nullptr;
 }
 
+void UAnimationStateMachine::Clear()
+{
+    States.Empty();
+    Transitions.Empty();
+    // @todo FName_None으로 대체
+    CurrentStateName = "";
+}
+
 void UAnimationStateMachine::EvaluateTransitions()
 {
     for (const FStateTransition& Transition : Transitions)

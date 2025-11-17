@@ -72,6 +72,7 @@ public:
                 return Pin;
             }
         }
+        UE_LOG("UEdGraphPin::FindPin: 핀 '%s'를 찾는데 실패했습니다.", PinName.c_str());
         return nullptr;
     }
 };
