@@ -34,6 +34,9 @@ public:
     void CreateGPUSkinnedVertexBuffer(ID3D11Buffer** InVertexBuffer);
     void UpdateVertexBuffer(const TArray<FNormalVertex>& SkinnedVertices, ID3D11Buffer* InVertexBuffer);
     void CreateStructuredBuffer(ID3D11Buffer** InStructuredBuffer, ID3D11ShaderResourceView** InShaderResourceView, UINT ElementCount);
+
+    void BuildLocalAABBs();
+    const TArray<FAABB>& GetLocalAABBs() const { return BoneLocalAABBs; }
     
 private:
     void CreateIndexBuffer(FSkeletalMeshData* InSkeletalMesh, ID3D11Device* InDevice);
@@ -47,6 +50,8 @@ private:
     uint32 IndexCount = 0;     // 버텍스 점의 개수 
     uint32 CPUSkinnedVertexStride = 0;
     uint32 GPUSkinnedVertexStride = 0;
+
+    TArray<FAABB> BoneLocalAABBs;
     
     // CPU 리소스
     FSkeletalMeshData* Data = nullptr;
