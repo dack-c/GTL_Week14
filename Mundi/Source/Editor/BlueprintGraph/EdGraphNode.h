@@ -49,16 +49,19 @@ public:
     /** @brief 노드 제목을 반환한다. */
     virtual FString GetNodeTitle() const { return "Base Node"; }
 
+    /** @brief 특정 핀에 대한 값을 평가해서 반환한다(블루프린트 표현식 용). */
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin) { return FBlueprintValue{}; }
+
     /** @brief UUID를 PinID로 활용해서 핀을 생성한다. */
-    virtual UEdGraphPin* CreatePin(EEdGraphPinDirection Dir, FName PinCategory, const FString& PinName)
+    UEdGraphPin* CreatePin(EEdGraphPinDirection Dir, FName PinCategory, const FString& PinName, const FString& DefaultValue = "")
     {
-        UEdGraphPin* NewPin = new UEdGraphPin(this, Dir, PinCategory, PinName);
+        UEdGraphPin* NewPin = new UEdGraphPin(this, Dir, PinCategory, PinName, DefaultValue);
         Pins.Add(NewPin);
         return NewPin;
     }
 
     /** @brief 이름으로 핀을 찾는다. */
-    virtual UEdGraphPin* FindPin(const FString& PinName, EEdGraphPinDirection OptionalDirection = EEdGraphPinDirection::EGPD_MAX)
+    UEdGraphPin* FindPin(const FString& PinName, EEdGraphPinDirection OptionalDirection = EEdGraphPinDirection::EGPD_MAX) const
     {
         for (UEdGraphPin* Pin : Pins)
         {

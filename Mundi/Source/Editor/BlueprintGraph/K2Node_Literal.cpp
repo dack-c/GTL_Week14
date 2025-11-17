@@ -23,6 +23,15 @@ void UK2Node_Literal_Int::RenderBody()
     ImGui::PopItemWidth(); 
 }
 
+FBlueprintValue UK2Node_Literal_Int::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Value")
+    {
+        return Value;
+    }
+    return FBlueprintValue{};
+}
+
 void UK2Node_Literal_Int::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -52,7 +61,53 @@ void UK2Node_Literal_Float::RenderBody()
 
 }
 
+FBlueprintValue UK2Node_Literal_Float::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Value")
+    {
+        return Value;
+    }
+    return FBlueprintValue{};
+}
+
 void UK2Node_Literal_Float::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
+//	[Bool] 리터럴 노드
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_Literal_Bool, UK2Node)
+
+void UK2Node_Literal_Bool::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Value");
+}
+
+void UK2Node_Literal_Bool::RenderBody()
+{
+    ImGui::Checkbox("##value", &Value);
+    ImGui::SameLine();
+    ImGui::Text(Value ? "True" : "False");
+}
+
+FBlueprintValue UK2Node_Literal_Bool::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Value")
+    {
+        return Value;
+    }
+    return FBlueprintValue{};
+}
+
+void UK2Node_Literal_Bool::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
 

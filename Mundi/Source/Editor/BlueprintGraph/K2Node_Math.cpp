@@ -1,6 +1,19 @@
 ﻿#include "pch.h"
 #include "K2Node_Math.h"
 #include "BlueprintActionDatabase.h"
+#include "BlueprintEvaluator.h"
+
+// ----------------------------------------------------------------
+//  표현식 평가(Expression Evaluation)용 헬퍼함수
+// ----------------------------------------------------------------
+template <typename T, typename OpFunc>
+FBlueprintValue EvaluateBinaryOp(const UEdGraphNode* Node, OpFunc Op)
+{
+    T A = FBlueprintEvaluator::EvaluateInput<T>(Node->FindPin("A"));
+    T B = FBlueprintEvaluator::EvaluateInput<T>(Node->FindPin("B"));
+    
+    return FBlueprintValue(Op(A, B)); 
+}
 
 // ----------------------------------------------------------------
 //  [Float] 노드
@@ -18,6 +31,15 @@ void UK2Node_Add_FloatFloat::AllocateDefaultPins()
 
 void UK2Node_Add_FloatFloat::RenderBody()
 {
+}
+
+FBlueprintValue UK2Node_Add_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<float>(this, std::plus<float>());
+    }
+    return FBlueprintValue{};
 }
 
 void UK2Node_Add_FloatFloat::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -42,6 +64,15 @@ void UK2Node_Subtract_FloatFloat::RenderBody()
 {
 }
 
+FBlueprintValue UK2Node_Subtract_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<float>(this, std::minus<float>());
+    }
+    return FBlueprintValue{};
+}
+
 void UK2Node_Subtract_FloatFloat::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -62,6 +93,15 @@ void UK2Node_Multiply_FloatFloat::AllocateDefaultPins()
 
 void UK2Node_Multiply_FloatFloat::RenderBody()
 {
+}
+
+FBlueprintValue UK2Node_Multiply_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<float>(this, std::multiplies<float>());
+    }
+    return FBlueprintValue{};
 }
 
 void UK2Node_Multiply_FloatFloat::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -86,6 +126,16 @@ void UK2Node_Divide_FloatFloat::RenderBody()
 {
 }
 
+FBlueprintValue UK2Node_Divide_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        // @note Float는 0으로 나누면 inf가 되며 크래시는 나지 않으므로 기본 연산자 사용
+        return EvaluateBinaryOp<float>(this, std::divides<float>());
+    }
+    return FBlueprintValue{};
+}
+
 void UK2Node_Divide_FloatFloat::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -108,6 +158,15 @@ void UK2Node_Greater_FloatFloat::RenderBody()
 {
 }
 
+FBlueprintValue UK2Node_Greater_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<float>(this, std::greater<float>());
+    }
+    return FBlueprintValue{};
+}
+
 void UK2Node_Greater_FloatFloat::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -128,6 +187,15 @@ void UK2Node_Equal_FloatFloat::AllocateDefaultPins()
 
 void UK2Node_Equal_FloatFloat::RenderBody()
 {
+}
+
+FBlueprintValue UK2Node_Equal_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<float>(this, std::equal_to<float>());
+    }
+    return FBlueprintValue{}; 
 }
 
 void UK2Node_Equal_FloatFloat::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -156,6 +224,15 @@ void UK2Node_Add_IntInt::RenderBody()
 {
 }
 
+FBlueprintValue UK2Node_Add_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<int32>(this, std::plus<int32>());
+    }
+    return FBlueprintValue{}; 
+}
+
 void UK2Node_Add_IntInt::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -176,6 +253,15 @@ void UK2Node_Subtract_IntInt::AllocateDefaultPins()
 
 void UK2Node_Subtract_IntInt::RenderBody()
 {
+}
+
+FBlueprintValue UK2Node_Subtract_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<int32>(this, std::minus<int32>());
+    }
+    return FBlueprintValue{}; 
 }
 
 void UK2Node_Subtract_IntInt::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -200,6 +286,15 @@ void UK2Node_Multiply_IntInt::RenderBody()
 {
 }
 
+FBlueprintValue UK2Node_Multiply_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<int32>(this, std::multiplies<int32>());
+    }
+    return FBlueprintValue{}; 
+}
+
 void UK2Node_Multiply_IntInt::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -220,6 +315,16 @@ void UK2Node_Divide_IntInt::AllocateDefaultPins()
 
 void UK2Node_Divide_IntInt::RenderBody()
 {
+}
+
+FBlueprintValue UK2Node_Divide_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        // @note Divide-by-Zero가 발생하지 않도록 주의해야 한다. 별도의 처리를 해주지 않는다.
+        return EvaluateBinaryOp<int32>(this, std::divides<int32>());
+    }
+    return FBlueprintValue{}; 
 }
 
 void UK2Node_Divide_IntInt::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
@@ -244,6 +349,15 @@ void UK2Node_Greater_IntInt::RenderBody()
 {
 }
 
+FBlueprintValue UK2Node_Greater_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<int32>(this, std::greater<int32>());
+    }
+    return FBlueprintValue{}; 
+}
+
 void UK2Node_Greater_IntInt::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
@@ -264,6 +378,15 @@ void UK2Node_Equal_IntInt::AllocateDefaultPins()
 
 void UK2Node_Equal_IntInt::RenderBody()
 {
+}
+
+FBlueprintValue UK2Node_Equal_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<int32>(this, std::equal_to<int32>());
+    }
+    return FBlueprintValue{}; 
 }
 
 void UK2Node_Equal_IntInt::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const

@@ -9,7 +9,7 @@
 // ImGui-Node-Editor ID 변환 헬퍼
 static inline ed::NodeId ToNodeId(int32 id) { return (uintptr_t)id; }
 static inline ed::PinId ToPinId(int32 id) { return (uintptr_t)id; }
-static inline ed::LinkId ToLinkId(int32 id) { return (uintptr_t)id; }
+static inline ed::LinkId ToLinkId(int64 id) { return (uintptr_t)id; }
 
 SGraphEditorWindow::SGraphEditorWindow()
 {
@@ -253,14 +253,16 @@ void SGraphEditorWindow::HandleCreation()
 
             if (bAllowLink && ed::AcceptNewItem())
             {
-                if (StartPin->Direction == EEdGraphPinDirection::EGPD_Output)
+                UEdGraphPin* InputPin = (StartPin->Direction == EEdGraphPinDirection::EGPD_Input) ? StartPin : EndPin;
+                UEdGraphPin* OutputPin = (StartPin->Direction == EEdGraphPinDirection::EGPD_Output) ? StartPin : EndPin;
+
+                // @note 실행 흐름(Exec)을 표현하는 핀이 아니라면 기존 연결을 끊는다. (데이터 핀은 하나의 값만 넣을 수 있다)
+                if (InputPin->PinType.PinCategory != FEdGraphPinCategory::Exec)
                 {
-                    StartPin->MakeLinkTo(EndPin);
+                    InputPin->BreakAllLinks();        
                 }
-                else if (StartPin->Direction == EEdGraphPinDirection::EGPD_Input)
-                {
-                    EndPin->MakeLinkTo(StartPin);
-                }
+
+                OutputPin->MakeLinkTo(InputPin);
             }
         }
     }
