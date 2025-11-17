@@ -47,6 +47,7 @@ struct FAABB
 
 	static FAABB Union(const FAABB& A, const FAABB& B);
 
+	bool IsValid() const;
 };
 
 inline TArray<FVector> CubeVerticesToLine(const TArray<FVector>& CubeVertices)
