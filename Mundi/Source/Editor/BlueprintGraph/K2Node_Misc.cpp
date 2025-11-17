@@ -67,7 +67,7 @@ void UK2Node_IsPressed::RenderBody()
     ImGui::PopItemWidth();
 }
 
-FBlueprintValue UK2Node_IsPressed::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_IsPressed::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
@@ -77,7 +77,7 @@ FBlueprintValue UK2Node_IsPressed::EvaluatePin(const UEdGraphPin* OutputPin)
             return false;
         }
         bool bIsPressed = UInputManager::GetInstance().IsKeyPressed(KeyCode);
-        
+
         return bIsPressed;
     }
 
@@ -112,7 +112,7 @@ void UK2Node_GetMousePosition::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_GetMousePosition::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_GetMousePosition::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     FVector2D Position = UInputManager::GetInstance().GetMousePosition();
 
@@ -153,7 +153,7 @@ void UK2Node_Watch_Int::AllocateDefaultPins()
 void UK2Node_Watch_Int::RenderBody()
 {
     UEdGraphPin* InputPin = FindPin("Value");
-    int32 CurrentValue = FBlueprintEvaluator::EvaluateInput<int32>(InputPin);
+    int32 CurrentValue = FBlueprintEvaluator::EvaluateInput<int32>(InputPin, nullptr);
 
     ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Value: %d", CurrentValue);
 }
@@ -181,7 +181,7 @@ void UK2Node_Watch_Float::AllocateDefaultPins()
 void UK2Node_Watch_Float::RenderBody()
 {
     UEdGraphPin* InputPin = FindPin("Value");
-    float CurrentValue = FBlueprintEvaluator::EvaluateInput<float>(InputPin);
+    float CurrentValue = FBlueprintEvaluator::EvaluateInput<float>(InputPin, nullptr);
 
     ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Value: %.3f", CurrentValue);
 }
@@ -209,7 +209,7 @@ void UK2Node_Watch_Bool::AllocateDefaultPins()
 void UK2Node_Watch_Bool::RenderBody()
 {
     UEdGraphPin* InputPin = FindPin("Value");
-    bool bValue = FBlueprintEvaluator::EvaluateInput<bool>(InputPin);
+    bool bValue = FBlueprintEvaluator::EvaluateInput<bool>(InputPin, nullptr);
 
     if (bValue)
     {

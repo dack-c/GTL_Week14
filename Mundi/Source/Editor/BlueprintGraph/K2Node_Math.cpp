@@ -7,10 +7,10 @@
 //  표현식 평가(Expression Evaluation)용 헬퍼함수
 // ----------------------------------------------------------------
 template <typename T, typename OpFunc>
-FBlueprintValue EvaluateBinaryOp(const UEdGraphNode* Node, OpFunc Op)
+FBlueprintValue EvaluateBinaryOp(const UEdGraphNode* Node, OpFunc Op, FBlueprintContext* Context)
 {
-    T A = FBlueprintEvaluator::EvaluateInput<T>(Node->FindPin("A"));
-    T B = FBlueprintEvaluator::EvaluateInput<T>(Node->FindPin("B"));
+    T A = FBlueprintEvaluator::EvaluateInput<T>(Node->FindPin("A"), Context);
+    T B = FBlueprintEvaluator::EvaluateInput<T>(Node->FindPin("B"), Context);
     
     return FBlueprintValue(Op(A, B)); 
 }
@@ -33,11 +33,11 @@ void UK2Node_Add_FloatFloat::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Add_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Add_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<float>(this, std::plus<float>());
+        return EvaluateBinaryOp<float>(this, std::plus<float>(), Context);
     }
     return FBlueprintValue{};
 }
@@ -64,11 +64,11 @@ void UK2Node_Subtract_FloatFloat::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Subtract_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Subtract_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<float>(this, std::minus<float>());
+        return EvaluateBinaryOp<float>(this, std::minus<float>(), Context);
     }
     return FBlueprintValue{};
 }
@@ -95,11 +95,11 @@ void UK2Node_Multiply_FloatFloat::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Multiply_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Multiply_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<float>(this, std::multiplies<float>());
+        return EvaluateBinaryOp<float>(this, std::multiplies<float>(), Context);
     }
     return FBlueprintValue{};
 }
@@ -126,12 +126,12 @@ void UK2Node_Divide_FloatFloat::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Divide_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Divide_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
         // @note Float는 0으로 나누면 inf가 되며 크래시는 나지 않으므로 기본 연산자 사용
-        return EvaluateBinaryOp<float>(this, std::divides<float>());
+        return EvaluateBinaryOp<float>(this, std::divides<float>(), Context);
     }
     return FBlueprintValue{};
 }
@@ -158,11 +158,11 @@ void UK2Node_Greater_FloatFloat::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Greater_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Greater_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<float>(this, std::greater<float>());
+        return EvaluateBinaryOp<float>(this, std::greater<float>(), Context);
     }
     return FBlueprintValue{};
 }
@@ -189,11 +189,11 @@ void UK2Node_Equal_FloatFloat::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Equal_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Equal_FloatFloat::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<float>(this, std::equal_to<float>());
+        return EvaluateBinaryOp<float>(this, std::equal_to<float>(), Context);
     }
     return FBlueprintValue{}; 
 }
@@ -224,11 +224,11 @@ void UK2Node_Add_IntInt::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Add_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Add_IntInt::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<int32>(this, std::plus<int32>());
+        return EvaluateBinaryOp<int32>(this, std::plus<int32>(), Context);
     }
     return FBlueprintValue{}; 
 }
@@ -255,11 +255,11 @@ void UK2Node_Subtract_IntInt::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Subtract_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Subtract_IntInt::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<int32>(this, std::minus<int32>());
+        return EvaluateBinaryOp<int32>(this, std::minus<int32>(), Context);
     }
     return FBlueprintValue{}; 
 }
@@ -286,11 +286,11 @@ void UK2Node_Multiply_IntInt::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Multiply_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Multiply_IntInt::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<int32>(this, std::multiplies<int32>());
+        return EvaluateBinaryOp<int32>(this, std::multiplies<int32>(), Context);
     }
     return FBlueprintValue{}; 
 }
@@ -317,12 +317,12 @@ void UK2Node_Divide_IntInt::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Divide_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Divide_IntInt::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
         // @note Divide-by-Zero가 발생하지 않도록 주의해야 한다. 별도의 처리를 해주지 않는다.
-        return EvaluateBinaryOp<int32>(this, std::divides<int32>());
+        return EvaluateBinaryOp<int32>(this, std::divides<int32>(), Context);
     }
     return FBlueprintValue{}; 
 }
@@ -349,11 +349,11 @@ void UK2Node_Greater_IntInt::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Greater_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Greater_IntInt::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<int32>(this, std::greater<int32>());
+        return EvaluateBinaryOp<int32>(this, std::greater<int32>(), Context);
     }
     return FBlueprintValue{}; 
 }
@@ -380,11 +380,11 @@ void UK2Node_Equal_IntInt::RenderBody()
 {
 }
 
-FBlueprintValue UK2Node_Equal_IntInt::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Equal_IntInt::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Result")
     {
-        return EvaluateBinaryOp<int32>(this, std::equal_to<int32>());
+        return EvaluateBinaryOp<int32>(this, std::equal_to<int32>(), Context);
     }
     return FBlueprintValue{}; 
 }

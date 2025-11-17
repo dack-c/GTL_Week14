@@ -41,7 +41,7 @@ public:
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
-    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin) override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
     
     // --- UK2Node 인터페이스 ---
 public:
@@ -68,7 +68,7 @@ public:
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
-    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin) override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
     
     // --- UK2Node 인터페이스 ---
 public:
@@ -95,7 +95,7 @@ public:
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
-    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin) override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
     
     // --- UK2Node 인터페이스 ---
 public:

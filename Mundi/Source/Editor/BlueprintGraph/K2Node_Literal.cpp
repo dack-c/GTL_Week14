@@ -23,7 +23,7 @@ void UK2Node_Literal_Int::RenderBody()
     ImGui::PopItemWidth(); 
 }
 
-FBlueprintValue UK2Node_Literal_Int::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Literal_Int::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Value")
     {
@@ -61,7 +61,7 @@ void UK2Node_Literal_Float::RenderBody()
 
 }
 
-FBlueprintValue UK2Node_Literal_Float::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Literal_Float::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Value")
     {
@@ -98,7 +98,7 @@ void UK2Node_Literal_Bool::RenderBody()
     ImGui::Text(Value ? "True" : "False");
 }
 
-FBlueprintValue UK2Node_Literal_Bool::EvaluatePin(const UEdGraphPin* OutputPin)
+FBlueprintValue UK2Node_Literal_Bool::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
 {
     if (OutputPin->PinName == "Value")
     {
