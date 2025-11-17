@@ -1505,7 +1505,15 @@ void UFbxLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshData& Mes
 		for (int32 i = 0; i < OutAnimations.Num(); ++i)
 		{
 			FString AnimStackName = OutAnimations[i]->ObjectName.ToString();
-			FString AnimCachePath = AnimCacheDir + "/" + AnimStackName + ".anim.bin";
+			FString SanitizedName = AnimStackName;
+			for (char& ch : SanitizedName)
+			{
+				if (ch == '|' || ch == ':' || ch == '*' || ch == '?' || ch == '"' || ch == '<' || ch == '>' || ch == '/' || ch == '\\')
+				{
+					ch = '_';
+				}
+			}
+			FString AnimCachePath = AnimCacheDir + "/" + SanitizedName + ".anim.bin";
 
 			if (SaveAnimationToCache(OutAnimations[i], AnimCachePath))
 			{
