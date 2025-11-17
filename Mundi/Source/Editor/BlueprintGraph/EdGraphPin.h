@@ -35,12 +35,13 @@ public:
     /** @note RTTI 지원용 디폴트 생성자 */
     UEdGraphPin() : PinID(UUID) {} 
     
-    UEdGraphPin(UEdGraphNode* InOwner, EEdGraphPinDirection InDir, FName InCategory, const FString& InName)
+    UEdGraphPin(UEdGraphNode* InOwner, EEdGraphPinDirection InDir, FName InCategory, const FString& InName, const FString& InDefaultValue)
         : PinID(UUID)
         , PinName(InName)
         , PinType(InCategory)
         , Direction(InDir)
         , OwningNode(InOwner)
+        , DefaultValue(InDefaultValue)
     {}
 
     void MakeLinkTo(UEdGraphPin* ToPin)
