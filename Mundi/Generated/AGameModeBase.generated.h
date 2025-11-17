@@ -8,18 +8,18 @@
 #define CURRENT_CLASS_GENERATED_BODY \
 public: \
     using Super = AActor; \
-    using ThisClass_t = GameModeBase; \
+    using ThisClass_t = AGameModeBase; \
     static UClass* StaticClass() \
     { \
-        static UClass Cls{ "GameModeBase", AActor::StaticClass(), sizeof(GameModeBase) }; \
+        static UClass Cls{ "AGameModeBase", AActor::StaticClass(), sizeof(AGameModeBase) }; \
         static bool bRegistered = (UClass::SignUpClass(&Cls), true); \
         return &Cls; \
     } \
-    virtual UClass* GetClass() const override { return GameModeBase::StaticClass(); } \
-    GameModeBase(const GameModeBase&) = default; \
-    GameModeBase* Duplicate() const override \
+    virtual UClass* GetClass() const override { return AGameModeBase::StaticClass(); } \
+    AGameModeBase(const AGameModeBase&) = default; \
+    AGameModeBase* Duplicate() const override \
     { \
-        GameModeBase* NewObject = ObjectFactory::DuplicateObject<GameModeBase>(this); \
+        AGameModeBase* NewObject = ObjectFactory::DuplicateObject<AGameModeBase>(this); \
         NewObject->DuplicateSubObjects(); \
         NewObject->PostDuplicate(); \
         return NewObject; \

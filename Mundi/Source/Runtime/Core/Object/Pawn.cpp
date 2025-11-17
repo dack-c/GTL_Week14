@@ -1,8 +1,13 @@
 ﻿#include "pch.h"
 #include "Pawn.h"
+#include "SkeletalMeshComponent.h"
 
 APawn::APawn()
 {
+	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMeshComponent");
+	SetRootComponent(SkeletalMeshComp);
+
+	/*SkeletalMeshComp->SetSkeletalMesh("James.fbx");*/
 }
 
 void APawn::Tick(float DeltaTime)

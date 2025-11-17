@@ -12,6 +12,7 @@
 #include "PlayerController.h"
 #include "CameraComponent.h"
 #include "PlayerCameraManager.h"
+#include "GameModeBase.h"
 
 float UEditorEngine::ClientWidth = 1024.0f;
 float UEditorEngine::ClientHeight = 1024.0f;
@@ -387,6 +388,14 @@ void UEditorEngine::StartPIE()
     SLATE.SetPIEWorld(GWorld);  // SLATE의 카메라를 가져와서 설정, TODO: 추후 월드의 카메라 컴포넌트를 가져와서 설정하도록 변경 필요
 
     bPIEActive = true;
+    AGameModeBase* GameMode = nullptr;
+    if (GWorld->GetGameMode() == nullptr)
+    {
+        AGameModeBase* GM = GWorld->SpawnActor<AGameModeBase>(FTransform());
+        GWorld->SetGameMode(GM);
+    }
+     
+    GWorld->GetGameMode()->StartPlay(); 
 
     // PIE가 시작되면, 마우스를 숨기고 위치를 락건다.
     // F11을 통해서 풀 수 있다. 
@@ -408,27 +417,6 @@ void UEditorEngine::StartPIE()
     // NOTE: BeginPlay 중에 삭제된 액터 삭제 후 Tick 시작
     GWorld->ProcessPendingKillActors();
      
-    // Test Code
-    //APawn* P = GWorld->SpawnActor<APawn>();
-    //P->SetActorLocation(FVector(0,0,0));
-    //APlayerController* PC = GWorld->SpawnActor<APlayerController>();
-    //PC->Possess(P); 
-    // Attach a camera to the Pawn for PIE testing and set as active view
-    //if (P)
-    //{
-    //    if (UCameraComponent* Cam = Cast<UCameraComponent>(P->AddNewComponent(UCameraComponent::StaticClass(), P->GetRootComponent())))
-    //    {
-    //        // Position the camera slightly behind and above the pawn, looking forward
-    //        Cam->SetRelativeLocation(FVector(-3.0f, 0.0f, 1.5f));
-    //        Cam->SetRelativeRotation(FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, 0.0f)));
-
-    //        if (APlayerCameraManager* PCM = GWorld->GetPlayerCameraManager())
-    //        {
-    //            PCM->SetViewCamera(Cam);
-    //        }
-    //    }
-    //}
-
 }
 
 void UEditorEngine::EndPIE()

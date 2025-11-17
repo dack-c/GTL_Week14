@@ -4,6 +4,7 @@
 #include "APawn.generated.h"
 
 class AController;
+class USkeletalMeshComponent;
 
 UCLASS(DisplayName = "폰", Description = "폰 액터")
 class APawn : public AActor
@@ -37,5 +38,6 @@ protected:
 	// 이번 프레임에 누전된 이동 벡터
 	FVector InternalMovementInputVector; 
 
+	USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 	float Velocity = 10.0f; 
 };
