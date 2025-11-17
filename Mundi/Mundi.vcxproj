@@ -258,6 +258,8 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\BlueprintActionDatabase.cpp" />
+    <ClCompile Include="Source\Editor\BlueprintGraph\BlueprintEvaluator.cpp" />
+    <ClCompile Include="Source\Editor\BlueprintGraph\BlueprintTypes.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\EdGraph.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\EdGraphNode.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\EdGraphTypes.cpp" />
@@ -723,6 +725,8 @@
     <ClInclude Include="Generated\UTextRenderComponent.generated.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\BlueprintActionDatabase.h" />
+    <ClInclude Include="Source\Editor\BlueprintGraph\BlueprintEvaluator.h" />
+    <ClInclude Include="Source\Editor\BlueprintGraph\BlueprintTypes.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\EdGraph.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\EdGraphNode.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\EdGraphPin.h" />
