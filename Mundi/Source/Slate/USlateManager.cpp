@@ -17,6 +17,9 @@
 #include "UIManager.h"
 #include "GlobalConsole.h"
 #include "ThumbnailManager.h"
+#include "BlueprintGraph/BlueprintActionDatabase.h"
+#include "BlueprintGraph/EdGraph.h"
+#include "Windows/AnimGraph/SAnimGraphEditorWindow.h"
 
 IMPLEMENT_CLASS(USlateManager)
 
@@ -181,6 +184,16 @@ void USlateManager::OpenSkeletalMeshViewer()
         return;
 
     SkeletalViewerWindow = new SSkeletalMeshViewerWindow();
+
+    // @todo 테스트용으로 삽입함. 나중에 무조건 지울 것 
+    // AnimGraphEditorWindow = new SAnimGraphEditorWindow();
+    // AnimGraphEditorWindow->Initialize();
+
+    FBlueprintActionDatabase::GetInstance().Initialize();
+    GraphEditorWindow = new SGraphEditorWindow();
+    // @todo 메모리 누수 발생 지점. 나중에 무조건 지울 것
+    UEdGraph* Graph = new UEdGraph();
+    GraphEditorWindow->Initialize(Graph);
 
     // Open as a detached window at a default size and position
     const float toolbarHeight = 50.0f;
@@ -412,6 +425,16 @@ void USlateManager::Render()
     if (SkeletalViewerWindow)
     {
         SkeletalViewerWindow->OnRender();
+    }
+
+    if (AnimGraphEditorWindow)
+    {
+        AnimGraphEditorWindow->OnRender();
+    }
+
+    if (GraphEditorWindow)
+    {
+        GraphEditorWindow->OnRender();
     }
 }
 
@@ -709,6 +732,18 @@ void USlateManager::Shutdown()
     {
         delete SkeletalViewerWindow;
         SkeletalViewerWindow = nullptr;
+    }
+
+    if (AnimGraphEditorWindow)
+    {
+        delete AnimGraphEditorWindow;
+        AnimGraphEditorWindow = nullptr;
+    }
+
+    if (GraphEditorWindow)
+    {
+        delete GraphEditorWindow;
+        GraphEditorWindow = nullptr;
     }
 }
 

@@ -1,11 +1,13 @@
 ﻿#pragma once
 #include "Object.h"
+#include "Windows/SGraphEditorWindow.h"
 #include "Windows/SWindow.h" // for FRect and SWindow types used by children
 #include "Windows/SSplitterV.h"
 #include "Windows/SSplitterH.h"
 #include "Windows/SViewportWindow.h"
 #include "Windows/SSkeletalMeshViewerWindow.h"
 
+class SAnimGraphEditorWindow;
 class SSceneIOWindow; // 새로 추가할 UI
 class SDetailsWindow;
 class UMainToolbarWidget;
@@ -123,6 +125,12 @@ private:
 
     // Detached skeletal mesh viewer window
     SSkeletalMeshViewerWindow* SkeletalViewerWindow = nullptr;
+
+    // 애니메이션 그래프 편집기
+    SAnimGraphEditorWindow* AnimGraphEditorWindow = nullptr;
+
+    // 블루프린트 편집기
+    SGraphEditorWindow* GraphEditorWindow = nullptr;
 
     // Content Browser (Bottom panel overlay with animation)
     UContentBrowserWindow* ContentBrowserWindow = nullptr;

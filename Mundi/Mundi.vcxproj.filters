@@ -695,6 +695,25 @@
     <ClCompile Include="Generated\UMeshComponent.generated.cpp">
       <Filter>Generated</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Runtime\Core\Memory\GPUProfile.cpp" />
+    <ClCompile Include="Source\Runtime\Debug\Console.cpp" />
+    <ClCompile Include="Source\Runtime\Debug\ConsoleInputThread.cpp" />
+    <ClCompile Include="Source\Runtime\Debug\CrashCommand.cpp" />
+    <ClCompile Include="Source\Runtime\Debug\CrashHandler.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimationRuntime.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimationStateMachine.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotify_PlaySound.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimNotifyState.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\Team2AnimInstance.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimInstance.cpp" />
+    <ClCompile Include="Source\Slate\Windows\SAnimGraphEditorWindow.cpp" />
+    <ClCompile Include="ThirdParty\imgui-node-editor\crude_json.cpp" />
+    <ClCompile Include="ThirdParty\imgui-node-editor\imgui_canvas.cpp" />
+    <ClCompile Include="ThirdParty\imgui-node-editor\imgui_node_editor_api.cpp" />
+    <ClCompile Include="ThirdParty\imgui-node-editor\imgui_node_editor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -1481,6 +1500,22 @@
     <ClInclude Include="Generated\ASkeletalMeshActor.generated.h">
       <Filter>Generated</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Runtime\Core\Memory\GPUProfile.h" />
+    <ClInclude Include="Source\Runtime\Debug\Console.h" />
+    <ClInclude Include="Source\Runtime\Debug\CrashCommand.h" />
+    <ClInclude Include="Source\Runtime\Debug\CrashHandler.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimationRuntime.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimationStateMachine.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotifyState_Trail.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimNotify_PlaySound.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimTypes.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\Team2AnimInstance.h" />
+    <ClInclude Include="Source\Runtime\Renderer\SkinningStats.h" />
+    <ClInclude Include="Source\Slate\Windows\SAnimGraphEditorWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Tools\CodeGenerator\generate.py">
