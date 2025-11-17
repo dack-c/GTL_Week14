@@ -25,8 +25,9 @@ public:
 	virtual void AddMovementInput(FVector Direction, float Scale = 1.0f);
 	
 	// 현재 이동 입력 벡터 가져오기 
-	FVector ConsumeMovementInputVector;
+	FVector ConsumeMovementInputVector();
 	
+	float GetVelocity() { return Velocity; }
 	
 protected:
 	
@@ -35,4 +36,6 @@ protected:
 
 	// 이번 프레임에 누전된 이동 벡터
 	FVector InternalMovementInputVector; 
+
+	float Velocity = 10.0f; 
 };

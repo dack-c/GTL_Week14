@@ -2,6 +2,14 @@
 #include "Controller.h"
 #include "Pawn.h"
 
+AController::AController()
+{
+}
+
+AController::~AController()
+{
+}
+
 void AController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -25,7 +33,6 @@ void AController::Possess(APawn* InPawn)
 	Pawn->PossessedBy(this);
 
 	// Pawn의 회전과 Controller의 회전을 일치
-
 	SetControlRotation(Pawn->GetActorRotation());
 
 }

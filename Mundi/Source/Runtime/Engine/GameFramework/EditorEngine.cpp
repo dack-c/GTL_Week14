@@ -2,11 +2,16 @@
 #include "EditorEngine.h"
 #include "USlateManager.h"
 #include "SelectionManager.h"
+#include "InputManager.h"
 #include "FAudioDevice.h"
 #include "FbxLoader.h"
 #include <ObjManager.h>
 #include <roapi.h>
 
+#include "Pawn.h"
+#include "PlayerController.h"
+#include "CameraComponent.h"
+#include "PlayerCameraManager.h"
 
 float UEditorEngine::ClientWidth = 1024.0f;
 float UEditorEngine::ClientHeight = 1024.0f;
@@ -383,6 +388,15 @@ void UEditorEngine::StartPIE()
 
     bPIEActive = true;
 
+    // PIE가 시작되면, 마우스를 숨기고 위치를 락건다.
+    // F11을 통해서 풀 수 있다. 
+    {
+        UInputManager& Input = UInputManager::GetInstance();
+        Input.SetCursorVisible(false);
+        Input.LockCursor();
+        Input.LockCursorToCenter();
+    }
+
     // BeginPlay 중에 새로운 actor가 추가될 수도 있어서 복사 후 호출
     TArray<AActor*> LevelActors = GWorld->GetLevel()->GetActors();
     for (AActor* Actor : LevelActors)
@@ -393,6 +407,28 @@ void UEditorEngine::StartPIE()
 
     // NOTE: BeginPlay 중에 삭제된 액터 삭제 후 Tick 시작
     GWorld->ProcessPendingKillActors();
+     
+    // Test Code
+    //APawn* P = GWorld->SpawnActor<APawn>();
+    //P->SetActorLocation(FVector(0,0,0));
+    //APlayerController* PC = GWorld->SpawnActor<APlayerController>();
+    //PC->Possess(P); 
+    // Attach a camera to the Pawn for PIE testing and set as active view
+    //if (P)
+    //{
+    //    if (UCameraComponent* Cam = Cast<UCameraComponent>(P->AddNewComponent(UCameraComponent::StaticClass(), P->GetRootComponent())))
+    //    {
+    //        // Position the camera slightly behind and above the pawn, looking forward
+    //        Cam->SetRelativeLocation(FVector(-3.0f, 0.0f, 1.5f));
+    //        Cam->SetRelativeRotation(FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, 0.0f)));
+
+    //        if (APlayerCameraManager* PCM = GWorld->GetPlayerCameraManager())
+    //        {
+    //            PCM->SetViewCamera(Cam);
+    //        }
+    //    }
+    //}
+
 }
 
 void UEditorEngine::EndPIE()

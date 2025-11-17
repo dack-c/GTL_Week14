@@ -8,6 +8,7 @@ class AController : public AActor
 {
 public: 
 	GENERATED_REFLECTION_BODY()
+
 	AController();
 	virtual ~AController() override;
 
