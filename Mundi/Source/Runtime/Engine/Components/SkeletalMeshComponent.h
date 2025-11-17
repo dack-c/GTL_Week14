@@ -22,6 +22,8 @@ public:
     void TickComponent(float DeltaTime) override;
     void SetSkeletalMesh(const FString& PathFileName) override;
 
+    FAABB GetWorldAABB() const override;
+
 // Animation Section
 public:
 

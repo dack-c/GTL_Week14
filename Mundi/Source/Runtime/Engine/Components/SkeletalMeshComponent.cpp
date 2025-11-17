@@ -164,6 +164,11 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
     }
 }
 
+FAABB USkeletalMeshComponent::GetWorldAABB() const
+{
+    return Super::GetWorldAABB();
+}
+
 void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
 {
     if (AnimationMode == InAnimationMode)
@@ -283,6 +288,12 @@ void USkeletalMeshComponent::ForceRecomputePose()
     // ComponentSpace -> Final Skinning Matrices 계산
     UpdateFinalSkinningMatrices();
     UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);    
+    {
+        TIME_PROFILE(SkeletalAABB)
+        // GetWorldAABB 함수에서 AABB를 갱신중
+        GetWorldAABB();
+        TIME_PROFILE_END(SkeletalAABB)
+    }
     
     PerformSkinning();
     
