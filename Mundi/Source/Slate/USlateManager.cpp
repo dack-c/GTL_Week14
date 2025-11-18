@@ -251,7 +251,7 @@ void USlateManager::CloseAnimationGraphEditor()
     // @todo 현재 창 끄면 그래프 정보 삭제됨
     if (AnimGraph)
     {
-        delete AnimGraph;
+        DeleteObject(AnimGraph);
         AnimGraph = nullptr;
     }
 }
