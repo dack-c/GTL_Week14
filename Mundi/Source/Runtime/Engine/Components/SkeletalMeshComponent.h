@@ -3,6 +3,7 @@
 #include "USkeletalMeshComponent.generated.h"
 // Include for FPendingAnimNotify and FAnimNotifyEvent types
 #include "Source/Runtime/Engine/Animation/AnimTypes.h"
+class UAnimationGraph;
 class UAnimationAsset;
 class UAnimSequence;
 class UAnimInstance;
@@ -40,6 +41,16 @@ public:
      * @brief 현재 재생 중인 애니메이션 가져오기
      */
     UAnimSequence* GetAnimation() const { return CurrentAnimation; }
+
+    /**
+     * @brief 애니메이션 그래프 가져오기
+     */
+    UAnimationGraph* GetAnimGraph() const { return AnimGraph; }
+
+    /**
+     * @brief 애니메이션 그래프 설정 
+     */
+    void SetAnimGraph(UAnimationGraph* InAnimGraph) { AnimGraph = InAnimGraph;}
 
     /**
      * @brief 애니메이션 재생 시작/중지
@@ -165,6 +176,9 @@ protected:
     UAnimInstance* AnimInstance = nullptr;
 
     EAnimationMode AnimationMode = EAnimationMode::AnimationBlueprint;
+
+    /** 애니메이션 블루프린트 */
+    UAnimationGraph* AnimGraph = nullptr;
 
 // Editor Section
 public:

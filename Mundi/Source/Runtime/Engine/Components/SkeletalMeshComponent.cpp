@@ -40,12 +40,14 @@ void USkeletalMeshComponent::BeginPlay()
     UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
     AnimInstance->SetStateMachine(StateMachine);
 
-    // @todo BeinPlay에서 직접 컴파일을 하는 흐름이 매끄럽지 않음 (개선 요망)
-    FAnimBlueprintCompiler::Compile(
-        USlateManager::GetInstance().GetAnimationGraph(),
-        AnimInstance,
-        StateMachine
-    );
+    if (AnimGraph)
+    {
+        FAnimBlueprintCompiler::Compile(
+            AnimGraph,
+            AnimInstance,
+            StateMachine
+        );
+    }
 
     UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
     UE_LOG("Use SetMovementSpeed() to control animation transitions");

@@ -218,7 +218,7 @@ void USlateManager::OpenSkeletalMeshViewerWithFile(const char* FilePath)
     }
 }
 
-void USlateManager::OpenAnimationGraphEditor()
+void USlateManager::OpenAnimationGraphEditor(UAnimationGraph* AnimGraph)
 {
     if (AnimationGraphEditorWindow)
     {

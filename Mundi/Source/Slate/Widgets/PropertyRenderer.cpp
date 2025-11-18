@@ -18,6 +18,7 @@
 #include "PlatformProcess.h"
 #include "SkeletalMeshComponent.h"
 #include "USlateManager.h"
+#include "BlueprintGraph/AnimationGraph.h"
 #include "BlueprintGraph/AnimBlueprintCompiler.h"
 #include "ImGui/imgui_curve.hpp"
 #include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
@@ -1117,33 +1118,41 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 	ImGui::Separator(); 
 	ImGui::Spacing();
 
-	if (ImGui::Button("Animation Graph Editor"))
+	UObject* Object = static_cast<UObject*>(Instance);
+	USkeletalMeshComponent* SkelComp = Cast<USkeletalMeshComponent>(Object);
+
+	if (SkelComp)
 	{
-		if (!USlateManager::GetInstance().IsAnimationGraphEditorOpen())
+		// #1. 현재 할당된 애니메이션 그래프 이름 표시
+		FString GraphName = SkelComp->GetAnimGraph() ? SkelComp->GetAnimGraph()->GetName() : "None";
+		ImGui::Text("애니메이션 그래프: %s", GraphName.c_str());
+
+		// #2. 그래프가 없으면 [Create], 있으면 [Edit] 버튼 표시
+		if (SkelComp->GetAnimGraph() == nullptr)
 		{
-			USlateManager::GetInstance().OpenAnimationGraphEditor();	
+			if (ImGui::Button("새로운 애니메이션 그래프 생성"))
+			{
+				UAnimationGraph* NewGraph = NewObject<UAnimationGraph>();
+				// NewGraph->SetName("NewAnimGraph_" + std::to_string(NewGraph->GetID())); // 임시 이름
+                
+				SkelComp->SetAnimGraph(NewGraph);
+                
+				USlateManager::GetInstance().OpenAnimationGraphEditor(NewGraph);
+			}
 		}
 		else
 		{
-			USlateManager::GetInstance().CloseAnimationGraphEditor();
-		}
-	}
-
-	ImGui::SameLine();
-
-	// @todo 컴파일하는 흐름이 매끄럽지 않음 (삭제할지 고민중)
-	if (ImGui::Button("Compile"))
-	{
-		UObject* Object = static_cast<UObject*>(Instance);
-		if (USkeletalMeshComponent* Component = Cast<USkeletalMeshComponent>(Object))
-		{
-			UAnimationStateMachine* StateMachine = Component->GetAnimInstance()->GetStateMachine();
-			FAnimBlueprintCompiler::Compile(
-				USlateManager::GetInstance().GetAnimationGraph(),
-				Component->GetAnimInstance(),
-				StateMachine
-			);
-			Component->GetAnimInstance()->SetStateMachine(StateMachine);
+			if (ImGui::Button("그래프 에디터 열기"))
+			{
+				if (USlateManager::GetInstance().IsAnimationGraphEditorOpen())
+				{
+					USlateManager::GetInstance().OpenAnimationGraphEditor(SkelComp->GetAnimGraph());
+				}
+				else
+				{
+					USlateManager::GetInstance().OpenAnimationGraphEditor(SkelComp->GetAnimGraph());
+				}
+			}
 		}
 	}
 
