@@ -12,6 +12,30 @@ namespace ed = ax::NodeEditor;
 
 IMPLEMENT_CLASS(UK2Node_AnimSequence, UK2Node)
 
+void UK2Node_AnimSequence::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FString AnimPath;
+        if (FJsonSerializer::ReadString(InOutHandle, "AnimPath", AnimPath))
+        {
+            if (!AnimPath.empty())
+            {
+                Value = RESOURCE.Get<UAnimSequence>(AnimPath);
+            }
+        }
+    }
+    else
+    {
+        if (Value)
+        {
+            InOutHandle["AnimPath"] = Value->GetFilePath();
+        }
+    }
+}
+
 void UK2Node_AnimSequence::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::AnimSequence, "Value");
@@ -133,6 +157,20 @@ void UK2Node_AnimSequence::GetMenuActions(FBlueprintActionDatabaseRegistrar& Act
 // ----------------------------------------------------------------
 
 IMPLEMENT_CLASS(UK2Node_AnimState, UK2Node)
+
+void UK2Node_AnimState::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadString(InOutHandle, "StateName", StateName);
+    }
+    else
+    {
+        InOutHandle["StateName"] = StateName;
+    }
+}
 
 void UK2Node_AnimState::AllocateDefaultPins()
 {

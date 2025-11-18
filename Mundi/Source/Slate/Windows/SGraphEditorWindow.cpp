@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "SGraphEditorWindow.h"
 
+#include "PlatformProcess.h"
 #include "USlateManager.h"
 #include "BlueprintGraph/BlueprintActionDatabase.h"
 #include "BlueprintGraph/EdGraph.h"
@@ -83,13 +84,82 @@ void SGraphEditorWindow::RenderMenuBar()
     {
         if (ImGui::BeginMenu("파일"))
         {
-            if (ImGui::Button("저장"))
+            // =====================================================
+            // [저장] Save
+            // =====================================================
+            if (ImGui::MenuItem("저장", "Ctrl+S")) 
             {
-                /** @todo 직렬화 */
+                if (Graph)
+                {
+                    ed::SetCurrentEditor(Context);
+                    
+                    // @note 에디터 상에서 움직인 위치를 실제 노드 위치에 반영해야 함
+                    for (UEdGraphNode* Node : Graph->Nodes)
+                    {
+                        ImVec2 Pos = ed::GetNodePosition(Node->NodeID);
+                
+                        Node->NodePosX = Pos.x;
+                        Node->NodePosY = Pos.y;
+                
+                        Node->Position = Pos;
+                    }
+
+                    std::filesystem::path SavePath = FPlatformProcess::OpenSaveFileDialog(
+                        L"Data/Graphs", 
+                        L"graph", 
+                        L"Graph Files", 
+                        L"NewGraph.json"
+                    );
+
+                    if (!SavePath.empty())
+                    {
+                        JSON GraphJson = JSON::Make(JSON::Class::Object);
+                        
+                        Graph->Serialize(false, GraphJson);
+
+                        if (FJsonSerializer::SaveJsonToFile(GraphJson, SavePath.wstring()))
+                        {
+                            UE_LOG("SGraphEditorWindow::RenderMenuBar: 그래프가 '%ls'에 성공적으로 저장되었습니다.", SavePath.c_str());
+                        }
+                        else
+                        {
+                            UE_LOG("SGraphEditorWindow::RenderMenuBar: 그래프를 '%ls'에 저장하는데 실패했습니다.", SavePath.c_str());
+                        }
+                    }
+                }
             }
-            if (ImGui::Button("불러오기"))
+
+            // =====================================================
+            // [불러오기] Load
+            // =====================================================
+            if (ImGui::MenuItem("불러오기", "Ctrl+O"))
             {
-                /** @todo 역직렬화 */
+                std::filesystem::path LoadPath = FPlatformProcess::OpenLoadFileDialog(
+                    L"Data/Graphs", 
+                    L"graph", 
+                    L"Graph Files"
+                );
+
+                if (!LoadPath.empty())
+                {
+                    JSON LoadedJson;
+
+                    if (FJsonSerializer::LoadJsonFromFile(LoadedJson, LoadPath.wstring()))
+                    {
+                        if (Graph == nullptr)
+                        {
+                            Graph = NewObject<UEdGraph>();
+                        }
+
+                        Graph->Serialize(true, LoadedJson);
+                        
+                        UE_LOG("SGraphEditorWindow::RenderMenuBar: 그래프가 '%ls'로부터 성공적으로 로드되었습니다.", LoadPath.c_str());
+                    }
+                    else
+                    {
+                        UE_LOG("SGraphEditorWindow::RenderMenuBar: 그래프를 '%ls'로부터 로드하는데 실패했습니다.", LoadPath.c_str());
+                    }
+                }
             }
             ImGui::EndMenu();
         }

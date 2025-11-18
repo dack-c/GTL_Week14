@@ -42,6 +42,8 @@ public:
         Pins.Empty();
     }
 
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
     /** @brief 노드 타입에 필요한 기본 핀들을 생성한다. */
     virtual void AllocateDefaultPins() {}
 

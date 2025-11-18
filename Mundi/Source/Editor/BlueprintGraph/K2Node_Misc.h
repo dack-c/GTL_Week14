@@ -34,10 +34,37 @@ class UK2Node_IsPressed : public UK2Node
 public:
     /** 확인할 키의 이름 (예: "Space", "W") */
     FString KeyName = "Space";
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Is Key Pressed"; }
+    virtual bool IsNodePure() const override { return true; } // 순수 노드로 처리
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+    
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "입력"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+UCLASS(DisplayName="UK2Node_IsKeyDown", Description="지정된 키가 이번 프레임에 눌렸는지 확인합니다 (bool 반환).")
+class UK2Node_IsKeyDown : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_IsKeyDown, UK2Node);
+
+public:
+    /** 확인할 키의 이름 (예: "Space", "W") */
+    FString KeyName = "Space";
+    
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Is Key Down"; }
     virtual bool IsNodePure() const override { return true; } // 순수 노드로 처리
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;

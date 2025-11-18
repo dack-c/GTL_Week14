@@ -11,6 +11,20 @@ namespace ed = ax::NodeEditor;
 
 IMPLEMENT_CLASS(UK2Node_Literal_Int, UK2Node)
 
+void UK2Node_Literal_Int::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadInt32(InOutHandle, "Value", Value);
+    }
+    else
+    {
+        InOutHandle["Value"] = Value;
+    }
+}
+
 void UK2Node_Literal_Int::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Int, "Value");
@@ -47,6 +61,20 @@ void UK2Node_Literal_Int::GetMenuActions(FBlueprintActionDatabaseRegistrar& Acti
 // ----------------------------------------------------------------
 
 IMPLEMENT_CLASS(UK2Node_Literal_Float, UK2Node)
+
+void UK2Node_Literal_Float::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadFloat(InOutHandle, "Value", Value);
+    }
+    else
+    {
+        InOutHandle["Value"] = Value;
+    }
+}
 
 void UK2Node_Literal_Float::AllocateDefaultPins()
 {
@@ -85,6 +113,20 @@ void UK2Node_Literal_Float::GetMenuActions(FBlueprintActionDatabaseRegistrar& Ac
 // ----------------------------------------------------------------
 
 IMPLEMENT_CLASS(UK2Node_Literal_Bool, UK2Node)
+
+void UK2Node_Literal_Bool::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadBool(InOutHandle, "Value", Value);
+    }
+    else
+    {
+        InOutHandle["Value"] = Value;
+    }
+}
 
 void UK2Node_Literal_Bool::AllocateDefaultPins()
 {
