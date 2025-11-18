@@ -17,6 +17,8 @@ public:
 
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     void DuplicateSubObjects() override;
+
+    // void RenderDebugVolume(class URenderer* Renderer) const override;
     
 // Mesh Component Section
 public:

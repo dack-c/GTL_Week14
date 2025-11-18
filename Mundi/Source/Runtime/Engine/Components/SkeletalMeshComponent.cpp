@@ -16,9 +16,8 @@
 #include "BlueprintGraph/AnimBlueprintCompiler.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
-{
-    // 테스트용 기본 메시 설정 - 애니메이션과 동일한 FBX 사용
-    //SetSkeletalMesh("Data/James/James.fbx");
+{ 
+    SetSkeletalMesh("Data/James/James.fbx");
 }
 
 
@@ -180,6 +179,11 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
     }
 }
 
+FAABB USkeletalMeshComponent::GetWorldAABB() const
+{
+    return Super::GetWorldAABB();
+}
+
 void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
 {
     if (AnimationMode == InAnimationMode)
@@ -299,6 +303,12 @@ void USkeletalMeshComponent::ForceRecomputePose()
     // ComponentSpace -> Final Skinning Matrices 계산
     UpdateFinalSkinningMatrices();
     UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);    
+    {
+        TIME_PROFILE(SkeletalAABB)
+        // GetWorldAABB 함수에서 AABB를 갱신중
+        GetWorldAABB();
+        TIME_PROFILE_END(SkeletalAABB)
+    }
     
     PerformSkinning();
     
