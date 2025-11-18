@@ -53,6 +53,20 @@ static int GetKeyCodeFromStr(const FString& InKeyName)
 
 IMPLEMENT_CLASS(UK2Node_IsPressed, UK2Node)
 
+void UK2Node_IsPressed::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadString(InOutHandle, "KeyName", KeyName);
+    }
+    else
+    {
+        InOutHandle["KeyName"] = KeyName;
+    }
+}
+
 void UK2Node_IsPressed::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
@@ -85,6 +99,64 @@ FBlueprintValue UK2Node_IsPressed::EvaluatePin(const UEdGraphPin* OutputPin, FBl
 }
 
 void UK2Node_IsPressed::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+
+    ActionRegistrar.AddAction(Spawner);
+}
+
+IMPLEMENT_CLASS(UK2Node_IsKeyDown, UK2Node)
+
+void UK2Node_IsKeyDown::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadString(InOutHandle, "KeyName", KeyName);
+    }
+    else
+    {
+        InOutHandle["KeyName"] = KeyName;
+    }
+}
+
+void UK2Node_IsKeyDown::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
+    
+    TitleColor = ImColor(220, 48, 48);
+}
+
+void UK2Node_IsKeyDown::RenderBody()
+{
+    ImGui::PushItemWidth(150.0f);
+    ImGui::InputText("키 이름", &KeyName);
+    ImGui::PopItemWidth();
+}
+
+FBlueprintValue UK2Node_IsKeyDown::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        int32 KeyCode = GetKeyCodeFromStr(KeyName);
+        if (KeyCode == 0)
+        {
+            return false;
+        }
+        
+        bool bIsDown = UInputManager::GetInstance().IsKeyDown(KeyCode);
+
+        return bIsDown;
+    }
+
+    return FBlueprintValue{};
+}
+
+void UK2Node_IsKeyDown::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
 

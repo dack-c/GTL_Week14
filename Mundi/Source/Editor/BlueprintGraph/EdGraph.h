@@ -15,6 +15,8 @@ public:
 
     virtual ~UEdGraph();
 
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
     /** @brief 노드를 그래프에 추가 */
     UEdGraphNode* AddNode(UEdGraphNode* Node);
 
@@ -30,8 +32,11 @@ public:
      */
     void RemoveNode(uint32 NodeID);
 
-    /** @brief ID로 그래프 내의 핀을 탐색 */
+    /** @brief ID로 그래프 내의 핀을 탐색 (사용을 권장하지 않음) */
     UEdGraphPin* FindPin(uint32 PinID) const;
+
+    /** @brief ID로 그래프 내의 노드를 탐색 */
+    UEdGraphNode* FindNode(uint32 InNodeID) const;
 
     /** @brief 그래프의 노드에 고유한 ID를 발급한다. */
     int32 GetNextUniqueID();

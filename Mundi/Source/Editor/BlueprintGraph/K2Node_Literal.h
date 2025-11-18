@@ -34,6 +34,8 @@ class UK2Node_Literal_Int : public UK2Node
 public:
     /** @todo UPROPERTY 시스템 통합 */
     int32 Value;
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -61,6 +63,8 @@ class UK2Node_Literal_Float : public UK2Node
 public:
     /** @todo UPROPERTY 시스템 통합 */
     float Value;
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -88,6 +92,8 @@ class UK2Node_Literal_Bool : public UK2Node
 public:
     /** @todo UPROPERTY 시스템 통합 */
     bool Value;
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     
     // --- UEdGraphNode 인터페이스 ---
 public:
