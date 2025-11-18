@@ -95,6 +95,16 @@ bool FBXAnimationCache::SaveAnimationToCache(UAnimSequence* Animation, const FSt
 		Writer << NumberOfFrames;
 		Writer << NumberOfKeys;
 
+		// Write bone names for compatibility check
+		const TArray<FName>& BoneNames = Animation->GetBoneNames();
+		uint32 NumBoneNames = (uint32)BoneNames.Num();
+		Writer << NumBoneNames;
+		for (const FName& BoneName : BoneNames)
+		{
+			FString BoneNameStr = BoneName.ToString();
+			Serialization::WriteString(Writer, BoneNameStr);
+		}
+
 		// Write bone tracks
 		TArray<FBoneAnimationTrack>& Tracks = DataModel->GetBoneAnimationTracks();
 		uint32 NumTracks = (uint32)Tracks.Num();
@@ -172,6 +182,18 @@ UAnimSequence* FBXAnimationCache::LoadAnimationFromCache(const FString& CachePat
 		DataModel->SetFrameRate(FrameRate);
 		DataModel->SetNumberOfFrames(NumberOfFrames);
 		DataModel->SetNumberOfKeys(NumberOfKeys);
+
+		// Read bone names for compatibility check
+		uint32 NumBoneNames;
+		Reader << NumBoneNames;
+		TArray<FName> BoneNames;
+		for (uint32 i = 0; i < NumBoneNames; ++i)
+		{
+			FString BoneNameStr;
+			Serialization::ReadString(Reader, BoneNameStr);
+			BoneNames.Add(FName(BoneNameStr));
+		}
+		Animation->SetBoneNames(BoneNames);
 
 		// Read bone tracks
 		uint32 NumTracks;

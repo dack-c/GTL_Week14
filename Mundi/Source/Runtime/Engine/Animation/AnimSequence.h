@@ -46,4 +46,16 @@ public:
 
     // Override GetPlayLength from base class
     virtual float GetPlayLength() const override;
+
+    // Bone names for compatibility check
+    TArray<FName> BoneNames;
+
+    // Set bone names from skeleton data
+    void SetBoneNames(const TArray<FName>& InBoneNames) { BoneNames = InBoneNames; }
+
+    // Get bone names
+    const TArray<FName>& GetBoneNames() const { return BoneNames; }
+
+    // Check if this animation is compatible with given skeleton bone names
+    bool IsCompatibleWith(const TArray<FName>& SkeletonBoneNames) const;
 };

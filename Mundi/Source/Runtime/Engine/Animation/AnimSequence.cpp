@@ -83,3 +83,29 @@ void UAnimSequence::GetBonePose(FPoseContext& OutPoseContext, const FAnimExtract
         }
     }
 }
+
+bool UAnimSequence::IsCompatibleWith(const TArray<FName>& SkeletonBoneNames) const
+{
+    if (BoneNames.Num() == 0)
+    {
+        return false;  // 본 이름 정보가 없으면 호환 불가
+    }
+
+    // 애니메이션의 모든 본이 스켈레톤에 있는지 체크
+    int32 MatchCount = 0;
+    for (const FName& AnimBone : BoneNames)
+    {
+        for (const FName& SkelBone : SkeletonBoneNames)
+        {
+            if (AnimBone == SkelBone)
+            {
+                MatchCount++;
+                break;
+            }
+        }
+    }
+
+    // 80% 이상 매칭되면 호환으로 판정 (일부 본이 없어도 허용)
+    float MatchRatio = static_cast<float>(MatchCount) / static_cast<float>(BoneNames.Num());
+    return MatchRatio >= 0.8f;
+}

@@ -174,13 +174,21 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 
 		UE_LOG("Extracted animation data for %d bones", ExtractedBones);
 
+		// Store bone names for compatibility check
+		TArray<FName> BoneNames;
+		for (const FBone& Bone : MeshData.Skeleton.Bones)
+		{
+			BoneNames.Add(Bone.Name);
+		}
+		AnimSequence->SetBoneNames(BoneNames);
+
 		// Register animation in ResourceManager
 		FString AnimKey = FilePath + "_" + AnimStackName;
 		RESOURCE.Add<UAnimSequence>(AnimKey, AnimSequence);
 
 		OutAnimations.Add(AnimSequence);
-		UE_LOG("Extracted animation: %s (Duration: %.2fs, Frames: %d) -> Key: %s",
-			AnimStackName.c_str(), Duration, NumFrames, AnimKey.c_str());
+		UE_LOG("Extracted animation: %s (Duration: %.2fs, Frames: %d, Bones: %d) -> Key: %s",
+			AnimStackName.c_str(), static_cast<float>(PlayLength), NumFrames, BoneNames.Num(), AnimKey.c_str());
 	}
 
 #ifdef USE_OBJ_CACHE

@@ -636,37 +636,73 @@ void SSkeletalMeshViewerWindow::OnRender()
                 // --- 에셋 리스트 (스크롤 가능) ---
                 TArray<UAnimSequence*> AnimSequences = UResourceManager::GetInstance().GetAll<UAnimSequence>();
 
-                if (AnimSequences.IsEmpty())
+                // Get current skeleton bone names for compatibility check
+                TArray<FName> SkeletonBoneNames;
+                if (ActiveState->CurrentMesh)
+                {
+                    const FSkeleton* Skeleton = ActiveState->CurrentMesh->GetSkeleton();
+                    if (Skeleton)
+                    {
+                        for (const FBone& Bone : Skeleton->Bones)
+                        {
+                            SkeletonBoneNames.Add(Bone.Name);
+                        }
+                    }
+                }
+
+                // If no skeleton loaded, show message to load mesh first
+                if (SkeletonBoneNames.Num() == 0)
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-                    ImGui::TextWrapped("No animation sequences found.");
+                    ImGui::TextWrapped("Load a skeletal mesh first to see compatible animations.");
                     ImGui::PopStyleColor();
                 }
                 else
                 {
+                    // Filter compatible animations
+                    TArray<UAnimSequence*> CompatibleAnims;
                     for (UAnimSequence* Anim : AnimSequences)
                     {
                         if (!Anim) continue;
 
-                        FString AssetName = Anim->GetFilePath();
-                        size_t lastSlash = AssetName.find_last_of("/\\");
-                        if (lastSlash != FString::npos)
+                        if (Anim->IsCompatibleWith(SkeletonBoneNames))
                         {
-                            AssetName = AssetName.substr(lastSlash + 1);
+                            CompatibleAnims.Add(Anim);
                         }
+                    }
 
-                        bool bIsSelected = (ActiveState->CurrentAnimation == Anim);
-
-                        if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+                    if (CompatibleAnims.IsEmpty())
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+                        ImGui::TextWrapped("No compatible animations found for this skeleton.");
+                        ImGui::PopStyleColor();
+                    }
+                    else
+                    {
+                        for (UAnimSequence* Anim : CompatibleAnims)
                         {
-                            if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
+                            if (!Anim) continue;
+
+                            FString AssetName = Anim->GetFilePath();
+                            size_t lastSlash = AssetName.find_last_of("/\\");
+                            if (lastSlash != FString::npos)
                             {
-                                ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetAnimation(Anim);
+                                AssetName = AssetName.substr(lastSlash + 1);
                             }
-                            ActiveState->CurrentAnimation = Anim;
-                            ActiveState->CurrentAnimTime = 0.0f;
-                            ActiveState->bIsPlaying = false;
-                            ActiveState->bIsPlayingReverse = false;
+
+                            bool bIsSelected = (ActiveState->CurrentAnimation == Anim);
+
+                            if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+                            {
+                                if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
+                                {
+                                    ActiveState->PreviewActor->GetSkeletalMeshComponent()->SetAnimation(Anim);
+                                }
+                                ActiveState->CurrentAnimation = Anim;
+                                ActiveState->CurrentAnimTime = 0.0f;
+                                ActiveState->bIsPlaying = false;
+                                ActiveState->bIsPlayingReverse = false;
+                            }
                         }
                     }
                 }
