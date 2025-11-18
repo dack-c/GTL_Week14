@@ -128,6 +128,12 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         // 4. 노티파이 트리거
         // 5. 커브 업데이트
         AnimInstance->NativeUpdateAnimation(DeltaTime);
+
+
+       /* GatherNotifiesFromRange(PrevAnimationTime, CurrentAnimationTime);
+         
+        DispatchAnimNotifies();*/
+
     }
     else
     {
@@ -135,6 +141,9 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         // (호환성 유지를 위해 남겨둠, 추후 제거 예정)
         TickAnimation(DeltaTime);
     }
+
+    PrevAnimationTime = CurrentAnimationTime; 
+
 }
 
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
