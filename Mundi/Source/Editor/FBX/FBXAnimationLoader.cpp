@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "FBXAnimationLoader.h"
 #include "FBXAnimationCache.h"
+#include "FBXSceneUtilities.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
 #include "ObjectFactory.h"
@@ -9,26 +10,26 @@
 
 void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshData& MeshData, const FString& FilePath, TArray<UAnimSequence*>& OutAnimations)
 {
-	// Find Armature node by name and extract its transform for correction
-	FTransform ArmatureCorrection;
-	bool bFoundArmature = false;
+	// Find first non-skeleton container node and extract its transform for correction
+	// This generalizes the old "Armature" hardcoded logic to work with any non-skeleton parent (e.g., CactusPA, Armature, etc.)
+	FTransform NonSkeletonCorrection;
+	bool bFoundNonSkeletonParent = false;
 	FbxNode* RootNode = Scene->GetRootNode();
+
 	if (RootNode)
 	{
-		// Search for "Armature" node (case-insensitive)
-		for (int i = 0; i < RootNode->GetChildCount(); ++i)
+		// Search for the first child that is NOT a skeleton node
+		// (skeleton nodes will be handled separately during bone extraction)
+		int RootNodeChildCount = RootNode->GetChildCount();
+		for (int i = 0; i < RootNodeChildCount; ++i)
 		{
 			FbxNode* ChildNode = RootNode->GetChild(i);
-			const char* NodeNameCStr = ChildNode->GetName();
-			FString NodeName(NodeNameCStr);
 
-			// Check if node name is "Armature" (case-insensitive)
-			FString NodeNameLower = NodeName;
-			std::transform(NodeNameLower.begin(), NodeNameLower.end(), NodeNameLower.begin(), ::tolower);
-
-			if (NodeNameLower == "armature")
+			// Check if this node is a non-skeleton container (e.g., Armature, CactusPA, etc.)
+			if (!FBXSceneUtilities::NodeContainsSkeleton(ChildNode) && FBXSceneUtilities::NodeContainsSkeletonInDescendants(ChildNode)
+				)
 			{
-				// Found Armature node - extract its transform
+				// Found a non-skeleton parent node - extract its transform
 				FbxAMatrix LocalTransform = ChildNode->EvaluateLocalTransform(FBXSDK_TIME_ZERO);
 
 				// Convert FbxAMatrix to FTransform
@@ -36,35 +37,36 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 				FbxQuaternion Rotation = LocalTransform.GetQ();
 				FbxVector4 Scale = LocalTransform.GetS();
 
-				ArmatureCorrection.Translation = FVector(
+				NonSkeletonCorrection.Translation = FVector(
 					static_cast<float>(Translation[0]),
 					static_cast<float>(Translation[1]),
 					static_cast<float>(Translation[2])
 				);
-				ArmatureCorrection.Rotation = FQuat(
+				NonSkeletonCorrection.Rotation = FQuat(
 					static_cast<float>(Rotation[0]),
 					static_cast<float>(Rotation[1]),
 					static_cast<float>(Rotation[2]),
 					static_cast<float>(Rotation[3])
 				);
-				ArmatureCorrection.Scale3D = FVector(
+				NonSkeletonCorrection.Scale3D = FVector(
 					static_cast<float>(Scale[0]),
 					static_cast<float>(Scale[1]),
 					static_cast<float>(Scale[2])
 				);
 
-				UE_LOG("Found Armature node '%s', storing correction transform", NodeName.c_str());
-				bFoundArmature = true;
+				FString NodeName = ChildNode->GetName();
+				UE_LOG("Found non-skeleton container node '%s', storing correction transform", NodeName.c_str());
+				bFoundNonSkeletonParent = true;
 				break;
 			}
 		}
 	}
 
-	// If no Armature node found, set to Identity (Mixamo case)
-	if (!bFoundArmature)
+	// If no non-skeleton parent found, skeleton is directly under root (Mixamo case)
+	if (!bFoundNonSkeletonParent)
 	{
-		ArmatureCorrection = FTransform();
-		UE_LOG("No Armature node found, using Identity transform (Mixamo FBX)");
+		NonSkeletonCorrection = FTransform();
+		UE_LOG("No non-skeleton container found, skeleton directly under root (Mixamo-style FBX)");
 	}
 
 	// 중요
@@ -107,7 +109,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 
 
 		// Set Armature correction transform (Identity for Mixamo, actual transform for Blender)
-		AnimSequence->SetArmatureCorrection(ArmatureCorrection);
+		AnimSequence->SetNonSkeletonCorrection(NonSkeletonCorrection);
 
 		// Get DataModel
 		UAnimDataModel* DataModel = AnimSequence->GetDataModel();

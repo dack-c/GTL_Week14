@@ -95,11 +95,11 @@ bool FBXAnimationCache::SaveAnimationToCache(UAnimSequence* Animation, const FSt
 		Writer << NumberOfFrames;
 		Writer << NumberOfKeys;
 
-		// Write Armature correction transform
-		FTransform CachedArmatureCorrection = Animation->GetArmatureCorrection();
-		FVector ACTranslation = CachedArmatureCorrection.Translation;
-		FQuat ACRotation = CachedArmatureCorrection.Rotation;
-		FVector ACScale = CachedArmatureCorrection.Scale3D;
+		// Write Non-skeleton correction transform
+		FTransform CachedNonSkeletonCorrection = Animation->GetNonSkeletonCorrection();
+		FVector ACTranslation = CachedNonSkeletonCorrection.Translation;
+		FQuat ACRotation = CachedNonSkeletonCorrection.Rotation;
+		FVector ACScale = CachedNonSkeletonCorrection.Scale3D;
 		Writer << ACTranslation.X;
 		Writer << ACTranslation.Y;
 		Writer << ACTranslation.Z;
@@ -184,19 +184,19 @@ UAnimSequence* FBXAnimationCache::LoadAnimationFromCache(const FString& CachePat
 		Reader << NumberOfFrames;
 		Reader << NumberOfKeys;
 
-		FTransform ArmatureCorrection;
-		Reader << ArmatureCorrection.Translation.X;
-		Reader << ArmatureCorrection.Translation.Y;
-		Reader << ArmatureCorrection.Translation.Z;
-		Reader << ArmatureCorrection.Rotation.X;
-		Reader << ArmatureCorrection.Rotation.Y;
-		Reader << ArmatureCorrection.Rotation.Z;
-		Reader << ArmatureCorrection.Rotation.W;
-		Reader << ArmatureCorrection.Scale3D.X;
-		Reader << ArmatureCorrection.Scale3D.Y;
-		Reader << ArmatureCorrection.Scale3D.Z;
+		FTransform NonSkeletonCorrection;
+		Reader << NonSkeletonCorrection.Translation.X;
+		Reader << NonSkeletonCorrection.Translation.Y;
+		Reader << NonSkeletonCorrection.Translation.Z;
+		Reader << NonSkeletonCorrection.Rotation.X;
+		Reader << NonSkeletonCorrection.Rotation.Y;
+		Reader << NonSkeletonCorrection.Rotation.Z;
+		Reader << NonSkeletonCorrection.Rotation.W;
+		Reader << NonSkeletonCorrection.Scale3D.X;
+		Reader << NonSkeletonCorrection.Scale3D.Y;
+		Reader << NonSkeletonCorrection.Scale3D.Z;
 
-		Animation->SetArmatureCorrection(ArmatureCorrection);
+		Animation->SetNonSkeletonCorrection(NonSkeletonCorrection);
 
 		DataModel->SetPlayLength(PlayLength);
 		DataModel->SetFrameRate(FrameRate);

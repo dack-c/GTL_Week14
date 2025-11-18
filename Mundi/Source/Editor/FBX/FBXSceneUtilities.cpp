@@ -69,7 +69,8 @@ bool FBXSceneUtilities::NodeContainsSkeleton(FbxNode* InNode)
 	if (!InNode)
 		return false;
 
-	for (int i = 0; i < InNode->GetNodeAttributeCount(); ++i)
+	int InNodeCount = InNode->GetNodeAttributeCount();
+	for (int i = 0; i < InNodeCount; ++i)
 	{
 		if (FbxNodeAttribute* Attribute = InNode->GetNodeAttributeByIndex(i))
 		{
@@ -125,4 +126,32 @@ FbxAMatrix FBXSceneUtilities::GetBindPoseMatrix(FbxNode* Node)
 	}
 
 	return Node->EvaluateGlobalTransform();
+}
+
+// Helper: Check if a node has skeleton nodes in its descendants (recursive check)
+// Returns true if any child or descendant contains a skeleton attribute
+bool FBXSceneUtilities::NodeContainsSkeletonInDescendants(FbxNode* InNode)
+{
+	if (!InNode)
+		return false;
+
+	// Check all children
+	for (int i = 0; i < InNode->GetChildCount(); ++i)
+	{
+		FbxNode* ChildNode = InNode->GetChild(i);
+		
+		// If child itself is a skeleton, return true
+		if (NodeContainsSkeleton(ChildNode))
+		{
+			return true;
+		}
+		
+		// Recursively check child's descendants
+		if (NodeContainsSkeletonInDescendants(ChildNode))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
