@@ -53,6 +53,11 @@ static int GetKeyCodeFromStr(const FString& InKeyName)
 
 IMPLEMENT_CLASS(UK2Node_IsPressed, UK2Node)
 
+UK2Node_IsPressed::UK2Node_IsPressed()
+{
+    TitleColor = ImColor(220, 48, 48);
+}
+
 void UK2Node_IsPressed::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     UK2Node::Serialize(bInIsLoading, InOutHandle);
@@ -70,8 +75,6 @@ void UK2Node_IsPressed::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 void UK2Node_IsPressed::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
-    
-    TitleColor = ImColor(220, 48, 48);
 }
 
 void UK2Node_IsPressed::RenderBody()
@@ -110,6 +113,11 @@ void UK2Node_IsPressed::GetMenuActions(FBlueprintActionDatabaseRegistrar& Action
 
 IMPLEMENT_CLASS(UK2Node_IsKeyDown, UK2Node)
 
+UK2Node_IsKeyDown::UK2Node_IsKeyDown()
+{
+    TitleColor = ImColor(220, 48, 48);
+}
+
 void UK2Node_IsKeyDown::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     UK2Node::Serialize(bInIsLoading, InOutHandle);
@@ -127,8 +135,6 @@ void UK2Node_IsKeyDown::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 void UK2Node_IsKeyDown::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
-    
-    TitleColor = ImColor(220, 48, 48);
 }
 
 void UK2Node_IsKeyDown::RenderBody()
@@ -172,12 +178,15 @@ void UK2Node_IsKeyDown::GetMenuActions(FBlueprintActionDatabaseRegistrar& Action
 
 IMPLEMENT_CLASS(UK2Node_GetMousePosition, UK2Node)
 
+UK2Node_GetMousePosition::UK2Node_GetMousePosition()
+{
+    TitleColor = ImColor(147, 226, 74);
+}
+
 void UK2Node_GetMousePosition::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "X");
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "Y");
-
-    TitleColor = ImColor(147, 226, 74);
 }
 
 void UK2Node_GetMousePosition::RenderBody()
@@ -216,10 +225,14 @@ void UK2Node_GetMousePosition::GetMenuActions(FBlueprintActionDatabaseRegistrar&
 
 IMPLEMENT_CLASS(UK2Node_Watch_Int, UK2Node)
 
+UK2Node_Watch_Int::UK2Node_Watch_Int()
+{
+    TitleColor = ImColor(100, 100, 100);
+}
+
 void UK2Node_Watch_Int::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Int, "Value", "0");
-    TitleColor = ImColor(100, 100, 100); 
 }
 
 void UK2Node_Watch_Int::RenderBody()
@@ -244,10 +257,14 @@ void UK2Node_Watch_Int::GetMenuActions(FBlueprintActionDatabaseRegistrar& Action
 
 IMPLEMENT_CLASS(UK2Node_Watch_Float, UK2Node)
 
+UK2Node_Watch_Float::UK2Node_Watch_Float()
+{
+    TitleColor = ImColor(100, 100, 100);
+}
+
 void UK2Node_Watch_Float::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Float, "Value", "0.0");
-    TitleColor = ImColor(100, 100, 100);
 }
 
 void UK2Node_Watch_Float::RenderBody()
@@ -272,10 +289,14 @@ void UK2Node_Watch_Float::GetMenuActions(FBlueprintActionDatabaseRegistrar& Acti
 
 IMPLEMENT_CLASS(UK2Node_Watch_Bool, UK2Node)
 
+UK2Node_Watch_Bool::UK2Node_Watch_Bool()
+{
+    TitleColor = ImColor(100, 100, 100);
+}
+
 void UK2Node_Watch_Bool::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "Value", "false");
-    TitleColor = ImColor(100, 100, 100);
 }
 
 void UK2Node_Watch_Bool::RenderBody()

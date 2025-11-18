@@ -32,6 +32,8 @@ class UK2Node_IsPressed : public UK2Node
     DECLARE_CLASS(UK2Node_IsPressed, UK2Node);
 
 public:
+    UK2Node_IsPressed();
+
     /** 확인할 키의 이름 (예: "Space", "W") */
     FString KeyName = "Space";
 
@@ -57,6 +59,8 @@ class UK2Node_IsKeyDown : public UK2Node
     DECLARE_CLASS(UK2Node_IsKeyDown, UK2Node);
 
 public:
+    UK2Node_IsKeyDown();
+
     /** 확인할 키의 이름 (예: "Space", "W") */
     FString KeyName = "Space";
     
@@ -84,6 +88,9 @@ UCLASS(DisplayName = "UK2Node_GetMousePosition", Description = "현재 마우스
 class UK2Node_GetMousePosition : public UK2Node
 {
     DECLARE_CLASS(UK2Node_GetMousePosition, UK2Node);
+
+public:
+    UK2Node_GetMousePosition();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -113,6 +120,9 @@ class UK2Node_Watch_Int : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Watch_Int, UK2Node);
 
+public:
+    UK2Node_Watch_Int();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Watch (Int)"; }
@@ -131,6 +141,9 @@ class UK2Node_Watch_Float : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Watch_Float, UK2Node);
 
+public:
+    UK2Node_Watch_Float();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Watch (Float)"; }
@@ -148,6 +161,9 @@ UCLASS(DisplayName="UK2Node_Watch_Bool", Description="입력된 Bool 값을 노�
 class UK2Node_Watch_Bool : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Watch_Bool, UK2Node);
+
+public:
+    UK2Node_Watch_Bool();
 
     // --- UEdGraphNode 인터페이스 ---
 public:

@@ -12,6 +12,11 @@ namespace ed = ax::NodeEditor;
 
 IMPLEMENT_CLASS(UK2Node_AnimSequence, UK2Node)
 
+UK2Node_AnimSequence::UK2Node_AnimSequence()
+{
+    TitleColor = ImColor(100, 120, 255);
+}
+
 void UK2Node_AnimSequence::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     UK2Node::Serialize(bInIsLoading, InOutHandle);
@@ -39,13 +44,10 @@ void UK2Node_AnimSequence::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 void UK2Node_AnimSequence::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::AnimSequence, "Value");
-
-    // AnimSequence 핀 색상 (예: 파란색 계열)
-    TitleColor = ImColor(100, 120, 255);
 }
 
 /**
- * @note bOpenPopup과 ed::Suspend를 활용하지 않으면, 스크린 공간이 아닌 캔버스 공간 좌표가 사용되어서
+ * @note ed::Suspend를 활용하지 않으면 스크린 공간이 아닌 캔버스 공간 좌표가 사용되어서
  * 정상적으로 창이 뜨지 않는 이슈 존재가 존재했었다. 현재는 해결되었다.
  */
 void UK2Node_AnimSequence::RenderBody()
@@ -59,47 +61,50 @@ void UK2Node_AnimSequence::RenderBody()
         PreviewName = Value->GetFilePath();
     }
 
-    bool bOpenPopup = false;
-
     if (ImGui::Button(PreviewName.c_str()))
     {
-        bOpenPopup = true;
-    }
-
-    ed::Suspend();
-
-    if (bOpenPopup)
-    {
+        ed::Suspend();
         ImGui::OpenPopup(PopupID.c_str());
+        ed::Resume();
     }
 
-    if (ImGui::BeginPopup(PopupID.c_str()))
+    if (ImGui::IsPopupOpen(PopupID.c_str()))
     {
-        TArray<UAnimSequence*> AnimSequences = RESOURCE.GetAll<UAnimSequence>();
-
-        if (ImGui::Selectable("None", Value == nullptr))
+        ed::Suspend();
+        
+        if (ImGui::BeginPopup(PopupID.c_str()))
         {
-            Value = nullptr;
-            ImGui::CloseCurrentPopup();
-        }
+            TArray<UAnimSequence*> AnimSequences = RESOURCE.GetAll<UAnimSequence>();
 
-        for (UAnimSequence* Anim : AnimSequences)
-        {
-            if (!Anim) continue;
-
-            const FString AssetName = Anim->GetFilePath();
-            bool bIsSelected = (Value == Anim);
-
-            if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+            if (ImGui::Selectable("None", Value == nullptr))
             {
-                Value = Anim;
+                Value = nullptr;
                 ImGui::CloseCurrentPopup();
             }
-        }
-        ImGui::EndPopup();
-    }
 
-    ed::Resume();
+            for (UAnimSequence* Anim : AnimSequences)
+            {
+                if (!Anim) continue;
+
+                const FString AssetName = Anim->GetFilePath();
+                bool bIsSelected = (Value == Anim);
+
+                if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+                {
+                    Value = Anim;
+                    ImGui::CloseCurrentPopup();
+                }
+                
+                if (bIsSelected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndPopup();
+        }
+        
+        ed::Resume();
+    }
 }
 
 FBlueprintValue UK2Node_AnimSequence::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
@@ -117,11 +122,14 @@ FBlueprintValue UK2Node_AnimSequence::EvaluatePin(const UEdGraphPin* OutputPin, 
 
 IMPLEMENT_CLASS(UK2Node_AnimStateEntry, UK2Node)
 
+UK2Node_AnimStateEntry::UK2Node_AnimStateEntry()
+{
+    TitleColor = ImColor(150, 150, 150);
+}
+
 void UK2Node_AnimStateEntry::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Exec, "Entry"); 
-
-    TitleColor = ImColor(150, 150, 150);
 }
 
 void UK2Node_AnimStateEntry::RenderBody()
@@ -154,6 +162,11 @@ void UK2Node_AnimSequence::GetMenuActions(FBlueprintActionDatabaseRegistrar& Act
 
 IMPLEMENT_CLASS(UK2Node_AnimState, UK2Node)
 
+UK2Node_AnimState::UK2Node_AnimState()
+{
+    TitleColor = ImColor(200, 100, 100);
+}
+
 void UK2Node_AnimState::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     UK2Node::Serialize(bInIsLoading, InOutHandle);
@@ -178,8 +191,6 @@ void UK2Node_AnimState::AllocateDefaultPins()
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::AnimSequence, "Animation");
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "Looping", "false");
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Float, "PlayRate", "1.0");
-
-    TitleColor = ImColor(200, 100, 100); 
 }
 
 void UK2Node_AnimState::RenderBody()
@@ -205,6 +216,11 @@ void UK2Node_AnimState::GetMenuActions(FBlueprintActionDatabaseRegistrar& Action
 
 IMPLEMENT_CLASS(UK2Node_AnimTransition, UK2Node)
 
+UK2Node_AnimTransition::UK2Node_AnimTransition()
+{
+    TitleColor = ImColor(100, 100, 200);
+}
+
 void UK2Node_AnimTransition::AllocateDefaultPins()
 {
     // 상태 머신 그래프의 흐름(Flow)을 위한 Exec 핀
@@ -214,8 +230,6 @@ void UK2Node_AnimTransition::AllocateDefaultPins()
     // FStateTransition의 멤버에 해당하는 핀들
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "Can Transition");
     CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Float, "Blend Time");
-
-    TitleColor = ImColor(100, 100, 200);
 }
 
 void UK2Node_AnimTransition::RenderBody()

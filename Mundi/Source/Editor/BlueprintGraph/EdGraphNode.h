@@ -25,7 +25,7 @@ public:
     bool bIsPositionSet = false;
 
     /** @brief 노드 제목 색상 */
-    ImColor TitleColor = ImColor(255, 255, 255);
+    ImColor TitleColor = ImColor(200, 200, 200);
 
     /** @note UEdGraph가 발급해주는 ID 사용 */
     uint32 NodeID;
