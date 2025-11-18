@@ -66,6 +66,10 @@ void UK2Node_AnimSequence::RenderBody()
             const FString AssetName = Anim->GetFilePath();
             bool bIsSelected = (Value == Anim);
 
+            //TODO: Notify 추가 
+            //Anim->IsNotifyAvailable();
+            Anim->LoadMeta(Anim->GetNotifyPath());
+
             if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
             {
                 Value = Anim;
