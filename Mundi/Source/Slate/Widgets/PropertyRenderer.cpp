@@ -1123,11 +1123,15 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 		{
 			USlateManager::GetInstance().OpenAnimationGraphEditor();	
 		}
+		else
+		{
+			USlateManager::GetInstance().CloseAnimationGraphEditor();
+		}
 	}
 
 	ImGui::SameLine();
 
-	// @todo 컴파일하는 흐름이 매끄럽지 않음 
+	// @todo 컴파일하는 흐름이 매끄럽지 않음 (삭제할지 고민중)
 	if (ImGui::Button("Compile"))
 	{
 		UObject* Object = static_cast<UObject*>(Instance);

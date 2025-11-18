@@ -239,6 +239,23 @@ void USlateManager::CloseSkeletalMeshViewer()
     SkeletalViewerWindow = nullptr;
 }
 
+void USlateManager::CloseAnimationGraphEditor()
+{
+    if (!AnimationGraphEditorWindow)
+    {
+        return;
+    }
+    delete AnimationGraphEditorWindow;
+    AnimationGraphEditorWindow = nullptr;
+
+    // @todo 현재 창 끄면 그래프 정보 삭제됨
+    if (AnimGraph)
+    {
+        delete AnimGraph;
+        AnimGraph = nullptr;
+    }
+}
+
 void USlateManager::SwitchLayout(EViewportLayoutMode NewMode)
 {
     if (NewMode == CurrentMode) return;

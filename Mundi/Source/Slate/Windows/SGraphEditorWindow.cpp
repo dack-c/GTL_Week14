@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "SGraphEditorWindow.h"
 
+#include "USlateManager.h"
 #include "BlueprintGraph/BlueprintActionDatabase.h"
 #include "BlueprintGraph/EdGraph.h"
 #include "BlueprintGraph/EdGraphNode.h"
@@ -45,6 +46,11 @@ void SGraphEditorWindow::OnRender()
         RenderEditor();
     }
     ImGui::End();
+
+    if (!bIsOpen)
+    {
+        USlateManager::GetInstance().CloseAnimationGraphEditor();
+    }
 }
 
 void SGraphEditorWindow::OnUpdate(float DeltaSeconds)

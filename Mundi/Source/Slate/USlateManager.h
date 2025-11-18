@@ -81,6 +81,7 @@ public:
     void OpenSkeletalMeshViewerWithFile(const char* FilePath);
     void OpenAnimationGraphEditor();
     void CloseSkeletalMeshViewer();
+    void CloseAnimationGraphEditor();
     bool IsSkeletalMeshViewerOpen() const { return SkeletalViewerWindow != nullptr; }
     bool IsAnimationGraphEditorOpen() const { return AnimationGraphEditorWindow != nullptr;}
     UAnimationGraph* GetAnimationGraph() const { return AnimGraph; }

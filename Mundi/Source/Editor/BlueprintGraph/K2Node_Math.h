@@ -257,3 +257,83 @@ public:
     virtual FString GetMenuCategory() const override { return "수학"; }
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };
+
+// ----------------------------------------------------------------
+//	[Bool] 노드 (논리 연산)
+// ----------------------------------------------------------------
+
+UCLASS(DisplayName = "UK2Node_And_BoolBool", Description = "블루프린트 AND 논리 연산 노드")
+class UK2Node_And_BoolBool : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_And_BoolBool, UK2Node);
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "AND (Bool)"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "수학"; }
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+UCLASS(DisplayName = "UK2Node_Or_BoolBool", Description = "블루프린트 OR 논리 연산 노드")
+class UK2Node_Or_BoolBool : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_Or_BoolBool, UK2Node);
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "OR (Bool)"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "수학"; }
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+UCLASS(DisplayName = "UK2Node_Xor_BoolBool", Description = "블루프린트 XOR 논리 연산 노드")
+class UK2Node_Xor_BoolBool : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_Xor_BoolBool, UK2Node);
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "XOR (Bool)"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "수학"; }
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+UCLASS(DisplayName = "UK2Node_Not_Bool", Description = "블루프린트 NOT 논리 연산 노드")
+class UK2Node_Not_Bool : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_Not_Bool, UK2Node);
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "NOT (Bool)"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "수학"; }
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};

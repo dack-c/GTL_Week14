@@ -6,6 +6,14 @@
 // ----------------------------------------------------------------
 //  표현식 평가(Expression Evaluation)용 헬퍼함수
 // ----------------------------------------------------------------
+
+template <typename T, typename OpFunc>
+FBlueprintValue EvaluateUnaryOp(const UEdGraphNode* Node, OpFunc Op, FBlueprintContext* Context)
+{
+    T A = FBlueprintEvaluator::EvaluateInput<T>(Node->FindPin("A"), Context);
+    return FBlueprintValue(Op(A));
+}
+
 template <typename T, typename OpFunc>
 FBlueprintValue EvaluateBinaryOp(const UEdGraphNode* Node, OpFunc Op, FBlueprintContext* Context)
 {
@@ -390,6 +398,133 @@ FBlueprintValue UK2Node_Equal_IntInt::EvaluatePin(const UEdGraphPin* OutputPin, 
 }
 
 void UK2Node_Equal_IntInt::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
+//  [Bool] 노드 (논리 연산)
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_And_BoolBool, UK2Node)
+
+void UK2Node_And_BoolBool::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "A");
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "B");
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
+    TitleColor = ImColor(220, 48, 48); 
+}
+
+void UK2Node_And_BoolBool::RenderBody()
+{
+}
+
+FBlueprintValue UK2Node_And_BoolBool::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<bool>(this, std::logical_and<bool>(), Context);
+    }
+    return FBlueprintValue{}; 
+}
+
+void UK2Node_And_BoolBool::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+IMPLEMENT_CLASS(UK2Node_Or_BoolBool, UK2Node)
+
+void UK2Node_Or_BoolBool::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "A");
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "B");
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
+    TitleColor = ImColor(220, 48, 48);
+}
+
+void UK2Node_Or_BoolBool::RenderBody()
+{
+}
+
+FBlueprintValue UK2Node_Or_BoolBool::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<bool>(this, std::logical_or<bool>(), Context);
+    }
+    return FBlueprintValue{}; 
+}
+
+void UK2Node_Or_BoolBool::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+IMPLEMENT_CLASS(UK2Node_Xor_BoolBool, UK2Node)
+
+void UK2Node_Xor_BoolBool::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "A");
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "B");
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
+    TitleColor = ImColor(220, 48, 48);
+}
+
+void UK2Node_Xor_BoolBool::RenderBody()
+{
+}
+
+FBlueprintValue UK2Node_Xor_BoolBool::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateBinaryOp<bool>(this, std::not_equal_to<bool>(), Context);
+    }
+    return FBlueprintValue{}; 
+}
+
+void UK2Node_Xor_BoolBool::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+IMPLEMENT_CLASS(UK2Node_Not_Bool, UK2Node)
+
+void UK2Node_Not_Bool::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Input, FEdGraphPinCategory::Bool, "A"); // 입력 핀 1개
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
+    TitleColor = ImColor(220, 48, 48);
+}
+
+void UK2Node_Not_Bool::RenderBody()
+{
+}
+
+FBlueprintValue UK2Node_Not_Bool::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (OutputPin->PinName == "Result")
+    {
+        return EvaluateUnaryOp<bool>(this, std::logical_not<bool>(), Context);
+    }
+    return FBlueprintValue{}; 
+}
+
+void UK2Node_Not_Bool::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
     Spawner->MenuName = GetNodeTitle();

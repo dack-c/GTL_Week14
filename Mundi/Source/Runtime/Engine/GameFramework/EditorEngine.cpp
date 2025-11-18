@@ -1,20 +1,15 @@
 ﻿#include "pch.h"
+#include "BlueprintGraph/BlueprintActionDatabase.h"
 #include "EditorEngine.h"
-#include "USlateManager.h"
-#include "SelectionManager.h"
-#include "InputManager.h"
 #include "FAudioDevice.h"
 #include "FbxLoader.h"
+#include "GameModeBase.h"
+#include "InputManager.h"
+#include "Pawn.h"
+#include "SelectionManager.h"
+#include "USlateManager.h"
 #include <ObjManager.h>
 #include <roapi.h>
-
-#include "BlueprintGraph/BlueprintActionDatabase.h"
-
-#include "Pawn.h"
-#include "PlayerController.h"
-#include "CameraComponent.h"
-#include "PlayerCameraManager.h"
-#include "GameModeBase.h"
 
 float UEditorEngine::ClientWidth = 1024.0f;
 float UEditorEngine::ClientHeight = 1024.0f;
