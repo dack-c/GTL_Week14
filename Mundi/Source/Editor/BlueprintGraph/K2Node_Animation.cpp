@@ -76,41 +76,28 @@ void UK2Node_AnimSequence::RenderBody()
         {
             TArray<UAnimSequence*> AnimSequences = RESOURCE.GetAll<UAnimSequence>();
 
-        for (UAnimSequence* Anim : AnimSequences)
-        {
-            if (!Anim) continue;
-
-            const FString AssetName = Anim->GetFilePath();
-            bool bIsSelected = (Value == Anim);
-              
-            if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
-            {
-                Value = Anim; 
-                Anim->LoadMeta(Anim->GetNotifyPath());
-                ImGui::CloseCurrentPopup();
-            }
-
             for (UAnimSequence* Anim : AnimSequences)
             {
                 if (!Anim) continue;
 
                 const FString AssetName = Anim->GetFilePath();
                 bool bIsSelected = (Value == Anim);
-
+                  
                 if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
                 {
-                    Value = Anim;
+                    Value = Anim; 
+                    Anim->LoadMeta(Anim->GetNotifyPath());
                     ImGui::CloseCurrentPopup();
                 }
-                
+
                 if (bIsSelected)
                 {
                     ImGui::SetItemDefaultFocus();
                 }
             }
+            
             ImGui::EndPopup();
         }
-        
         ed::Resume();
     }
 }
