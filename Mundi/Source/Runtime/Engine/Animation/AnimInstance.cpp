@@ -4,6 +4,8 @@
 #include "AnimTypes.h"
 #include "AnimationStateMachine.h"
 #include "AnimSequence.h"
+// For notify dispatching
+#include "Source/Runtime/Engine/Animation/AnimNotify.h"
 
 IMPLEMENT_CLASS(UAnimInstance, UObject)
 
@@ -189,6 +191,40 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
 
         UE_LOG("AnimNotify Triggered: %s at %.2f (Type: %d)",
             Event.NotifyName.ToString().c_str(), Event.TriggerTime, (int)Pending.Type);
+
+        // Dispatch to notifies using the same policy as SkeletalMeshComponent
+        if (OwningComponent)
+        {
+            switch (Pending.Type)
+            {
+            case EPendingNotifyType::Trigger:
+                if (Event.Notify)
+                {
+                    Event.Notify->Notify(OwningComponent, CurrentPlayState.Sequence);
+                }
+                break;
+            case EPendingNotifyType::StateBegin:
+                if (Event.NotifyState)
+                {
+                    Event.NotifyState->NotifyBegin(OwningComponent, CurrentPlayState.Sequence, Event.Duration);
+                }
+                break;
+            case EPendingNotifyType::StateTick:
+                if (Event.NotifyState)
+                {
+                    Event.NotifyState->NotifyTick(OwningComponent, CurrentPlayState.Sequence, Event.Duration);
+                }
+                break;
+            case EPendingNotifyType::StateEnd:
+                if (Event.NotifyState)
+                {
+                    Event.NotifyState->NotifyEnd(OwningComponent, CurrentPlayState.Sequence, Event.Duration);
+                }
+                break;
+            default:
+                break;
+            }
+        }
 
         // TODO: 노티파이 타입별 처리
         // switch (Pending.Type)
