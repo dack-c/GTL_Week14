@@ -1,4 +1,23 @@
-﻿#pragma once
+﻿/**
+* ===========================================================================
+ * @file      K2Node_Animation.h
+ * @author    geb0598
+ * @date      2025/11/17
+ * @brief     블루프린트에서 사용되는 애니메이션 관련 노드(애니메이션 시퀀스, 상태 머신 등)를 정의한다.
+ *
+ * ===========================================================================
+ *
+ * @note 코딩 규칙
+ *   - `UK2Node_AnimSequence`: 애니메이션 시퀀스 애셋을 값으로 가지는 리터럴 노드. 출력 핀 이름은 'Value'로 지정한다.
+ *   - `UK2Node_AnimStateEntry`: 상태 머신의 진입점. 사용자가 직접 생성하지 않는다.
+ *   - `UK2Node_AnimState`: 상태 머신의 상태를 나타낸다. 'StateName' 프로퍼티로 상태 이름을 지정한다.
+ *   - `UK2Node_AnimTransition`: 상태 간의 전이를 정의하는 노드.
+ *   - 모든 애니메이션 노드는 "애니메이션" 메뉴 카테고리에 속한다.
+ *
+ * ===========================================================================
+ */
+
+#pragma once
 
 #include "K2Node.h"
 
@@ -18,13 +37,14 @@ public:
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Animation Sequence"; }
-    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
 
     // --- UK2Node 인터페이스 ---
 public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };
 
@@ -40,11 +60,13 @@ class UK2Node_AnimStateEntry : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Entry"; }
-    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return false; }
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
 
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     /**
      * @note 이 노드는 사용자가 메뉴에서 직접 스폰(spawn)하는 것이 아니라, 에디터를 실행 시 최초 한 번만 생성해야 한다.
      *       그러나, 현재는 디버깅용으로 스폰을 가능하게 설정해둔다.
@@ -69,13 +91,13 @@ public:
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Animation State"; }
-    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return false; } // 실행 흐름(Exec)이 있으므로 Pure가 아님
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override;
 
     // --- UK2Node 인터페이스 ---
 public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };
 
@@ -91,12 +113,12 @@ class UK2Node_AnimTransition : public UK2Node
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Animation Transition"; }
-    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual bool IsNodePure() const override { return false; } // 실행 흐름(Exec)이 있으므로 Pure가 아님
     virtual void AllocateDefaultPins() override;
     virtual void RenderBody() override; 
 
     // --- UK2Node 인터페이스 ---
 public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };

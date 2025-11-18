@@ -3,7 +3,7 @@
 #include "AnimInstance.h"
 #include "AnimSequence.h"
 
-IMPLEMENT_CLASS(UAnimationStateMachine)
+IMPLEMENT_CLASS(UAnimationStateMachine, UObject)
 
 void UAnimationStateMachine::Initialize(UAnimInstance* InOwner)
 {
@@ -66,6 +66,14 @@ const FAnimationState* UAnimationStateMachine::FindState(const FName& StateName)
         }
     }
     return nullptr;
+}
+
+void UAnimationStateMachine::Clear()
+{
+    States.Empty();
+    Transitions.Empty();
+    // @todo FName_None으로 대체
+    CurrentStateName = "";
 }
 
 void UAnimationStateMachine::EvaluateTransitions()

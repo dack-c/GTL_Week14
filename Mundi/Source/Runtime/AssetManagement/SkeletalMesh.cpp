@@ -107,6 +107,42 @@ void USkeletalMesh::CreateStructuredBuffer(ID3D11Buffer** InStructuredBuffer, ID
     }    
 }
 
+void USkeletalMesh::BuildLocalAABBs()
+{
+    if (!Data || Data->Vertices.IsEmpty() || Data->Skeleton.Bones.IsEmpty())
+    {
+        return;
+    }
+
+    const uint32 BoneCount = GetBoneCount();
+    const FAABB InValidAABB = FAABB(FVector(FLT_MAX), FVector(-FLT_MAX));
+    // 이전 AABB 초기화
+    BoneLocalAABBs.Empty();
+    BoneLocalAABBs.SetNum(BoneCount, InValidAABB);
+    for (const FSkinnedVertex& Vertex : Data->Vertices)
+    {
+        // 최대 4개의 본이 영향을 줌
+        for (int32 i = 0; i < 4; i++)
+        {
+            const float Weight = Vertex.BoneWeights[i];
+            // 가중치가 0보다 커야 정점에 영향을 줌
+            // 영향을 받는 정점만 계산
+            if (Weight > 0)
+            {
+                const uint32 BoneIndex = Vertex.BoneIndices[i];
+
+                if (BoneIndex < BoneCount)
+                {
+                    // Min, Max가 같은 PointAABB
+                    FAABB PointAABB(Vertex.Position, Vertex.Position);
+                    // PointAABB와 기존 AABB를 Union 해나간다.
+                    BoneLocalAABBs[BoneIndex] = FAABB::Union(BoneLocalAABBs[BoneIndex], PointAABB);
+                }
+            }
+        }
+    }
+}
+
 void USkeletalMesh::CreateIndexBuffer(FSkeletalMeshData* InSkeletalMesh, ID3D11Device* InDevice)
 {
     HRESULT hr = D3D11RHI::CreateIndexBuffer(InDevice, InSkeletalMesh, &IndexBuffer);

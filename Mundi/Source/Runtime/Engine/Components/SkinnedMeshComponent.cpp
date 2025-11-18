@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
 #include "SkinnedMeshComponent.h"
+
+#include "Keyboard.h"
 #include "MeshBatchElement.h"
 #include "PlatformTime.h"
 #include "SceneView.h"
@@ -71,6 +73,38 @@ void USkinnedMeshComponent::DuplicateSubObjects()
    SkeletalMesh->CreateStructuredBuffer(&SkinningNormalMatrixBuffer, &SkinningNormalMatrixSRV, FinalSkinningNormalMatrices.Num());
 }
 
+
+// void USkinnedMeshComponent::RenderDebugVolume(class URenderer* Renderer) const
+// {
+//    Super::RenderDebugVolume(Renderer);
+//
+//    FAABB WorldAABB = GetWorldAABB();
+//    TArray<FVector> Vertices = WorldAABB.GetVertices();
+//
+//    FVector4 Color = FVector4(1.0f, 0.25f, 0.25f, 1.0f);
+//    
+//    Renderer->AddLine(Vertices[0], Vertices[4], Color);
+//    Renderer->AddLine(Vertices[4], Vertices[7], Color);
+//    Renderer->AddLine(Vertices[7], Vertices[3], Color);
+//    Renderer->AddLine(Vertices[3], Vertices[0], Color);
+//    
+//    Renderer->AddLine(Vertices[4], Vertices[5], Color);
+//    Renderer->AddLine(Vertices[5], Vertices[6], Color);
+//    Renderer->AddLine(Vertices[6], Vertices[7], Color);
+//    Renderer->AddLine(Vertices[7], Vertices[4], Color);
+//    
+//    Renderer->AddLine(Vertices[5], Vertices[6], Color);
+//    Renderer->AddLine(Vertices[6], Vertices[2], Color);
+//    Renderer->AddLine(Vertices[2], Vertices[1], Color);
+//    Renderer->AddLine(Vertices[1], Vertices[5], Color);
+//    
+//    Renderer->AddLine(Vertices[0], Vertices[1], Color);
+//    Renderer->AddLine(Vertices[1], Vertices[2], Color);
+//    Renderer->AddLine(Vertices[2], Vertices[3], Color);
+//    Renderer->AddLine(Vertices[3], Vertices[0], Color);
+//    Renderer->EndLineBatch(FMatrix::Identity());
+// }
+
 void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
    if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshData()) { return; }
@@ -79,16 +113,17 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
 
    if (bSkinningMatricesDirty && !bForceGPUSkinning)
    {
-      TIME_PROFILE(Dynamic)
+      TIME_PROFILE(VertexBuffer)
       bSkinningMatricesDirty = false;
       SkeletalMesh->UpdateVertexBuffer(SkinnedVertices, CPUSkinnedVertexBuffer);
-      TIME_PROFILE_END(Dynamic)
+      TIME_PROFILE_END(VertexBuffer)
    }
 
    if (bForceGPUSkinning &&
       SkinningMatrixBuffer && SkinningNormalMatrixBuffer &&
       !FinalSkinningMatrices.IsEmpty())
    {
+      TIME_PROFILE(StructuredBuffer)
       D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
       RHIDevice->UpdateStructuredBuffer(SkinningMatrixBuffer,
                                         FinalSkinningMatrices.data(),
@@ -99,6 +134,7 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
                                         FinalSkinningNormalMatrices.data(),
                                         sizeof(FMatrix) *
                                         FinalSkinningNormalMatrices.Num());
+      TIME_PROFILE_END(StructuredBuffer)
    }
 
    const TArray<FGroupInfo>& MeshGroupInfos = SkeletalMesh->GetMeshGroupInfo();
@@ -210,45 +246,45 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
 
 FAABB USkinnedMeshComponent::GetWorldAABB() const
 {
-   return {};
-   // const FTransform WorldTransform = GetWorldTransform();
-   // const FMatrix WorldMatrix = GetWorldMatrix();
-   //
-   // if (!SkeletalMesh)
-   // {
-   //    const FVector Origin = WorldTransform.TransformPosition(FVector());
-   //    return FAABB(Origin, Origin);
-   // }
-   //
-   // const FAABB LocalBound = SkeletalMesh->GetLocalBound(); // <-- 이 함수 구현 필요
-   // const FVector LocalMin = LocalBound.Min;
-   // const FVector LocalMax = LocalBound.Max;
-   //
-   // // ... (이하 AABB 계산 로직은 UStaticMeshComponent와 동일) ...
-   // const FVector LocalCorners[8] = {
-   //    FVector(LocalMin.X, LocalMin.Y, LocalMin.Z),
-   //    FVector(LocalMax.X, LocalMin.Y, LocalMin.Z),
-   //    // ... (나머지 6개 코너) ...
-   //    FVector(LocalMax.X, LocalMax.Y, LocalMax.Z)
-   // };
-   //
-   // FVector4 WorldMin4 = FVector4(LocalCorners[0].X, LocalCorners[0].Y, LocalCorners[0].Z, 1.0f) * WorldMatrix;
-   // FVector4 WorldMax4 = WorldMin4;
-   //
-   // for (int32 CornerIndex = 1; CornerIndex < 8; ++CornerIndex)
-   // {
-   //    const FVector4 WorldPos = FVector4(LocalCorners[CornerIndex].X
-   //       , LocalCorners[CornerIndex].Y
-   //       , LocalCorners[CornerIndex].Z
-   //       , 1.0f)
-   //       * WorldMatrix;
-   //    WorldMin4 = WorldMin4.ComponentMin(WorldPos);
-   //    WorldMax4 = WorldMax4.ComponentMax(WorldPos);
-   // }
-   //
-   // FVector WorldMin = FVector(WorldMin4.X, WorldMin4.Y, WorldMin4.Z);
-   // FVector WorldMax = FVector(WorldMax4.X, WorldMax4.Y, WorldMax4.Z);
-   // return FAABB(WorldMin, WorldMax);
+   if (!SkeletalMesh)
+   {
+      return {};
+   }
+
+   const TArray<FAABB>& BoneLocalAABBs = SkeletalMesh->GetLocalAABBs();
+   // 유효성 검사
+   // BoneLocalAABB, Skinning matrix의 개수는 같아야함
+   if (BoneLocalAABBs.Num() != FinalSkinningMatrices.Num())
+   {
+      return{};
+   }
+   
+   FAABB WorldAABB = FAABB(FVector(FLT_MAX), FVector(-FLT_MAX));
+   const uint32 BoneCount = SkeletalMesh->GetBoneCount();
+   const FMatrix& WorldMatrix = GetWorldTransform().ToMatrix();
+   for (int32 i = 0; i < BoneCount; i++)
+   {
+      const FAABB& LocalAABB = BoneLocalAABBs[i];
+      // 유효하지 않은 AABB는 생략
+      if (!LocalAABB.IsValid())
+      {
+         continue;
+      }
+   
+      TArray<FVector> LocalCorners = LocalAABB.GetVertices();
+      FMatrix CurrentSKinningMatrix = FinalSkinningMatrices[i];
+      FMatrix BoneToWorld = CurrentSKinningMatrix * WorldMatrix;
+      for (const FVector& Corner : LocalCorners)
+      {
+         // 로컬 꼭짓점 -> 월드 꼭짓점
+         FVector WorldCorner = BoneToWorld.TransformPosition(Corner);
+         FAABB PointAABB(WorldCorner, WorldCorner);
+   
+         WorldAABB = FAABB::Union(WorldAABB, PointAABB);
+      }
+   }
+
+   return WorldAABB;
 }
 
 void USkinnedMeshComponent::OnTransformUpdated()
@@ -315,7 +351,8 @@ void USkinnedMeshComponent::SetSkeletalMesh(const FString& PathFileName)
          // FGroupInfo에 InitialMaterialName이 있다고 가정
          SetMaterialByName(i, GroupInfos[i].InitialMaterialName);
       }
-      MarkWorldPartitionDirty();      
+      MarkWorldPartitionDirty();
+      SkeletalMesh->BuildLocalAABBs();
    }
    else
    {

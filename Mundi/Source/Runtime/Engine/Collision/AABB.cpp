@@ -192,6 +192,15 @@ bool FAABB::IntersectsRay(const FRay& InRay, float& OutEnterDistance, float& Out
 
 FAABB FAABB::Union(const FAABB& A, const FAABB& B)
 {
+	if (!A.IsValid())
+	{
+		return B;
+	}
+	if (!B.IsValid())
+	{
+		return A;
+	}
+	
 	FAABB out;
 	out.Min = FVector(
 		std::min(A.Min.X, B.Min.X),
@@ -202,4 +211,9 @@ FAABB FAABB::Union(const FAABB& A, const FAABB& B)
 		std::max(A.Max.Y, B.Max.Y),
 		std::max(A.Max.Z, B.Max.Z));
 	return out;
+}
+
+bool FAABB::IsValid() const
+{
+	return (Min.X <= Max.X) && (Min.Y <= Max.Y) && (Min.Z <= Max.Z);
 }

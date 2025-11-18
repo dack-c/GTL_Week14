@@ -25,7 +25,7 @@ public:
     [[nodiscard]] UEdGraphNode* SpawnNode(UEdGraph* Graph, ImVec2 Position);
 
     /** @brief UClass 타입으로부터 스포너를 생성하는 팩토리 함수 */
-    static UBlueprintNodeSpawner* Create(UClass* InNodeClass);
+    [[nodiscard]] static UBlueprintNodeSpawner* Create(UClass* InNodeClass);
 };
 
 /**

@@ -174,6 +174,11 @@ public:
      */
     const FAnimationState* FindState(const FName& StateName) const;
 
+    /**
+     * @brief 내부 상태 초기화 (Owner 정보는 유지, 블루프린트 컴파일용)
+     */
+    void Clear();
+
 protected:
     /**
      * @brief 상태 전이 평가

@@ -3,6 +3,7 @@
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
+#include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
 #include "Source/Runtime/Engine/Animation/AnimSingleNodeInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimTypes.h"
 #include "Source/Runtime/Engine/Animation/AnimationAsset.h"
@@ -11,11 +12,12 @@
 #include "InputManager.h"
 
 #include "PlatformTime.h"
+#include "USlateManager.h"
+#include "BlueprintGraph/AnimBlueprintCompiler.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
-{
-    // 테스트용 기본 메시 설정 - 애니메이션과 동일한 FBX 사용
-    //SetSkeletalMesh("Data/James/James.fbx");
+{ 
+    SetSkeletalMesh("Data/James/James.fbx");
 }
 
 
@@ -28,8 +30,21 @@ void USkeletalMeshComponent::BeginPlay()
     SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
     // Team2AnimInstance 생성 및 설정
-    UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
-    SetAnimInstance(Team2AnimInst);
+    // UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
+    // SetAnimInstance(Team2AnimInst);
+
+    AnimInstance = NewObject<UAnimInstance>();
+    SetAnimInstance(AnimInstance);
+
+    UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
+    AnimInstance->SetStateMachine(StateMachine);
+
+    // @todo BeinPlay에서 직접 컴파일을 하는 흐름이 매끄럽지 않음 (개선 요망)
+    FAnimBlueprintCompiler::Compile(
+        USlateManager::GetInstance().GetAnimationGraph(),
+        AnimInstance,
+        StateMachine
+    );
 
     UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
     UE_LOG("Use SetMovementSpeed() to control animation transitions");
@@ -164,6 +179,11 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
     }
 }
 
+FAABB USkeletalMeshComponent::GetWorldAABB() const
+{
+    return Super::GetWorldAABB();
+}
+
 void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
 {
     if (AnimationMode == InAnimationMode)
@@ -283,6 +303,12 @@ void USkeletalMeshComponent::ForceRecomputePose()
     // ComponentSpace -> Final Skinning Matrices 계산
     UpdateFinalSkinningMatrices();
     UpdateSkinningMatrices(TempFinalSkinningMatrices, TempFinalSkinningNormalMatrices);    
+    {
+        TIME_PROFILE(SkeletalAABB)
+        // GetWorldAABB 함수에서 AABB를 갱신중
+        GetWorldAABB();
+        TIME_PROFILE_END(SkeletalAABB)
+    }
     
     PerformSkinning();
     
@@ -375,8 +401,16 @@ void USkeletalMeshComponent::SetAnimationTime(float InTime)
             CurrentAnimationTime = FMath::Clamp(CurrentAnimationTime, 0.0f, PlayLength);
         }
 
+
+
+        GatherNotifiesFromRange(PrevAnimationTime, CurrentAnimationTime);
+        
         /* @todo 애니메이션 갱신을 위해 추가함. 이후, 애니메이션 계산 로직만을 별도로 분리해야 할 필요 존재함 */
         TickAnimInstances(0.0f);
+
+        DispatchAnimNotifies();
+
+        PrevAnimationTime = CurrentAnimationTime;
     }
 }
 
@@ -392,6 +426,24 @@ void USkeletalMeshComponent::GatherNotifies(float DeltaTime)
 
     // 시간 업데이트
     const float PrevTime = CurrentAnimationTime;
+    const float DeltaMove = DeltaTime * PlayRate;
+
+    // 이번 틱 구간 [PrevTime -> PrevTime + DeltaMove]에서 발생한 Notify 수집 
+    CurrentAnimation->GetAnimNotify(PrevTime, DeltaMove, PendingNotifies);
+}
+
+void USkeletalMeshComponent::GatherNotifiesFromRange(float PrevTime, float CurTime)
+{
+    if (!CurrentAnimation)
+    {
+        return;
+    }
+
+    // 이전 틱에 저장 된 PendingNotifies 지우고 시작
+    PendingNotifies.Empty();
+
+    // 시간 업데이트
+    float DeltaTime = CurTime - PrevTime;
     const float DeltaMove = DeltaTime * PlayRate;
 
     // 이번 틱 구간 [PrevTime -> PrevTime + DeltaMove]에서 발생한 Notify 수집 
