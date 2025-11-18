@@ -12,6 +12,9 @@ namespace FEdGraphPinCategory
     static const FName AnimSequence("UAnimSequence");
 }
 
+/**
+ * @todo NodeID와 노드가 발급해주는 고유ID를 조합해서 고유한 PinID를 생성하는 방법을 생각해봅시다.
+ */
 UCLASS(DisplayName="UEdGraphPin", Description="블루프린트 그래프 핀")
 class UEdGraphPin : public UObject
 {
@@ -43,6 +46,8 @@ public:
         , OwningNode(InOwner)
         , DefaultValue(InDefaultValue)
     {}
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
     void MakeLinkTo(UEdGraphPin* ToPin)
     {

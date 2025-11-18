@@ -34,6 +34,8 @@ public:
     /** @todo UPROPERTY 시스템 통합 */
     UAnimSequence* Value = nullptr;
 
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Animation Sequence"; }
@@ -85,8 +87,10 @@ class UK2Node_AnimState : public UK2Node
     DECLARE_CLASS(UK2Node_AnimState, UK2Node);
 
 public:
-    /** 상태의 고유 이름. FAnimationState::Name에 해당합니다. */
+    /** 상태의 고유 이름. FAnimationState::Name에 해당한다. */
     FString StateName = "NewState";
+    
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
     // --- UEdGraphNode 인터페이스 ---
 public:

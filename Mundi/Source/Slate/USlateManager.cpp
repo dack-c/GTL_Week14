@@ -227,8 +227,10 @@ void USlateManager::OpenAnimationGraphEditor()
 
     AnimationGraphEditorWindow = new SGraphEditorWindow();
 
-    // @note 기본 애니메이션 그래프 생성
-    AnimGraph = NewObject<UAnimationGraph>();
+    if (!AnimGraph)
+    {
+        AnimGraph = NewObject<UAnimationGraph>();
+    }
     AnimationGraphEditorWindow->Initialize(AnimGraph);
 }
 
@@ -247,13 +249,6 @@ void USlateManager::CloseAnimationGraphEditor()
     }
     delete AnimationGraphEditorWindow;
     AnimationGraphEditorWindow = nullptr;
-
-    // @todo 현재 창 끄면 그래프 정보 삭제됨
-    if (AnimGraph)
-    {
-        delete AnimGraph;
-        AnimGraph = nullptr;
-    }
 }
 
 void USlateManager::SwitchLayout(EViewportLayoutMode NewMode)

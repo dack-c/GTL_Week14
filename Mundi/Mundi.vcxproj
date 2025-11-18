@@ -264,6 +264,7 @@
     <ClCompile Include="Source\Editor\BlueprintGraph\BlueprintTypes.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\EdGraph.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\EdGraphNode.cpp" />
+    <ClCompile Include="Source\Editor\BlueprintGraph\EdGraphPin.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\EdGraphTypes.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Animation.cpp" />

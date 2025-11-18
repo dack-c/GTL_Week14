@@ -53,6 +53,20 @@ static int GetKeyCodeFromStr(const FString& InKeyName)
 
 IMPLEMENT_CLASS(UK2Node_IsPressed, UK2Node)
 
+void UK2Node_IsPressed::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadString(InOutHandle, "KeyName", KeyName);
+    }
+    else
+    {
+        InOutHandle["KeyName"] = KeyName;
+    }
+}
+
 void UK2Node_IsPressed::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Result");
@@ -95,6 +109,20 @@ void UK2Node_IsPressed::GetMenuActions(FBlueprintActionDatabaseRegistrar& Action
 }
 
 IMPLEMENT_CLASS(UK2Node_IsKeyDown, UK2Node)
+
+void UK2Node_IsKeyDown::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadString(InOutHandle, "KeyName", KeyName);
+    }
+    else
+    {
+        InOutHandle["KeyName"] = KeyName;
+    }
+}
 
 void UK2Node_IsKeyDown::AllocateDefaultPins()
 {

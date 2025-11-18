@@ -34,6 +34,8 @@ class UK2Node_IsPressed : public UK2Node
 public:
     /** 확인할 키의 이름 (예: "Space", "W") */
     FString KeyName = "Space";
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -57,6 +59,8 @@ class UK2Node_IsKeyDown : public UK2Node
 public:
     /** 확인할 키의 이름 (예: "Space", "W") */
     FString KeyName = "Space";
+    
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
     
     // --- UEdGraphNode 인터페이스 ---
 public:
