@@ -22,7 +22,7 @@ UAnimSequenceBase::UAnimSequenceBase()
     , bLoop(true)
     , DataModel(nullptr)
 {
-    // Create DataModel
+    // Create DataModel 
     DataModel = NewObject<UAnimDataModel>();
 }
 
@@ -434,4 +434,13 @@ bool UAnimSequenceBase::LoadMeta(const FString& MetaPathUTF8)
     }
 
     return true;
+}
+
+FString UAnimSequenceBase::GetNotifyPath() const
+{
+    FString Path = GetFilePath();
+    FWideString WString = UTF8ToWide(NormalizePath(Path));
+    std::filesystem::path p(WString);
+    FString stem = WideToUTF8(p.stem().wstring());
+    return NormalizePath(GDataDir + "/" + stem + ".anim.json");
 }
