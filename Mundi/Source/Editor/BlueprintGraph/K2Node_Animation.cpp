@@ -271,6 +271,9 @@ void UK2Node_BlendSpace1D::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 
     if (bInIsLoading)
     {
+        FJsonSerializer::ReadFloat(InOutHandle, "MinRange", MinRange);
+        FJsonSerializer::ReadFloat(InOutHandle, "MaxRange", MaxRange);
+        
         // 샘플 개수 로드
         int32 NumSamples = 3;
         FJsonSerializer::ReadInt32(InOutHandle, "NumSamples", NumSamples);
@@ -297,6 +300,9 @@ void UK2Node_BlendSpace1D::Serialize(const bool bInIsLoading, JSON& InOutHandle)
     }
     else
     {
+        InOutHandle["MinRange"] = MinRange;
+        InOutHandle["MaxRange"] = MaxRange;
+        
         // 샘플 개수 저장
         InOutHandle["NumSamples"] = SampleAnimations.Num();
 
@@ -347,26 +353,24 @@ void UK2Node_BlendSpace1D::RenderBody()
     // 1. Range (Min/Max) 설정 UI
     // -------------------------------------------------------------------------
     // BlendSpace 객체에서 현재 범위를 가져옵니다.
-    float CurrentMin = BlendSpace->GetMinParameter();
-    float CurrentMax = BlendSpace->GetMaxParameter();
     bool bRangeChanged = false;
 
     ImGui::PushItemWidth(60.0f); // 입력 필드 너비 고정
     
     ImGui::Text("Min"); ImGui::SameLine();
-    if (ImGui::DragFloat("##MinRange", &CurrentMin, 1.0f)) bRangeChanged = true;
+    if (ImGui::DragFloat("##MinRange", &MinRange, 1.0f)) bRangeChanged = true;
     
     ImGui::SameLine(); 
     ImGui::Text("Max"); ImGui::SameLine();
-    if (ImGui::DragFloat("##MaxRange", &CurrentMax, 1.0f)) bRangeChanged = true;
+    if (ImGui::DragFloat("##MaxRange", &MaxRange, 1.0f)) bRangeChanged = true;
 
     ImGui::PopItemWidth();
 
     // 값이 변경되었다면 BlendSpace에 적용하고, Max가 Min보다 작아지지 않도록 방어
     if (bRangeChanged)
     {
-        if (CurrentMax < CurrentMin) CurrentMax = CurrentMin + 10.0f;
-        BlendSpace->SetParameterRange(CurrentMin, CurrentMax);
+        if (MaxRange < MinRange) MaxRange = MinRange + 10.0f;
+        BlendSpace->SetParameterRange(MinRange, MaxRange);
     }
 
     // -------------------------------------------------------------------------
@@ -378,7 +382,7 @@ void UK2Node_BlendSpace1D::RenderBody()
     // Add 버튼 (현재 범위의 중간값에 추가)
     if (ImGui::Button("+ Add Sample", ImVec2(CanvasWidth, 0)))
     {
-        float MidPos = CurrentMin + (CurrentMax - CurrentMin) * 0.5f;
+        float MidPos = MinRange + (MaxRange - MinRange) * 0.5f;
         SamplePositions.Add(MidPos);
         SampleAnimations.Add(nullptr);
         RebuildBlendSpace();
@@ -403,7 +407,7 @@ void UK2Node_BlendSpace1D::RenderBody()
     ImGui::Dummy(ImVec2(CanvasWidth, BarHeight));
 
     bool bNeedRebuild = false;
-    float RangeLength = CurrentMax - CurrentMin;
+    float RangeLength = MaxRange - MinRange;
     if (RangeLength <= 0.0f) RangeLength = 1.0f; // 0 나누기 방지
 
     // -------------------------------------------------------------------------
@@ -415,8 +419,8 @@ void UK2Node_BlendSpace1D::RenderBody()
 
         // [위치 정규화] 현재 Min/Max 범위에 맞춰 X 좌표 계산
         // 범위 밖으로 나간 샘플도 그릴 것인지, 클램핑할 것인지 결정 (여기선 클램핑)
-        float ClampedPos = FMath::Clamp(SamplePositions[i], CurrentMin, CurrentMax);
-        float NormalizedPos = (ClampedPos - CurrentMin) / RangeLength;
+        float ClampedPos = FMath::Clamp(SamplePositions[i], MinRange, MaxRange);
+        float NormalizedPos = (ClampedPos - MinRange) / RangeLength;
         
         float X = BarMin.x + (NormalizedPos * CanvasWidth);
         float Y_Center = BarMin.y + (BarHeight * 0.5f);
@@ -452,7 +456,7 @@ void UK2Node_BlendSpace1D::RenderBody()
                 SamplePositions[i] += ValueDelta;
                 
                 // 현재 범위 내로 제한
-                SamplePositions[i] = FMath::Clamp(SamplePositions[i], CurrentMin, CurrentMax);
+                SamplePositions[i] = FMath::Clamp(SamplePositions[i], MinRange, MaxRange);
                 bNeedRebuild = true;
             }
         }
@@ -597,6 +601,8 @@ void UK2Node_BlendSpace1D::RebuildBlendSpace()
     }
 
     BlendSpace->ClearSamples();
+
+    BlendSpace->SetParameterRange(MinRange, MaxRange);
 
     for (int32 i = 0; i < SampleAnimations.Num(); ++i)
     {
