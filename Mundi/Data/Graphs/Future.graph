@@ -87,6 +87,8 @@
     }],
   "Nodes" : [{
       "ClassName" : "UK2Node_BlendSpace1D",
+      "MaxRange" : 6.000000,
+      "MinRange" : 0.000000,
       "NodeID" : 1,
       "NodePosX" : 1208.000000,
       "NodePosY" : 772.000000,

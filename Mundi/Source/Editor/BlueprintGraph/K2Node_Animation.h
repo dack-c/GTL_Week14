@@ -154,6 +154,10 @@ public:
     /** 블렌드 스페이스 데이터 */
     UBlendSpace1D* BlendSpace = nullptr;
 
+    /** 블렌드 스페이스 패러미터 범위 */
+    float MinRange = 0.0f;
+    float MaxRange = 100.0f;
+
     /** 샘플 애니메이션들 (UI용) */
     TArray<UAnimSequence*> SampleAnimations;
     TArray<float> SamplePositions;
