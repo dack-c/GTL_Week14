@@ -106,25 +106,33 @@ void UAnimSequenceBase::GetAnimNotify(const float& StartTime, const float& Delta
         MaxLoopCount = FMath::Clamp((DesiredDeltaMove / PlayLength), 2.0f, 1000.0f); 
     }
 
-    for (int i = 0; i < 1; ++i)
+    // 단일 패스로 처리 (루프 시 두 구간으로 나눔)
+    float EndPosition = StartTime + DeltaTime;
+
+    if (EndPosition > PlayLength && bLoop)
     {
-        const ETypeAdvanceAnim AdvanceType = FAnimationRuntime::AdvanceTime(false, DesiredDeltaMove, CurrentPosition, PlayLength);
+        // 애니메이션이 루프하는 경우
+        // 구간 1: StartTime → PlayLength
+        GetAnimNotifiesFromDeltaPosition(StartTime, PlayLength, OutNotifies);
 
-        GetAnimNotifiesFromDeltaPosition(PreviousPosition, CurrentPosition, OutNotifies);
+        // 남은 시간 계산 (루프 후 위치)
+        float Remainder = FMath::Fmod(EndPosition, PlayLength);
 
-        // 끝까지 갔고, 루프가 true일 때 다음 바퀴를 준비 
-        if ((AdvanceType == ETAA_Finished) && bLoop) 
+        // 구간 2: 0 → Remainder
+        if (Remainder > 0.0f)
         {
-            const float ActualDelatMove = (CurrentPosition - PreviousPosition);
-            DesiredDeltaMove -= ActualDelatMove;
-
-            PreviousPosition = (bPlayinfBackywards) ? GetPlayLength() : 0.f;
-            CurrentPosition = PreviousPosition;
+            GetAnimNotifiesFromDeltaPosition(0.0f, Remainder, OutNotifies);
         }
-        else
-        {
-            break;
-        }
+    }
+    else if (EndPosition <= PlayLength)
+    {
+        // 일반적인 경우: 루프 없음
+        GetAnimNotifiesFromDeltaPosition(StartTime, EndPosition, OutNotifies);
+    }
+    else
+    {
+        // 루프하지 않는 애니메이션이 끝에 도달
+        GetAnimNotifiesFromDeltaPosition(StartTime, PlayLength, OutNotifies);
     }
      
 }
@@ -170,12 +178,13 @@ void UAnimSequenceBase::GetAnimNotifiesFromDeltaPosition(const float& PreviousPo
             {
                 const bool bNotIntersects = (MinTime >= NotifyEndTime || MaxTime < NotifyStartTime);
 
-                if (!bNotIntersects)
+                // 교집합이 없으면 건너뜀
+                if (bNotIntersects)
                 {
                     continue;
                 }
 
-                // State중 Being 판별 
+                // State중 Begin 판별
                 if (NotifyStartTime >= MinTime && NotifyStartTime < MaxTime)
                 {
                     FPendingAnimNotify PendingBegin;

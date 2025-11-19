@@ -61,6 +61,11 @@ public:
      */
     virtual int32 GetNumBoneTracks() const override;
 
+    /**
+     * @brief 노티파이 처리용 지배적 시퀀스 반환 (자기 자신)
+     */
+    virtual UAnimSequence* GetDominantSequence() const override { return const_cast<UAnimSequence*>(this); }
+
     // ============================================================
 
     // Bone names for compatibility check

@@ -109,12 +109,17 @@ void UBlendSpace1D::Update(float Parameter, float DeltaTime, TArray<FTransform>&
 	// If only 1 sample, output without blending
 	if (Samples.Num() == 1)
 	{
+		DominantSequence = Samples[0].Animation;
 		EvaluateAnimation(Samples[0].Animation, CurrentPlayTime, OutPose);
 
 		// Update play time
 		if (Samples[0].Animation)
 		{
 			float PlayLength = Samples[0].Animation->GetPlayLength();
+
+			// Save previous time before updating
+			PreviousPlayTime = CurrentPlayTime;
+
 			CurrentPlayTime += DeltaTime;
 			if (PlayLength > 0.0f)
 			{
@@ -136,6 +141,11 @@ void UBlendSpace1D::Update(float Parameter, float DeltaTime, TArray<FTransform>&
 		return;
 	}
 
+	// 지배적 시퀀스 업데이트 (가중치가 높은 쪽)
+	// Alpha <= 0.5: SampleA가 지배적 (가중치 1-Alpha >= 0.5)
+	// Alpha > 0.5: SampleB가 지배적 (가중치 Alpha > 0.5)
+	DominantSequence = (Alpha <= 0.5f) ? SampleA->Animation : SampleB->Animation;
+
 	// Extract pose from each sample
 	TArray<FTransform> PoseA;
 	TArray<FTransform> PoseB;
@@ -147,11 +157,14 @@ void UBlendSpace1D::Update(float Parameter, float DeltaTime, TArray<FTransform>&
 	BlendPoses(PoseA, PoseB, Alpha, OutPose);
 
 	// std::cout << "Alpha: " << Alpha << "\n";
-	
+
 	// Update play time (loop based on shorter animation)
 	float PlayLengthA = SampleA->Animation ? SampleA->Animation->GetPlayLength() : 0.0f;
 	float PlayLengthB = SampleB->Animation ? SampleB->Animation->GetPlayLength() : 0.0f;
 	float MinPlayLength = FMath::Min(PlayLengthA, PlayLengthB);
+
+	// Save previous time before updating
+	PreviousPlayTime = CurrentPlayTime;
 
 	CurrentPlayTime += DeltaTime;
 	if (MinPlayLength > 0.0f)

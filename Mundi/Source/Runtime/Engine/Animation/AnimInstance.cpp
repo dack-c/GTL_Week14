@@ -299,28 +299,37 @@ void UAnimInstance::EnableUpperBodySplit(FName BoneName)
 
 void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
 {
-    if (!CurrentPlayState.Sequence)
+    // 노티파이를 처리할 시퀀스 결정
+    UAnimSequence* NotifySequence = CurrentPlayState.Sequence;
+
+    // Sequence가 없지만 PoseProvider가 있는 경우 (예: BlendSpace1D)
+    // PoseProvider에서 지배적 시퀀스를 가져옴
+    if (!NotifySequence && CurrentPlayState.PoseProvider)
     {
-        // PoseProvider만 있고 Sequence가 없는 경우 (예: BlendSpace1D)
-        // 이 경우 노티파이를 처리할 수 없음
+        NotifySequence = CurrentPlayState.PoseProvider->GetDominantSequence();
+    }
+
+    if (!NotifySequence)
+    {
         return;
     }
 
     // UAnimSequenceBase의 GetAnimNotify를 사용하여 노티파이 수집
     TArray<FPendingAnimNotify> PendingNotifies;
 
+    // PoseProvider가 있으면 그 시간을 사용 (BlendSpace1D의 경우 내부 시간 추적 사용)
+    // 그렇지 않으면 AnimInstance의 시간 사용
+    float PrevTime = PreviousPlayTime;
     float DeltaMove = DeltaSeconds * CurrentPlayState.PlayRate;
-    CurrentPlayState.Sequence->GetAnimNotify(PreviousPlayTime, DeltaMove, PendingNotifies);
 
-    // 디버그: 노티파이 검출 상태 출력
-    static float LogTimer = 0.0f;
-    LogTimer += DeltaSeconds;
-    if (LogTimer > 1.0f)
+    if (CurrentPlayState.PoseProvider && !CurrentPlayState.Sequence)
     {
-        UE_LOG("TriggerAnimNotifies - PrevTime: %.3f, CurrentTime: %.3f, DeltaMove: %.3f, PendingCount: %d",
-            PreviousPlayTime, CurrentPlayState.CurrentTime, DeltaMove, PendingNotifies.Num());
-        LogTimer = 0.0f;
+        // BlendSpace 등의 경우 내부 시간 추적 사용
+        PrevTime = CurrentPlayState.PoseProvider->GetPreviousPlayTime();
+        // DeltaMove는 그대로 사용 (실제 시간 진행량)
     }
+
+    NotifySequence->GetAnimNotify(PrevTime, DeltaMove, PendingNotifies);
 
     // 수집된 노티파이 처리
     for (const FPendingAnimNotify& Pending : PendingNotifies)
@@ -338,25 +347,25 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
             case EPendingNotifyType::Trigger:
                 if (Event.Notify)
                 {
-                    Event.Notify->Notify(OwningComponent, CurrentPlayState.Sequence);
+                    Event.Notify->Notify(OwningComponent, NotifySequence);
                 }
                 break;
             case EPendingNotifyType::StateBegin:
                 if (Event.NotifyState)
                 {
-                    Event.NotifyState->NotifyBegin(OwningComponent, CurrentPlayState.Sequence, Event.Duration);
+                    Event.NotifyState->NotifyBegin(OwningComponent, NotifySequence, Event.Duration);
                 }
                 break;
             case EPendingNotifyType::StateTick:
                 if (Event.NotifyState)
                 {
-                    Event.NotifyState->NotifyTick(OwningComponent, CurrentPlayState.Sequence, Event.Duration);
+                    Event.NotifyState->NotifyTick(OwningComponent, NotifySequence, Event.Duration);
                 }
                 break;
             case EPendingNotifyType::StateEnd:
                 if (Event.NotifyState)
                 {
-                    Event.NotifyState->NotifyEnd(OwningComponent, CurrentPlayState.Sequence, Event.Duration);
+                    Event.NotifyState->NotifyEnd(OwningComponent, NotifySequence, Event.Duration);
                 }
                 break;
             default:

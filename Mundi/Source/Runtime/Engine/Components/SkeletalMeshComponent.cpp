@@ -390,7 +390,8 @@ void USkeletalMeshComponent::SetAnimationTime(float InTime)
     {
         return;
     }
-    
+
+    float OldTime = CurrentAnimationTime;
     CurrentAnimationTime = InTime;
 
     if (CurrentAnimation)
@@ -398,15 +399,18 @@ void USkeletalMeshComponent::SetAnimationTime(float InTime)
         float PlayLength = CurrentAnimation->GetPlayLength();
 
         // 루핑 처리
+        bool bDidWrap = false;
         if (bIsLooping)
         {
             while (CurrentAnimationTime < 0.0f)
             {
                 CurrentAnimationTime += PlayLength;
+                bDidWrap = true;
             }
             while (CurrentAnimationTime > PlayLength)
             {
                 CurrentAnimationTime -= PlayLength;
+                bDidWrap = true;
             }
         }
         else
@@ -415,16 +419,61 @@ void USkeletalMeshComponent::SetAnimationTime(float InTime)
             CurrentAnimationTime = FMath::Clamp(CurrentAnimationTime, 0.0f, PlayLength);
         }
 
+        // 노티파이 수집 및 실행
+        // 루프 경계를 넘어가는 경우 처리
+        if (bDidWrap && bIsLooping && PlayLength > 0.0f)
+        {
+            // 루프가 발생한 경우: 두 구간으로 나눠서 노티파이 수집
+            // 구간 1: PrevTime → PlayLength
+            PendingNotifies.Empty();
+            float DeltaToEnd = PlayLength - PrevAnimationTime;
+            CurrentAnimation->GetAnimNotify(PrevAnimationTime, DeltaToEnd, PendingNotifies);
+            DispatchAnimNotifies();
 
-
-        GatherNotifiesFromRange(PrevAnimationTime, CurrentAnimationTime);
-        
-        /* @todo 애니메이션 갱신을 위해 추가함. 이후, 애니메이션 계산 로직만을 별도로 분리해야 할 필요 존재함 */
-        TickAnimInstances(0.0f);
-
-        DispatchAnimNotifies();
+            // 구간 2: 0 → CurrentTime
+            if (CurrentAnimationTime > 0.0f)
+            {
+                PendingNotifies.Empty();
+                CurrentAnimation->GetAnimNotify(0.0f, CurrentAnimationTime, PendingNotifies);
+                DispatchAnimNotifies();
+            }
+        }
+        else
+        {
+            // 일반적인 경우
+            GatherNotifiesFromRange(PrevAnimationTime, CurrentAnimationTime);
+            DispatchAnimNotifies();
+        }
 
         PrevAnimationTime = CurrentAnimationTime;
+
+        // 포즈 평가 및 적용
+        UAnimDataModel* DataModel = CurrentAnimation->GetDataModel();
+        if (DataModel && SkeletalMesh)
+        {
+            const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+            int32 NumBones = DataModel->GetNumBoneTracks();
+
+            FAnimExtractContext ExtractContext(CurrentAnimationTime, bIsLooping);
+            FPoseContext PoseContext(NumBones);
+            CurrentAnimation->GetAnimationPose(PoseContext, ExtractContext);
+
+            // 추출된 포즈를 CurrentLocalSpacePose에 적용
+            const TArray<FBoneAnimationTrack>& BoneTracks = DataModel->GetBoneAnimationTracks();
+            for (int32 TrackIdx = 0; TrackIdx < BoneTracks.Num(); ++TrackIdx)
+            {
+                const FBoneAnimationTrack& Track = BoneTracks[TrackIdx];
+                int32 BoneIndex = Skeleton.FindBoneIndex(Track.Name);
+
+                if (BoneIndex != INDEX_NONE && BoneIndex < CurrentLocalSpacePose.Num())
+                {
+                    CurrentLocalSpacePose[BoneIndex] = PoseContext.Pose[TrackIdx];
+                }
+            }
+
+            // 포즈 변경 사항을 스키닝에 반영
+            ForceRecomputePose();
+        }
     }
 }
 
