@@ -57,6 +57,20 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
                         NewState.Sequence = nullptr;
                         NewState.PoseProvider = BlendSpace;
                     }
+
+                    UEdGraphNode* SourceNode = SourcePin->OwningNode;
+                    
+                    NewState.OnUpdate = [SourceNode, SourcePin, InAnimInstance]()
+                    {
+                        if (!SourceNode || !InAnimInstance) return;
+
+                        // 런타임 컨텍스트 생성
+                        FBlueprintContext RuntimeContext(InAnimInstance);
+
+                        // 노드 재평가 -> 내부적으로 입력 핀을 읽고 SetParameter 등을 수행함
+                        // (반환값은 무시하고, 객체의 내부 상태 갱신이 목적)
+                        SourceNode->EvaluatePin(SourcePin, &RuntimeContext);
+                    };
                 }
             }
             else

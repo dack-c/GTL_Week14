@@ -3,6 +3,7 @@
 #include "imgui-node-editor/imgui_node_editor.h"
 #include "K2Node_Animation.h"
 #include "BlueprintActionDatabase.h"
+#include "BlueprintEvaluator.h"
 #include "Source/Editor/FBX/BlendSpace/BlendSpace1D.h"
 
 namespace ed = ax::NodeEditor;
@@ -416,6 +417,12 @@ FBlueprintValue UK2Node_BlendSpace1D::EvaluatePin(const UEdGraphPin* OutputPin, 
 {
     if (OutputPin->PinName == "Output")
     {
+        float Parameter = FBlueprintEvaluator::EvaluateInput<float>(FindPin("Parameter"), Context);
+
+        if (BlendSpace)
+        {
+            BlendSpace->SetParameter(Parameter);
+        }
         return BlendSpace;
     }
     return static_cast<UBlendSpace1D*>(nullptr);

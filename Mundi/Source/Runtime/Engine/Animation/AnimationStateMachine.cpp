@@ -63,6 +63,12 @@ void UAnimationStateMachine::ProcessState(float DeltaSeconds)
         return;
     }
 
+    const FAnimationState* CurrentState = FindState(CurrentStateName);
+    if (CurrentState && CurrentState->OnUpdate)
+    {
+        CurrentState->OnUpdate();
+    }
+
     // 전이 조건 평가
     EvaluateTransitions();
 }

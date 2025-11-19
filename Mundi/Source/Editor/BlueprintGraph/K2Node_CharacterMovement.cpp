@@ -111,6 +111,8 @@ FBlueprintValue UK2Node_GetVelocity::EvaluatePin(const UEdGraphPin* OutputPin, F
 
     FVector Velocity = MoveComp->GetVelocity();
 
+    std::cout << "Velocity: " << Velocity.X << " " << Velocity.Y << " " << Velocity.Z << "\n";
+
     if (OutputPin->PinName == "X")
     {
         return FBlueprintValue(Velocity.X);

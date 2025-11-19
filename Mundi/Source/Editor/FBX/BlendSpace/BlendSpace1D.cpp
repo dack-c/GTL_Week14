@@ -146,6 +146,8 @@ void UBlendSpace1D::Update(float Parameter, float DeltaTime, TArray<FTransform>&
 	// Blend two poses
 	BlendPoses(PoseA, PoseB, Alpha, OutPose);
 
+	// std::cout << "Alpha: " << Alpha << "\n";
+	
 	// Update play time (loop based on shorter animation)
 	float PlayLengthA = SampleA->Animation ? SampleA->Animation->GetPlayLength() : 0.0f;
 	float PlayLengthB = SampleB->Animation ? SampleB->Animation->GetPlayLength() : 0.0f;

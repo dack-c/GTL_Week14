@@ -19,6 +19,8 @@ struct FAnimationState
     bool bLoop;                     // 루프 여부
     float PlayRate;                 // 재생 속도
 
+    std::function<void()> OnUpdate; // 매 프레임 호출될 업데이트 함수 (EvaluatePin 방식)
+
     FAnimationState()
         : Name("None")
         , Sequence(nullptr)

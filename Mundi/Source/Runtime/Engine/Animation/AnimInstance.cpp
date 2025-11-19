@@ -413,7 +413,7 @@ void UAnimInstance::EvaluatePoseForState(const FAnimationPlayState& PlayState, T
 
         // const_cast 필요: EvaluatePose가 non-const (내부 상태 변경 가능)
         const_cast<IAnimPoseProvider*>(PlayState.PoseProvider)->EvaluatePose(
-            PlayState.CurrentTime, 0.0f, OutPose);
+            PlayState.CurrentTime, 0.02f, OutPose);
         return;
     }
 
