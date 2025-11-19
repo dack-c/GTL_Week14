@@ -6,6 +6,7 @@
 #include "K2Node_Animation.h"
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
 #include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
+#include "Source/Editor/FBX/BlendSpace/BlendSpace1D.h"
 
 void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* InAnimInstance, UAnimationStateMachine* OutStateMachine)
 {
@@ -25,15 +26,48 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
     {
         if (UK2Node_AnimState* StateNode = Cast<UK2Node_AnimState>(Node))
         {
-            UAnimSequence* AnimSeq = FBlueprintEvaluator::EvaluateInput<UAnimSequence*>(StateNode->FindPin("Animation"), &Context);
             bool bLoop = FBlueprintEvaluator::EvaluateInput<bool>(StateNode->FindPin("Looping"), &Context);
             float PlayRate = FBlueprintEvaluator::EvaluateInput<float>(StateNode->FindPin("PlayRate"), &Context);
-
             FName StateName = FName(StateNode->StateName);
 
-            FAnimationState NewState(StateName, AnimSeq, bLoop, PlayRate);
-            OutStateMachine->AddState(NewState);
+            // Animation 핀에서 값을 가져옴 (AnimSequence 또는 BlendSpace1D)
+            UEdGraphPin* AnimPin = StateNode->FindPin("Animation");
+            FAnimationState NewState;
+            NewState.Name = StateName;
+            NewState.bLoop = bLoop;
+            NewState.PlayRate = PlayRate;
 
+            if (AnimPin && AnimPin->LinkedTo.Num() > 0)
+            {
+                UEdGraphPin* SourcePin = AnimPin->LinkedTo[0];
+                if (SourcePin && SourcePin->OwningNode)
+                {
+                    FBlueprintValue Result = SourcePin->OwningNode->EvaluatePin(SourcePin, &Context);
+
+                    // AnimSequence인지 BlendSpace1D인지 확인
+                    if (std::holds_alternative<UAnimSequence*>(Result.Value))
+                    {
+                        UAnimSequence* AnimSeq = Result.Get<UAnimSequence*>();
+                        NewState.Sequence = AnimSeq;
+                        NewState.PoseProvider = AnimSeq;
+                    }
+                    else if (std::holds_alternative<UBlendSpace1D*>(Result.Value))
+                    {
+                        UBlendSpace1D* BlendSpace = Result.Get<UBlendSpace1D*>();
+                        NewState.Sequence = nullptr;
+                        NewState.PoseProvider = BlendSpace;
+                    }
+                }
+            }
+            else
+            {
+                // 연결이 없으면 기존 방식으로 시도
+                UAnimSequence* AnimSeq = FBlueprintEvaluator::EvaluateInput<UAnimSequence*>(AnimPin, &Context);
+                NewState.Sequence = AnimSeq;
+                NewState.PoseProvider = AnimSeq;
+            }
+
+            OutStateMachine->AddState(NewState);
             NodeToStateMap.Add(StateNode, StateName);
         }
     }

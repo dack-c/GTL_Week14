@@ -2,6 +2,10 @@
 
 #include <variant>
 
+// Forward declarations
+class UAnimSequence;
+class UBlendSpace1D;
+
 // ----------------------------------------------------------------
 //	블루프린트 표현식(Expression)용 구조체
 // ----------------------------------------------------------------
@@ -16,7 +20,8 @@ using FBlueprintValueType = std::variant<
     int32,
     float,
     bool,
-    UAnimSequence*
+    UAnimSequence*,
+    UBlendSpace1D*
 >;
 
 /**
@@ -25,9 +30,12 @@ using FBlueprintValueType = std::variant<
 struct FBlueprintValue
 {
     FBlueprintValue() : Value(0) {}
-    
+
     template<typename T>
     FBlueprintValue(T InValue) : Value(InValue) {}
+
+    // nullptr 처리용 생성자 - UAnimSequence*로 기본 변환
+    FBlueprintValue(std::nullptr_t) : Value(static_cast<UAnimSequence*>(nullptr)) {}
 
     /** @brief 타입 안전하게 값을 가져온다.  */
     template<typename TValue>

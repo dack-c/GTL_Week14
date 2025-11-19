@@ -9,10 +9,19 @@ class USkeletalMeshComponent;
 
 /**
  * @brief 애니메이션 재생 상태를 관리하는 구조체
+ * @note 포즈 제공자 기반으로 리팩터링됨 - AnimSequence, BlendSpace 등 모두 지원
  */
 struct FAnimationPlayState
 {
+    /** 포즈를 제공하는 소스 (AnimSequence, BlendSpace1D 등) */
+    IAnimPoseProvider* PoseProvider = nullptr;
+
+    /** 기존 호환성을 위한 AnimSequence 참조 (노티파이 등에서 사용) */
     UAnimSequence* Sequence = nullptr;
+
+    /** BlendSpace용 파라미터 값 */
+    float BlendParameter = 0.0f;
+
     float CurrentTime = 0.0f;
     float PlayRate = 1.0f;
     float BlendWeight = 1.0f;
@@ -160,6 +169,23 @@ public:
     * @brief 다른 시퀀스로 블렌드 + 다른 애니메이션 사용하기 위한 함수
     */
     void BlendTo(UAnimSequence* Sequence, EAnimLayer Layer, bool bLoop, float InPlayRate, float BlendTime);
+
+    /**
+     * @brief PoseProvider 재생 (BlendSpace 등)
+     * @param Provider 포즈 제공자
+     * @param bLoop 루프 여부
+     * @param InPlayRate 재생 속도
+     */
+    void PlayPoseProvider(IAnimPoseProvider* Provider, bool bLoop = true, float InPlayRate = 1.0f);
+
+    /**
+     * @brief PoseProvider로 블렌드 (BlendSpace 등)
+     * @param Provider 포즈 제공자
+     * @param bLoop 루프 여부
+     * @param InPlayRate 재생 속도
+     * @param BlendTime 블렌드 시간
+     */
+    void BlendToPoseProvider(IAnimPoseProvider* Provider, bool bLoop, float InPlayRate, float BlendTime);
 
     /**
      * @brief 재생 중인지 확인

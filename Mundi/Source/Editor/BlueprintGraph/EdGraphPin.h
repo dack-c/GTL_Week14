@@ -10,6 +10,10 @@ namespace FEdGraphPinCategory
     static const FName Int("int");
     static const FName Bool("bool");
     static const FName AnimSequence("UAnimSequence");
+    static const FName BlendSpace1D("UBlendSpace1D");
+
+    // AnimSequence와 BlendSpace1D는 모두 IAnimPoseProvider를 구현하므로 호환됨
+    static const FName AnimPose("AnimPose");  // 공통 타입 (향후 확장용)
 }
 
 /**

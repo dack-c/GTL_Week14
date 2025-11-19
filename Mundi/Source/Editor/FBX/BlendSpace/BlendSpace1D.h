@@ -1,5 +1,6 @@
 #pragma once
 #include "Object.h"
+#include "Source/Runtime/Engine/Animation/AnimTypes.h"
 
 class UAnimSequence;
 
@@ -35,13 +36,38 @@ struct FBlendSample1D
  * TArray<FTransform> OutputPose;
  * LocomotionBS->Update(CurrentSpeed, DeltaTime, OutputPose);
  */
-class UBlendSpace1D : public UObject
+class UBlendSpace1D : public UObject, public IAnimPoseProvider
 {
 	DECLARE_CLASS(UBlendSpace1D, UObject)
 
 public:
 	UBlendSpace1D() = default;
 	virtual ~UBlendSpace1D() = default;
+
+	// ============================================================
+	// IAnimPoseProvider 인터페이스 구현
+	// ============================================================
+
+	/**
+	 * @brief 현재 시간과 파라미터에 따른 포즈를 평가
+	 * @note BlendSpace는 내부 파라미터(CurrentParameter)를 사용
+	 */
+	virtual void EvaluatePose(float Time, float DeltaTime, TArray<FTransform>& OutPose) override;
+
+	/**
+	 * @brief 애니메이션 총 재생 길이 반환 (첫 번째 샘플 기준)
+	 */
+	virtual float GetPlayLength() const override;
+
+	/**
+	 * @brief 본 트랙 개수 반환 (첫 번째 샘플 기준)
+	 */
+	virtual int32 GetNumBoneTracks() const override;
+
+	/**
+	 * @brief 파라미터 값 설정 (EvaluatePose 호출 전에 설정해야 함)
+	 */
+	void SetParameter(float InParameter) { CurrentParameter = InParameter; }
 
 	// ============================================================
 	// Setup

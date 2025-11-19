@@ -51,6 +51,35 @@ struct FPendingAnimNotify
 enum class EAnimLayer
 {
     Base = 0,   // 하체
-    Upper = 1,  // 상체 
+    Upper = 1,  // 상체
     Count
+};
+
+/**
+ * @brief 애니메이션 포즈를 제공하는 인터페이스
+ * - UAnimSequence, UBlendSpace1D 등이 이 인터페이스를 구현
+ * - 모든 애니메이션 소스가 동일한 방식으로 포즈를 출력할 수 있게 함
+ */
+class IAnimPoseProvider
+{
+public:
+    virtual ~IAnimPoseProvider() = default;
+
+    /**
+     * @brief 현재 시간에 해당하는 포즈를 평가
+     * @param Time 현재 재생 시간
+     * @param DeltaTime 프레임 델타 시간
+     * @param OutPose 출력 포즈 (본별 트랜스폼 배열)
+     */
+    virtual void EvaluatePose(float Time, float DeltaTime, TArray<FTransform>& OutPose) = 0;
+
+    /**
+     * @brief 애니메이션 총 재생 길이 반환
+     */
+    virtual float GetPlayLength() const = 0;
+
+    /**
+     * @brief 본 트랙 개수 반환
+     */
+    virtual int32 GetNumBoneTracks() const = 0;
 };

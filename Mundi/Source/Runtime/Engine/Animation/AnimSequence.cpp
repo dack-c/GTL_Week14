@@ -109,3 +109,37 @@ bool UAnimSequence::IsCompatibleWith(const TArray<FName>& SkeletonBoneNames) con
     float MatchRatio = static_cast<float>(MatchCount) / static_cast<float>(BoneNames.Num());
     return MatchRatio >= 0.8f;
 }
+
+// ============================================================
+// IAnimPoseProvider 인터페이스 구현
+// ============================================================
+
+void UAnimSequence::EvaluatePose(float Time, float DeltaTime, TArray<FTransform>& OutPose)
+{
+    const UAnimDataModel* Model = GetDataModel();
+    if (!Model)
+    {
+        return;
+    }
+
+    const int32 NumBones = Model->GetNumBoneTracks();
+    OutPose.SetNum(NumBones);
+
+    // FAnimExtractContext 생성 (루핑은 기본 true로 설정)
+    FAnimExtractContext ExtractContext(Time, true);
+    FPoseContext PoseContext(NumBones);
+
+    GetAnimationPose(PoseContext, ExtractContext);
+
+    OutPose = PoseContext.Pose;
+}
+
+int32 UAnimSequence::GetNumBoneTracks() const
+{
+    const UAnimDataModel* Model = GetDataModel();
+    if (Model)
+    {
+        return Model->GetNumBoneTracks();
+    }
+    return 0;
+}

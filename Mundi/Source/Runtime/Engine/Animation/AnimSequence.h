@@ -30,7 +30,7 @@ struct FPoseContext
     }
 };
 
-class UAnimSequence : public UAnimSequenceBase
+class UAnimSequence : public UAnimSequenceBase, public IAnimPoseProvider
 {
     DECLARE_CLASS(UAnimSequence, UAnimSequenceBase)
 
@@ -46,6 +46,22 @@ public:
 
     // Override GetPlayLength from base class
     virtual float GetPlayLength() const override;
+
+    // ============================================================
+    // IAnimPoseProvider 인터페이스 구현
+    // ============================================================
+
+    /**
+     * @brief 현재 시간에 해당하는 포즈를 평가
+     */
+    virtual void EvaluatePose(float Time, float DeltaTime, TArray<FTransform>& OutPose) override;
+
+    /**
+     * @brief 본 트랙 개수 반환
+     */
+    virtual int32 GetNumBoneTracks() const override;
+
+    // ============================================================
 
     // Bone names for compatibility check
     TArray<FName> BoneNames;

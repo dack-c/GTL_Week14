@@ -129,10 +129,50 @@ public:
     virtual FString GetNodeTitle() const override { return "Animation Transition"; }
     virtual bool IsNodePure() const override { return false; } // 실행 흐름(Exec)이 있으므로 Pure가 아님
     virtual void AllocateDefaultPins() override;
-    virtual void RenderBody() override; 
+    virtual void RenderBody() override;
 
     // --- UK2Node 인터페이스 ---
 public:
     virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+// ----------------------------------------------------------------
+//	[BlendSpace1D] 1D 블렌드 스페이스 노드
+// ----------------------------------------------------------------
+
+class UBlendSpace1D;
+
+UCLASS(DisplayName = "UK2Node_BlendSpace1D", Description = "1D 블렌드 스페이스를 정의합니다. 파라미터에 따라 여러 애니메이션을 블렌딩합니다.")
+class UK2Node_BlendSpace1D : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_BlendSpace1D, UK2Node);
+
+public:
+    UK2Node_BlendSpace1D();
+
+    /** 블렌드 스페이스 데이터 */
+    UBlendSpace1D* BlendSpace = nullptr;
+
+    /** 샘플 애니메이션들 (UI용) */
+    TArray<UAnimSequence*> SampleAnimations;
+    TArray<float> SamplePositions;
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Blend Space 1D"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+
+private:
+    void RebuildBlendSpace();
 };

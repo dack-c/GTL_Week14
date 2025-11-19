@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Object.h"
+#include "AnimTypes.h"
 #include <functional>
 
 // Forward declarations
@@ -8,24 +9,38 @@ class UAnimInstance;
 
 /**
  * @brief 애니메이션 상태 정의
+ * @note IAnimPoseProvider를 지원하여 AnimSequence, BlendSpace 등 다양한 애니메이션 소스 사용 가능
  */
 struct FAnimationState
 {
-    FName Name;                 // 상태 이름 (예: "Idle", "Walk", "Run")
-    UAnimSequence* Sequence;    // 재생할 시퀀스
-    bool bLoop;                 // 루프 여부
-    float PlayRate;             // 재생 속도
+    FName Name;                     // 상태 이름 (예: "Idle", "Walk", "Run")
+    UAnimSequence* Sequence;        // 재생할 시퀀스 (기존 호환용)
+    IAnimPoseProvider* PoseProvider; // 포즈 제공자 (BlendSpace 등)
+    bool bLoop;                     // 루프 여부
+    float PlayRate;                 // 재생 속도
 
     FAnimationState()
         : Name("None")
         , Sequence(nullptr)
+        , PoseProvider(nullptr)
         , bLoop(true)
         , PlayRate(1.0f)
     {}
 
+    // 기존 AnimSequence 생성자 (호환성 유지)
     FAnimationState(const FName& InName, UAnimSequence* InSequence, bool InLoop = true, float InPlayRate = 1.0f)
         : Name(InName)
         , Sequence(InSequence)
+        , PoseProvider(InSequence)  // AnimSequence는 IAnimPoseProvider를 구현
+        , bLoop(InLoop)
+        , PlayRate(InPlayRate)
+    {}
+
+    // PoseProvider 직접 설정 생성자 (BlendSpace 등)
+    FAnimationState(const FName& InName, IAnimPoseProvider* InPoseProvider, bool InLoop = true, float InPlayRate = 1.0f)
+        : Name(InName)
+        , Sequence(nullptr)
+        , PoseProvider(InPoseProvider)
         , bLoop(InLoop)
         , PlayRate(InPlayRate)
     {}

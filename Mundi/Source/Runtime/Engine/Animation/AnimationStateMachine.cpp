@@ -40,9 +40,18 @@ void UAnimationStateMachine::SetInitialState(const FName& StateName)
     CurrentStateName = StateName;
 
     // 초기 상태의 애니메이션 재생
-    if (Owner && State->Sequence)
+    if (Owner)
     {
-        Owner->PlaySequence(State->Sequence, State->bLoop, State->PlayRate);
+        if (State->Sequence)
+        {
+            // 기존 방식: AnimSequence 재생
+            Owner->PlaySequence(State->Sequence, State->bLoop, State->PlayRate);
+        }
+        else if (State->PoseProvider)
+        {
+            // 새 방식: PoseProvider 재생 (BlendSpace 등)
+            Owner->PlayPoseProvider(State->PoseProvider, State->bLoop, State->PlayRate);
+        }
         UE_LOG("AnimationStateMachine: Initial state set to '%s'", StateName.ToString().c_str());
     }
 }
@@ -127,17 +136,31 @@ void UAnimationStateMachine::ChangeState(const FName& NewStateName, float BlendT
     CurrentStateName = NewStateName;
 
     // 새 상태의 애니메이션 재생
-    if (Owner && NewState->Sequence)
+    if (Owner)
     {
-        if (BlendTime > 0.0f)
+        if (NewState->Sequence)
         {
-            // 블렌드 사용
-            Owner->BlendTo(NewState->Sequence, NewState->bLoop, NewState->PlayRate, BlendTime);
+            // 기존 방식: AnimSequence
+            if (BlendTime > 0.0f)
+            {
+                Owner->BlendTo(NewState->Sequence, NewState->bLoop, NewState->PlayRate, BlendTime);
+            }
+            else
+            {
+                Owner->PlaySequence(NewState->Sequence, NewState->bLoop, NewState->PlayRate);
+            }
         }
-        else
+        else if (NewState->PoseProvider)
         {
-            // 즉시 전환
-            Owner->PlaySequence(NewState->Sequence, NewState->bLoop, NewState->PlayRate);
+            // 새 방식: PoseProvider (BlendSpace 등)
+            if (BlendTime > 0.0f)
+            {
+                Owner->BlendToPoseProvider(NewState->PoseProvider, NewState->bLoop, NewState->PlayRate, BlendTime);
+            }
+            else
+            {
+                Owner->PlayPoseProvider(NewState->PoseProvider, NewState->bLoop, NewState->PlayRate);
+            }
         }
     }
 }

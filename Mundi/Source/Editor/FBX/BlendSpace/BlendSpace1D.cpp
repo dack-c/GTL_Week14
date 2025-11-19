@@ -280,3 +280,49 @@ void UBlendSpace1D::BlendPoses(const TArray<FTransform>& PoseA,
 		OutPose[i] = FTransform(BlendedPosition, BlendedRotation, BlendedScale);
 	}
 }
+
+// ============================================================
+// IAnimPoseProvider 인터페이스 구현
+// ============================================================
+
+void UBlendSpace1D::EvaluatePose(float Time, float DeltaTime, TArray<FTransform>& OutPose)
+{
+	// Update 함수를 호출하되, 내부 CurrentParameter 값을 사용
+	Update(CurrentParameter, DeltaTime, OutPose);
+}
+
+float UBlendSpace1D::GetPlayLength() const
+{
+	if (Samples.Num() == 0)
+	{
+		return 0.0f;
+	}
+
+	// 첫 번째 샘플의 재생 길이 반환
+	if (Samples[0].Animation)
+	{
+		return Samples[0].Animation->GetPlayLength();
+	}
+
+	return 0.0f;
+}
+
+int32 UBlendSpace1D::GetNumBoneTracks() const
+{
+	if (Samples.Num() == 0)
+	{
+		return 0;
+	}
+
+	// 첫 번째 샘플의 본 트랙 개수 반환
+	if (Samples[0].Animation)
+	{
+		UAnimDataModel* DataModel = Samples[0].Animation->GetDataModel();
+		if (DataModel)
+		{
+			return DataModel->GetNumBoneTracks();
+		}
+	}
+
+	return 0;
+}

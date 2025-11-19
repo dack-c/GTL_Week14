@@ -35,7 +35,8 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         AnimStateMachine->ProcessState(DeltaSeconds);
     }
 
-    if (!CurrentPlayState.Sequence)
+    // PoseProvider 또는 Sequence가 있어야 재생 가능
+    if (!CurrentPlayState.PoseProvider && !CurrentPlayState.Sequence)
     {
         return;
     }
@@ -116,6 +117,7 @@ void UAnimInstance::PlaySequence(UAnimSequence* Sequence, bool bLoop, float InPl
     }
 
     CurrentPlayState.Sequence = Sequence;
+    CurrentPlayState.PoseProvider = Sequence;  // IAnimPoseProvider로 설정
     CurrentPlayState.CurrentTime = 0.0f;
     CurrentPlayState.PlayRate = InPlayRate;
     CurrentPlayState.bIsLooping = bLoop;
@@ -132,19 +134,21 @@ void UAnimInstance::PlaySequence(UAnimSequence* Sequence, EAnimLayer Layer, bool
 {
     if (!Sequence)
     {
-        UE_LOG("UAnimInstance::PlaySequence - Invalid sequence"); 
+        UE_LOG("UAnimInstance::PlaySequence - Invalid sequence");
         return;
     }
 
     int32 LayerIndex = (int32)Layer;
 
-    // 해당 레이어의 상태를 덮어쓴다. 
+    // 해당 레이어의 상태를 덮어쓴다.
     Layers[LayerIndex].Sequence = Sequence;
+    Layers[LayerIndex].PoseProvider = Sequence;  // IAnimPoseProvider로 설정
     Layers[LayerIndex].CurrentTime = 0.0f;
-    Layers[LayerIndex].PlayRate = bLoop; 
+    Layers[LayerIndex].PlayRate = InPlayRate;
+    Layers[LayerIndex].bIsLooping = bLoop;
     Layers[LayerIndex].bIsPlaying = true;
     Layers[LayerIndex].BlendWeight = 1.0f;
-     
+
     LayerBlendTimeRemaining[LayerIndex] = 0.0f;
 }
 
@@ -165,6 +169,7 @@ void UAnimInstance::BlendTo(UAnimSequence* Sequence, bool bLoop, float InPlayRat
     }
 
     BlendTargetState.Sequence = Sequence;
+    BlendTargetState.PoseProvider = Sequence;  // IAnimPoseProvider로 설정
     BlendTargetState.CurrentTime = 0.0f;
     BlendTargetState.PlayRate = InPlayRate;
     BlendTargetState.bIsLooping = bLoop;
@@ -191,6 +196,7 @@ void UAnimInstance::BlendTo(UAnimSequence* Sequence, EAnimLayer Layer, bool bLoo
     int32 LayerIndex = (int32)Layer;
 
     BlendTargets[LayerIndex].Sequence = Sequence;
+    BlendTargets[LayerIndex].PoseProvider = Sequence;  // IAnimPoseProvider로 설정
     BlendTargets[LayerIndex].CurrentTime = 0.0f;
     BlendTargets[LayerIndex].PlayRate = InPlayRate;
     BlendTargets[LayerIndex].bIsLooping = bLoop;
@@ -199,6 +205,59 @@ void UAnimInstance::BlendTo(UAnimSequence* Sequence, EAnimLayer Layer, bool bLoo
 
     LayerBlendTimeRemaining[LayerIndex] = FMath::Max(BlendTime, 0.0f);
     LayerBlendTotalTime[LayerIndex] = LayerBlendTimeRemaining[LayerIndex];
+}
+
+void UAnimInstance::PlayPoseProvider(IAnimPoseProvider* Provider, bool bLoop, float InPlayRate)
+{
+    if (!Provider)
+    {
+        UE_LOG("UAnimInstance::PlayPoseProvider - Invalid provider");
+        return;
+    }
+
+    CurrentPlayState.Sequence = nullptr;  // Sequence는 없음
+    CurrentPlayState.PoseProvider = Provider;
+    CurrentPlayState.CurrentTime = 0.0f;
+    CurrentPlayState.PlayRate = InPlayRate;
+    CurrentPlayState.bIsLooping = bLoop;
+    CurrentPlayState.bIsPlaying = true;
+    CurrentPlayState.BlendWeight = 1.0f;
+
+    PreviousPlayTime = 0.0f;
+
+    UE_LOG("UAnimInstance::PlayPoseProvider - Playing PoseProvider (Loop: %d, PlayRate: %.2f)",
+        bLoop, InPlayRate);
+}
+
+void UAnimInstance::BlendToPoseProvider(IAnimPoseProvider* Provider, bool bLoop, float InPlayRate, float BlendTime)
+{
+    if (!Provider)
+    {
+        UE_LOG("UAnimInstance::BlendToPoseProvider - Invalid provider");
+        return;
+    }
+
+    BlendTargetState.Sequence = nullptr;  // Sequence는 없음
+    BlendTargetState.PoseProvider = Provider;
+    BlendTargetState.CurrentTime = 0.0f;
+    BlendTargetState.PlayRate = InPlayRate;
+    BlendTargetState.bIsLooping = bLoop;
+    BlendTargetState.bIsPlaying = true;
+    BlendTargetState.BlendWeight = 0.0f;
+
+    BlendTimeRemaining = FMath::Max(BlendTime, 0.0f);
+    BlendTotalTime = BlendTimeRemaining;
+
+    if (BlendTimeRemaining <= 0.0f)
+    {
+        // 즉시 전환
+        CurrentPlayState = BlendTargetState;
+        CurrentPlayState.BlendWeight = 1.0f;
+        BlendTargetState = FAnimationPlayState();
+    }
+
+    UE_LOG("UAnimInstance::BlendToPoseProvider - Blending to PoseProvider (BlendTime: %.2f)",
+        BlendTime);
 }
 
 
@@ -346,6 +405,19 @@ void UAnimInstance::EvaluatePoseForState(const FAnimationPlayState& PlayState, T
 {
     OutPose.Empty();
 
+    // PoseProvider가 있으면 그것을 사용 (BlendSpace 등)
+    if (PlayState.PoseProvider)
+    {
+        const int32 NumBones = PlayState.PoseProvider->GetNumBoneTracks();
+        OutPose.SetNum(NumBones);
+
+        // const_cast 필요: EvaluatePose가 non-const (내부 상태 변경 가능)
+        const_cast<IAnimPoseProvider*>(PlayState.PoseProvider)->EvaluatePose(
+            PlayState.CurrentTime, 0.0f, OutPose);
+        return;
+    }
+
+    // 기존 방식: Sequence 직접 사용
     if (!PlayState.Sequence)
     {
         return;
@@ -369,14 +441,31 @@ void UAnimInstance::EvaluatePoseForState(const FAnimationPlayState& PlayState, T
 
 void UAnimInstance::AdvancePlayState(FAnimationPlayState& PlayState, float DeltaSeconds)
 {
-    if (!PlayState.Sequence || !PlayState.bIsPlaying)
+    // PoseProvider 또는 Sequence가 있어야 재생 가능
+    if (!PlayState.bIsPlaying)
+    {
+        return;
+    }
+
+    // PoseProvider가 없고 Sequence도 없으면 리턴
+    if (!PlayState.PoseProvider && !PlayState.Sequence)
     {
         return;
     }
 
     PlayState.CurrentTime += DeltaSeconds * PlayState.PlayRate;
 
-    const float PlayLength = PlayState.Sequence->GetPlayLength();
+    // PlayLength는 PoseProvider 또는 Sequence에서 가져옴
+    float PlayLength = 0.0f;
+    if (PlayState.PoseProvider)
+    {
+        PlayLength = PlayState.PoseProvider->GetPlayLength();
+    }
+    else if (PlayState.Sequence)
+    {
+        PlayLength = PlayState.Sequence->GetPlayLength();
+    }
+
     if (PlayLength <= 0.0f)
     {
         return;
