@@ -1323,11 +1323,11 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
 
             if (bHasAnimation)
             {
-                // Draw and hit-test notifies
-                const TArray<FAnimNotifyEvent>& EventsConst = State->CurrentAnimation->GetAnimNotifyEvents();
-                for (int i = 0; i < EventsConst.Num(); ++i)
+                // Draw and hit-test notifies (now draggable)
+                TArray<FAnimNotifyEvent>& Events = State->CurrentAnimation->GetAnimNotifyEvents();
+                for (int i = 0; i < Events.Num(); ++i)
                 {
-                    const FAnimNotifyEvent& Notify = EventsConst[i];
+                    FAnimNotifyEvent& Notify = Events[i];
                     float TriggerFrame = Notify.TriggerTime / FrameDuration;
                     float DurationFrames = (Notify.Duration > 0.0f) ? (Notify.Duration / FrameDuration) : 0.5f;
                     
@@ -1345,7 +1345,8 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                         ImVec2 RMin(ViewXStart, P.y);
                         ImVec2 RMax(ViewXEnd, P.y + Size.y);
                         bool bHover = ImGui::IsMouseHoveringRect(RMin, RMax);
-                        bool bClicked = bHover && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+                        bool bPressed = bHover && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+                        bool bDoubleClicked = bHover && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
                             
                         // Styling
                         ImU32 FillCol = IM_COL32(100, 100, 255, bHover ? 140 : 100);
@@ -1371,11 +1372,38 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                         DrawList->AddText(ImVec2(XStart + 2, P.y + 2), IM_COL32_WHITE, Label.c_str());
                         ImGui::PopClipRect();
 
-                        if (bClicked)
+                        // Double-click opens edit popup; single-click starts dragging
+                        if (bDoubleClicked)
                         {
                             SelectedNotifyIndex = i;
                             ImGui::OpenPopup("NotifyEditPopup");
                         }
+                        else if (bPressed)
+                        {
+                            bDraggingNotify = true;
+                            DraggingNotifyIndex = i;
+                            DraggingStartMouseX = ImGui::GetIO().MousePos.x;
+                            DraggingOrigTriggerTime = Notify.TriggerTime;
+                            SelectedNotifyIndex = i;
+                        }
+                    }
+                }
+
+                // Update dragging movement (if any)
+                if (bDraggingNotify && DraggingNotifyIndex >= 0 && DraggingNotifyIndex < Events.Num())
+                {
+                    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+                    {
+                        float deltaX = ImGui::GetIO().MousePos.x - DraggingStartMouseX;
+                        float deltaFrames = deltaX / State->TimelineScale;
+                        float newTime = DraggingOrigTriggerTime + (deltaFrames * FrameDuration);
+                        newTime = ImClamp(newTime, 0.0f, PlayLength);
+                        Events[DraggingNotifyIndex].TriggerTime = newTime;
+                    }
+                    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+                    {
+                        bDraggingNotify = false;
+                        DraggingNotifyIndex = -1;
                     }
                 }
             }
