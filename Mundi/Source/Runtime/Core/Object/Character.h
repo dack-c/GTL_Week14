@@ -16,7 +16,9 @@ public:
 	virtual ~ACharacter() override;
 
 	virtual void Tick(float DeltaSecond) override;
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void DuplicateSubObjects() override;
 
 	// 캐릭터 고유 기능
 	virtual void Jump();
@@ -26,13 +28,13 @@ public:
 	UCharacterMovementComponent* GetCharacterMovement() const { return CharacterMovement; }
 
 	// APawn 인터페이스: 파생 클래스의 MovementComponent를 노출
-	virtual UPawnMovementComponent* GetPawnMovementComponent() const override { return reinterpret_cast<UPawnMovementComponent*>(CharacterMovement); }
+	virtual UPawnMovementComponent* GetMovementComponent() const override { return reinterpret_cast<UPawnMovementComponent*>(CharacterMovement); }
 
 	//APawn에서 정의 됨
 	USkeletalMeshComponent* GetMesh() const { return SkeletalMeshComp; }
 
 protected:
-	UCapsuleComponent* CapsuleComponent;
-	UCharacterMovementComponent* CharacterMovement;
+    UCapsuleComponent* CapsuleComponent;
+    UCharacterMovementComponent* CharacterMovement;
 
 };
