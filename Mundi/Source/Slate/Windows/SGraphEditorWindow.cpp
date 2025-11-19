@@ -108,7 +108,7 @@ void SGraphEditorWindow::RenderMenuBar()
                         L"Data/Graphs", 
                         L"graph", 
                         L"Graph Files", 
-                        L"NewGraph.json"
+                        L"NewGraph.graph"
                     );
 
                     if (!SavePath.empty())

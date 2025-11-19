@@ -31,6 +31,8 @@ class UK2Node_AnimSequence : public UK2Node
     DECLARE_CLASS(UK2Node_AnimSequence, UK2Node);
 
 public:
+    UK2Node_AnimSequence();
+
     /** @todo UPROPERTY 시스템 통합 */
     UAnimSequence* Value = nullptr;
 
@@ -58,6 +60,9 @@ UCLASS(DisplayName = "UK2Node_AnimStateEntry", Description = "애니메이션 �
 class UK2Node_AnimStateEntry : public UK2Node
 {
     DECLARE_CLASS(UK2Node_AnimStateEntry, UK2Node);
+
+public:
+    UK2Node_AnimStateEntry();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -87,6 +92,8 @@ class UK2Node_AnimState : public UK2Node
     DECLARE_CLASS(UK2Node_AnimState, UK2Node);
 
 public:
+    UK2Node_AnimState();
+
     /** 상태의 고유 이름. FAnimationState::Name에 해당한다. */
     FString StateName = "NewState";
     
@@ -113,6 +120,9 @@ UCLASS(DisplayName = "UK2Node_AnimTransition", Description = "애니메이션 �
 class UK2Node_AnimTransition : public UK2Node
 {
     DECLARE_CLASS(UK2Node_AnimTransition, UK2Node);
+
+public:
+    UK2Node_AnimTransition();
 
     // --- UEdGraphNode 인터페이스 ---
 public:

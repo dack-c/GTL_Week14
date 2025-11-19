@@ -40,12 +40,14 @@ void USkeletalMeshComponent::BeginPlay()
     UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
     AnimInstance->SetStateMachine(StateMachine);
 
-    // @todo BeinPlay에서 직접 컴파일을 하는 흐름이 매끄럽지 않음 (개선 요망)
-    FAnimBlueprintCompiler::Compile(
-        USlateManager::GetInstance().GetAnimationGraph(),
-        AnimInstance,
-        StateMachine
-    );
+    if (AnimGraph)
+    {
+        FAnimBlueprintCompiler::Compile(
+            AnimGraph,
+            AnimInstance,
+            StateMachine
+        );
+    }
 
     UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
     UE_LOG("Use SetMovementSpeed() to control animation transitions");
@@ -126,6 +128,12 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         // 4. 노티파이 트리거
         // 5. 커브 업데이트
         AnimInstance->NativeUpdateAnimation(DeltaTime);
+
+
+       /* GatherNotifiesFromRange(PrevAnimationTime, CurrentAnimationTime);
+         
+        DispatchAnimNotifies();*/
+
     }
     else
     {
@@ -133,6 +141,9 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         // (호환성 유지를 위해 남겨둠, 추후 제거 예정)
         TickAnimation(DeltaTime);
     }
+
+    PrevAnimationTime = CurrentAnimationTime; 
+
 }
 
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)

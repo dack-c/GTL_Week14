@@ -31,6 +31,9 @@ class UK2Node_Add_FloatFloat : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Add_FloatFloat, UK2Node);
 
+public:
+    UK2Node_Add_FloatFloat();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "+ (Float)"; }
@@ -49,6 +52,9 @@ UCLASS(DisplayName="UK2Node_Subtract_FloatFloat", Description="블루프린트 f
 class UK2Node_Subtract_FloatFloat : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Subtract_FloatFloat, UK2Node);
+
+public:
+    UK2Node_Subtract_FloatFloat();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -69,6 +75,9 @@ class UK2Node_Multiply_FloatFloat : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Multiply_FloatFloat, UK2Node);
 
+public:
+    UK2Node_Multiply_FloatFloat();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "* (Float)"; }
@@ -87,6 +96,9 @@ UCLASS(DisplayName = "UK2Node_Divide_FloatFloat", Description = "블루프린트
 class UK2Node_Divide_FloatFloat : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Divide_FloatFloat, UK2Node);
+
+public:
+    UK2Node_Divide_FloatFloat();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -107,6 +119,9 @@ class UK2Node_Greater_FloatFloat : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Greater_FloatFloat, UK2Node);
 
+public:
+    UK2Node_Greater_FloatFloat();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "> (Float)"; }
@@ -125,6 +140,9 @@ UCLASS(DisplayName = "UK2Node_Equal_FloatFloat", Description = "블루프린트 
 class UK2Node_Equal_FloatFloat : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Equal_FloatFloat, UK2Node);
+
+public:
+    UK2Node_Equal_FloatFloat();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -149,6 +167,9 @@ class UK2Node_Add_IntInt : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Add_IntInt, UK2Node);
 
+public:
+    UK2Node_Add_IntInt();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "+ (Int)"; }
@@ -167,6 +188,9 @@ UCLASS(DisplayName = "UK2Node_Subtract_IntInt", Description = "블루프린트 i
 class UK2Node_Subtract_IntInt : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Subtract_IntInt, UK2Node);
+
+public:
+    UK2Node_Subtract_IntInt();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -187,6 +211,9 @@ class UK2Node_Multiply_IntInt : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Multiply_IntInt, UK2Node);
 
+public:
+    UK2Node_Multiply_IntInt();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "* (Int)"; }
@@ -205,6 +232,9 @@ UCLASS(DisplayName = "UK2Node_Divide_IntInt", Description = "블루프린트 int
 class UK2Node_Divide_IntInt : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Divide_IntInt, UK2Node);
+
+public:
+    UK2Node_Divide_IntInt();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -225,6 +255,9 @@ class UK2Node_Greater_IntInt : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Greater_IntInt, UK2Node);
 
+public:
+    UK2Node_Greater_IntInt();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "> (Int)"; }
@@ -243,6 +276,9 @@ UCLASS(DisplayName = "UK2Node_Equal_IntInt", Description = "블루프린트 int 
 class UK2Node_Equal_IntInt : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Equal_IntInt, UK2Node);
+
+public:
+    UK2Node_Equal_IntInt();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -267,6 +303,9 @@ class UK2Node_And_BoolBool : public UK2Node
 {
     DECLARE_CLASS(UK2Node_And_BoolBool, UK2Node);
 
+public:
+    UK2Node_And_BoolBool();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "AND (Bool)"; }
@@ -285,6 +324,9 @@ UCLASS(DisplayName = "UK2Node_Or_BoolBool", Description = "블루프린트 OR �
 class UK2Node_Or_BoolBool : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Or_BoolBool, UK2Node);
+
+public:
+    UK2Node_Or_BoolBool();
 
     // --- UEdGraphNode 인터페이스 ---
 public:
@@ -305,6 +347,9 @@ class UK2Node_Xor_BoolBool : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Xor_BoolBool, UK2Node);
 
+public:
+    UK2Node_Xor_BoolBool();
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "XOR (Bool)"; }
@@ -323,6 +368,9 @@ UCLASS(DisplayName = "UK2Node_Not_Bool", Description = "블루프린트 NOT 논�
 class UK2Node_Not_Bool : public UK2Node
 {
     DECLARE_CLASS(UK2Node_Not_Bool, UK2Node);
+
+public:
+    UK2Node_Not_Bool();
 
     // --- UEdGraphNode 인터페이스 ---
 public:

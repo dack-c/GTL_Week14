@@ -79,12 +79,11 @@ public:
     // Temp: open/close Skeletal Mesh Viewer (detached window)
     void OpenSkeletalMeshViewer();
     void OpenSkeletalMeshViewerWithFile(const char* FilePath);
-    void OpenAnimationGraphEditor();
+    void OpenAnimationGraphEditor(UAnimationGraph* InAnimGraph);
     void CloseSkeletalMeshViewer();
     void CloseAnimationGraphEditor();
     bool IsSkeletalMeshViewerOpen() const { return SkeletalViewerWindow != nullptr; }
     bool IsAnimationGraphEditorOpen() const { return AnimationGraphEditorWindow != nullptr;}
-    UAnimationGraph* GetAnimationGraph() const { return AnimGraph; }
 
 private:
     FRect Rect; // 이전엔 SWindow로부터 상속받던 영역 정보
@@ -132,7 +131,6 @@ private:
     SSkeletalMeshViewerWindow* SkeletalViewerWindow = nullptr;
 
     // 애니메이션 그래프 편집기
-    UAnimationGraph* AnimGraph = nullptr;
     SGraphEditorWindow* AnimationGraphEditorWindow = nullptr;
 
     // Content Browser (Bottom panel overlay with animation)

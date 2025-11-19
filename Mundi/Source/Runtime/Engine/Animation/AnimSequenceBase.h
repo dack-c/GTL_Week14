@@ -39,6 +39,8 @@ public:
     bool SaveMeta(const FString& MetaPathUTF8) const;
     bool LoadMeta(const FString& MetaPathUTF8);
 
+    FString GetNotifyPath() const;
+    
 protected:
     
     TArray<FAnimNotifyEvent> Notifies;
