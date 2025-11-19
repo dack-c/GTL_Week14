@@ -269,6 +269,7 @@
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Animation.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_CharacterMovement.cpp" />
+    <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Expression.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Literal.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Math.cpp" />
     <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Misc.cpp" />
@@ -759,6 +760,7 @@
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Animation.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_CharacterMovement.h" />
+    <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Expression.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Literal.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Math.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Misc.h" />
