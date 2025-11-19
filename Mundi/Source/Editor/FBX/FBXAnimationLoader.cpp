@@ -8,7 +8,7 @@
 #include "PathUtils.h"
 #include <filesystem>
 
-// Helper function to find first non-skeleton node that contains skeleton in its immediate children
+// 헬퍼 함수: 직계 자식 중에 스켈레톤이 있는 첫 번째 비-스켈레톤 노드를 재귀적으로 찾음
 static FbxNode* FindNonSkeletonParentRecursive(FbxNode* Node)
 {
 	FString NodeName = Node->GetName();
@@ -17,14 +17,14 @@ static FbxNode* FindNonSkeletonParentRecursive(FbxNode* Node)
 		return nullptr;
 	}
 
-	// Check if this node is a non-skeleton container that has skeleton children
+	// 이 노드가 스켈레톤이 아니면서 직계 자식 중에 스켈레톤이 있는지 확인
 	if (!FBXSceneUtilities::NodeContainsSkeleton(Node) && FBXSceneUtilities::NodeContainsSkeletonInImmediateChildren(Node))
 	{
 		FString FindArmatureNodeName = Node->GetName();
 		return Node;
 	}
 
-	// Recursively search children
+	// 자식 노드들을 재귀적으로 탐색
 	int ChildCount = Node->GetChildCount();
 	for (int i = 0; i < ChildCount; ++i)
 	{
@@ -40,20 +40,20 @@ static FbxNode* FindNonSkeletonParentRecursive(FbxNode* Node)
 
 void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshData& MeshData, const FString& FilePath, TArray<UAnimSequence*>& OutAnimations)
 {
-	// Find first non-skeleton container node and extract its transform for correction
-	// This generalizes the old "Armature" hardcoded logic to work with any non-skeleton parent (e.g., CactusPA, Armature, etc.)
+	// 첫 번째 비-스켈레톤 컨테이너 노드를 찾아서 보정용 트랜스폼 추출
+	// 기존의 "Armature" 하드코딩 로직을 일반화하여 모든 비-스켈레톤 부모 노드에 대응 (예: CactusPA, Armature 등)
 	FbxAMatrix ArmatureTransform;
 	ArmatureTransform.SetIdentity();  // 기본값: 항등 행렬
 	FbxNode* RootNode = Scene->GetRootNode();
 
 	if (RootNode)
 	{
-		// Search recursively starting from root
+		// 루트부터 재귀적으로 탐색
 		FbxNode* NonSkeletonParentNode = FindNonSkeletonParentRecursive(RootNode);
 
 		if (NonSkeletonParentNode)
 		{
-			// Found a non-skeleton parent node - extract its transform
+			// 비-스켈레톤 부모 노드를 찾음 - 트랜스폼 추출
 			ArmatureTransform = NonSkeletonParentNode->EvaluateLocalTransform();
 
 			FbxVector4 ArmatureScale = ArmatureTransform.GetS();
@@ -67,14 +67,13 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		}
 	}
 
-	// 중요
-	// Get animation stack count
+	// 중요: 애니메이션 스택 개수 가져오기
 	// FBX에 애니메이션이 있는지 확인
 	int32 AnimStackCount = Scene->GetSrcObjectCount<FbxAnimStack>();
 
 	for (int32 StackIndex = 0; StackIndex < AnimStackCount; ++StackIndex)
 	{
-		// Get animation stack
+		// 애니메이션 스택 가져오기
 		FbxAnimStack* AnimStack = Scene->GetSrcObject<FbxAnimStack>(StackIndex);
 		if (!AnimStack)
 		{
@@ -90,7 +89,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		Scene->SetCurrentAnimationStack(AnimStack);
 		FString AnimStackName = AnimStack->GetName();
 
-		// Get time range
+		// 시간 범위 가져오기
 		FbxTimeSpan TimeSpan = AnimStack->GetLocalTimeSpan();
 		FbxTime StartTime = TimeSpan.GetStart();
 		FbxTime StopTime = TimeSpan.GetStop();
@@ -121,7 +120,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		DataModel->SetNumberOfFrames(NumFrames);
 		DataModel->SetNumberOfKeys(NumFrames);
 
-		// Build bone node map
+		// 본 노드 맵 구축
 		FbxNode* RootNode = Scene->GetRootNode();
 		TMap<FName, FbxNode*> BoneNodeMap;
 		BuildBoneNodeMap(RootNode, BoneNodeMap);
@@ -129,7 +128,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		UE_LOG("ProcessAnimations: AnimStack='%s', BoneNodeMap size=%d, Skeleton bones=%d",
 			AnimStackName.c_str(), BoneNodeMap.Num(), MeshData.Skeleton.Bones.Num());
 
-		// Extract animation for each bone
+		// 각 본에 대해 애니메이션 추출
 		int32 ExtractedBones = 0;
 		for (const FBone& Bone : MeshData.Skeleton.Bones)
 		{
@@ -150,7 +149,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 				continue;
 			}
 
-			// Add bone track
+			// 본 트랙 추가
 			int32 TrackIndex = DataModel->AddBoneTrack(BoneName);
 			if (TrackIndex == INDEX_NONE)
 			{
@@ -164,17 +163,17 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 			// 루트 본인지 확인
 			bool bIsRootBone = (Bone.ParentIndex == -1);
 
-			// Extract animation data (KraftonGTL 방식 - 프레임 기반)
+			// 애니메이션 데이터 추출 (프레임 기반)
 			ExtractBoneAnimation(BoneNode, AnimLayer, StartTime, FrameCount, TimeMode, Positions, Rotations, Scales, ArmatureTransform, bIsRootBone);
 
-			// Set keys in data model
+			// 데이터 모델에 키 설정
 			DataModel->SetBoneTrackKeys(BoneName, Positions, Rotations, Scales);
 			ExtractedBones++;
 		}
 
 		UE_LOG("Extracted animation data for %d bones", ExtractedBones);
 
-		// Store bone names for compatibility check
+		// 호환성 검사를 위해 본 이름 저장
 		TArray<FName> BoneNames;
 		for (const FBone& Bone : MeshData.Skeleton.Bones)
 		{
@@ -182,7 +181,7 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		}
 		AnimSequence->SetBoneNames(BoneNames);
 
-		// Register animation in ResourceManager
+		// ResourceManager에 애니메이션 등록
 		FString AnimKey = FilePath + "_" + AnimStackName;
 		RESOURCE.Add<UAnimSequence>(AnimKey, AnimSequence);
 
@@ -192,14 +191,14 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 	}
 
 #ifdef USE_OBJ_CACHE
-	// Save animations to cache
+	// 애니메이션을 캐시에 저장
 	if (OutAnimations.Num() > 0)
 	{
 		FString NormalizedPath = NormalizePath(FilePath);
 		FString CacheBasePath = ConvertDataPathToCachePath(NormalizedPath);
 		FString AnimCacheDir = CacheBasePath + "_Anims";
 
-		// Create cache directory
+		// 캐시 디렉토리 생성
 		std::filesystem::create_directories(AnimCacheDir);
 
 		for (int32 i = 0; i < OutAnimations.Num(); ++i)
@@ -300,17 +299,17 @@ bool FBXAnimationLoader::NodeHasAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer
 		return false;
 	}
 
-	// Check for position animation curves
+	// 위치 애니메이션 커브 확인
 	FbxAnimCurve* TranslationX = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 	FbxAnimCurve* TranslationY = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 	FbxAnimCurve* TranslationZ = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 
-	// Check for rotation animation curves
+	// 회전 애니메이션 커브 확인
 	FbxAnimCurve* RotationX = Node->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 	FbxAnimCurve* RotationY = Node->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 	FbxAnimCurve* RotationZ = Node->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 
-	// Check for scale animation curves
+	// 스케일 애니메이션 커브 확인
 	FbxAnimCurve* ScaleX = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 	FbxAnimCurve* ScaleY = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 	FbxAnimCurve* ScaleZ = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
@@ -327,7 +326,7 @@ void FBXAnimationLoader::BuildBoneNodeMap(FbxNode* RootNode, TMap<FName, FbxNode
 		return;
 	}
 
-	// Check if this node is a bone
+	// 이 노드가 본인지 확인
 	for (int32 i = 0; i < RootNode->GetNodeAttributeCount(); ++i)
 	{
 		FbxNodeAttribute* Attribute = RootNode->GetNodeAttributeByIndex(i);
@@ -339,7 +338,7 @@ void FBXAnimationLoader::BuildBoneNodeMap(FbxNode* RootNode, TMap<FName, FbxNode
 		}
 	}
 
-	// Recursively process children
+	// 자식 노드들을 재귀적으로 처리
 	for (int32 i = 0; i < RootNode->GetChildCount(); ++i)
 	{
 		BuildBoneNodeMap(RootNode->GetChild(i), OutBoneNodeMap);

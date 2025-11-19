@@ -6,12 +6,12 @@ class UAnimSequence;
 class FBXAnimationCache
 {
 public:
-	// Try to load animations from cache directory
+	// 캐시 디렉토리에서 애니메이션 로드 시도
 	static bool TryLoadAnimationsFromCache(const FString& NormalizedPath, TArray<UAnimSequence*>& OutAnimations);
 
-	// Save a single animation to cache file
+	// 단일 애니메이션을 캐시 파일에 저장
 	static bool SaveAnimationToCache(UAnimSequence* Animation, const FString& CachePath);
 
-	// Load a single animation from cache file
+	// 캐시 파일에서 단일 애니메이션 로드
 	static UAnimSequence* LoadAnimationFromCache(const FString& CachePath);
 };

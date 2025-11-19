@@ -36,6 +36,6 @@ private:
 	TArray<FMaterialInfo> MaterialInfos;
 	FbxManager* SdkManager = nullptr;
 
-	// Store local transforms of non-skeleton parent nodes (e.g., Armature) for animation correction
+	// 비-스켈레톤 부모 노드(예: Armature)의 로컬 트랜스폼 저장 (애니메이션 보정용)
 	TMap<const FbxNode*, FbxAMatrix> NonSkeletonParentTransforms;
 };
