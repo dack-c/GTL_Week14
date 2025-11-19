@@ -59,8 +59,8 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
         TArray<FTransform> FromPose;
         TArray<FTransform> TargetPose;
-        EvaluatePoseForState(CurrentPlayState, FromPose);
-        EvaluatePoseForState(BlendTargetState, TargetPose);
+        EvaluatePoseForState(CurrentPlayState, FromPose, DeltaSeconds);
+        EvaluatePoseForState(BlendTargetState, TargetPose, DeltaSeconds);
 
         TArray<FTransform> BlendedPose;
         BlendPoseArrays(FromPose, TargetPose, BlendAlpha, BlendedPose);
@@ -84,7 +84,7 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     else if (OwningComponent)
     {
         TArray<FTransform> Pose;
-        EvaluatePoseForState(CurrentPlayState, Pose);
+        EvaluatePoseForState(CurrentPlayState, Pose, DeltaSeconds);
 
         if (Pose.Num() > 0)
         {
@@ -401,7 +401,7 @@ void UAnimInstance::SetStateMachine(UAnimationStateMachine* InStateMachine)
         UE_LOG("AnimInstance: StateMachine set and initialized");
     }
 }
-void UAnimInstance::EvaluatePoseForState(const FAnimationPlayState& PlayState, TArray<FTransform>& OutPose) const
+void UAnimInstance::EvaluatePoseForState(const FAnimationPlayState& PlayState, TArray<FTransform>& OutPose, float DeltaTime) const
 {
     OutPose.Empty();
 
@@ -413,7 +413,7 @@ void UAnimInstance::EvaluatePoseForState(const FAnimationPlayState& PlayState, T
 
         // const_cast 필요: EvaluatePose가 non-const (내부 상태 변경 가능)
         const_cast<IAnimPoseProvider*>(PlayState.PoseProvider)->EvaluatePose(
-            PlayState.CurrentTime, 0.02f, OutPose);
+            PlayState.CurrentTime, DeltaTime, OutPose);
         return;
     }
 
@@ -532,8 +532,8 @@ void UAnimInstance::GetPoseForLayer(int32 LayerIndex, TArray<FTransform>& OutPos
 
         TArray<FTransform> FromPose;
         TArray<FTransform> TargetPose;
-        EvaluatePoseForState(CurrentPlayState, FromPose);
-        EvaluatePoseForState(BlendTargetState, TargetPose);
+        EvaluatePoseForState(CurrentPlayState, FromPose, DeltaSeconds);
+        EvaluatePoseForState(BlendTargetState, TargetPose, DeltaSeconds);
 
         TArray<FTransform> BlendedPose;
         BlendPoseArrays(FromPose, TargetPose, BlendAlpha, BlendedPose);
@@ -557,7 +557,7 @@ void UAnimInstance::GetPoseForLayer(int32 LayerIndex, TArray<FTransform>& OutPos
     else if (OwningComponent)
     {
         TArray<FTransform> Pose;
-        EvaluatePoseForState(CurrentPlayState, Pose);
+        EvaluatePoseForState(CurrentPlayState, Pose, DeltaSeconds);
 
         if (Pose.Num() > 0)
         {

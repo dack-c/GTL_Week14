@@ -258,7 +258,7 @@ public:
 
 protected:
     // PlayState 헬퍼
-    void EvaluatePoseForState(const FAnimationPlayState& PlayState, TArray<FTransform>& OutPose) const;
+    void EvaluatePoseForState(const FAnimationPlayState& PlayState, TArray<FTransform>& OutPose, float DeltaTime = 0.0f) const;
     void AdvancePlayState(FAnimationPlayState& PlayState, float DeltaSeconds);
     void BlendPoseArrays(const TArray<FTransform>& FromPose, const TArray<FTransform>& ToPose, float Alpha, TArray<FTransform>& OutPose) const;
     void GetPoseForLayer(int32 LayerIndex, TArray<FTransform>& OutPose, float DeltaSeconds);
