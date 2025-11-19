@@ -65,6 +65,22 @@ public:
 	virtual int32 GetNumBoneTracks() const override;
 
 	/**
+	 * @brief 노티파이 처리용 지배적 시퀀스 반환
+	 * @return 현재 가장 높은 가중치를 가진 AnimSequence
+	 */
+	virtual UAnimSequence* GetDominantSequence() const override { return DominantSequence; }
+
+	/**
+	 * @brief 현재 내부 재생 시간 반환 (노티파이 처리용)
+	 */
+	virtual float GetCurrentPlayTime() const override { return CurrentPlayTime; }
+
+	/**
+	 * @brief 이전 프레임의 재생 시간 반환 (노티파이 처리용)
+	 */
+	virtual float GetPreviousPlayTime() const override { return PreviousPlayTime; }
+
+	/**
 	 * @brief 파라미터 값 설정 (EvaluatePose 호출 전에 설정해야 함)
 	 */
 	void SetParameter(float InParameter) { CurrentParameter = InParameter; }
@@ -170,9 +186,15 @@ private:
 	// Current play time (all samples synchronized)
 	float CurrentPlayTime = 0.0f;
 
+	// Previous play time (for notify detection)
+	float PreviousPlayTime = 0.0f;
+
 	// Parameter range
 	float MinParameter = 0.0f;
 	float MaxParameter = 200.0f;
+
+	// 노티파이 처리용 지배적 시퀀스 (가장 높은 가중치)
+	UAnimSequence* DominantSequence = nullptr;
 
 	// ============================================================
 	// Internal Helpers

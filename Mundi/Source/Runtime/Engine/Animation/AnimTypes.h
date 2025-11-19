@@ -82,4 +82,24 @@ public:
      * @brief 본 트랙 개수 반환
      */
     virtual int32 GetNumBoneTracks() const = 0;
+
+    /**
+     * @brief 노티파이 처리에 사용할 지배적 AnimSequence 반환
+     * @return 가장 높은 가중치를 가진 AnimSequence (BlendSpace의 경우)
+     *         또는 자기 자신 (AnimSequence의 경우)
+     *         노티파이를 지원하지 않으면 nullptr
+     */
+    virtual class UAnimSequence* GetDominantSequence() const { return nullptr; }
+
+    /**
+     * @brief 현재 내부 재생 시간 반환 (노티파이 처리용)
+     * @return 현재 재생 시간
+     */
+    virtual float GetCurrentPlayTime() const { return 0.0f; }
+
+    /**
+     * @brief 이전 프레임의 재생 시간 반환 (노티파이 처리용)
+     * @return 이전 재생 시간
+     */
+    virtual float GetPreviousPlayTime() const { return 0.0f; }
 };

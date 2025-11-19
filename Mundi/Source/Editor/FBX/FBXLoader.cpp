@@ -283,8 +283,6 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 
 	FbxAxisSystem UnrealImportAxis(FbxAxisSystem::eZAxis, FbxAxisSystem::eParityEven, FbxAxisSystem::eLeftHanded);
 	FbxAxisSystem SourceSetup = Scene->GetGlobalSettings().GetAxisSystem();
-	FbxSystemUnit SceneUnit = Scene->GetGlobalSettings().GetSystemUnit();
-	double SceneScaleFactor = SceneUnit.GetScaleFactor();
 
 	FbxSystemUnit::m.ConvertScene(Scene);
 
