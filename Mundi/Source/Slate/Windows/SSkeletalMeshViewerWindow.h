@@ -100,4 +100,10 @@ private:
     // Right-click capture for notify insertion
     bool  bHasPendingNotifyAddTime = false;
     float PendingNotifyAddTimeSec = 0.0f;
+
+    // Notify drag state (for moving notifies on timeline)
+    int32 DraggingNotifyIndex = -1;
+    float DraggingStartMouseX = 0.0f;
+    float DraggingOrigTriggerTime = 0.0f;
+    bool  bDraggingNotify = false;
 };
