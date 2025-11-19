@@ -47,10 +47,15 @@ public:
     // Override GetPlayLength from base class
     virtual float GetPlayLength() const override;
 
-    // Non-skeleton parent correction transform (for FBX files with container nodes like Armature, CactusPA, etc.)
-    // Identity if no correction needed (e.g., Mixamo), or the container's local transform if present
-    FTransform NonSkeletonCorrection;
+    // Bone names for compatibility check
+    TArray<FName> BoneNames;
 
-    void SetNonSkeletonCorrection(const FTransform& InTransform) { NonSkeletonCorrection = InTransform; }
-    FTransform GetNonSkeletonCorrection() const { return NonSkeletonCorrection; }
+    // Set bone names from skeleton data
+    void SetBoneNames(const TArray<FName>& InBoneNames) { BoneNames = InBoneNames; }
+
+    // Get bone names
+    const TArray<FName>& GetBoneNames() const { return BoneNames; }
+
+    // Check if this animation is compatible with given skeleton bone names
+    bool IsCompatibleWith(const TArray<FName>& SkeletonBoneNames) const;
 };

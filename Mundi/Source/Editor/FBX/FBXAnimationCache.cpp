@@ -80,11 +80,11 @@ bool FBXAnimationCache::SaveAnimationToCache(UAnimSequence* Animation, const FSt
 			return false;
 		}
 
-		// Write animation name first
+		// 애니메이션 이름 먼저 쓰기
 		FString AnimName = Animation->ObjectName.ToString();
 		Serialization::WriteString(Writer, AnimName);
 
-		// Write metadata
+		// 메타데이터 쓰기
 		float PlayLength = DataModel->GetPlayLength();
 		int32 FrameRate = DataModel->GetFrameRate();
 		int32 NumberOfFrames = DataModel->GetNumberOfFrames();
@@ -95,37 +95,31 @@ bool FBXAnimationCache::SaveAnimationToCache(UAnimSequence* Animation, const FSt
 		Writer << NumberOfFrames;
 		Writer << NumberOfKeys;
 
-		// Write Non-skeleton correction transform
-		FTransform CachedNonSkeletonCorrection = Animation->GetNonSkeletonCorrection();
-		FVector ACTranslation = CachedNonSkeletonCorrection.Translation;
-		FQuat ACRotation = CachedNonSkeletonCorrection.Rotation;
-		FVector ACScale = CachedNonSkeletonCorrection.Scale3D;
-		Writer << ACTranslation.X;
-		Writer << ACTranslation.Y;
-		Writer << ACTranslation.Z;
-		Writer << ACRotation.X;
-		Writer << ACRotation.Y;
-		Writer << ACRotation.Z;
-		Writer << ACRotation.W;
-		Writer << ACScale.X;
-		Writer << ACScale.Y;
-		Writer << ACScale.Z;
+		// 호환성 검사를 위한 본 이름 쓰기
+		const TArray<FName>& BoneNames = Animation->GetBoneNames();
+		uint32 NumBoneNames = (uint32)BoneNames.Num();
+		Writer << NumBoneNames;
+		for (const FName& BoneName : BoneNames)
+		{
+			FString BoneNameStr = BoneName.ToString();
+			Serialization::WriteString(Writer, BoneNameStr);
+		}
 
-		// Write bone tracks
+		// 본 트랙 쓰기
 		TArray<FBoneAnimationTrack>& Tracks = DataModel->GetBoneAnimationTracks();
 		uint32 NumTracks = (uint32)Tracks.Num();
 		Writer << NumTracks;
 
 		for (FBoneAnimationTrack& Track : Tracks)
 		{
-			// Write bone name
+			// 본 이름 쓰기
 			FString BoneName = Track.Name.ToString();
 			Serialization::WriteString(Writer, BoneName);
 
-			// Write position keys
+			// 위치 키 쓰기
 			Serialization::WriteArray(Writer, Track.InternalTrack.PosKeys);
 
-			// Write rotation keys (FQuat는 직접 직렬화)
+			// 회전 키 쓰기 (FQuat는 직접 직렬화)
 			TArray<FQuat>& RotKeys = Track.InternalTrack.RotKeys;
 			uint32 NumRotKeys = (uint32)RotKeys.Num();
 			Writer << NumRotKeys;
@@ -134,7 +128,7 @@ bool FBXAnimationCache::SaveAnimationToCache(UAnimSequence* Animation, const FSt
 				Writer << Rot.X << Rot.Y << Rot.Z << Rot.W;
 			}
 
-			// Write scale keys
+			// 스케일 키 쓰기
 			Serialization::WriteArray(Writer, Track.InternalTrack.ScaleKeys);
 		}
 
@@ -159,10 +153,10 @@ UAnimSequence* FBXAnimationCache::LoadAnimationFromCache(const FString& CachePat
 			return nullptr;
 		}
 
-		// Create new animation sequence
+		// 새 애니메이션 시퀀스 생성
 		UAnimSequence* Animation = NewObject<UAnimSequence>();
 
-		// Read animation name first
+		// 애니메이션 이름 먼저 읽기
 		FString AnimName;
 		Serialization::ReadString(Reader, AnimName);
 		Animation->ObjectName = FName(AnimName);
@@ -173,7 +167,7 @@ UAnimSequence* FBXAnimationCache::LoadAnimationFromCache(const FString& CachePat
 			return nullptr;
 		}
 
-		// Read metadata
+		// 메타데이터 읽기
 		float PlayLength;
 		int32 FrameRate;
 		int32 NumberOfFrames;
@@ -184,44 +178,42 @@ UAnimSequence* FBXAnimationCache::LoadAnimationFromCache(const FString& CachePat
 		Reader << NumberOfFrames;
 		Reader << NumberOfKeys;
 
-		FTransform NonSkeletonCorrection;
-		Reader << NonSkeletonCorrection.Translation.X;
-		Reader << NonSkeletonCorrection.Translation.Y;
-		Reader << NonSkeletonCorrection.Translation.Z;
-		Reader << NonSkeletonCorrection.Rotation.X;
-		Reader << NonSkeletonCorrection.Rotation.Y;
-		Reader << NonSkeletonCorrection.Rotation.Z;
-		Reader << NonSkeletonCorrection.Rotation.W;
-		Reader << NonSkeletonCorrection.Scale3D.X;
-		Reader << NonSkeletonCorrection.Scale3D.Y;
-		Reader << NonSkeletonCorrection.Scale3D.Z;
-
-		Animation->SetNonSkeletonCorrection(NonSkeletonCorrection);
-
 		DataModel->SetPlayLength(PlayLength);
 		DataModel->SetFrameRate(FrameRate);
 		DataModel->SetNumberOfFrames(NumberOfFrames);
 		DataModel->SetNumberOfKeys(NumberOfKeys);
 
-		// Read bone tracks
+		// 호환성 검사를 위한 본 이름 읽기
+		uint32 NumBoneNames;
+		Reader << NumBoneNames;
+		TArray<FName> BoneNames;
+		for (uint32 i = 0; i < NumBoneNames; ++i)
+		{
+			FString BoneNameStr;
+			Serialization::ReadString(Reader, BoneNameStr);
+			BoneNames.Add(FName(BoneNameStr));
+		}
+		Animation->SetBoneNames(BoneNames);
+
+		// 본 트랙 읽기
 		uint32 NumTracks;
 		Reader << NumTracks;
 
 		for (uint32 i = 0; i < NumTracks; ++i)
 		{
-			// Read bone name
+			// 본 이름 읽기
 			FString BoneNameStr;
 			Serialization::ReadString(Reader, BoneNameStr);
 			FName BoneName(BoneNameStr);
 
-			// Add bone track
+			// 본 트랙 추가
 			DataModel->AddBoneTrack(BoneName);
 
-			// Read position keys
+			// 위치 키 읽기
 			TArray<FVector> PosKeys;
 			Serialization::ReadArray(Reader, PosKeys);
 
-			// Read rotation keys
+			// 회전 키 읽기
 			uint32 NumRotKeys;
 			Reader << NumRotKeys;
 			TArray<FQuat> RotKeys;
@@ -233,11 +225,11 @@ UAnimSequence* FBXAnimationCache::LoadAnimationFromCache(const FString& CachePat
 				RotKeys[j] = FQuat(X, Y, Z, W);
 			}
 
-			// Read scale keys
+			// 스케일 키 읽기
 			TArray<FVector> ScaleKeys;
 			Serialization::ReadArray(Reader, ScaleKeys);
 
-			// Set keys in data model
+			// 데이터 모델에 키 설정
 			DataModel->SetBoneTrackKeys(BoneName, PosKeys, RotKeys, ScaleKeys);
 		}
 

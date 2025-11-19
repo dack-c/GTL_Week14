@@ -2,22 +2,22 @@
 #include "FBXSkeletonLoader.h"
 #include "FBXSceneUtilities.h"
 
-// Helper: Recursively traverse nodes until we find one with eSkeleton, skipping intermediate nodes (e.g., Armature)
+// 헬퍼: 중간 노드(예: Armature)를 건너뛰고 eSkeleton을 찾을 때까지 노드를 재귀적으로 탐색
 void FBXSkeletonLoader::LoadSkeletonHierarchy(FbxNode* InNode, FSkeletalMeshData& MeshData, int32 ParentNodeIndex, TMap<FbxNode*, int32>& BoneToIndex)
 {
 	if (!InNode)
 		return;
 
-	// If this node has a skeleton attribute, start loading from here
+	// 이 노드에 스켈레톤 속성이 있으면 여기서부터 로드 시작
 	if (FBXSceneUtilities::NodeContainsSkeleton(InNode))
 	{
 		LoadSkeletonFromNode(InNode, MeshData, ParentNodeIndex, BoneToIndex);
 		return;
 	}
 
-	// Otherwise, this is an intermediate node (e.g., Armature) - just skip to children
-	// Note: We don't need to store Armature transform anymore since DeepConvertScene
-	// converts all nodes (including Armature) to Unreal coordinate system
+	// 그렇지 않으면 이것은 중간 노드(예: Armature) - 자식으로 건너뜀
+	// 참고: DeepConvertScene이 모든 노드(Armature 포함)를 언리얼 좌표계로 변환하므로
+	// 더 이상 Armature 트랜스폼을 저장할 필요 없음
 	FbxString NodeName = InNode->GetName();
 
 	static bool bLoggedArmatureSkip = false;
@@ -27,7 +27,7 @@ void FBXSkeletonLoader::LoadSkeletonHierarchy(FbxNode* InNode, FSkeletalMeshData
 		bLoggedArmatureSkip = true;
 	}
 
-	// Recurse to children to find skeleton nodes
+	// 스켈레톤 노드를 찾기 위해 자식으로 재귀
 	for (int i = 0; i < InNode->GetChildCount(); ++i)
 	{
 		LoadSkeletonHierarchy(InNode->GetChild(i), MeshData, ParentNodeIndex, BoneToIndex);

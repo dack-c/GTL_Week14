@@ -55,7 +55,7 @@ void UFbxLoader::PreLoad()
 
 				UE_LOG("=== Loading FBX: %s ===", PathStr.c_str());
 
-				// LoadFbxMesh now also loads animations from the same Scene
+				// LoadFbxMesh는 이제 동일한 Scene에서 애니메이션도 함께 로드함
 				FbxLoader.LoadFbxMesh(PathStr);
 
 				++LoadedCount;
@@ -181,7 +181,7 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 				{
 					throw std::runtime_error("Failed to open material bin file for reading.");
 				}
-				// for bin Load
+				// bin 로드용
 				FMaterialInfo MaterialInfo{};
 				Serialization::ReadAsset<FMaterialInfo>(MatReader, &MaterialInfo);
 
@@ -206,7 +206,7 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 				UE_LOG("Loaded %d animations from cache", CachedAnimations.Num());
 			}
 
-			// If animation cache doesn't exist or failed to load, extract from FBX
+			// 애니메이션 캐시가 없거나 로드에 실패한 경우 FBX에서 추출
 			if (!bLoadedAnimFromCache)
 			{
 				UE_LOG("Animation cache not found or invalid, extracting from FBX");
@@ -220,7 +220,7 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 
 					FBXSceneUtilities::ConvertSceneAxisIfNeeded(AnimScene);
 
-					// Extract animations (ProcessAnimations will now save to cache)
+					// 애니메이션 추출 (ProcessAnimations가 이제 캐시에 저장함)
 					TArray<UAnimSequence*> Animations;
 					FBXAnimationLoader::ProcessAnimations(AnimScene, *MeshData, NormalizedPath, Animations);
 
@@ -333,11 +333,13 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 	if (RootNode)
 	{
 		// 2번의 패스로 나눠서 처음엔 뼈의 인덱스를 결정하고 2번째 패스에서 뼈가 영향을 미치는 정점들을 구하고 정점마다 뼈 인덱스를 할당해 줄 것임(동시에 TPose 역행렬도 구함)
-		for (int Index = 0; Index < RootNode->GetChildCount(); Index++)
+		int RootNodeChildCount = RootNode->GetChildCount();
+		for (int Index = 0; Index < RootNodeChildCount; Index++)
 		{
 			FBXSkeletonLoader::LoadSkeletonHierarchy(RootNode->GetChild(Index), *MeshData, -1, BoneToIndex);
 		}
-		for (int Index = 0; Index < RootNode->GetChildCount(); Index++)
+		
+		for (int Index = 0; Index < RootNodeChildCount; Index++)
 		{
 			FBXMeshLoader::LoadMeshFromNode(RootNode->GetChild(Index), *MeshData, MaterialGroupIndexList, BoneToIndex, MaterialToIndex, MaterialInfos);
 		}
@@ -395,7 +397,7 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 	}
 #endif // USE_OBJ_CACHE
 
-	// Extract animations from the same Scene (same unit conversion & axis)
+	// 동일한 Scene에서 애니메이션 추출 (동일한 단위 변환 및 축)
 	TArray<UAnimSequence*> Animations;
 	FBXAnimationLoader::ProcessAnimations(Scene, *MeshData, NormalizedPath, Animations);
 
@@ -404,7 +406,7 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 		UE_LOG("Loaded %d animations from the same Scene: %s", Animations.Num(), NormalizedPath.c_str());
 	}
 
-	// Cleanup Scene after everything is done
+	// 모든 작업 완료 후 Scene 정리
 	Scene->Destroy();
 
 	return MeshData;

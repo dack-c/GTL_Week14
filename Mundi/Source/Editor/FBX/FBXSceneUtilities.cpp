@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "FBXSceneUtilities.h"
 
-// Helper: Check if scene needs axis conversion and apply it conditionally
-// Returns true if conversion was applied, false if scene was already in Unreal axis system
+// 헬퍼: Scene에 축 변환이 필요한지 확인하고 조건부로 적용
+// 변환이 적용되면 true 반환, Scene이 이미 언리얼 축 시스템이면 false 반환
 bool FBXSceneUtilities::ConvertSceneAxisIfNeeded(FbxScene* Scene)
 {
 	if (!Scene)
@@ -11,17 +11,17 @@ bool FBXSceneUtilities::ConvertSceneAxisIfNeeded(FbxScene* Scene)
 	FbxAxisSystem UnrealImportAxis(FbxAxisSystem::eZAxis, FbxAxisSystem::eParityEven, FbxAxisSystem::eLeftHanded);
 	FbxAxisSystem SourceSetup = Scene->GetGlobalSettings().GetAxisSystem();
 
-	// Check if scene is already in Unreal axis system
+	// Scene이 이미 언리얼 축 시스템인지 확인
 	if (SourceSetup == UnrealImportAxis)
 	{
 		UE_LOG("Scene is already in Unreal axis system, skipping DeepConvertScene");
 
-		// Still need to check unit conversion
+		// 단위 변환은 여전히 확인 필요
 		FbxSystemUnit SceneUnit = Scene->GetGlobalSettings().GetSystemUnit();
 		double SceneScaleFactor = SceneUnit.GetScaleFactor();
 		const double Tolerance = 1e-6;
 
-		// Only convert if scale factor is significantly different from 1.0 (not already in meters)
+		// 스케일 팩터가 1.0과 크게 다른 경우에만 변환 (아직 미터 단위가 아닌 경우)
 		if ((SceneUnit != FbxSystemUnit::m) && (std::abs(SceneScaleFactor - 1.0) > Tolerance))
 		{
 			UE_LOG("Scene unit scale factor is %.6f, converting to meters", SceneScaleFactor);
@@ -36,15 +36,15 @@ bool FBXSceneUtilities::ConvertSceneAxisIfNeeded(FbxScene* Scene)
 		}
 	}
 
-	// Scene needs axis conversion
+	// Scene에 축 변환이 필요함
 	UE_LOG("Converting scene from source axis system to Unreal axis system");
 
-	// Convert unit system
+	// 단위 시스템 변환
 	FbxSystemUnit SceneUnit = Scene->GetGlobalSettings().GetSystemUnit();
 	double SceneScaleFactor = SceneUnit.GetScaleFactor();
 	const double Tolerance = 1e-6;
 
-	// Only convert if scale factor is significantly different from 1.0
+	// 스케일 팩터가 1.0과 크게 다른 경우에만 변환
 	if ((SceneUnit != FbxSystemUnit::m) && (std::abs(SceneScaleFactor - 1.0) > Tolerance))
 	{
 		UE_LOG("Scene unit scale factor is %.6f, converting to meters", SceneScaleFactor);
@@ -56,19 +56,21 @@ bool FBXSceneUtilities::ConvertSceneAxisIfNeeded(FbxScene* Scene)
 		UE_LOG("Scene already has scale factor 1.0, skipping unit conversion");
 	}
 
-	// Convert axis system
+	// 축 시스템 변환
 	UnrealImportAxis.DeepConvertScene(Scene);
 	UE_LOG("Applied DeepConvertScene to convert axis system");
 
 	return true;
 }
 
-// Helper: Check if a node contains a skeleton attribute
+// 헬퍼: 노드가 스켈레톤 속성을 포함하는지 확인
 bool FBXSceneUtilities::NodeContainsSkeleton(FbxNode* InNode)
 {
 	if (!InNode)
+	{
 		return false;
-
+	}
+	FString NodeName = InNode->GetName();
 	int InNodeCount = InNode->GetNodeAttributeCount();
 	for (int i = 0; i < InNodeCount; ++i)
 	{
@@ -83,8 +85,8 @@ bool FBXSceneUtilities::NodeContainsSkeleton(FbxNode* InNode)
 	return false;
 }
 
-// Helper: Compute accumulated correction matrix from non-skeleton parent nodes (e.g., Armature)
-// Walks up the parent chain and accumulates transforms of all non-skeleton ancestors
+// 헬퍼: 비-스켈레톤 부모 노드들(예: Armature)로부터 누적 보정 행렬 계산
+// 부모 체인을 따라 올라가며 모든 비-스켈레톤 조상의 트랜스폼을 누적
 FbxAMatrix FBXSceneUtilities::ComputeNonSkeletonParentCorrection(FbxNode* BoneNode, const TMap<const FbxNode*, FbxAMatrix>& NonSkeletonParentTransforms)
 {
 	FbxAMatrix AccumulatedCorrection;
@@ -93,25 +95,25 @@ FbxAMatrix FBXSceneUtilities::ComputeNonSkeletonParentCorrection(FbxNode* BoneNo
 	if (!BoneNode)
 		return AccumulatedCorrection;
 
-	// Walk up the parent chain
+	// 부모 체인을 따라 올라감
 	FbxNode* Parent = BoneNode->GetParent();
 	while (Parent)
 	{
-		// If parent is a skeleton node, stop (we only care about non-skeleton ancestors)
+		// 부모가 스켈레톤 노드이면 중지 (비-스켈레톤 조상만 관심)
 		if (NodeContainsSkeleton(Parent))
 		{
 			break;
 		}
 
-		// Check if this non-skeleton parent has a stored transform
+		// 이 비-스켈레톤 부모에 저장된 트랜스폼이 있는지 확인
 		const FbxAMatrix* ParentTransformPtr = NonSkeletonParentTransforms.Find(Parent);
 		if (ParentTransformPtr)
 		{
-			// Accumulate the parent's transform (multiply on the right for local-to-global order)
+			// 부모의 트랜스폼을 누적 (로컬→글로벌 순서를 위해 오른쪽에 곱함)
 			AccumulatedCorrection = (*ParentTransformPtr) * AccumulatedCorrection;
 		}
 
-		// Move to next parent
+		// 다음 부모로 이동
 		Parent = Parent->GetParent();
 	}
 
@@ -128,28 +130,62 @@ FbxAMatrix FBXSceneUtilities::GetBindPoseMatrix(FbxNode* Node)
 	return Node->EvaluateGlobalTransform();
 }
 
-// Helper: Check if a node has skeleton nodes in its descendants (recursive check)
-// Returns true if any child or descendant contains a skeleton attribute
+// 헬퍼: 노드의 자손 중에 스켈레톤 노드가 있는지 확인 (재귀적 검사)
+// 자식이나 자손 중에 스켈레톤 속성을 포함하면 true 반환
 bool FBXSceneUtilities::NodeContainsSkeletonInDescendants(FbxNode* InNode)
 {
 	if (!InNode)
 		return false;
 
-	// Check all children
+	// 모든 자식 확인
 	for (int i = 0; i < InNode->GetChildCount(); ++i)
 	{
 		FbxNode* ChildNode = InNode->GetChild(i);
-		
-		// If child itself is a skeleton, return true
+
+		// 자식 자체가 스켈레톤이면 true 반환
 		if (NodeContainsSkeleton(ChildNode))
 		{
 			return true;
 		}
-		
-		// Recursively check child's descendants
+
+		// 자식의 자손을 재귀적으로 확인
 		if (NodeContainsSkeletonInDescendants(ChildNode))
 		{
 			return true;
+		}
+	}
+
+	return false;
+}
+
+// 헬퍼: 노드의 직계 자식 중에만 스켈레톤 노드가 있는지 확인 (비재귀적)
+// 직계 자식 중에 스켈레톤 속성을 포함하면 true 반환
+bool FBXSceneUtilities::NodeContainsSkeletonInImmediateChildren(FbxNode* InNode)
+{
+
+	if (!InNode)
+	{
+		return false;
+	}
+	FString NodeName = InNode->GetName();
+	// 직계 자식만 확인 (재귀 없음)
+
+	int InNodeCount = InNode->GetChildCount();
+	for (int i = 0; i < InNodeCount; ++i)
+	{
+		FbxNode* ChildNode = InNode->GetChild(i);
+		FString ChildNodeName = ChildNode->GetName();
+		// 자식 자체가 스켈레톤이면 true 반환
+		int ChildAttributeCount = ChildNode->GetNodeAttributeCount();
+		for (int j = 0; j < ChildAttributeCount; ++j)
+		{
+			if (FbxNodeAttribute* Attribute = ChildNode->GetNodeAttributeByIndex(j))
+			{
+				if (Attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+				{
+					return true;
+				}
+			}
 		}
 	}
 
