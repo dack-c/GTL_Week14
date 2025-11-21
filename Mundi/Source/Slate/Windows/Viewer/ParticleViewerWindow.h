@@ -32,15 +32,17 @@ public:
     void LoadParticleSystem(const FString& Path);                                                  
     void LoadParticleSystem(UParticleSystem* ParticleSystem);                                      
                                                                                                    
-private:                                                                                           
-    UWorld* World = nullptr;                                                                       
-    ID3D11Device* Device = nullptr;                                                                
-                                                                                                   
-    // Viewport                                                                                    
-    FViewport* Viewport = nullptr;                                                                 
-    FViewportClient* ViewportClient = nullptr;                                                     
-                                                                                                   
-    // Current particle system                                                                     
+private:
+    ID3D11Device* Device = nullptr;
+
+    // Preview World (별도의 파티클 미리보기용 월드)
+    UWorld* PreviewWorld = nullptr;
+
+    // Viewport
+    FViewport* Viewport = nullptr;
+    FViewportClient* ViewportClient = nullptr;
+
+    // Current particle system
     UParticleSystem* CurrentParticleSystem = nullptr;                                              
                                                                                                    
     // Layout state                                                                                

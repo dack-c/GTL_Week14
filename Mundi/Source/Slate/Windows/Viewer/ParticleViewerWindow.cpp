@@ -6,6 +6,9 @@
 #include "Source/Runtime/Engine/Particle/ParticleEmitter.h"
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModule.h"
+#include "Source/Runtime/Core/Object/ObjectFactory.h"
+#include "World.h"
+#include "CameraActor.h"
 #include "imgui.h"
 
 SParticleViewerWindow::SParticleViewerWindow()
@@ -25,16 +28,53 @@ SParticleViewerWindow::~SParticleViewerWindow()
         delete ViewportClient;
         ViewportClient = nullptr;
     }
+
+    if (PreviewWorld)
+    {
+        ObjectFactory::DeleteObject(PreviewWorld);
+        PreviewWorld = nullptr;
+    }
 }
 
 bool SParticleViewerWindow::Initialize(float StartX, float StartY, float Width, float Height, UWorld* InWorld, ID3D11Device* InDevice)
 {
-    World = InWorld;
     Device = InDevice;
+    if (!Device) return false;
 
-    // 뷰포트 생성 (나중에 파티클 렌더링용)
-    // Viewport = new FViewport(...);
-    // ViewportClient = new FParticleViewerViewportClient(...);
+    SetRect(StartX, StartY, StartX + Width, StartY + Height);
+
+    // 1. Preview World 생성
+    PreviewWorld = NewObject<UWorld>();
+    PreviewWorld->SetWorldType(EWorldType::PreviewMinimal);
+    PreviewWorld->Initialize();
+    PreviewWorld->GetRenderSettings().DisableShowFlag(EEngineShowFlags::SF_EditorIcon);
+
+    PreviewWorld->GetGizmoActor()->SetSpace(EGizmoSpace::Local);
+
+    // InWorld의 설정 복사
+    if (InWorld)
+    {
+        PreviewWorld->GetRenderSettings().SetShowFlags(InWorld->GetRenderSettings().GetShowFlags());
+        PreviewWorld->GetRenderSettings().DisableShowFlag(EEngineShowFlags::SF_EditorIcon);
+    }
+
+    // 2. Viewport 생성
+    Viewport = new FViewport();
+    Viewport->Initialize(0, 0, 1, 1, InDevice);
+
+    // 3. ViewportClient 생성
+    ViewportClient = new FViewportClient();
+    ViewportClient->SetWorld(PreviewWorld);
+    ViewportClient->SetViewportType(EViewportType::Perspective);
+    ViewportClient->SetViewMode(EViewMode::VMI_Lit_Phong);
+
+    // 카메라 설정
+    ACameraActor* Camera = ViewportClient->GetCamera();
+    Camera->SetActorLocation(FVector(3, 0, 2));
+    Camera->SetActorRotation(FVector(0, 30, -180));
+
+    Viewport->SetViewportClient(ViewportClient);
+    PreviewWorld->SetEditorCameraActor(Camera);
 
     return true;
 }
@@ -101,7 +141,7 @@ void SParticleViewerWindow::OnRender()
         ImGui::SameLine();
         if (ImGui::Button("Redo")) {}
         ImGui::SameLine();
-        ImGui::Separator();
+        ImGui::Spacing();
         ImGui::SameLine();
         if (ImGui::Button("Thumbnail")) {}
         ImGui::SameLine();
@@ -122,16 +162,33 @@ void SParticleViewerWindow::OnRender()
         const float viewportHeight = mainContentHeight * 0.6f;
         const float propertiesHeight = mainContentHeight - viewportHeight;
 
-        // 뷰포트
-        ImGui::BeginChild("Viewport", ImVec2(0, viewportHeight), true);
+        // 뷰포트 (헤더 + 렌더링 영역)
+        ImGui::BeginChild("ViewportContainer", ImVec2(0, viewportHeight), false);
         {
-            ImGui::Text("Viewport (3D Preview)");
+            // 헤더
+            const float headerHeight = 30.0f;
+            ImGui::BeginChild("ViewportHeader", ImVec2(0, headerHeight), true, ImGuiWindowFlags_NoScrollbar);
+            {
+                ImGui::SetCursorPosY(5.0f);
+                ImGui::Text("Preview");
+            }
+            ImGui::EndChild();
 
-            // 뷰포트 영역 계산
-            ImVec2 viewportMin = ImGui::GetCursorScreenPos();
-            ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-            ImVec2 viewportMax = ImVec2(viewportMin.x + viewportSize.x, viewportMin.y + viewportSize.y);
-            CenterRect = FRect(viewportMin.x, viewportMin.y, viewportMax.x, viewportMax.y);
+            // 뷰포트 렌더링 영역
+            ImGui::BeginChild("Viewport", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
+            {
+                // 뷰포트 영역 계산 (전체 Child 윈도우 영역)
+                ImVec2 childPos = ImGui::GetWindowPos();
+                ImVec2 childSize = ImGui::GetWindowSize();
+                ImVec2 rectMin = childPos;
+                ImVec2 rectMax(childPos.x + childSize.x, childPos.y + childSize.y);
+                CenterRect.Left = rectMin.x;
+                CenterRect.Top = rectMin.y;
+                CenterRect.Right = rectMax.x;
+                CenterRect.Bottom = rectMax.y;
+                CenterRect.UpdateMinMax();
+            }
+            ImGui::EndChild();
         }
         ImGui::EndChild();
 
@@ -254,24 +311,69 @@ void SParticleViewerWindow::OnRender()
 
 void SParticleViewerWindow::OnUpdate(float DeltaSeconds)
 {
-    // 파티클 시스템 업데이트 (나중에 구현)
+    if (!Viewport || !ViewportClient)
+        return;
+
+    // ViewportClient 업데이트
+    if (ViewportClient)
+    {
+        ViewportClient->Tick(DeltaSeconds);
+    }
+
+    // Preview World 업데이트
+    if (PreviewWorld)
+    {
+        PreviewWorld->Tick(DeltaSeconds);
+    }
 }
 
 void SParticleViewerWindow::OnMouseMove(FVector2D MousePos)
 {
+    if (!Viewport) return;
+
+    if (CenterRect.Contains(MousePos))
+    {
+        FVector2D LocalPos = MousePos - FVector2D(CenterRect.Left, CenterRect.Top);
+        Viewport->ProcessMouseMove((int32)LocalPos.X, (int32)LocalPos.Y);
+    }
 }
 
 void SParticleViewerWindow::OnMouseDown(FVector2D MousePos, uint32 Button)
 {
+    if (!Viewport) return;
+
+    if (CenterRect.Contains(MousePos))
+    {
+        FVector2D LocalPos = MousePos - FVector2D(CenterRect.Left, CenterRect.Top);
+        Viewport->ProcessMouseButtonDown((int32)LocalPos.X, (int32)LocalPos.Y, (int32)Button);
+    }
 }
 
 void SParticleViewerWindow::OnMouseUp(FVector2D MousePos, uint32 Button)
 {
+    if (!Viewport) return;
+
+    if (CenterRect.Contains(MousePos))
+    {
+        FVector2D LocalPos = MousePos - FVector2D(CenterRect.Left, CenterRect.Top);
+        Viewport->ProcessMouseButtonUp((int32)LocalPos.X, (int32)LocalPos.Y, (int32)Button);
+    }
 }
 
 void SParticleViewerWindow::OnRenderViewport()
 {
-    // 뷰포트 렌더링 (나중에 구현)
+    if (Viewport && CenterRect.GetWidth() > 0 && CenterRect.GetHeight() > 0)
+    {
+        const uint32 NewStartX = static_cast<uint32>(CenterRect.Left);
+        const uint32 NewStartY = static_cast<uint32>(CenterRect.Top);
+        const uint32 NewWidth  = static_cast<uint32>(CenterRect.Right - CenterRect.Left);
+        const uint32 NewHeight = static_cast<uint32>(CenterRect.Bottom - CenterRect.Top);
+
+        Viewport->Resize(NewStartX, NewStartY, NewWidth, NewHeight);
+
+        // 뷰포트 렌더링 (ImGui보다 먼저)
+        Viewport->Render();
+    }
 }
 
 void SParticleViewerWindow::LoadParticleSystem(const FString& Path)

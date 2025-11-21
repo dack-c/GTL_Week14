@@ -688,6 +688,12 @@ void USlateManager::OnMouseMove(FVector2D MousePos)
         return;
     }
 
+    if (ParticleViewerWindow && ParticleViewerWindow->IsHover(MousePos))
+    {
+        ParticleViewerWindow->OnMouseMove(MousePos);
+        return;
+    }
+
     if (ActiveViewport)
     {
         ActiveViewport->OnMouseMove(MousePos);
@@ -705,7 +711,13 @@ void USlateManager::OnMouseDown(FVector2D MousePos, uint32 Button)
         SkeletalViewerWindow->OnMouseDown(MousePos, Button);
         return;
     }
-    
+
+    if (ParticleViewerWindow && ParticleViewerWindow->Rect.Contains(MousePos))
+    {
+        ParticleViewerWindow->OnMouseDown(MousePos, Button);
+        return;
+    }
+
     if (ActiveViewport)
     {
     }
@@ -744,6 +756,12 @@ void USlateManager::OnMouseUp(FVector2D MousePos, uint32 Button)
     if (SkeletalViewerWindow && SkeletalViewerWindow->Rect.Contains(MousePos))
     {
         SkeletalViewerWindow->OnMouseUp(MousePos, Button);
+        // do not return; still allow panels to finish mouse up
+    }
+
+    if (ParticleViewerWindow && ParticleViewerWindow->Rect.Contains(MousePos))
+    {
+        ParticleViewerWindow->OnMouseUp(MousePos, Button);
         // do not return; still allow panels to finish mouse up
     }
 
