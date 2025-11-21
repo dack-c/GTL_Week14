@@ -35,7 +35,6 @@ private:
     void RenderViewModeDropdownMenu();
     void RenderShowFlagDropdownMenu();
     void RenderViewportLayoutSwitchButton();
-    void RenderGPUSkinningButton();
     void LoadToolbarIcons(ID3D11Device* Device);
 
     // 드래그 앤 드롭 처리
@@ -104,6 +103,7 @@ private:
     UTexture* IconTile = nullptr;
     UTexture* IconShadow = nullptr;
     UTexture* IconShadowAA = nullptr;
+    UTexture* IconSkinning = nullptr;
 
     // 뷰포트 레이아웃 전환 아이콘
     UTexture* IconSingleToMultiViewport = nullptr;  // 단일 뷰포트 아이콘
