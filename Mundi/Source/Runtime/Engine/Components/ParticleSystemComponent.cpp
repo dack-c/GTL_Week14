@@ -11,20 +11,20 @@ UParticleSystemComponent::UParticleSystemComponent()
 
     // 디버그용 파티클 3개
     FDynamicEmitterDataBase P0;
-    P0.Position = FVector(0, 0, 100);
-    P0.Size = 30.0f;
+    P0.Position = FVector(0, 0, 1);
+    P0.Size = 300.0f;
     P0.Color = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
     EmitterRenderData.Add(&P0);
 
     FDynamicEmitterDataBase P1;
-    P1.Position = FVector(100, 0, 100);
-    P1.Size = 40.0f;
+    P1.Position = FVector(1, 0, 1);
+    P1.Size = 400.0f;
     P1.Color = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f);
     EmitterRenderData.Add(&P1);
 
     FDynamicEmitterDataBase P2;
-    P2.Position = FVector(0, 100, 150);
-    P2.Size = 50.0f;
+    P2.Position = FVector(0, 1, 1.5);
+    P2.Size = 500.0f;
     P2.Color = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f);
     EmitterRenderData.Add(&P2);
 
@@ -165,7 +165,7 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
         ? std::min<uint32>(ParticleCount, static_cast<uint32>(MaxDebugParticles))
         : ParticleCount;
 
-    if (!ParticleVertexBuffer || !ParticleIndexBuffer)
+    if (!EnsureParticleBuffers(ClampedCount))
     {
         return;
     }
@@ -195,7 +195,7 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
     for (uint32 ParticleIndex = 0; ParticleIndex < ClampedCount; ++ParticleIndex)
     {
         const FDynamicEmitterDataBase& Data = *EmitterRenderData[ParticleIndex];
-        for (int CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
+        for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
         {
             FParticleSpriteVertex& Vertex = Vertices[VertexCursor++];
             Vertex.Position = Data.Position;
@@ -209,7 +209,7 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
 
     if (!ParticleMaterial)
     {
-        ParticleMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Particle/ParticleSprite.hlsl");
+        ParticleMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
     }
 
     UShader* ParticleShader = nullptr;
@@ -219,7 +219,7 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
     }
     if (!ParticleShader)
     {
-        ParticleShader = UResourceManager::GetInstance().Load<UShader>("Shaders/Particle/ParticleSprite.hlsl");
+        ParticleShader = UResourceManager::GetInstance().Load<UShader>("Shaders/Effects/ParticleSprite.hlsl");
     }
     if (!ParticleShader)
     {
@@ -251,4 +251,72 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
     Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
     Batch.WorldMatrix = GetWorldMatrix();
     Batch.ObjectID = InternalIndex;
+}
+
+
+bool UParticleSystemComponent::EnsureParticleBuffers(uint32 ParticleCapacity)
+{
+    if (ParticleCapacity == 0)
+    {
+        return false;
+    }
+
+    if (ParticleVertexBuffer && ParticleIndexBuffer && ParticleCapacity <= ParticleVertexCapacity)
+    {
+        return true;
+    }
+
+    ReleaseParticleBuffers();
+    ParticleVertexCapacity = ParticleCapacity;
+    ParticleIndexCount = ParticleCapacity * 6;
+
+    D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+    ID3D11Device* Device = RHIDevice ? RHIDevice->GetDevice() : nullptr;
+    if (!Device)
+    {
+        ParticleVertexCapacity = 0;
+        ParticleIndexCount = 0;
+        return false;
+    }
+
+    D3D11_BUFFER_DESC VertexDesc = {};
+    VertexDesc.ByteWidth = ParticleVertexCapacity * 4 * sizeof(FParticleSpriteVertex);
+    VertexDesc.Usage = D3D11_USAGE_DYNAMIC;
+    VertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    VertexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    if (FAILED(Device->CreateBuffer(&VertexDesc, nullptr, &ParticleVertexBuffer)))
+    {
+        ReleaseParticleBuffers();
+        return false;
+    }
+
+    TArray<uint32> Indices;
+    Indices.SetNum(static_cast<int32>(ParticleCapacity * 6));
+    for (uint32 ParticleIndex = 0; ParticleIndex < ParticleCapacity; ++ParticleIndex)
+    {
+        const uint32 VertexBase = ParticleIndex * 4;
+        const uint32 IndexBase = ParticleIndex * 6;
+        Indices[IndexBase + 0] = VertexBase + 0;
+        Indices[IndexBase + 1] = VertexBase + 1;
+        Indices[IndexBase + 2] = VertexBase + 2;
+        Indices[IndexBase + 3] = VertexBase + 0;
+        Indices[IndexBase + 4] = VertexBase + 2;
+        Indices[IndexBase + 5] = VertexBase + 3;
+    }
+
+    D3D11_BUFFER_DESC IndexDesc = {};
+    IndexDesc.ByteWidth = static_cast<UINT>(Indices.Num() * sizeof(uint32));
+    IndexDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    IndexDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA IndexData = {};
+    IndexData.pSysMem = Indices.GetData();
+
+    if (FAILED(Device->CreateBuffer(&IndexDesc, &IndexData, &ParticleIndexBuffer)))
+    {
+        ReleaseParticleBuffers();
+        return false;
+    }
+
+    return true;
 }

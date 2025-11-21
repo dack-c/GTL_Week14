@@ -38,7 +38,7 @@ public:
 	// sprite, mesh 나눠 BuildBatch
 	// 추후 FDynamicEmitterDataBase를 바꿀 것!
 	void BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
-
+	bool EnsureParticleBuffers(uint32 ParticleCapacity);
 private:	
 	/** 파티클 시스템 에셋 */
 	UParticleSystem* Template = nullptr;

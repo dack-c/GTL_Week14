@@ -22,16 +22,16 @@ struct VSInput
     float4 Color : COLOR0;
 };
 
-struct VSOutput
+struct PSInput
 {
     float4 Position : SV_POSITION;
     float2 UV : TEXCOORD0;
     float4 Color : COLOR0;
 };
 
-VSOutput VS_Main(VSInput In)
+PSInput mainVS(VSInput In)
 {
-    VSOutput Out;
+    PSInput Out;
 
     // 카메라 오른쪽/위 벡터를 ViewMatrix에서 추출
     float3 Right = InverseViewMatrix[0].xyz;
@@ -54,7 +54,7 @@ VSOutput VS_Main(VSInput In)
     return Out;
 }
 
-float4 PS_Main(VSOutput In) : SV_TARGET
+float4 mainPS(PSInput In) : SV_TARGET
 {
     return In.Color;
 }
