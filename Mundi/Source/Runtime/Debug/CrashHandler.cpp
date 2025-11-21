@@ -8,74 +8,86 @@
 #pragma comment(lib, "Shlwapi.lib")
 
 wchar_t FCrashHandler::DumpDirectory[MAX_PATH] = L"CrashDumps";
+bool FCrashHandler::bCrashInjection = false;
 
-void FCrashHandler::Init(const wchar_t* InDumpDir)
+void FCrashHandler::Init()
 {
-    // 덤프 저장 폴더 설정
-    wcsncpy_s(DumpDirectory, InDumpDir, _TRUNCATE);
-
     //  폴더가 없으면 생성
     CreateDirectoryW(DumpDirectory, nullptr);
-
     // 전역 Unhandled Exception 필터 등록
     ::SetUnhandledExceptionFilter(&FCrashHandler::UnhandledExceptionFilter);
-
 }
 
 LONG __stdcall FCrashHandler::UnhandledExceptionFilter(_EXCEPTION_POINTERS* ExceptionInfo)
 {
-    // 덤프 파일 경로 생성
-    SYSTEMTIME SystemTime;
+    auto Now = std::chrono::system_clock::now();
+    auto InTimeT = std::chrono::system_clock::to_time_t(Now);
 
-    GetLocalTime(&SystemTime);
+    std::wstringstream ss;
+    struct tm TimeInfo;
+    errno_t err = localtime_s(&TimeInfo, &InTimeT);
 
-    wchar_t FileName[MAX_PATH];
-    swprintf_s(
-        FileName,
-        L"%s\\Crash_%02d%02d_%02d%02d%02d.dmp",
-        DumpDirectory,
-        SystemTime.wMonth, SystemTime.wDay,
-        SystemTime.wHour, SystemTime.wMinute, SystemTime.wSecond
-    );
+    if (err == 0)
+    {
+        ss << L"Mundi_CrashDump_";
+        ss << std::put_time(&TimeInfo, L"%Y-%m-%d_%H-%M-%S");
+        ss << L".dmp";
+    }
+    else
+    {
+        ss << L"CrashDump_UnknownTime.dmp";
+    }
 
-    HANDLE hFile = CreateFileW(
-        FileName,
-        GENERIC_WRITE,
-        0,
-        nullptr,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr
+    std::wstring DumpFileName = ss.str();
+    std::wstring FullPath = std::wstring(DumpDirectory) + L"\\" + DumpFileName;
+    
+    HANDLE hFile = CreateFileW(FullPath.c_str(),
+        GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr
     );
 
     if (hFile != INVALID_HANDLE_VALUE)
     {
-        MINIDUMP_EXCEPTION_INFORMATION DumpInfo{};
-        DumpInfo.ThreadId = GetCurrentThreadId();
-        DumpInfo.ExceptionPointers = ExceptionInfo;
-        DumpInfo.ClientPointers = FALSE;
+        _MINIDUMP_EXCEPTION_INFORMATION ExInfo;
+        ExInfo.ThreadId = GetCurrentThreadId();
+        ExInfo.ExceptionPointers = ExceptionInfo;
+        ExInfo.ClientPointers = FALSE;
+        MINIDUMP_TYPE DumpType = (MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithDataSegs | MiniDumpWithHandleData);
 
-        // 덤프 타입은 필요에 따라 조정 가능
-        //MiniDumpWithDataSegs
-        //MiniDumpWithHandleData
-        //MiniDumpWithUnloadedModules
-        //MiniDumpWithThreadInfo
-        MINIDUMP_TYPE DumpType = static_cast<MINIDUMP_TYPE>(
-            MiniDumpWithIndirectlyReferencedMemory |
-            MiniDumpScanMemory);
-
-        MiniDumpWriteDump(
-            GetCurrentProcess(),
-            GetCurrentProcessId(),
-            hFile,
-            DumpType,
-            &DumpInfo,
-            nullptr, nullptr
-        );
+        MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
+            hFile, DumpType, ExceptionInfo ? &ExInfo : nullptr, nullptr, nullptr);
 
         CloseHandle(hFile);
     }
-
+    
     // 예외처리했고, 프로세스 종료하라는 의미 
     return EXCEPTION_EXECUTE_HANDLER;
+}
+
+void FCrashHandler::InjectCrash()
+{
+    bCrashInjection = true;
+}
+
+void FCrashHandler::Crash()
+{
+    if (!bCrashInjection) { return; }
+    TArray<UObject*>& ObjectArray = GUObjectArray;
+    if (ObjectArray.Num() == 0) return;
+
+    bool bCrashInjected = false;
+    while (!bCrashInjected)
+    {
+        int32 RandomIndex = rand() % ObjectArray.Num();
+        UObject* Victim = ObjectArray[RandomIndex];
+
+        void** VTablePtr = reinterpret_cast<void**>(Victim);
+        if (*VTablePtr == reinterpret_cast<void*>(0xDEADBEEFDEADBEEF))
+        {
+            continue;
+        }
+
+        bCrashInjected = true;
+        *VTablePtr = reinterpret_cast<void*>(0xDEADBEEFDEADBEEF);
+    }
 }
