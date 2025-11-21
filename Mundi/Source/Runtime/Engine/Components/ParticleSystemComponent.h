@@ -1,13 +1,53 @@
 ﻿#pragma once
 #include "PrimitiveComponent.h"
+#include "Source/Runtime/Engine/Particle/ParticleEmitter.h"
+#include "Source/Runtime/Engine/Particle/ParticleSystem.h"
 #include "UParticleSystemComponent.generated.h"
 
-// Render 확인하기 위한 Driver!!
-// 지우셔도 됩니다!!
-UCLASS(DisplayName = "파티클 컴포넌트", Description = "드라이버")
+
+UCLASS(DisplayName = "파티클 컴포넌트", Description = "파티클을 생성하는 컴포넌트")
 class UParticleSystemComponent : public UPrimitiveComponent
 {
 public: 
-	GENERATED_REFLECTION_BODY();
+	GENERATED_REFLECTION_BODY()
+	DECLARE_DELEGATE(OnParticleSystemFinished, UParticleSystemComponent*);
 
+public:
+	UParticleSystemComponent();
+	~UParticleSystemComponent() override;
+
+public:
+	/** 컴포넌트 초기화 */
+	virtual void InitParticles();
+
+	/** 컴포넌트 매 프레임 갱신 (Update) */
+	void TickComponent(float DeltaTime) override;
+
+	/** 컴포넌트 제거 시 정리 (OnDestroy) */
+	virtual void DestroyParticles();
+
+	/** 활성화/비활성화 제어 */
+	void ActivateSystem() { bAutoActivate = true; }
+	void DeactivateSystem() { bAutoActivate = false; }
+
+	// 렌더링을 위한 MeshBatch 수집 함수 
+	// void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
+private:	
+	/** 파티클 시스템 에셋 */
+	UParticleSystem* Template = nullptr;
+
+	/** 런타임 데이터 */
+	TArray<FParticleEmitterInstance*> EmitterInstances;
+
+	/** 렌더 스레드로 보낼 데이터 패킷들 */
+	// TArray<FDynamicEmitterDataBase*> EmitterRenderData;
+
+	/** 자동 시작 여부 */
+	bool bAutoActivate = true;
+
+	/** 현재 활성화 여부 */
+	bool bIsActive = false;
+	
+	/** 자동 삭제 여부 */
+	bool bAutoDestroy = false;
 };
