@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "FBXMaterialLoader.h"
+
+#include "FbxLoader.h"
 #include "ResourceManager.h"
 
 // 머티리얼 파싱해서 FMaterialInfo에 매핑
@@ -99,7 +101,20 @@ FString FBXMaterialLoader::ParseTexturePath(FbxProperty& Property)
 			FbxFileTexture* Texture = Property.GetSrcObject<FbxFileTexture>(0);
 			if (Texture)
 			{
-				return FString(Texture->GetFileName());
+				const char* AcpPath = Texture->GetRelativeFileName();
+				if (!AcpPath || strlen(AcpPath) == 0)
+				{
+					AcpPath = Texture->GetFileName();
+				}
+
+				if (!AcpPath)
+				{
+					return FString();
+				}
+
+				FString TexturePath = ACPToUTF8(AcpPath);
+				const FString& CurrentFbxBaseDir = UFbxLoader::GetInstance().GetCurrentFbxBaseDir();
+				return ResolveAssetRelativePath(TexturePath, CurrentFbxBaseDir);
 			}
 		}
 	}

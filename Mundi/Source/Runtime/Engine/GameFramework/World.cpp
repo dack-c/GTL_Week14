@@ -330,6 +330,8 @@ UWorld* UWorld::DuplicateWorldForPIE(UWorld* InEditorWorld)
 		PIEWorld->AddActorToLevel(NewActor);
 	}
 
+	PIEWorld->RenderSettings = InEditorWorld->RenderSettings;
+
 	return PIEWorld;
 }
 

@@ -285,9 +285,6 @@ void SViewportWindow::RenderToolbar()
 		float CursorStartX = ImGui::GetCursorPosX();
 		ImVec2 CurrentCursor = ImGui::GetCursorPos();
 
-		const char* SkinningLabel = "GPU Skinning";
-		ImVec2 SkinningTextSize = ImGui::CalcTextSize(SkinningLabel);
-		const float SkinningButtonWidth = SkinningTextSize.x + 30.0f;
 
 		// 오른쪽부터 역순으로 위치 계산
 		// Switch는 오른쪽 끝
@@ -301,11 +298,6 @@ void SViewportWindow::RenderToolbar()
 
 		// Camera는 ViewMode 왼쪽 (ViewMode 너비에 따라 위치 변동)
 		float CameraX = ViewModeX - ButtonSpacing - CameraButtonWidth;
-
-		float SkinningX = CameraX - ButtonSpacing - SkinningButtonWidth;
-
-		ImGui::SetCursorPos(ImVec2(SkinningX, CurrentCursor.y));
-		RenderGPUSkinningButton();
 
 		// 버튼들을 순서대로 그리기 (Y 위치는 동일하게 유지)
 		ImGui::SetCursorPos(ImVec2(CameraX, CurrentCursor.y));
@@ -448,6 +440,9 @@ void SViewportWindow::LoadToolbarIcons(ID3D11Device* Device)
 
 	IconShadowAA = NewObject<UTexture>();
 	IconShadowAA->Load(GDataDir + "/Icon/Viewport_ShadowAA.png", Device);
+
+	IconSkinning = NewObject<UTexture>();
+	IconSkinning->Load(GDataDir + "/Icon/Viewport_Skinning.png", Device);
 
 	// 뷰포트 레이아웃 전환 아이콘 로드
 	IconSingleToMultiViewport = NewObject<UTexture>();
@@ -1947,6 +1942,24 @@ void SViewportWindow::RenderShowFlagDropdownMenu()
 		{
 			ImGui::SetTooltip("그림자 안티 에일리어싱 기술 설정");
 		}
+		
+		// ===== 스키닝 모드 =====
+		bool bIsGpuSkinning = RenderSettings.IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning);
+		if (ImGui::Checkbox("##GPUSkinning", &bIsGpuSkinning))
+		{
+			RenderSettings.ToggleShowFlag(EEngineShowFlags::SF_GPUSkinning);
+		}
+		ImGui::SameLine();
+		if (IconSkinning && IconSkinning->GetShaderResourceView())
+		{
+			ImGui::Image((void*)IconSkinning->GetShaderResourceView(), IconSize);
+			ImGui::SameLine(0, 4);
+		}
+		ImGui::Text(" GPU 스키닝");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("CPU 또는 GPU 스키닝 방식을 선택합니다.");
+		}
 
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(2);
@@ -2005,25 +2018,6 @@ void SViewportWindow::RenderViewportLayoutSwitchButton()
 
 	ImGui::PopStyleColor(3);
 	ImGui::PopStyleVar(1);
-}
-
-void SViewportWindow::RenderGPUSkinningButton()
-{
-	if (!ViewportClient || !ViewportClient->GetWorld())
-	{
-		return;
-	}
-	URenderSettings& RenderSettings = ViewportClient->GetWorld()->GetRenderSettings();
-	bool bGPUSkinning = RenderSettings.IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning);
-
-	ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.25f, 0.30f, 0.35f, 0.8f));
-	if (ImGui::Checkbox("##GPUSkinning", &bGPUSkinning))
-	{
-		RenderSettings.ToggleShowFlag(EEngineShowFlags::SF_GPUSkinning);
-	}
-	ImGui::SameLine();
-	ImGui::TextUnformatted("GPU Skinning");
-	ImGui::PopStyleColor();
 }
 
 void SViewportWindow::HandleDropTarget()
