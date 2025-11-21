@@ -169,6 +169,7 @@ void FSceneRenderer::RenderLitPath()
     // Base Pass
     RenderOpaquePass(View->RenderSettings->GetViewMode());
 	RenderDecalPass();
+	RenderParticlePass();
 }
 
 void FSceneRenderer::RenderWireframePath()
@@ -927,6 +928,17 @@ void FSceneRenderer::RenderOpaquePass(EViewMode InRenderViewMode)
 		GPU_TIME_PROFILE("GPUSkinning")
 		DrawMeshBatches(MeshBatchElements, true);
 	}
+}
+
+void FSceneRenderer::RenderParticlePass()
+{
+	// Depth Test는 LessEqual
+	// Depth Write는 Off
+	// Alpha Blending On
+
+	// PS에서 SceneDepthSampling
+
+	// SoftParticle 적용
 }
 
 void FSceneRenderer::RenderDecalPass()

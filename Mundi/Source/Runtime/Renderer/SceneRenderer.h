@@ -107,7 +107,7 @@ private:
 
 	void DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, bool bClearListAfterDraw);
 
-	/** @brief 데칼(Decal)을 렌더링하는 패스입니다. */
+	void RenderParticlePass();
 	void RenderDecalPass();
 
 	void RenderPostProcessingPasses();
