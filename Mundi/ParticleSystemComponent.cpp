@@ -34,6 +34,7 @@ UParticleSystemComponent::UParticleSystemComponent()
 UParticleSystemComponent::~UParticleSystemComponent()
 {
     DestroyParticles();
+    ReleaseParticleBuffers();
 }
 
 void UParticleSystemComponent::InitParticles()
@@ -101,6 +102,24 @@ void UParticleSystemComponent::DestroyParticles()
     bIsActive = false;
 }
 
+void UParticleSystemComponent::ReleaseParticleBuffers()
+{
+    if (ParticleVertexBuffer)
+    {
+        ParticleVertexBuffer->Release();
+        ParticleVertexBuffer = nullptr;
+    }
+
+    if (ParticleIndexBuffer)
+    {
+        ParticleIndexBuffer->Release();
+        ParticleIndexBuffer = nullptr;
+    }
+
+    ParticleVertexCapacity = 0;
+    ParticleIndexCount = 0;
+}
+
 void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
     if (!IsVisible() || EmitterRenderData.IsEmpty())
@@ -111,15 +130,14 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
     for (int32 EmitterIdx = 0; EmitterIdx < EmitterRenderData.Num(); ++EmitterIdx)
     {
 
-        FDynamicEmitterDataBase* Data = EmitterRenderData[EmitterIdx];
-        // if (!Data || Data->ActiveParticleCount <= 0)
-        if (!Data)
-        {
-            continue;
-        }
+        //FDynamicEmitterDataBase* Data = EmitterRenderData[EmitterIdx];
+        // if (!Data || Data->ActiveParticleCount <= 0)        
+        //{
+        //    continue;
+        //}
         
         // 일단은 Sprite만, TEST
-        BuildParticleBatch(*Data, OutMeshBatchElements, View);
+        BuildParticleBatch(OutMeshBatchElements, View);
 
         //switch (Data->EmitterType)
         //{
@@ -135,62 +153,102 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
     }
 }
 
-void UParticleSystemComponent::BuildParticleBatch(const FDynamicEmitterDataBase& SpriteData,
-    TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
+void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
-    // 임시로 Quad로 만들어뒀음
-    // 파티클마다 위치 / 크기 / 색이 달라서, 동적 VB로 데이터를 뿌리고 코너를 다르게 적용해야함 -> InputLayout에 Corner 있는 이유
-    static UQuad* ParticleQuad = nullptr;
-    if (!ParticleQuad)
-    {
-        ParticleQuad = UResourceManager::GetInstance().Get<UQuad>("BillboardQuad");
-        if (!ParticleQuad)
-        {
-            ParticleQuad = UResourceManager::GetInstance().Load<UQuad>("BillboardQuad");
-        }
-    }
-    if (!ParticleQuad || ParticleQuad->GetIndexCount() == 0)
+    const uint32 ParticleCount = static_cast<uint32>(EmitterRenderData.Num());
+    if (ParticleCount == 0)
     {
         return;
     }
 
-    UMaterialInterface* Material = GetMaterial(0);
-    if (!Material)
+    const uint32 ClampedCount = MaxDebugParticles > 0
+        ? std::min<uint32>(ParticleCount, static_cast<uint32>(MaxDebugParticles))
+        : ParticleCount;
+
+    if (!ParticleVertexBuffer || !ParticleIndexBuffer)
     {
-        Material = UResourceManager::GetInstance().GetDefaultMaterial();
+        return;
     }
-    if (!Material || !Material->GetShader())
+
+    D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+    ID3D11DeviceContext* Context = RHIDevice ? RHIDevice->GetDeviceContext() : nullptr;
+    if (!Context)
+    {
+        return;
+    }
+
+    D3D11_MAPPED_SUBRESOURCE Mapped = {};
+    if (FAILED(Context->Map(ParticleVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
+    {
+        return;
+    }
+
+    FParticleSpriteVertex* Vertices = reinterpret_cast<FParticleSpriteVertex*>(Mapped.pData);
+    static const FVector2D CornerOffsets[4] = {
+        FVector2D(-1.0f, -1.0f),
+        FVector2D(1.0f, -1.0f),
+        FVector2D(1.0f,  1.0f),
+        FVector2D(-1.0f,  1.0f)
+    };
+
+    uint32 VertexCursor = 0;
+    for (uint32 ParticleIndex = 0; ParticleIndex < ClampedCount; ++ParticleIndex)
+    {
+        const FDynamicEmitterDataBase& Data = *EmitterRenderData[ParticleIndex];
+        for (int CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
+        {
+            FParticleSpriteVertex& Vertex = Vertices[VertexCursor++];
+            Vertex.Position = Data.Position;
+            Vertex.Corner = CornerOffsets[CornerIndex];
+            Vertex.Size = Data.Size;
+            Vertex.Color = Data.Color;
+        }
+    }
+
+    Context->Unmap(ParticleVertexBuffer, 0);
+
+    if (!ParticleMaterial)
+    {
+        ParticleMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Particle/ParticleSprite.hlsl");
+    }
+
+    UShader* ParticleShader = nullptr;
+    if (ParticleMaterial)
+    {
+        ParticleShader = ParticleMaterial->GetShader();
+    }
+    if (!ParticleShader)
+    {
+        ParticleShader = UResourceManager::GetInstance().Load<UShader>("Shaders/Particle/ParticleSprite.hlsl");
+    }
+    if (!ParticleShader)
     {
         return;
     }
 
     TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
-    ShaderMacros.Append(Material->GetShaderMacros());
-    FShaderVariant* ShaderVariant = Material->GetShader()->GetOrCompileShaderVariant(ShaderMacros);
+    if (ParticleMaterial)
+    {
+        ShaderMacros.Append(ParticleMaterial->GetShaderMacros());
+    }
+
+    FShaderVariant* ShaderVariant = ParticleShader->GetOrCompileShaderVariant(ShaderMacros);
     if (!ShaderVariant)
     {
         return;
     }
 
-    FMeshBatchElement BatchElement;
-
-    // 정렬 키
-    BatchElement.VertexShader = ShaderVariant->VertexShader;
-    BatchElement.PixelShader = ShaderVariant->PixelShader;
-    BatchElement.InputLayout = ShaderVariant->InputLayout;
-    BatchElement.Material = Material;
-    BatchElement.VertexBuffer = ParticleQuad->GetVertexBuffer();
-    BatchElement.IndexBuffer = ParticleQuad->GetIndexBuffer();
-    BatchElement.VertexStride = ParticleQuad->GetVertexStride();
-
-    BatchElement.IndexCount = ParticleQuad->GetIndexCount();
-    BatchElement.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
-    const FMatrix ParticleTransform = FMatrix::MakeScale(FVector(SpriteData.Size)) * FMatrix::MakeTranslation(SpriteData.Position);
-    BatchElement.WorldMatrix = ParticleTransform * GetWorldMatrix();
-
-    BatchElement.InstanceColor = SpriteData.Color;
-    BatchElement.ObjectID = InternalIndex;
-
-    OutMeshBatchElements.Add(BatchElement);
+    const int32 BatchIndex = OutMeshBatchElements.Add(FMeshBatchElement());
+    FMeshBatchElement& Batch = OutMeshBatchElements[BatchIndex];
+    Batch.VertexShader = ShaderVariant->VertexShader;
+    Batch.PixelShader = ShaderVariant->PixelShader;
+    Batch.InputLayout = ShaderVariant->InputLayout;
+    Batch.Material = ParticleMaterial;
+    Batch.VertexBuffer = ParticleVertexBuffer;
+    Batch.IndexBuffer = ParticleIndexBuffer;
+    Batch.VertexStride = sizeof(FParticleSpriteVertex);
+    Batch.IndexCount = ClampedCount * 6;
+    Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    Batch.WorldMatrix = GetWorldMatrix();
+    Batch.ObjectID = InternalIndex;
 }

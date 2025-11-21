@@ -26,6 +26,7 @@ public:
 
 	/** 컴포넌트 제거 시 정리 (OnDestroy) */
 	virtual void DestroyParticles();
+	void ReleaseParticleBuffers();
 
 	/** 활성화/비활성화 제어 */
 	void ActivateSystem() { bAutoActivate = true; }
@@ -36,8 +37,7 @@ public:
 
 	// sprite, mesh 나눠 BuildBatch
 	// 추후 FDynamicEmitterDataBase를 바꿀 것!
-	void BuildParticleBatch(const FDynamicEmitterDataBase& SpriteData,
-		TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+	void BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 
 private:	
 	/** 파티클 시스템 에셋 */
@@ -50,6 +50,12 @@ private:
 	/** 렌더 스레드로 보낼 데이터 패킷들 */
 	TArray<FDynamicEmitterDataBase*> EmitterRenderData;	
 	int MaxDebugParticles;
+
+	ID3D11Buffer* ParticleVertexBuffer = nullptr;
+	ID3D11Buffer* ParticleIndexBuffer = nullptr;
+	uint32 ParticleVertexCapacity = 0;
+	uint32 ParticleIndexCount = 0;
+	UMaterialInterface* ParticleMaterial = nullptr;
 
 	/** 자동 시작 여부 */
 	bool bAutoActivate = true;
