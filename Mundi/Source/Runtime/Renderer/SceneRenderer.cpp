@@ -932,12 +932,16 @@ void FSceneRenderer::RenderOpaquePass(EViewMode InRenderViewMode)
 
 void FSceneRenderer::RenderParticlePass()
 {
-	// Depth Test는 LessEqual
-	// Depth Write는 Off
-	// Alpha Blending On
+	if (Proxies.Particles.empty()) 
+		return;
 
+	RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId); // Scene+Depth
+
+	RHIDevice->RSSetState(ERasterizerMode::Solid);
+	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
+	RHIDevice->OMSetBlendState(true);
+	
 	// PS에서 SceneDepthSampling
-
 	// SoftParticle 적용
 }
 
