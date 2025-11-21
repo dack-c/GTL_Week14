@@ -24,6 +24,8 @@ public:
 
 	FSkeletalMeshData* LoadFbxMeshAsset(const FString& FilePath);
 
+	const FString& GetCurrentFbxBaseDir() const { return CurrentFbxBaseDir; }
+
 
 protected:
 	~UFbxLoader() override;
@@ -35,6 +37,9 @@ private:
 	// bin파일 저장용
 	TArray<FMaterialInfo> MaterialInfos;
 	FbxManager* SdkManager = nullptr;
+
+	/** 현재 로드 중인 FBX 파일의 상위 디렉토리 (UTF-8) */
+	FString CurrentFbxBaseDir;
 
 	// 비-스켈레톤 부모 노드(예: Armature)의 로컬 트랜스폼 저장 (애니메이션 보정용)
 	TMap<const FbxNode*, FbxAMatrix> NonSkeletonParentTransforms;
