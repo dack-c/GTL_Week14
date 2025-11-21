@@ -24,16 +24,17 @@ void UFbxLoader::PreLoad()
 {
 	UFbxLoader& FbxLoader = GetInstance();
 
-	const fs::path DataDir(GDataDir);
+	FWideString WDataDir = UTF8ToWide(GDataDir);
+	const fs::path DataDir(WDataDir);
 
 	if (!fs::exists(DataDir) || !fs::is_directory(DataDir))
 	{
-		UE_LOG("UFbxLoader::Preload: Data directory not found: %s", DataDir.string().c_str());
+		UE_LOG("UFbxLoader::Preload: Data directory not found: %s", GDataDir.c_str());
 		return;
 	}
 
 	size_t LoadedCount = 0;
-	std::unordered_set<FString> ProcessedFiles; // 중복 로딩 방지
+	std::unordered_set<FWideString> ProcessedFiles;
 
 	for (const auto& Entry : fs::recursive_directory_iterator(DataDir))
 	{
@@ -41,34 +42,31 @@ void UFbxLoader::PreLoad()
 			continue;
 
 		const fs::path& Path = Entry.path();
-		FString Extension = Path.extension().string();
-		std::transform(Extension.begin(), Extension.end(), Extension.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
-		if (Extension == ".fbx")
+		FWideString Extension = Path.extension().wstring();
+		std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::towlower);
+
+		if (Extension == L".fbx")
 		{
-			FString PathStr = NormalizePath(Path.string());
+			// 변경 (wstring -> WideToUTF8 -> FString)
+			FWideString WPathStr = Path.wstring();
+			FString PathStr = NormalizePath(WideToUTF8(WPathStr));
 
-			// 이미 처리된 파일인지 확인
-			if (ProcessedFiles.find(PathStr) == ProcessedFiles.end())
+			if (ProcessedFiles.find(WPathStr) == ProcessedFiles.end())
 			{
-				ProcessedFiles.insert(PathStr);
-
-				UE_LOG("=== Loading FBX: %s ===", PathStr.c_str());
-
-				// LoadFbxMesh는 이제 동일한 Scene에서 애니메이션도 함께 로드함
+				ProcessedFiles.insert(WPathStr);
 				FbxLoader.LoadFbxMesh(PathStr);
-
 				++LoadedCount;
 			}
 		}
-		else if (Extension == ".dds" || Extension == ".jpg" || Extension == ".png")
+		else if (Extension == L".dds" || Extension == L".jpg" || Extension == L".png")
 		{
-			UResourceManager::GetInstance().Load<UTexture>(Path.string()); // 데칼 텍스쳐를 ui에서 고를 수 있게 하기 위해 임시로 만듬.
+			UResourceManager::GetInstance().Load<UTexture>(WideToUTF8(Path.wstring()));
 		}
 	}
 	RESOURCE.SetSkeletalMeshs();
 
-	UE_LOG("UFbxLoader::Preload: Loaded %zu .fbx files from %s", LoadedCount, DataDir.string().c_str());
+	UE_LOG("UFbxLoader::Preload: Loaded %zu .fbx files from %s", LoadedCount, GDataDir.c_str());
 }
 
 
@@ -114,32 +112,46 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 {
 	MaterialInfos.clear();
 	NonSkeletonParentTransforms.clear();
+	
 	FString NormalizedPath = NormalizePath(FilePath);
+	
+	// - FbxPath: std::filesystem 용 wide path
+	// - FbxPathAcp: FBX SDK Initialize()에 넘길 ANSI(MBCS) 경로
+	FWideString WNormalizedPath = UTF8ToWide(NormalizedPath);
+	std::filesystem::path FbxPath(WNormalizedPath);
+	FString FbxPathAcp = UTF8ToACP(NormalizedPath);
+	CurrentFbxBaseDir = NormalizePath(WideToUTF8(FbxPath.parent_path().wstring()));
+
 	FSkeletalMeshData* MeshData = nullptr;
 #ifdef USE_OBJ_CACHE
+	
 	// 1. 캐시 파일 경로 설정
 	FString CachePathStr = ConvertDataPathToCachePath(NormalizedPath);
 	const FString BinPathFileName = CachePathStr + ".bin";
 
+	// 파일 시스템용 wide path
+	FWideString WBinPath = UTF8ToWide(BinPathFileName);
+	std::filesystem::path BinPath(WBinPath);
+
 	// 캐시를 저장할 디렉토리가 없으면 생성
-	std::filesystem::path CacheFileDirPath(BinPathFileName);
+	std::filesystem::path CacheFileDirPath = BinPath;
+
 	if (CacheFileDirPath.has_parent_path())
 	{
 		std::filesystem::create_directories(CacheFileDirPath.parent_path());
 	}
 
 	bool bLoadedFromCache = false;
-
-
+	
 	// 2. 캐시 유효성 검사
 	bool bShouldRegenerate = true;
-	if (std::filesystem::exists(BinPathFileName))
+	if (std::filesystem::exists(BinPath))
 	{
 		try
 		{
-			auto binTime = std::filesystem::last_write_time(BinPathFileName);
-			auto fbxTime = std::filesystem::last_write_time(NormalizedPath);
-
+			auto binTime = std::filesystem::last_write_time(BinPath);
+			auto fbxTime = std::filesystem::last_write_time(FbxPath);
+			
 			// FBX 파일이 캐시보다 오래되었으면 캐시 사용
 			if (fbxTime <= binTime)
 			{
@@ -264,9 +276,9 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 	FbxImporter* Importer = FbxImporter::Create(SdkManager, "");
 
 	// 원하는 IO 세팅과 Fbx파일로 Importer initialize
-	if (!Importer->Initialize(NormalizedPath.c_str(), -1, SdkManager->GetIOSettings()))
+	if (!Importer->Initialize(FbxPathAcp.c_str(), -1, SdkManager->GetIOSettings()))
 	{
-		UE_LOG("Call to FbxImporter::Initialize() Falied\n");
+		UE_LOG("Call to FbxImporter::Initialize() Failed\n");
 		UE_LOG("[FbxImporter::Initialize()] Error Reports: %s\n\n", Importer->GetStatus().GetErrorString());
 		return nullptr;
 	}

@@ -174,7 +174,7 @@ enum class EEngineShowFlags : uint64
 
     // Default enabled flags
     SF_DefaultEnabled = SF_Primitives | SF_StaticMeshes | SF_SkeletalMeshes | SF_Grid | SF_Lighting | SF_Decals |
-        SF_Fog | SF_FXAA | SF_Billboard | SF_EditorIcon | SF_Shadows | SF_ShadowAntiAliasing,
+        SF_Fog | SF_FXAA | SF_Billboard | SF_EditorIcon | SF_Shadows | SF_ShadowAntiAliasing | SF_GPUSkinning,
 
     // All flags (for initialization/reset)
     SF_All = 0xFFFFFFFFFFFFFFFFull
