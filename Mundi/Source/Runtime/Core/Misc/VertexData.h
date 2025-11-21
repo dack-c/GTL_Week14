@@ -430,3 +430,11 @@ struct FSkeletalMeshData
         return Ar;
     }
 };
+
+struct FParticleSpriteVertex
+{
+    FVector Position;
+    FVector2D Corner;
+    float Size;
+    FLinearColor Color;
+};

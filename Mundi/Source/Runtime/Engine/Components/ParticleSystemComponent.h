@@ -4,6 +4,8 @@
 #include "Source/Runtime/Engine/Particle/ParticleSystem.h"
 #include "UParticleSystemComponent.generated.h"
 
+class FDynamicEmitterDataBase;
+
 UCLASS(DisplayName = "파티클 컴포넌트", Description = "파티클을 생성하는 컴포넌트")
 class UParticleSystemComponent : public UPrimitiveComponent
 {
@@ -32,6 +34,11 @@ public:
 	// 렌더링을 위한 MeshBatch 수집 함수 
 	void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
 
+	// sprite, mesh 나눠 BuildBatch
+	// 추후 FDynamicEmitterDataBase를 바꿀 것!
+	void BuildParticleBatch(const FDynamicEmitterDataBase& SpriteData,
+		TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+
 private:	
 	/** 파티클 시스템 에셋 */
 	UParticleSystem* Template = nullptr;
@@ -39,8 +46,10 @@ private:
 	/** 런타임 데이터 */
 	TArray<FParticleEmitterInstance*> EmitterInstances;
 
+	//  FOR TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	/** 렌더 스레드로 보낼 데이터 패킷들 */
-	// TArray<FDynamicEmitterDataBase*> EmitterRenderData;
+	TArray<FDynamicEmitterDataBase*> EmitterRenderData;	
+	int MaxDebugParticles;
 
 	/** 자동 시작 여부 */
 	bool bAutoActivate = true;
