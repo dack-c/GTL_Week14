@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <FxCompile Include="Shaders\PostProcess\GammaCorrection_PS.hlsl">
@@ -769,7 +769,11 @@
     <ClCompile Include="Source\Editor\FBX\FBXSkeletonLoader.cpp" />
     <ClCompile Include="Source\Runtime\Core\Object\CharacterMovementComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\PawnMovementComponent.cpp" />
-  </ItemGroup>
+    <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_CharacterMovement.cpp" />
+    <ClCompile Include="Source\Editor\BlueprintGraph\K2Node_Expression.cpp" />
+    <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace1D.cpp" />
+    <ClCompile Include="ParticleSystemComponent.cpp" />
+  <ClCompile Include="Generated\UParticleSystemComponent.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Source\Runtime\AssetManagement\SkeletalMesh.h">
@@ -1622,7 +1626,11 @@
     <ClInclude Include="Source\Editor\FBX\FBXSkeletonLoader.h" />
     <ClInclude Include="Source\Runtime\Core\Object\CharacterMovementComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\PawnMovementComponent.h" />
-  </ItemGroup>
+    <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_CharacterMovement.h" />
+    <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Expression.h" />
+    <ClInclude Include="Source\Editor\FBX\BlendSpace\BlendSpace1D.h" />
+    <ClInclude Include="Source\Runtime\Engine\Components\ParticleSystemComponent.h" />
+  <ClInclude Include="Generated\UParticleSystemComponent.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
   <ItemGroup>
     <None Include="Tools\CodeGenerator\generate.py">
       <Filter>Tools\CodeGenerator</Filter>

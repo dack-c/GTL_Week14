@@ -33,6 +33,7 @@
 #include "AmbientLightComponent.h"
 #include "PointLightComponent.h"
 #include "SpotLightComponent.h"
+#include "ParticleSystemComponent.h"
 #include "SwapGuard.h"
 #include "MeshBatchElement.h"
 #include "SceneView.h"
@@ -640,6 +641,7 @@ void FSceneRenderer::GatherVisibleProxies()
 	const bool bUseAntiAliasing = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_FXAA);
 	const bool bUseBillboard = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Billboard);
 	const bool bUseIcon = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_EditorIcon);	
+	const bool bDrawParticle = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Particle);
 
 	// Helper lambda to collect components from an actor
 	auto CollectComponentsFromActor = [&](AActor* Actor, bool bIsEditorActor)
@@ -714,6 +716,10 @@ void FSceneRenderer::GatherVisibleProxies()
 					else if (ULineComponent* LineComponent = Cast<ULineComponent>(PrimitiveComponent))
 					{
 						Proxies.EditorLines.Add(LineComponent);
+					}
+					else if (UParticleSystemComponent* ParticleComponent = Cast<UParticleSystemComponent>(PrimitiveComponent))
+					{
+						Proxies.Particles.Add(ParticleComponent);
 					}
 				}
 				else
