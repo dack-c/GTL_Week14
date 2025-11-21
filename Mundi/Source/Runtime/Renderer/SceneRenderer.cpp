@@ -33,6 +33,7 @@
 #include "AmbientLightComponent.h"
 #include "PointLightComponent.h"
 #include "SpotLightComponent.h"
+#include "ParticleSystemComponent.h"
 #include "SwapGuard.h"
 #include "MeshBatchElement.h"
 #include "SceneView.h"
@@ -168,6 +169,7 @@ void FSceneRenderer::RenderLitPath()
     // Base Pass
     RenderOpaquePass(View->RenderSettings->GetViewMode());
 	RenderDecalPass();
+	RenderParticlePass();
 }
 
 void FSceneRenderer::RenderWireframePath()
@@ -640,6 +642,7 @@ void FSceneRenderer::GatherVisibleProxies()
 	const bool bUseAntiAliasing = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_FXAA);
 	const bool bUseBillboard = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Billboard);
 	const bool bUseIcon = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_EditorIcon);	
+	const bool bDrawParticle = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Particle);
 
 	// Helper lambda to collect components from an actor
 	auto CollectComponentsFromActor = [&](AActor* Actor, bool bIsEditorActor)
@@ -714,6 +717,10 @@ void FSceneRenderer::GatherVisibleProxies()
 					else if (ULineComponent* LineComponent = Cast<ULineComponent>(PrimitiveComponent))
 					{
 						Proxies.EditorLines.Add(LineComponent);
+					}
+					else if (UParticleSystemComponent* ParticleComponent = Cast<UParticleSystemComponent>(PrimitiveComponent))
+					{
+						Proxies.Particles.Add(ParticleComponent);
 					}
 				}
 				else
@@ -921,6 +928,21 @@ void FSceneRenderer::RenderOpaquePass(EViewMode InRenderViewMode)
 		GPU_TIME_PROFILE("GPUSkinning")
 		DrawMeshBatches(MeshBatchElements, true);
 	}
+}
+
+void FSceneRenderer::RenderParticlePass()
+{
+	if (Proxies.Particles.empty()) 
+		return;
+
+	RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId); // Scene+Depth
+
+	RHIDevice->RSSetState(ERasterizerMode::Solid);
+	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
+	RHIDevice->OMSetBlendState(true);
+	
+	// PS에서 SceneDepthSampling
+	// SoftParticle 적용
 }
 
 void FSceneRenderer::RenderDecalPass()

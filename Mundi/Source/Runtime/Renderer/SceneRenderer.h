@@ -28,6 +28,7 @@ class UGizmoArrowComponent;
 class FSceneView;
 class FTileLightCuller;
 class ULineComponent;
+class UParticleSystemComponent;
 
 struct FCandidateDrawable;
 
@@ -39,6 +40,7 @@ struct FVisibleRenderProxySet
 	TArray<UBillboardComponent*> Billboards; // 인게임 빌보드 (파티클, 잔디 등)
 	TArray<UDecalComponent*> Decals;
 	TArray<UTextRenderComponent*> Texts;
+	TArray<UParticleSystemComponent*> Particles;
 
 	// --- Type 2: In-Scene Editor (PP X, Depth-Test O) ---
 	TArray<ULineComponent*> EditorLines;	// 그리드
@@ -105,7 +107,7 @@ private:
 
 	void DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, bool bClearListAfterDraw);
 
-	/** @brief 데칼(Decal)을 렌더링하는 패스입니다. */
+	void RenderParticlePass();
 	void RenderDecalPass();
 
 	void RenderPostProcessingPasses();
