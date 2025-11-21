@@ -31,7 +31,8 @@ public:
 	void DeactivateSystem() { bAutoActivate = false; }
 
 	// 렌더링을 위한 MeshBatch 수집 함수 
-	// void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
+	void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
+
 private:	
 	/** 파티클 시스템 에셋 */
 	UParticleSystem* Template = nullptr;
@@ -44,9 +45,6 @@ private:
 
 	/** 자동 시작 여부 */
 	bool bAutoActivate = true;
-
-	/** 현재 활성화 여부 */
-	bool bIsActive = false;
 	
 	/** 자동 삭제 여부 */
 	bool bAutoDestroy = false;
