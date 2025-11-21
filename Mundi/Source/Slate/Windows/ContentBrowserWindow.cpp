@@ -1,5 +1,4 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "pch.h"
 #include "ContentBrowserWindow.h"
 #include "ImGui/imgui.h"
@@ -11,512 +10,432 @@
 IMPLEMENT_CLASS(UContentBrowserWindow)
 
 UContentBrowserWindow::UContentBrowserWindow()
-	: SelectedFile(nullptr)
-	, SelectedIndex(-1)
-	, LastClickTime(0.0)
-	, LastClickedIndex(-1)
-	, ThumbnailSize(80.0f)
-	, ColumnsCount(4)
-	, LeftPanelWidth(250.0f)
-	, SplitterWidth(4.0f)
-	, bIsDraggingSplitter(false)
-	, bShowFolders(true)
-	, bShowFiles(true)
-	, bUseThumbnails(true)
+    : SelectedFile(nullptr)
+    , SelectedIndex(-1)
+    , LastClickTime(0.0)
+    , LastClickedIndex(-1)
+    , ThumbnailSize(80.0f)
+    , ColumnsCount(4)
+    , LeftPanelWidth(250.0f)
+    , SplitterWidth(4.0f)
+    , bIsDraggingSplitter(false)
+    , bShowFolders(true)
+    , bShowFiles(true)
+    , bUseThumbnails(true)
 {
-	FUIWindowConfig Config;
-	Config.WindowTitle = "Content Browser";
-	Config.DefaultSize = ImVec2(800, 400);
-	Config.DefaultPosition = ImVec2(100, 500);
-	Config.MinSize = ImVec2(400, 300);
-	Config.bResizable = true;
-	Config.bMovable = true;
-	Config.bCollapsible = true;
-	Config.DockDirection = EUIDockDirection::Bottom;
+    FUIWindowConfig Config;
+    Config.WindowTitle = "Content Browser";
+    Config.DefaultSize = ImVec2(800, 400);
+    Config.DefaultPosition = ImVec2(100, 500);
+    Config.MinSize = ImVec2(400, 300);
+    Config.bResizable = true;
+    Config.bMovable = true;
+    Config.bCollapsible = true;
+    Config.DockDirection = EUIDockDirection::Bottom;
 
-	Config.UpdateWindowFlags();
-	SetConfig(Config);
+    Config.UpdateWindowFlags();
+    SetConfig(Config);
 
-	// 루트 경로를 Data 폴더로 설정
-	RootPath = std::filesystem::current_path() / "Data";
-	CurrentPath = RootPath;
+    // GDataDir(FString)을 WideString으로 변환하여 safe하게 path 생성
+    RootPath = std::filesystem::path(UTF8ToWide(GDataDir));
+    CurrentPath = RootPath;
 }
 
 UContentBrowserWindow::~UContentBrowserWindow()
 {
-	Cleanup();
+    Cleanup();
 }
 
 void UContentBrowserWindow::Initialize()
 {
-	UE_LOG("ContentBrowserWindow: Successfully Initialized");
-
-	// UIWindow 부모 Initialize 호출
-	UUIWindow::Initialize();
-
-	RefreshCurrentDirectory();
+    UE_LOG("ContentBrowserWindow: Successfully Initialized");
+    UUIWindow::Initialize();
+    RefreshCurrentDirectory();
 }
 
 void UContentBrowserWindow::RenderWindow()
 {
-	// 숨겨진 상태면 렌더링하지 않음
-	if (!IsVisible())
-	{
-		return;
-	}
+    if (!IsVisible()) return;
 
-	// ImGui 윈도우 시작
-	ImGui::SetNextWindowSize(GetConfig().DefaultSize, ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowPos(GetConfig().DefaultPosition, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(GetConfig().DefaultSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(GetConfig().DefaultPosition, ImGuiCond_FirstUseEver);
 
-	bool bIsOpen = true;
+    bool bIsOpen = true;
+    if (ImGui::Begin(GetConfig().WindowTitle.c_str(), &bIsOpen, GetConfig().WindowFlags))
+    {
+        RenderContent(); // RenderPathBar + RenderContentGrid 통합 호출
+    }
+    ImGui::End();
 
-	if (ImGui::Begin(GetConfig().WindowTitle.c_str(), &bIsOpen, GetConfig().WindowFlags))
-	{
-		// 실제 UI 컨텐츠 렌더링
-		RenderPathBar();
-		RenderContentGrid();
-	}
-	ImGui::End();
-
-	// 윈도우가 닫혔는지 확인
-	if (!bIsOpen)
-	{
-		SetWindowState(EUIWindowState::Hidden);
-	}
+    if (!bIsOpen)
+    {
+        SetWindowState(EUIWindowState::Hidden);
+    }
 }
 
 void UContentBrowserWindow::Cleanup()
 {
-	DisplayedFiles.clear();
-	SelectedFile = nullptr;
+    DisplayedFiles.clear();
+    SelectedFile = nullptr;
 }
 
 void UContentBrowserWindow::NavigateToPath(const std::filesystem::path& NewPath)
 {
-	if (std::filesystem::exists(NewPath) && std::filesystem::is_directory(NewPath))
-	{
-		CurrentPath = NewPath;
-		RefreshCurrentDirectory();
-		SelectedIndex = -1;
-		SelectedFile = nullptr;
-	}
+    // filesystem::path 자체는 이미 safe함
+    if (std::filesystem::exists(NewPath) && std::filesystem::is_directory(NewPath))
+    {
+        CurrentPath = NewPath;
+        RefreshCurrentDirectory();
+        SelectedIndex = -1;
+        SelectedFile = nullptr;
+    }
 }
 
 void UContentBrowserWindow::RefreshCurrentDirectory()
 {
-	DisplayedFiles.clear();
+    DisplayedFiles.clear();
 
-	if (!std::filesystem::exists(CurrentPath))
-	{
-		UE_LOG("ContentBrowserWindow: Path does not exist: %s", CurrentPath.string().c_str());
-		CurrentPath = RootPath;
-		return;
-	}
+    if (!std::filesystem::exists(CurrentPath))
+    {
+        // 로그 출력 시 path -> wstring -> UTF8 변환
+        FString PathUTF8 = WideToUTF8(CurrentPath.wstring());
+        UE_LOG("ContentBrowserWindow: Path does not exist: %s", PathUTF8.c_str());
+        CurrentPath = RootPath;
+        return;
+    }
 
-	try
-	{
-		// 오른쪽 패널에는 파일만 표시 (폴더는 왼쪽 트리에 표시됨)
-		if (bShowFiles)
-		{
-			for (const auto& entry : std::filesystem::directory_iterator(CurrentPath))
-			{
-				if (entry.is_regular_file())
-				{
-					FFileEntry FileEntry;
-					FileEntry.Path = entry.path();
-					FileEntry.FileName = FString(entry.path().filename().string().c_str());
-					FileEntry.Extension = FString(entry.path().extension().string().c_str());
-					FileEntry.bIsDirectory = false;
-					FileEntry.FileSize = std::filesystem::file_size(entry.path());
-					DisplayedFiles.push_back(FileEntry);
-				}
-			}
-		}
-
-		UE_LOG("ContentBrowserWindow: Loaded %d items from %s", DisplayedFiles.size(), CurrentPath.string().c_str());
-	}
-	catch (const std::exception& e)
-	{
-		UE_LOG("ContentBrowserWindow: Error reading directory: %s", e.what());
-	}
+    try
+    {
+        if (bShowFiles)
+        {
+            for (const auto& entry : std::filesystem::directory_iterator(CurrentPath))
+            {
+                if (entry.is_regular_file())
+                {
+                    FFileEntry FileEntry;
+                    FileEntry.Path = entry.path();
+                    
+                    // [핵심] 여기서 .wstring()을 사용하여 원본 유니코드 이름을 가져옴
+                    FileEntry.FileNameW = entry.path().filename().wstring(); 
+                    
+                    // [핵심] ImGui 출력을 위해 UTF-8로 미리 변환하여 캐싱
+                    FileEntry.FileNameUTF8 = WideToUTF8(FileEntry.FileNameW); 
+                    
+                    // 확장자 처리 (비교를 위해 소문자 변환)
+                    FWideString ExtW = entry.path().extension().wstring();
+                    FileEntry.Extension = WideToUTF8(ExtW); // UTF-8로 변환
+                    std::transform(FileEntry.Extension.begin(), FileEntry.Extension.end(), FileEntry.Extension.begin(), ::tolower);
+                    
+                    FileEntry.bIsDirectory = false;
+                    FileEntry.FileSize = std::filesystem::file_size(entry.path());
+                    
+                    DisplayedFiles.push_back(FileEntry);
+                }
+            }
+        }
+        
+        FString CurrentPathUTF8 = WideToUTF8(CurrentPath.wstring());
+        UE_LOG("ContentBrowserWindow: Loaded %d items from %s", DisplayedFiles.size(), CurrentPathUTF8.c_str());
+    }
+    catch (const std::exception& e)
+    {
+        UE_LOG("ContentBrowserWindow: Error reading directory: %s", e.what());
+    }
 }
 
 void UContentBrowserWindow::RenderContent()
 {
-	ImVec2 contentSize = ImGui::GetContentRegionAvail();
-	ImGuiStyle& style = ImGui::GetStyle();
+    ImVec2 contentSize = ImGui::GetContentRegionAvail();
+    ImGuiStyle& style = ImGui::GetStyle();
 
-	// 왼쪽 패널 (폴더 트리)
-	ImGui::BeginChild("LeftPanel", ImVec2(LeftPanelWidth, contentSize.y), true);
-	RenderFolderTree();
-	ImGui::EndChild();
+    // Left Panel
+    ImGui::BeginChild("LeftPanel", ImVec2(LeftPanelWidth, contentSize.y), true);
+    RenderFolderTree();
+    ImGui::EndChild();
 
-	ImGui::SameLine();
+    ImGui::SameLine();
 
-	// 스플리터
-	ImGui::Button("##Splitter", ImVec2(SplitterWidth, contentSize.y));
-	if (ImGui::IsItemActive())
-	{
-		bIsDraggingSplitter = true;
-	}
-	if (bIsDraggingSplitter)
-	{
-		float delta = ImGui::GetIO().MouseDelta.x;
-		LeftPanelWidth += delta;
-		LeftPanelWidth = std::max(150.0f, std::min(LeftPanelWidth, contentSize.x - 300.0f));
+    // Splitter
+    ImGui::Button("##Splitter", ImVec2(SplitterWidth, contentSize.y));
+    if (ImGui::IsItemActive()) bIsDraggingSplitter = true;
+    if (bIsDraggingSplitter)
+    {
+        float delta = ImGui::GetIO().MouseDelta.x;
+        LeftPanelWidth += delta;
+        LeftPanelWidth = std::max(150.0f, std::min(LeftPanelWidth, contentSize.x - 300.0f));
+        if (!ImGui::IsMouseDown(0)) bIsDraggingSplitter = false;
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
 
-		if (!ImGui::IsMouseDown(0))
-		{
-			bIsDraggingSplitter = false;
-		}
-	}
-	if (ImGui::IsItemHovered())
-	{
-		ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-	}
+    ImGui::SameLine();
 
-	ImGui::SameLine();
-
-	// 오른쪽 패널 (파일 그리드)
-	float rightPanelWidth = contentSize.x - LeftPanelWidth - SplitterWidth - style.ItemSpacing.x * 2;
-	ImGui::BeginChild("RightPanel", ImVec2(rightPanelWidth, contentSize.y), true);
-
-	// 경로 바
-	RenderPathBar();
-
-	ImGui::Separator();
-
-	// 파일 그리드
-	RenderContentGrid();
-
-	ImGui::EndChild();
+    // Right Panel
+    float rightPanelWidth = contentSize.x - LeftPanelWidth - SplitterWidth - style.ItemSpacing.x * 2;
+    ImGui::BeginChild("RightPanel", ImVec2(rightPanelWidth, contentSize.y), true);
+    RenderPathBar();
+    ImGui::Separator();
+    RenderContentGrid();
+    ImGui::EndChild();
 }
 
 void UContentBrowserWindow::RenderFolderTree()
 {
-	ImGui::Text("Folders");
-	ImGui::Separator();
+    ImGui::Text("Folders");
+    ImGui::Separator();
 
-	// 루트 폴더부터 재귀적으로 렌더링
-	if (std::filesystem::exists(RootPath))
-	{
-		RenderFolderTreeNode(RootPath);
-	}
+    if (std::filesystem::exists(RootPath))
+    {
+        RenderFolderTreeNode(RootPath);
+    }
 }
 
 void UContentBrowserWindow::RenderFolderTreeNode(const std::filesystem::path& FolderPath)
 {
-	try
-	{
-		// 폴더 이름 가져오기
-		FString folderName = FolderPath == RootPath ? "Data" : FString(FolderPath.filename().string().c_str());
+    try
+    {
+        // [핵심] 폴더 이름도 wstring -> UTF8 변환
+        FWideString WName = (FolderPath == RootPath) ? L"Data" : FolderPath.filename().wstring();
+        FString FolderNameUTF8 = WideToUTF8(WName);
 
-		// 하위 폴더 확인
-		bool hasSubFolders = false;
-		for (const auto& entry : std::filesystem::directory_iterator(FolderPath))
-		{
-			if (entry.is_directory())
-			{
-				hasSubFolders = true;
-				break;
-			}
-		}
+        bool hasSubFolders = false;
+        for (const auto& entry : std::filesystem::directory_iterator(FolderPath))
+        {
+            if (entry.is_directory())
+            {
+                hasSubFolders = true;
+                break;
+            }
+        }
 
-		// 트리 노드 플래그
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-		if (!hasSubFolders)
-		{
-			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-		}
-		if (FolderPath == CurrentPath)
-		{
-			flags |= ImGuiTreeNodeFlags_Selected;
-		}
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        if (!hasSubFolders) flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        if (FolderPath == CurrentPath) flags |= ImGuiTreeNodeFlags_Selected;
 
-		// 트리 노드 렌더링
-		bool nodeOpen = ImGui::TreeNodeEx(folderName.c_str(), flags);
+        // ImGui에는 항상 UTF-8 문자열 전달
+        bool nodeOpen = ImGui::TreeNodeEx(FolderNameUTF8.c_str(), flags);
 
-		// 클릭 시 해당 폴더로 이동
-		if (ImGui::IsItemClicked())
-		{
-			NavigateToPath(FolderPath);
-		}
+        if (ImGui::IsItemClicked())
+        {
+            NavigateToPath(FolderPath);
+        }
 
-		// 하위 폴더 렌더링
-		if (nodeOpen && hasSubFolders)
-		{
-			for (const auto& entry : std::filesystem::directory_iterator(FolderPath))
-			{
-				if (entry.is_directory())
-				{
-					RenderFolderTreeNode(entry.path());
-				}
-			}
-			ImGui::TreePop();
-		}
-	}
-	catch (const std::exception& e)
-	{
-		UE_LOG("Error rendering folder tree node: %s", e.what());
-	}
+        if (nodeOpen && hasSubFolders)
+        {
+            for (const auto& entry : std::filesystem::directory_iterator(FolderPath))
+            {
+                if (entry.is_directory())
+                {
+                    RenderFolderTreeNode(entry.path());
+                }
+            }
+            ImGui::TreePop();
+        }
+    }
+    catch (const std::exception& e)
+    {
+        UE_LOG("Error rendering folder tree: %s", e.what());
+    }
 }
 
 void UContentBrowserWindow::RenderPathBar()
 {
-	ImGui::Text("Path: ");
-	ImGui::SameLine();
+    ImGui::Text("Path: ");
+    ImGui::SameLine();
 
-	// 뒤로 가기 버튼
-	if (CurrentPath != RootPath)
-	{
-		if (ImGui::Button("<- Back"))
-		{
-			NavigateToPath(CurrentPath.parent_path());
-		}
-		ImGui::SameLine();
-	}
+    if (CurrentPath != RootPath)
+    {
+        if (ImGui::Button("<- Back"))
+        {
+            NavigateToPath(CurrentPath.parent_path());
+        }
+        ImGui::SameLine();
+    }
 
-	// 현재 경로 표시
-	FString PathStr = FString(CurrentPath.string().c_str());
-	ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "%s", PathStr.c_str());
+    // [핵심] 현재 경로 표시 시 wstring -> UTF8 변환
+    FString PathStrUTF8 = WideToUTF8(CurrentPath.wstring());
+    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "%s", PathStrUTF8.c_str());
 
-	// 새로고침 버튼
-	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
-	if (ImGui::Button("Refresh"))
-	{
-		RefreshCurrentDirectory();
-	}
-
-	ImGui::Separator();
+    ImGui::SameLine(ImGui::GetWindowWidth() - 100);
+    if (ImGui::Button("Refresh"))
+    {
+        RefreshCurrentDirectory();
+    }
+    ImGui::Separator();
 }
 
 void UContentBrowserWindow::RenderContentGrid()
 {
-	ImGuiStyle& style = ImGui::GetStyle();
-	float windowWidth = ImGui::GetContentRegionAvail().x;
-	float cellSize = ThumbnailSize + style.ItemSpacing.x * 2;
+    ImGuiStyle& style = ImGui::GetStyle();
+    float windowWidth = ImGui::GetContentRegionAvail().x;
+    float cellSize = ThumbnailSize + style.ItemSpacing.x * 2;
 
-	// 동적으로 컬럼 수 계산 (최소 2개 이상)
-	ColumnsCount = std::max(2, (int)(windowWidth / cellSize));
+    ColumnsCount = std::max(2, (int)(windowWidth / cellSize));
 
-	ImGui::BeginChild("ContentArea", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::BeginChild("ContentArea", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-	// 그리드 레이아웃으로 아이템 배치
-	for (int i = 0; i < DisplayedFiles.size(); ++i)
-	{
-		FFileEntry& entry = DisplayedFiles[i];
+    for (int i = 0; i < DisplayedFiles.size(); ++i)
+    {
+        FFileEntry& entry = DisplayedFiles[i];
+        ImGui::PushID(i);
 
-		ImGui::PushID(i);
+        if (i > 0)
+        {
+            int columnIndex = i % ColumnsCount;
+            if (columnIndex != 0) ImGui::SameLine();
+        }
 
-		// 같은 줄에 배치 (첫 번째 아이템이 아닌 경우)
-		if (i > 0)
-		{
-			int columnIndex = i % ColumnsCount;
-			if (columnIndex != 0)
-			{
-				ImGui::SameLine();
-			}
-		}
+        RenderFileItem(entry, i, bUseThumbnails);
+        ImGui::PopID();
+    }
 
-		RenderFileItem(entry, i, bUseThumbnails);
-		ImGui::PopID();
-	}
-
-	ImGui::EndChild();
+    ImGui::EndChild();
 }
 
 void UContentBrowserWindow::RenderFileItem(FFileEntry& Entry, int Index, bool bUseThumbnails)
 {
-	ImGuiStyle& style = ImGui::GetStyle();
-	ImVec2 buttonSize(ThumbnailSize, ThumbnailSize);
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec2 buttonSize(ThumbnailSize, ThumbnailSize);
 
-	// 그룹 시작 - 버튼과 텍스트를 하나의 단위로 묶음
-	ImGui::BeginGroup();
+    ImGui::BeginGroup();
 
-	// 선택 상태에 따라 색상 변경
-	bool isSelected = (Index == SelectedIndex);
-	if (isSelected)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 0.9f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
-	}
+    bool isSelected = (Index == SelectedIndex);
+    if (isSelected)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 0.9f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
+    }
 
-	bool clicked = false;
+    bool clicked = false;
+    if (bUseThumbnails)
+    {
+        // [핵심] ThumbnailManager에 전달할 때 UTF-8 문자열 사용 (Manager가 UTF-8을 기대한다고 가정)
+        // 만약 Manager가 WideChar를 원하면 Entry.Path.wstring().c_str() 사용
+        std::string pathUTF8 = WideToUTF8(Entry.Path.wstring());
+        ID3D11ShaderResourceView* thumbnailSRV = FThumbnailManager::GetInstance().GetThumbnail(pathUTF8);
 
-	// 썸네일 사용 여부에 따라 다른 방식으로 렌더링
-	if (bUseThumbnails)
-	{
-		// 썸네일 가져오기
-		std::string pathStr = Entry.Path.string();
-		ID3D11ShaderResourceView* thumbnailSRV = FThumbnailManager::GetInstance().GetThumbnail(pathStr);
+        if (thumbnailSRV)
+        {
+            char buttonID[32];
+            sprintf_s(buttonID, "##thumbnail_%d", Index);
+            clicked = ImGui::ImageButton(buttonID, (void*)thumbnailSRV, buttonSize);
+        }
+        else
+        {
+            const char* icon = GetIconForFile(Entry);
+            clicked = ImGui::Button(icon, buttonSize);
+        }
+    }
+    else
+    {
+        const char* icon = GetIconForFile(Entry);
+        clicked = ImGui::Button(icon, buttonSize);
+    }
 
-		if (thumbnailSRV)
-		{
-			// ImGui::ImageButton으로 썸네일 표시
-			char buttonID[32];
-			sprintf_s(buttonID, "##thumbnail_%d", Index);
-			clicked = ImGui::ImageButton(buttonID, (void*)thumbnailSRV, buttonSize);
-		}
-		else
-		{
-			// 썸네일이 없으면 텍스트 버튼으로 대체
-			const char* icon = GetIconForFile(Entry);
-			clicked = ImGui::Button(icon, buttonSize);
-		}
-	}
-	else
-	{
-		// 텍스트 아이콘으로 표시
-		const char* icon = GetIconForFile(Entry);
-		clicked = ImGui::Button(icon, buttonSize);
-	}
+    if (clicked)
+    {
+        SelectedIndex = Index;
+        SelectedFile = &Entry;
 
-	// 클릭 처리
-	if (clicked)
-	{
-		SelectedIndex = Index;
-		SelectedFile = &Entry;
+        double currentTime = ImGui::GetTime();
+        if (LastClickedIndex == Index && (currentTime - LastClickTime) < 0.3)
+        {
+            HandleDoubleClick(Entry);
+            LastClickTime = 0.0;
+        }
+        else
+        {
+            LastClickTime = currentTime;
+            LastClickedIndex = Index;
+        }
+    }
 
-		// 더블클릭 감지
-		double currentTime = ImGui::GetTime();
-		if (LastClickedIndex == Index && (currentTime - LastClickTime) < 0.3)
-		{
-			HandleDoubleClick(Entry);
-			LastClickTime = 0.0; // 더블클릭 처리 후 리셋
-		}
-		else
-		{
-			LastClickTime = currentTime;
-			LastClickedIndex = Index;
-		}
-	}
+    if (isSelected) ImGui::PopStyleColor(3);
 
-	if (isSelected)
-	{
-		ImGui::PopStyleColor(3);
-	}
+    // [핵심] 파일 이름 출력 시 미리 변환해둔 UTF-8 문자열 사용
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + ThumbnailSize);
+    ImGui::TextWrapped("%s", Entry.FileNameUTF8.c_str());
+    ImGui::PopTextWrapPos();
 
-	// 파일 이름 표시 (텍스트 줄바꿈)
-	ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + ThumbnailSize);
-	ImGui::TextWrapped("%s", Entry.FileName.c_str());
-	ImGui::PopTextWrapPos();
+    ImGui::EndGroup();
 
-	// 그룹 종료
-	ImGui::EndGroup();
-
-	// 그룹 전체를 드래그 소스로 처리 (EndGroup 이후에 호출)
-	HandleDragSource(Entry);
+    HandleDragSource(Entry);
 }
 
 void UContentBrowserWindow::HandleDragSource(FFileEntry& Entry)
 {
-	if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-	{
-		// 파일 경로를 페이로드로 전달
-		std::string pathStr = Entry.Path.string();
-		ImGui::SetDragDropPayload("ASSET_FILE", pathStr.c_str(), pathStr.size() + 1);
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    {
+        // [핵심] 드래그 드롭 페이로드도 UTF-8로 전달
+        std::string pathStr = WideToUTF8(Entry.Path.wstring());
+        ImGui::SetDragDropPayload("ASSET_FILE", pathStr.c_str(), pathStr.size() + 1);
 
-		// 드래그 중 표시할 툴팁
-		ImGui::Text("Move %s", Entry.FileName.c_str());
-		if (!Entry.Extension.empty())
-		{
-			ImGui::Text("Type: %s", Entry.Extension.c_str());
-		}
+        ImGui::Text("Move %s", Entry.FileNameUTF8.c_str());
+        if (!Entry.Extension.empty())
+        {
+            ImGui::Text("Type: %s", Entry.Extension.c_str());
+        }
 
-		ImGui::EndDragDropSource();
-	}
+        ImGui::EndDragDropSource();
+    }
 }
 
 void UContentBrowserWindow::HandleDoubleClick(FFileEntry& Entry)
 {
-	// 파일인 경우 뷰어 열기
-	UE_LOG("ContentBrowserWindow: Double-clicked file: %s", Entry.FileName.c_str());
+    // [핵심] 로그 출력 시 UTF-8 사용
+    UE_LOG("ContentBrowserWindow: Double-clicked file: %s", Entry.FileNameUTF8.c_str());
 
-	// 확장자에 따라 적절한 뷰어 열기
-	std::string ext = Entry.Extension.c_str();
-	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    std::string ext = Entry.Extension; 
+    // 이미 소문자로 변환되어 있음 (RefreshCurrentDirectory에서 처리)
 
-	if (ext == ".fbx")
-	{
-		// SkeletalMeshViewer 열기
-		std::string pathStr = Entry.Path.string();
-		USlateManager::GetInstance().OpenSkeletalMeshViewerWithFile(pathStr.c_str());
-		UE_LOG("Opening SkeletalMeshViewer for: %s", Entry.FileName.c_str());
-	}
-	else if (ext == ".obj")
-	{
-		// StaticMesh는 현재 전용 뷰어가 없으므로 로그만 출력
-		UE_LOG("StaticMesh file clicked: %s (No dedicated viewer yet)", Entry.FileName.c_str());
-	}
-	else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".dds" || ext == ".tga")
-	{
-		// 텍스처 뷰어 (향후 구현)
-		UE_LOG("Texture file clicked: %s (Texture viewer not implemented yet)", Entry.FileName.c_str());
-	}
-	else
-	{
-		UE_LOG("Unsupported file type: %s", ext.c_str());
-	}
+    // [핵심] 외부 매니저 함수 호출 시 UTF-8 경로 전달
+    std::string pathUTF8 = WideToUTF8(Entry.Path.wstring());
+
+    if (ext == ".fbx")
+    {
+        USlateManager::GetInstance().OpenSkeletalMeshViewerWithFile(pathUTF8.c_str());
+        UE_LOG("Opening SkeletalMeshViewer for: %s", Entry.FileNameUTF8.c_str());
+    }
+    else if (ext == ".obj")
+    {
+        UE_LOG("StaticMesh file clicked: %s", Entry.FileNameUTF8.c_str());
+    }
+    else
+    {
+        UE_LOG("Unsupported file type: %s", ext.c_str());
+    }
 }
 
 const char* UContentBrowserWindow::GetIconForFile(const FFileEntry& Entry) const
 {
-	if (Entry.bIsDirectory)
-	{
-		return "[DIR]";
-	}
+    if (Entry.bIsDirectory) return "[DIR]";
 
-	// 확장자에 따라 아이콘 반환
-	std::string ext = Entry.Extension.c_str();
-	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    const std::string& ext = Entry.Extension;
 
-	if (ext == ".prefab")
-	{
-		return "[PREFAB]";
-	}
-	else if (ext == ".fbx" || ext == ".obj")
-	{
-		return "[MESH]";
-	}
-	else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".dds" || ext == ".tga")
-	{
-		return "[IMG]";
-	}
-	else if (ext == ".hlsl" || ext == ".glsl" || ext == ".fx")
-	{
-		return "[SHDR]";
-	}
-	else if (ext == ".wav" || ext == ".mp3" || ext == ".ogg")
-	{
-		return "[SND]";
-	}
-	else if (ext == ".mat")
-	{
-		return "[MAT]";
-	}
-	else if (ext == ".level" || ext == ".json")
-	{
-		return "[DATA]";
-	}
+    if (ext == ".prefab") return "[PREFAB]";
+    else if (ext == ".fbx" || ext == ".obj") return "[MESH]";
+    else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".dds" || ext == ".tga") return "[IMG]";
+    else if (ext == ".hlsl" || ext == ".glsl" || ext == ".fx") return "[SHDR]";
+    else if (ext == ".wav" || ext == ".mp3" || ext == ".ogg") return "[SND]";
+    else if (ext == ".mat") return "[MAT]";
+    else if (ext == ".level" || ext == ".json") return "[DATA]";
 
-	return "[FILE]";
+    return "[FILE]";
 }
 
 FString UContentBrowserWindow::FormatFileSize(uintmax_t Size) const
 {
-	const char* units[] = { "B", "KB", "MB", "GB" };
-	int unitIndex = 0;
-	double size = static_cast<double>(Size);
+    const char* units[] = { "B", "KB", "MB", "GB" };
+    int unitIndex = 0;
+    double size = static_cast<double>(Size);
 
-	while (size >= 1024.0 && unitIndex < 3)
-	{
-		size /= 1024.0;
-		unitIndex++;
-	}
+    while (size >= 1024.0 && unitIndex < 3)
+    {
+        size /= 1024.0;
+        unitIndex++;
+    }
 
-	char buffer[64];
-	sprintf_s(buffer, "%.2f %s", size, units[unitIndex]);
-	return FString(buffer);
+    char buffer[64];
+    sprintf_s(buffer, "%.2f %s", size, units[unitIndex]);
+    return FString(buffer);
 }
