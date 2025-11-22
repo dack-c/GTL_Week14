@@ -234,19 +234,19 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
             const int32 ParticleIdx =
                 bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
 
-            const FBaseParticle* P = SpriteData->GetParticle(ParticleIdx); // 위에서 만든 private 헬퍼를 public으로 바꾸거나, 유틸 함수로 노출
-            if (!P)
+            const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx); // 위에서 만든 private 헬퍼를 public으로 바꾸거나, 유틸 함수로 노출
+            if (!Particle)
                 continue;
 
-            const float Size = P->Size;
-            FVector WorldPos = P->Location;
+            const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
+            FVector WorldPos = Particle->Location;
 
             if (SpriteData->bUseLocalSpace)
             {
                 WorldPos = GetWorldMatrix().TransformPosition(WorldPos);
             }
 
-            const FLinearColor Color = P->Color;
+            const FLinearColor Color = Particle->Color;
 
             for (int CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
             {

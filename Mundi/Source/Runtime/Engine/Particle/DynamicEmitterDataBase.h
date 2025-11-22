@@ -56,33 +56,6 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
 {
     virtual const FDynamicEmitterReplayDataBase* GetSource() const = 0;
 
-    const FBaseParticle* GetParticle(int32 Idx) const
-    {
-        const FDynamicEmitterReplayDataBase* Src = GetSource();
-        if (!Src || !Src->DataContainer.ParticleData)
-            return nullptr;
-
-        const uint8* BasePtr =
-            Src->DataContainer.ParticleData +
-            Src->ParticleStride * Idx;
-
-        return reinterpret_cast<const FBaseParticle*>(BasePtr);
-    }
-
-    FVector GetParticlePosition(int32 Idx) const
-    {
-        if (const FBaseParticle* P = GetParticle(Idx))
-            return P->Location;
-        return FVector::Zero();
-    }
-
-    float GetParticleAge(int32 Idx) const
-    {
-        if (const FBaseParticle* P = GetParticle(Idx))
-            return P->RelativeTime;
-        return 0.0f;
-    }
-
     void SortParticles(const FVector& ViewOrigin, const FVector& ViewDir, TArray<int32>& OutIndices) const
     {
         const auto* Src = GetSource();
@@ -128,6 +101,33 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
         OutIndices.Sort([&Keys](int32 A, int32 B) {
             return Keys[A] > Keys[B];
             });
+    }
+
+    const FBaseParticle* GetParticle(int32 Idx) const
+    {
+        const FDynamicEmitterReplayDataBase* Src = GetSource();
+        if (!Src || !Src->DataContainer.ParticleData)
+            return nullptr;
+
+        const uint8* BasePtr =
+            Src->DataContainer.ParticleData +
+            Src->ParticleStride * Idx;
+
+        return reinterpret_cast<const FBaseParticle*>(BasePtr);
+    }
+
+    FVector GetParticlePosition(int32 Idx) const
+    {
+        if (const FBaseParticle* P = GetParticle(Idx))
+            return P->Location;
+        return FVector::Zero();
+    }
+
+    float GetParticleAge(int32 Idx) const
+    {
+        if (const FBaseParticle* P = GetParticle(Idx))
+            return P->RelativeTime;
+        return 0.0f;
     }
 };
 

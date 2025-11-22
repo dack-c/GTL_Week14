@@ -350,12 +350,20 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
         case EEmitterRenderType::Mesh:
         {
             auto& MeshOut = static_cast<FDynamicMeshEmitterReplayData&>(OutData);
+            
 
-            // UParticleEmitter에 Mesh 정보가 있다고 가정
+            const int32 ParticleBytes = ActiveParticles * ParticleStride;
+            const int32 InstanceCount = ActiveParticles;
+
+            MeshOut.DataContainer.Free();
+            MeshOut.DataContainer.Allocate(ParticleBytes, InstanceCount);
+
+            std::memcpy(MeshOut.DataContainer.ParticleData, ParticleData, ParticleBytes);
+
+            // Mesh 세팅
             MeshOut.Mesh = Template ? Template->Mesh : nullptr;
-            MeshOut.InstanceStride = ParticleStride;
-            MeshOut.InstanceCount = ActiveParticles;
-            break;
+            // MeshOut.InstanceStride = /* instance 데이터 stride */;
+            MeshOut.InstanceCount = InstanceCount;
         }
     }
 
