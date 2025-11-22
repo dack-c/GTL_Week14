@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "Vector.h" // uint8
 #include "ParticleDataContainer.h"
+#include "ParticleHelper.h"
+#include "Modules/ParticleModuleRequired.h"
 
 enum class EParticleSortMode : uint8 
 { 
