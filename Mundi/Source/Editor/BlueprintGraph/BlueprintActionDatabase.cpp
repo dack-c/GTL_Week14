@@ -36,11 +36,7 @@ UBlueprintNodeSpawner* UBlueprintNodeSpawner::Create(UClass* InNodeClass)
 
 FBlueprintActionDatabase::~FBlueprintActionDatabase()
 {
-    for (UBlueprintNodeSpawner* Action : ActionRegistry)
-    {
-        DeleteObject(Action);
-    }
-    ActionRegistry.Empty();
+    Shutdown();
 }
 
 void FBlueprintActionDatabase::Initialize()
@@ -60,12 +56,27 @@ void FBlueprintActionDatabase::Initialize()
                 Node->GetMenuActions(Registrar);
                 
                 /** 임시객체를 해제한다. */
-                DeleteObject(Node);
+                delete Node;
             }
         }
     }
 
     RegisterAllNodeActions(std::move(Registrar));
+}
+
+void FBlueprintActionDatabase::Shutdown()
+{
+    // 이미 청소했으면 패스
+    if (ActionRegistry.Num() == 0) return;
+
+    for (UBlueprintNodeSpawner* Action : ActionRegistry)
+    {
+        if (Action)
+        {
+            DeleteObject(Action);
+        }
+    }
+    ActionRegistry.Empty();
 }
 
 void FBlueprintActionDatabase::RegisterAllNodeActions(FBlueprintActionDatabaseRegistrar&& Registrar)
