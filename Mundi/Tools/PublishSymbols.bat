@@ -27,23 +27,20 @@ set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 set SERVER_IP=172.21.11.109
 set STORE_PATH=\\%SERVER_IP%\SymbolStore
 
-:: >>>>>>> [Added] Check Server Connection <<<<<<<
-:: -n 1: Send 1 ping request
-:: -w 500: Timeout in 500ms (0.5 seconds) if no reply
-ping -n 1 -w 500 %SERVER_IP% >nul 2>&1
-
-if errorlevel 1 (
+if not exist "%STORE_PATH%" (
     echo.
-    echo [Warning] Symbol Server (%SERVER_IP%) is unreachable or turned off.
+    echo [Warning] Cannot access Symbol Store path: "%STORE_PATH%"
+    echo           Server might be unreachable or you lack permissions.
     echo           Skipping symbol upload.
+    
     exit /b 0
 )
-:: >>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<
 
 :: ========================================================
 :: [Setup 4] Version Tag (Auto-generated from Date_Time)
 :: ========================================================
-set VERSION_TAG=Build_%CONFIG%_%date:~0,4%-%date:~5,2%-%date:~8,2%_%time:~0,2%%time:~3,2%
+set "NOW_TIME=%time: =0%"
+set VERSION_TAG=Build_%CONFIG%_%date:~0,4%-%date:~5,2%-%date:~8,2%_%NOW_TIME:~0,2%%NOW_TIME:~3,2%
 
 echo.
 echo ========================================================
