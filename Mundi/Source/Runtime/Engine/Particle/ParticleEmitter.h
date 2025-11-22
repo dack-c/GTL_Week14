@@ -6,6 +6,7 @@ class UParticleLODLevel;
 class UParticleSystemComponent;
 class UParticleEmitter;
 struct FBaseParticle;
+struct FDynamicEmitterReplayDataBase;
 
 // 런타임 Emitter Instance
 struct FParticleEmitterInstance
@@ -77,7 +78,7 @@ struct FParticleEmitterInstance
      * @param InitialLocation 초기 Location 
      * @param InitialVelocity 초기 Velocity
      */
-    void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity);
+    void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity);    
 
     /** 파티클 제거 */
     void KillParticle(int32 Index);
@@ -88,7 +89,11 @@ struct FParticleEmitterInstance
     /** LOD에 따른 모듈 캐싱 업데이트 */
     void UpdateModuleCache();
 
+    void BuildReplayData(FDynamicEmitterReplayDataBase& OutData);
+
     bool IsComplete() const;
+
+    EEmitterRenderType GetDynamicType() const { return Template->RenderType; };
 };
 
 class UParticleEmitter : public UObject
@@ -98,9 +103,9 @@ public:
 
 public:
     TArray<UParticleLODLevel*> LODLevels;
+    EEmitterRenderType RenderType = EEmitterRenderType::Sprite;
 
     int32 ParticleSizeBytes = 0;
     int32 MaxParticles = 0;
     float MaxLifetime = 0.f;
-
 };
