@@ -22,9 +22,23 @@ set TOOL_DIR=%~dp0SymStore
 set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 
 :: ========================================================
-:: [Setup 3] Symbol Server Path
+:: [Setup 3] Symbol Server Path & IP Check
 :: ========================================================
-set STORE_PATH=\\172.21.11.109\SymbolStore
+set SERVER_IP=172.21.11.109
+set STORE_PATH=\\%SERVER_IP%\SymbolStore
+
+:: >>>>>>> [Added] Check Server Connection <<<<<<<
+:: -n 1: Send 1 ping request
+:: -w 500: Timeout in 500ms (0.5 seconds) if no reply
+ping -n 1 -w 500 %SERVER_IP% >nul 2>&1
+
+if errorlevel 1 (
+    echo.
+    echo [Warning] Symbol Server (%SERVER_IP%) is unreachable or turned off.
+    echo           Skipping symbol upload.
+    exit /b 0
+)
+:: >>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<
 
 :: ========================================================
 :: [Setup 4] Version Tag (Auto-generated from Date_Time)
@@ -33,9 +47,9 @@ set VERSION_TAG=Build_%CONFIG%_%date:~0,4%-%date:~5,2%-%date:~8,2%_%time:~0,2%%t
 
 echo.
 echo ========================================================
-echo  Target Config : %CONFIG%
-echo  Source Path   : %BIN_DIR%
-echo  Target Server : %STORE_PATH%
+echo   Target Config : %CONFIG%
+echo   Source Path   : %BIN_DIR%
+echo   Target Server : %STORE_PATH%
 echo ========================================================
 
 :: Validate Path
