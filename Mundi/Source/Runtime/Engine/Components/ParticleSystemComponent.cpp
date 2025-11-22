@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleSystemComponent.h"
 #include "MeshBatchElement.h"
 #include "SceneView.h"
@@ -99,6 +99,9 @@ void UParticleSystemComponent::DestroyParticles()
         }
     }
     EmitterInstances.Empty();
+
+    ClearEmitterRenderData();
+
     bIsActive = false;
 }
 
@@ -120,13 +123,34 @@ void UParticleSystemComponent::ReleaseParticleBuffers()
     ParticleIndexCount = 0;
 }
 
+void UParticleSystemComponent::ClearEmitterRenderData()
+{
+    for (FDynamicEmitterDataBase* Data : EmitterRenderData)
+    {
+        if (Data)
+        {
+            if (auto* Sprite = dynamic_cast<FDynamicSpriteEmitterData*>(Data))
+            {
+                Sprite->Source.DataContainer.Free();
+            }
+            else if (auto* Mesh = dynamic_cast<FDynamicMeshEmitterData*>(Data))
+            {
+                Mesh->Source.DataContainer.Free();
+            }
+
+            delete Data;
+        }
+    }
+    EmitterRenderData.Empty();
+}
+
 void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
     if (!IsVisible())
     {
         return;
     }
-
+    
     // 시뮬레이션 데이터 → Replay → DynamicData
     BuildEmitterRenderData();
 
@@ -136,11 +160,7 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
     BuildParticleBatch(OutMeshBatchElements, View);
 
     // 이번 프레임 끝에 DynamicData 파괴
-    for (FDynamicEmitterDataBase* Data : EmitterRenderData)
-    {
-        delete Data;
-    }
-    EmitterRenderData.Empty();
+    ClearEmitterRenderData();
 }
 
 void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
@@ -367,11 +387,7 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
 void UParticleSystemComponent::BuildEmitterRenderData()
 {
     // 1) 이전 프레임 데이터 정리
-    for (FDynamicEmitterDataBase* Data : EmitterRenderData)
-    {
-        delete Data;
-    }
-    EmitterRenderData.Empty();
+    ClearEmitterRenderData();
 
     if (!EmitterInstances.IsEmpty())
     {
