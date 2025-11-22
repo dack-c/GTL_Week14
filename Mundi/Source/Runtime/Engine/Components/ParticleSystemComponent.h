@@ -60,7 +60,7 @@ private:
 
 	/** 렌더 스레드로 보낼 데이터 패킷들 */
 	TArray<FDynamicEmitterDataBase*> EmitterRenderData;	
-	int MaxDebugParticles = 0;
+	int MaxDebugParticles = 1000;
 	bool bEnableDebugEmitter = true;
 
 

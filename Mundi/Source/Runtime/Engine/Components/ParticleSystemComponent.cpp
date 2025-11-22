@@ -173,10 +173,9 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
     }
 
     // 임시
-    const uint32 ClampedCount = 1000;
-    /*MaxDebugParticles > 0
-        ? std::min<uint32>(ParticleCount, static_cast<uint32>(MaxDebugParticles))
-        : ParticleCount;*/
+    const uint32 ClampedCount = MaxDebugParticles > 0
+        ? std::min<uint32>(TotalParticles, static_cast<uint32>(MaxDebugParticles))
+        : TotalParticles;
 
     if (!EnsureParticleBuffers(ClampedCount))
     {
