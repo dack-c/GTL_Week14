@@ -3,6 +3,8 @@
 #include "../ParticleEmitter.h"
 #include "../ParticleHelper.h"
 
+IMPLEMENT_CLASS(UParticleModuleSize)
+
 void UParticleModuleSize::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!ParticleBase)

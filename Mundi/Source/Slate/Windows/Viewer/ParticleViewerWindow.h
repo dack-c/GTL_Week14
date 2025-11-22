@@ -54,6 +54,12 @@ private:
     // Save path (for new particle systems created from content browser)
     FString SavePath;
 
+    // Selected emitter index for UI
+    int32 SelectedEmitterIndex = 0;
+
+    // Selected module for details panel
+    class UParticleModule* SelectedModule = nullptr;
+
     // Layout state                                                                                
     float LeftPanelRatio = 0.25f;   // 25% of width                                                
     float RightPanelRatio = 0.25f;  // 25% of width                                                

@@ -3,6 +3,8 @@
 #include "../ParticleEmitter.h"
 #include "../ParticleHelper.h"
 
+IMPLEMENT_CLASS(UParticleModuleColor)
+
 void UParticleModuleColor::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!ParticleBase)

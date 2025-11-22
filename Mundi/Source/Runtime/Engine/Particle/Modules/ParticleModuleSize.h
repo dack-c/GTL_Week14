@@ -3,6 +3,7 @@
 
 class UParticleModuleSize : public UParticleModule
 {
+    DECLARE_CLASS(UParticleModuleSize, UParticleModule)
 public:
     // 초기 크기 (Spawn 시)
     FRawDistributionVector StartSize = FRawDistributionVector(FVector(1.0f,1.0f,1.0f) * 50.0f);

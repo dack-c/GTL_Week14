@@ -31,6 +31,7 @@ enum class ESortMode : uint8
 
 class UParticleModuleRequired : public UParticleModule
 {
+    DECLARE_CLASS(UParticleModuleRequired, UParticleModule)
 public:
     // ---- Emitter 운영 ----
     int32 MaxParticles = 1000;

@@ -11,6 +11,7 @@ enum class ELocationDistributionType : uint8
 
 class UParticleModuleLocation : public UParticleModule
 {
+    DECLARE_CLASS(UParticleModuleLocation, UParticleModule)
 public:
     // 분포 타입
     ELocationDistributionType DistributionType = ELocationDistributionType::Point;

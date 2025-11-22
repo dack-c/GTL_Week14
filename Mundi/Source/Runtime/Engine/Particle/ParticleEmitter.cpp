@@ -9,6 +9,8 @@
 #include "Modules/ParticleModuleTypeDataBase.h"
 #include "DynamicEmitterDataBase.h"
 
+IMPLEMENT_CLASS(UParticleEmitter)
+
 void FParticleEmitterInstance::Init(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
 {
     Template = InTemplate;

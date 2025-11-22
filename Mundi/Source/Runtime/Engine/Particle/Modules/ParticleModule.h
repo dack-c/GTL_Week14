@@ -38,6 +38,7 @@ enum class EParticleModuleType : uint8
 
 class UParticleModule : public UObject
 {
+    DECLARE_CLASS(UParticleModule, UObject)
 public:
     // ============================================================
     // 언리얼 스타일 인터페이스

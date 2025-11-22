@@ -9,7 +9,10 @@ using JSON = json::JSON;
 
 class UParticleSystem : public UObject
 {
+    DECLARE_CLASS(UParticleSystem, UObject)
 public:
+    UParticleSystem();
+
     void BuildRuntimeCache();
 
     // 저장

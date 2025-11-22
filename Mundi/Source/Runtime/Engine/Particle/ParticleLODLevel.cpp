@@ -3,6 +3,8 @@
 #include "Modules/ParticleModuleRequired.h"
 #include "Modules/ParticleModuleTypeDataBase.h"
 
+IMPLEMENT_CLASS(UParticleLODLevel)
+
 void UParticleLODLevel::RebuildModuleCaches()
 {
     AllModulesCache.Empty();

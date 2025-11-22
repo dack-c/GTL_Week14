@@ -3,6 +3,8 @@
 #include "../ParticleEmitter.h"
 #include "Source/Runtime/Engine/Particle/ParticleHelper.h"
 
+IMPLEMENT_CLASS(UParticleModuleLocation)
+
 void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!ParticleBase)

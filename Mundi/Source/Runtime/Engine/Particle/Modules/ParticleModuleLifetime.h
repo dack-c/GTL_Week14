@@ -3,6 +3,7 @@
 
 class UParticleModuleLifetime : public UParticleModule
 {
+    DECLARE_CLASS(UParticleModuleLifetime, UParticleModule)
 public:
     // 파티클 수명 (초 단위)
     FRawDistributionFloat Lifetime = FRawDistributionFloat(1.0f, 5.0f);

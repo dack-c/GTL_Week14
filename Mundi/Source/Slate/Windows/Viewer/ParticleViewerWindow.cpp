@@ -6,6 +6,12 @@
 #include "Source/Runtime/Engine/Particle/ParticleEmitter.h"
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModule.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRequired.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSpawn.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLifetime.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSize.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocity.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColor.h"
 #include "Source/Runtime/Core/Object/ObjectFactory.h"
 #include "World.h"
 #include "CameraActor.h"
@@ -202,32 +208,71 @@ void SParticleViewerWindow::OnRender()
         ImGui::EndChild();
 
         // Properties
-        ImGui::BeginChild("Properties", ImVec2(0, propertiesHeight), true);
+        ImGui::BeginChild("Particle System", ImVec2(0, propertiesHeight), true);
         {
-            ImGui::Text("Properties");
+            ImGui::Text("디테일");
             ImGui::Separator();
 
-            if (CurrentParticleSystem)
+            if (SelectedModule)
             {
-                //ImGui::Text("Particle System: %s", CurrentParticleSystem->GetName());
-                ImGui::Spacing();
+                ImGui::Text("Selected Module: %s", SelectedModule->GetClass()->Name);
+                ImGui::Separator();
 
-                // Particle System
-                if (ImGui::CollapsingHeader("파티클 시스템", ImGuiTreeNodeFlags_DefaultOpen))
+                // 모듈 타입별로 속성 표시
+                if (auto* RequiredModule = dynamic_cast<UParticleModuleRequired*>(SelectedModule))
                 {
-                    
+                    ImGui::Text("Emitter Settings");
+                    ImGui::DragInt("Max Particles", &RequiredModule->MaxParticles, 1.0f, 1, 10000);
+                    ImGui::DragFloat("Emitter Duration", &RequiredModule->EmitterDuration, 0.01f, 0.0f, 100.0f);
+                    ImGui::DragFloat("Emitter Delay", &RequiredModule->EmitterDelay, 0.01f, 0.0f, 10.0f);
+                    ImGui::DragInt("Emitter Loops", &RequiredModule->EmitterLoops, 1.0f, 0, 100);
+                    ImGui::DragFloat("Spawn Rate Base", &RequiredModule->SpawnRateBase, 0.1f, 0.0f, 1000.0f);
+                    ImGui::Checkbox("Use Local Space", &RequiredModule->bUseLocalSpace);
+                    ImGui::Checkbox("Kill On Deactivate", &RequiredModule->bKillOnDeactivate);
+                    ImGui::Checkbox("Kill On Completed", &RequiredModule->bKillOnCompleted);
                 }
-
-                if (ImGui::CollapsingHeader("섬네일"))
+                else if (auto* SpawnModule = dynamic_cast<UParticleModuleSpawn*>(SelectedModule))
                 {
-                    
+                    ImGui::Text("Spawn Settings");
+                    ImGui::DragFloat("Spawn Rate Min", &SpawnModule->SpawnRate.MinValue, 0.1f, 0.0f, 1000.0f);
+                    ImGui::DragFloat("Spawn Rate Max", &SpawnModule->SpawnRate.MaxValue, 0.1f, 0.0f, 1000.0f);
+                    ImGui::Checkbox("Use Range", &SpawnModule->SpawnRate.bUseRange);
                 }
-
-                if (ImGui::CollapsingHeader("LOD"))
+                else if (auto* LifetimeModule = dynamic_cast<UParticleModuleLifetime*>(SelectedModule))
                 {
-                    ImGui::Text("LOD Distance Check Time: 0.250000");
-                    ImGui::Text("LOD Method: PARTICLESYSTEMLODMETHOD_Automatic");
+                    ImGui::Text("Lifetime Settings");
+                    ImGui::DragFloat("Lifetime Min", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
+                    ImGui::DragFloat("Lifetime Max", &LifetimeModule->Lifetime.MaxValue, 0.01f, 0.0f, 100.0f);
+                    ImGui::Checkbox("Use Range", &LifetimeModule->Lifetime.bUseRange);
                 }
+                else if (auto* SizeModule = dynamic_cast<UParticleModuleSize*>(SelectedModule))
+                {
+                    ImGui::Text("Size Settings");
+                    ImGui::DragFloat3("Start Size Min", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
+                    ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
+                    ImGui::Checkbox("Use Range", &SizeModule->StartSize.bUseRange);
+                }
+                else if (auto* VelocityModule = dynamic_cast<UParticleModuleVelocity*>(SelectedModule))
+                {
+                    ImGui::Text("Velocity Settings");
+                    ImGui::DragFloat3("Start Velocity Min", &VelocityModule->StartVelocity.MinValue.X, 1.0f, -1000.0f, 1000.0f);
+                    ImGui::DragFloat3("Start Velocity Max", &VelocityModule->StartVelocity.MaxValue.X, 1.0f, -1000.0f, 1000.0f);
+                    ImGui::Checkbox("Use Range", &VelocityModule->StartVelocity.bUseRange);
+                    ImGui::DragFloat3("Gravity", &VelocityModule->Gravity.X, 1.0f, -10000.0f, 10000.0f);
+                }
+                else if (auto* ColorModule = dynamic_cast<UParticleModuleColor*>(SelectedModule))
+                {
+                    ImGui::Text("Color Settings");
+                    ImGui::ColorEdit3("Start Color Min", &ColorModule->StartColor.MinValue.R);
+                    ImGui::ColorEdit3("Start Color Max", &ColorModule->StartColor.MaxValue.R);
+                    ImGui::Checkbox("Use Range", &ColorModule->StartColor.bUseRange);
+                    ImGui::DragFloat("Start Alpha Min", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Start Alpha Max", &ColorModule->StartAlpha.MaxValue, 0.01f, 0.0f, 1.0f);
+                }
+            }
+            else if (CurrentParticleSystem)
+            {
+                ImGui::TextDisabled("No module selected");
             }
             else
             {
@@ -243,43 +288,126 @@ void SParticleViewerWindow::OnRender()
     // 우측: Emitter/모듈 패널
     ImGui::BeginChild("EmitterPanel", ImVec2(rightPanelWidth, mainContentHeight), true);
     {
-        ImGui::Text("Emitters");
+        ImGui::Text("이미터");
         ImGui::Separator();
 
         if (CurrentParticleSystem && CurrentParticleSystem->Emitters.Num() > 0)
         {
-            // Emitter 탭 형태로 표시
+            // 각 이미터를 블럭 형태로 표시
             for (int i = 0; i < CurrentParticleSystem->Emitters.Num(); i++)
             {
                 UParticleEmitter* Emitter = CurrentParticleSystem->Emitters[i];
                 if (!Emitter) continue;
 
                 ImGui::PushID(i);
-                if (ImGui::CollapsingHeader(Emitter->GetName().c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+
+                // 이미터 블럭 (가로만 고정, 세로는 전체)
+                const float emitterBlockWidth = 200.0f;
+                ImGui::BeginChild("EmitterBlock", ImVec2(emitterBlockWidth, 0), true);
                 {
-                    // LOD Level 정보
+                    // 이미터 헤더 (Selectable로 호버링 가능하게)
+                    const float headerHeight = 50.0f;
+                    ImGui::PushID("emitter_header");
+                    if (ImGui::Selectable("##emitterheader", false, 0, ImVec2(0, headerHeight)))
+                    {
+                        // 이미터 헤더 클릭 시 처리
+                    }
+                    ImGui::PopID();
+
+                    // 헤더 위에 내용 그리기
+                    ImVec2 headerMin = ImGui::GetItemRectMin();
+                    ImVec2 headerMax = ImGui::GetItemRectMax();
+
+                    // 이미터 이름
+                    ImGui::SetCursorScreenPos(ImVec2(headerMin.x + 5, headerMin.y + 5));
+                    ImGui::Text("%s", Emitter->GetName().c_str());
+
+                    // 미리보기 박스 (우측 하단)
+                    ImGui::SetCursorScreenPos(ImVec2(headerMax.x - 45, headerMin.y + 5));
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+                    ImGui::Button("##preview", ImVec2(40, 40));
+                    ImGui::PopStyleColor(3);
+
+                    // 원래 커서 위치 복구
+                    ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMax.y));
+
+                    ImGui::Separator();
+
+                    // 모듈 리스트
                     if (Emitter->LODLevels.Num() > 0)
                     {
                         UParticleLODLevel* LOD = Emitter->LODLevels[0];
                         if (LOD)
                         {
-                            ImGui::Indent();
-
-                            // 모듈 리스트 (AllModulesCache 사용)
-                            for (int m = 0; m < LOD->AllModulesCache.Num(); m++)
+                            // 필수 모듈
+                            if (LOD->RequiredModule)
                             {
-                                UParticleModule* Module = LOD->AllModulesCache[m];
+                                ImGui::PushID("req");
+                                bool isSelected = (SelectedModule == LOD->RequiredModule);
+                                if (ImGui::Selectable(LOD->RequiredModule->GetClass()->Name, isSelected, 0, ImVec2(0, 20)))
+                                {
+                                    SelectedModule = LOD->RequiredModule;
+                                }
+                                ImGui::PopID();
+                            }
+
+                            // 스폰 모듈
+                            if (LOD->SpawnModule)
+                            {
+                                ImGui::PushID("spawn");
+                                bool isSelected = (SelectedModule == LOD->SpawnModule);
+                                if (ImGui::Selectable(LOD->SpawnModule->GetClass()->Name, isSelected, 0, ImVec2(0, 20)))
+                                {
+                                    SelectedModule = LOD->SpawnModule;
+                                }
+                                ImGui::PopID();
+                            }
+
+                            // SpawnModules
+                            for (int m = 0; m < LOD->SpawnModules.Num(); m++)
+                            {
+                                UParticleModule* Module = LOD->SpawnModules[m];
                                 if (Module)
                                 {
-                                    ImGui::Selectable(Module->GetClass()->Name);
+                                    ImGui::PushID(m);
+                                    bool isSelected = (SelectedModule == Module);
+                                    if (ImGui::Selectable(Module->GetClass()->Name, isSelected, 0, ImVec2(0, 20)))
+                                    {
+                                        SelectedModule = Module;
+                                    }
+                                    ImGui::PopID();
                                 }
                             }
 
-                            ImGui::Unindent();
+                            // UpdateModules
+                            for (int m = 0; m < LOD->UpdateModules.Num(); m++)
+                            {
+                                UParticleModule* Module = LOD->UpdateModules[m];
+                                if (Module)
+                                {
+                                    ImGui::PushID(m + 1000);
+                                    bool isSelected = (SelectedModule == Module);
+                                    if (ImGui::Selectable(Module->GetClass()->Name, isSelected, 0, ImVec2(0, 20)))
+                                    {
+                                        SelectedModule = Module;
+                                    }
+                                    ImGui::PopID();
+                                }
+                            }
                         }
                     }
                 }
+                ImGui::EndChild();
+
                 ImGui::PopID();
+
+                // 다음 이미터를 옆에 배치 (2열 레이아웃)
+                if ((i + 1) % 2 != 0 && i + 1 < CurrentParticleSystem->Emitters.Num())
+                {
+                    ImGui::SameLine();
+                }
             }
         }
         else

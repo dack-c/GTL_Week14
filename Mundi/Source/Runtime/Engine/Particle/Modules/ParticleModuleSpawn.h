@@ -10,6 +10,7 @@ enum class ESpawnRateType : uint8
 
 class UParticleModuleSpawn : public UParticleModule
 {
+    DECLARE_CLASS(UParticleModuleSpawn, UParticleModule)
 public:
     // 스폰 타입
     ESpawnRateType SpawnRateType = ESpawnRateType::Constant;
