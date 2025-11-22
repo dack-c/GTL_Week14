@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
 #include "ParticleSystemComponent.h"
-#include "Source/Runtime/Engine/Particle/DynamicEmitterDataBase.h"
 #include "MeshBatchElement.h"
 #include "SceneView.h"
+#include "Source/Runtime/Engine/Particle/DynamicEmitterDataBase.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
 {
@@ -10,23 +10,23 @@ UParticleSystemComponent::UParticleSystemComponent()
     bAutoActivate = true;
 
     // 디버그용 파티클 3개
-    FDynamicEmitterDataBase P0;
-    P0.Position = FVector(0, 0, 1);
-    P0.Size = 300.0f;
-    P0.Color = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    EmitterRenderData.Add(&P0);
+    FDynamicEmitterDataBase* P0 = new FDynamicEmitterDataBase();
+    P0->Position = FVector(0, 0, 1);
+    P0->Size = 3.0f;
+    P0->Color = FLinearColor(1.0f, 0.0f, 0.0f, 0.5f);
+    EmitterRenderData.Add(std::move(P0));
 
-    FDynamicEmitterDataBase P1;
-    P1.Position = FVector(1, 0, 1);
-    P1.Size = 400.0f;
-    P1.Color = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f);
-    EmitterRenderData.Add(&P1);
+    FDynamicEmitterDataBase* P1 = new FDynamicEmitterDataBase();
+    P1->Position = FVector(1, 0, 1);
+    P1->Size = 4.0f;
+    P1->Color = FLinearColor(0.0f, 1.0f, 0.0f, 0.5f);
+    EmitterRenderData.Add(std::move(P1));
 
-    FDynamicEmitterDataBase P2;
-    P2.Position = FVector(0, 1, 1.5);
-    P2.Size = 500.0f;
-    P2.Color = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f);
-    EmitterRenderData.Add(&P2);
+    FDynamicEmitterDataBase* P2 = new FDynamicEmitterDataBase();
+    P2->Position = FVector(0, 1, 1.5);
+    P2->Size = 5.0f;
+    P2->Color = FLinearColor(0.0f, 0.0f, 1.0f, 0.5f);
+    EmitterRenderData.Add(std::move(P2));
 
     MaxDebugParticles = 128; 
 }
@@ -127,30 +127,7 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
         return;
     }
 
-    for (int32 EmitterIdx = 0; EmitterIdx < EmitterRenderData.Num(); ++EmitterIdx)
-    {
-
-        //FDynamicEmitterDataBase* Data = EmitterRenderData[EmitterIdx];
-        // if (!Data || Data->ActiveParticleCount <= 0)        
-        //{
-        //    continue;
-        //}
-        
-        // 일단은 Sprite만, TEST
-        BuildParticleBatch(OutMeshBatchElements, View);
-
-        //switch (Data->EmitterType)
-        //{
-        //case EDynamicEmitterType::Sprite:
-        //    BuildSpriteParticleBatch(static_cast<FDynamicSpriteEmitterDataBase&>(*Data),
-        //        OutMeshBatchElements, View);
-        //    break;
-        //case EDynamicEmitterType::Mesh:
-        //    BuildMeshParticleBatch(static_cast<FDynamicMeshEmitterDataBase&>(*Data),
-        //        OutMeshBatchElements, View);
-        //    break;
-        //}
-    }
+    BuildParticleBatch(OutMeshBatchElements, View);
 }
 
 void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
@@ -253,6 +230,15 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
     Batch.ObjectID = InternalIndex;
 }
 
+UMaterialInterface* UParticleSystemComponent::GetMaterial(uint32 InSectionIndex) const
+{
+    return ParticleMaterial;
+}
+
+void UParticleSystemComponent::SetMaterial(uint32 InSectionIndex, UMaterialInterface* InNewMaterial)
+{
+    ParticleMaterial = InNewMaterial;
+}
 
 bool UParticleSystemComponent::EnsureParticleBuffers(uint32 ParticleCapacity)
 {
@@ -296,12 +282,12 @@ bool UParticleSystemComponent::EnsureParticleBuffers(uint32 ParticleCapacity)
     {
         const uint32 VertexBase = ParticleIndex * 4;
         const uint32 IndexBase = ParticleIndex * 6;
-        Indices[IndexBase + 0] = VertexBase + 0;
+        Indices[IndexBase + 0] = VertexBase + 2;
         Indices[IndexBase + 1] = VertexBase + 1;
-        Indices[IndexBase + 2] = VertexBase + 2;
-        Indices[IndexBase + 3] = VertexBase + 0;
+        Indices[IndexBase + 2] = VertexBase + 0;
+        Indices[IndexBase + 3] = VertexBase + 3;
         Indices[IndexBase + 4] = VertexBase + 2;
-        Indices[IndexBase + 5] = VertexBase + 3;
+        Indices[IndexBase + 5] = VertexBase + 0;
     }
 
     D3D11_BUFFER_DESC IndexDesc = {};

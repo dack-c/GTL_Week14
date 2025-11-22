@@ -4,7 +4,7 @@
 #include "Source/Runtime/Engine/Particle/ParticleSystem.h"
 #include "UParticleSystemComponent.generated.h"
 
-class FDynamicEmitterDataBase;
+struct FDynamicEmitterDataBase;
 
 UCLASS(DisplayName = "파티클 컴포넌트", Description = "파티클을 생성하는 컴포넌트")
 class UParticleSystemComponent : public UPrimitiveComponent
@@ -38,7 +38,9 @@ public:
 	// sprite, mesh 나눠 BuildBatch
 	// 추후 FDynamicEmitterDataBase를 바꿀 것!
 	void BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
-	bool EnsureParticleBuffers(uint32 ParticleCapacity);
+	UMaterialInterface* GetMaterial(uint32 InSectionIndex) const override;
+	void SetMaterial(uint32 InSectionIndex, UMaterialInterface* InNewMaterial) override;
+bool EnsureParticleBuffers(uint32 ParticleCapacity);
 private:	
 	/** 파티클 시스템 에셋 */
 	UParticleSystem* Template = nullptr;
