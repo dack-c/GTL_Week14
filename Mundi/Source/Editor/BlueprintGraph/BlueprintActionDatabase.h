@@ -64,6 +64,8 @@ public:
     /** @brief 프로그램 시작 시 모든 UK2Node 클래스를 순회하며 데이터베이스를 초기화한다. */
     void Initialize();
 
+    void Shutdown();
+
     /**
      * @brief Registrar가 수집한 블루프린트 액션을 데이터베이스에 등록한다.
      * @note rvalue 참조를 통해서 안전하게 소유권을 이전하도록 한다.

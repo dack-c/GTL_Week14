@@ -7,8 +7,6 @@
 #   include <crtdbg.h>
 #endif
 
-extern void StartConsoleThread();
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 #if defined(_MSC_VER) && defined(_DEBUG)
