@@ -14,6 +14,9 @@ cbuffer ViewProjBuffer : register(b1)
     row_major float4x4 InverseProjectionMatrix;
 };
 
+Texture2D ParticleTex : register(t0);
+SamplerState ParticleSampler : register(s0);
+
 struct VSInput
 {
     float3 Position : POSITION;
@@ -56,5 +59,8 @@ PSInput mainVS(VSInput In)
 
 float4 mainPS(PSInput In) : SV_TARGET
 {
-    return In.Color;
+    float4 tex = ParticleTex.Sample(ParticleSampler, In.UV);
+    float4 color = tex * In.Color;
+
+    return color;
 }
