@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ParticleSystemComponent.h"
 #include "MeshBatchElement.h"
 #include "SceneView.h"
@@ -155,24 +155,20 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
         if (!Base || Base->EmitterType != EEmitterRenderType::Sprite)
             continue;
 
-        auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(Base);
-        const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(SpriteData->GetSource());
+        const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(Base->GetSource());
         if (!Src)
+        {
             continue;
+        }
 
-        TotalParticles += Src->ActiveParticleCount;
+        TotalParticles += static_cast<uint32>(Src->ActiveParticleCount);
     }
 
     if (TotalParticles == 0)
-        return;
-
-    const uint32 ParticleCount = static_cast<uint32>(EmitterRenderData.Num());
-    if (ParticleCount == 0)
     {
         return;
     }
 
-    // 임시
     const uint32 ClampedCount = MaxDebugParticles > 0
         ? std::min<uint32>(TotalParticles, static_cast<uint32>(MaxDebugParticles))
         : TotalParticles;
@@ -195,6 +191,15 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
         return;
     }
 
+    struct FSpriteBatchCommand
+    {
+        FDynamicSpriteEmitterData* SpriteData = nullptr;
+        uint32 StartParticle = 0;
+        uint32 ParticleCount = 0;
+    };
+
+    TArray<FSpriteBatchCommand> SpriteBatchCommands;
+
     FParticleSpriteVertex* Vertices = reinterpret_cast<FParticleSpriteVertex*>(Mapped.pData);
     static const FVector2D CornerOffsets[4] = {
         FVector2D(-1.0f, -1.0f),
@@ -207,41 +212,49 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
     uint32 WrittenParticles = 0;
 
     const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
-    const FVector ViewDir = View ? View->ViewRotation.RotateVector(FVector(1, 0, 0)) : FVector(1, 0, 0);
+    FVector ViewDir = FVector(1, 0, 0);
+    if (View)
+    {
+        ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
+    }
 
     for (FDynamicEmitterDataBase* Base : EmitterRenderData)
     {
         if (!Base || Base->EmitterType != EEmitterRenderType::Sprite)
+        {
             continue;
+        }
 
         auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(Base);
         const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(SpriteData->GetSource());
         if (!Src || Src->ActiveParticleCount <= 0)
+        {
             continue;
+        }
 
+        const uint32 StartParticle = WrittenParticles;
         const int32 Num = Src->ActiveParticleCount;
 
-        // 4-2-1. 정렬 인덱스
         TArray<int32> SortIndices;
         SpriteData->SortParticles(ViewOrigin, ViewDir, SortIndices);
-
         const bool bUseSortIndices = (SortIndices.Num() == Num);
 
         for (int32 LocalIdx = 0; LocalIdx < Num; ++LocalIdx)
         {
             if (WrittenParticles >= ClampedCount)
+            {
                 break;
+            }
 
-            const int32 ParticleIdx =
-                bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
-
-            const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx); // 위에서 만든 private 헬퍼를 public으로 바꾸거나, 유틸 함수로 노출
+            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
             if (!Particle)
+            {
                 continue;
+            }
 
             const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
             FVector WorldPos = Particle->Location;
-
             if (SpriteData->bUseLocalSpace)
             {
                 WorldPos = GetWorldMatrix().TransformPosition(WorldPos);
@@ -249,24 +262,39 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
 
             const FLinearColor Color = Particle->Color;
 
-            for (int CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
+            for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
             {
-                FParticleSpriteVertex& V = Vertices[VertexCursor++];
-                V.Position = WorldPos;
-                V.Corner = CornerOffsets[CornerIndex];
-                V.Size = Size;
-                V.Color = Color;
+                FParticleSpriteVertex& Vertex = Vertices[VertexCursor++];
+                Vertex.Position = WorldPos;
+                Vertex.Corner = CornerOffsets[CornerIndex];
+                Vertex.Size = Size;
+                Vertex.Color = Color;
             }
 
             ++WrittenParticles;
         }
 
+        if (WrittenParticles > StartParticle)
+        {
+            const int32 CommandIndex = SpriteBatchCommands.Add(FSpriteBatchCommand());
+            FSpriteBatchCommand& Command = SpriteBatchCommands[CommandIndex];
+            Command.SpriteData = SpriteData;
+            Command.StartParticle = StartParticle;
+            Command.ParticleCount = WrittenParticles - StartParticle;
+        }
+
         if (WrittenParticles >= ClampedCount)
+        {
             break;
+        }
     }
 
     Context->Unmap(ParticleVertexBuffer, 0);
 
+    if (SpriteBatchCommands.IsEmpty())
+    {
+        return;
+    }
 
     if (!ParticleMaterial)
     {
@@ -299,20 +327,41 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
         return;
     }
 
-    const int32 BatchIndex = OutMeshBatchElements.Add(FMeshBatchElement());
-    FMeshBatchElement& Batch = OutMeshBatchElements[BatchIndex];
+    for (const FSpriteBatchCommand& Command : SpriteBatchCommands)
+    {
+        if (Command.ParticleCount == 0)
+        {
+            continue;
+        }
 
-    Batch.VertexShader = ShaderVariant->VertexShader;
-    Batch.PixelShader = ShaderVariant->PixelShader;
-    Batch.InputLayout = ShaderVariant->InputLayout;
-    Batch.Material = ParticleMaterial;
-    Batch.VertexBuffer = ParticleVertexBuffer;
-    Batch.IndexBuffer = ParticleIndexBuffer;
-    Batch.VertexStride = sizeof(FParticleSpriteVertex);
-    Batch.IndexCount = WrittenParticles * 6;
-    Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-    Batch.WorldMatrix = GetWorldMatrix();
-    Batch.ObjectID = InternalIndex;
+        const int32 BatchIndex = OutMeshBatchElements.Add(FMeshBatchElement());
+        FMeshBatchElement& Batch = OutMeshBatchElements[BatchIndex];
+
+        Batch.VertexShader = ShaderVariant->VertexShader;
+        Batch.PixelShader = ShaderVariant->PixelShader;
+        Batch.InputLayout = ShaderVariant->InputLayout;
+
+        UMaterialInterface* MaterialToUse = ParticleMaterial;
+        if (Command.SpriteData)
+        {
+            const auto* ReplaySource = static_cast<const FDynamicSpriteEmitterReplayData*>(Command.SpriteData->GetSource());
+            if (ReplaySource && ReplaySource->MaterialInterface)
+            {
+                MaterialToUse = ReplaySource->MaterialInterface;
+            }
+        }
+
+        Batch.Material = MaterialToUse;
+        Batch.VertexBuffer = ParticleVertexBuffer;
+        Batch.IndexBuffer = ParticleIndexBuffer;
+        Batch.VertexStride = sizeof(FParticleSpriteVertex);
+        Batch.IndexCount = Command.ParticleCount * 6;
+        Batch.StartIndex = Command.StartParticle * 6;
+        Batch.BaseVertexIndex = 0;
+        Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+        Batch.WorldMatrix = GetWorldMatrix();
+        Batch.ObjectID = InternalIndex;
+    }
 }
 
 void UParticleSystemComponent::BuildEmitterRenderData()
@@ -331,51 +380,48 @@ void UParticleSystemComponent::BuildEmitterRenderData()
         {
             FParticleEmitterInstance* Inst = EmitterInstances[EmitterIdx];
             if (!Inst || Inst->ActiveParticles <= 0)
+            {
                 continue;
+            }
 
             const EEmitterRenderType Type = Inst->GetDynamicType();
-
             FDynamicEmitterDataBase* NewData = nullptr;
 
             switch (Type)
             {
-            case EEmitterRenderType::Sprite:
-            {
-                auto* SpriteData = new FDynamicSpriteEmitterData();
-                SpriteData->EmitterIndex = EmitterIdx;
-                SpriteData->SortMode = EParticleSortMode::ByViewDepth;
-                SpriteData->SortPriority = 0;
-
-                if (Inst->CachedRequiredModule)
+                case EEmitterRenderType::Sprite:
                 {
-                    SpriteData->bUseLocalSpace = Inst->CachedRequiredModule->bUseLocalSpace;
-                    SpriteData->Material = Inst->CachedRequiredModule->Material;
+                    auto* SpriteData = new FDynamicSpriteEmitterData();
+                    SpriteData->EmitterIndex = EmitterIdx;
+                    SpriteData->SortMode = EParticleSortMode::ByViewDepth;
+                    SpriteData->SortPriority = 0;
+
+                    if (Inst->CachedRequiredModule)
+                    {
+                        SpriteData->bUseLocalSpace = Inst->CachedRequiredModule->bUseLocalSpace;
+                    }
+
+                    Inst->BuildReplayData(SpriteData->Source);
+
+                    if (!SpriteData->Source.MaterialInterface)
+                    {
+                        SpriteData->Source.MaterialInterface = ParticleMaterial;
+                    }
+
+                    NewData = SpriteData;
+                    break;
                 }
-
-                // 시뮬 결과 → Replay로 포장
-                Inst->BuildReplayData(SpriteData->Source);
-
-                NewData = SpriteData;
-                break;
-            }
-            case EEmitterRenderType::Mesh:
-            {
-                auto* MeshData = new FDynamicMeshEmitterData();
-                MeshData->EmitterIndex = EmitterIdx;
-                MeshData->SortMode = EParticleSortMode::ByViewDepth;
-                MeshData->SortPriority = 0;
-
-                Inst->BuildReplayData(MeshData->Source);
-
-                // 필요하면 Material은 Template 쪽에서
-                if (Inst->CachedRequiredModule)
+                case EEmitterRenderType::Mesh:
                 {
-                    MeshData->Material = Inst->CachedRequiredModule->Material;
-                }
+                    auto* MeshData = new FDynamicMeshEmitterData();
+                    MeshData->EmitterIndex = EmitterIdx;
+                    MeshData->SortMode = EParticleSortMode::ByViewDepth;
+                    MeshData->SortPriority = 0;
 
-                NewData = MeshData;
-                break;
-            }
+                    Inst->BuildReplayData(MeshData->Source);
+                    NewData = MeshData;
+                    break;
+                }
             }
 
             if (NewData)
@@ -416,7 +462,20 @@ void UParticleSystemComponent::BuildDebugEmitterData()
     SpriteData->EmitterIndex = -1;
     SpriteData->SortMode = EParticleSortMode::ByViewDepth;
     SpriteData->SortPriority = 0;
-    SpriteData->Material = ParticleMaterial;
+
+    UMaterial* TempMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
+    if (TempMaterial)
+    {
+        FMaterialInfo Info = TempMaterial->GetMaterialInfo();
+        Info.DiffuseTextureFileName = FString("Data/cube_texture.png");
+        TempMaterial->SetMaterialInfo(Info);
+        SpriteData->Source.MaterialInterface = TempMaterial;
+    }
+    else
+    {
+        SpriteData->Source.MaterialInterface = ParticleMaterial;
+    }
+
 
     auto& Replay = SpriteData->Source;
     Replay.EmitterType = EEmitterRenderType::Sprite;

@@ -146,8 +146,6 @@ struct FDynamicSpriteEmitterData : public FDynamicTranslucentEmitterDataBase
     {
         return &Source;
     }
-
-    UMaterialInterface* Material = nullptr;
 };
 
 struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
@@ -163,7 +161,5 @@ struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
     {
         return &Source;
     }
-
-    UMaterialInterface* Material = nullptr;
 };
 
