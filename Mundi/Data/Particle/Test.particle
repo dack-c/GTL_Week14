@@ -47,8 +47,8 @@
                 },
                 "SpawnModule" : {
                   "SpawnRateType" : 0,
-                  "SpawnRate_Max" : 10.000000,
-                  "SpawnRate_Min" : 3.000000,
+                  "SpawnRate_Max" : 100.000000,
+                  "SpawnRate_Min" : 100.000000,
                   "SpawnRate_bUseRange" : false
                 },
                 "bEnabled" : true

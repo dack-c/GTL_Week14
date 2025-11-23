@@ -1,10 +1,12 @@
 ﻿#include "pch.h"
 #include "ParticleSystemComponent.h"
 #include "MeshBatchElement.h"
+#include "PlatformTime.h"
 #include "SceneView.h"
 #include "Source/Runtime/Engine/Particle/DynamicEmitterDataBase.h"
 #include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
+#include "Source/Runtime/Engine/Particle/ParticleStats.h"
 
 // ============================================================================
 // Constructor & Destructor
@@ -14,6 +16,8 @@ UParticleSystemComponent::UParticleSystemComponent()
 {
     bCanEverTick = true;  // 파티클 시스템은 매 프레임 Tick 필요
     bAutoActivate = true;
+
+    MaxDebugParticles = 10000; 
 }
 
 UParticleSystemComponent::~UParticleSystemComponent()
@@ -84,10 +88,13 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
 
     if (!bIsActive || !Template) return;
 
+    uint32 FrameParticleCount = 0;
     bool bAllEmittersComplete = true;
     for (FParticleEmitterInstance* Inst : EmitterInstances)
     {
+        TIME_PROFILE(Particle_EmitterTick)
         Inst->Tick(DeltaTime);
+        FrameParticleCount += Inst->ActiveParticles;
 
         if (!Inst->IsComplete())
         {
@@ -95,15 +102,14 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
         }
     }
 
+    FParticleStatManager::GetInstance().AddParticleCount(FrameParticleCount);
+
     if (bAllEmittersComplete)
     {
         OnParticleSystemFinished.Broadcast(this);
         DeactivateSystem();
 
-        if (bAutoDestroy)
-        {
-            GetOwner()->Destroy();
-        }
+        if (bAutoDestroy) { GetOwner()->Destroy(); }
     }
 }
 

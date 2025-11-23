@@ -887,6 +887,7 @@
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleEmitterInstance.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleHelper.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleLODLevel.h" />
+    <ClInclude Include="Source\Runtime\Engine\Particle\ParticleStats.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleSystem.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\GameObject.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.h" />
