@@ -19,8 +19,8 @@ UParticleSystem::UParticleSystem()
     // 디폴트 이미터 생성 (생성자에서 기본 모듈들이 자동으로 생성됨)
     UParticleEmitter* DefaultEmitter = NewObject<UParticleEmitter>();
 
-    // Emitter를 ParticleSystem에 추가
-    Emitters.Add(DefaultEmitter);
+    //// Emitter를 ParticleSystem에 추가
+    //Emitters.Add(DefaultEmitter);
 
     // 모듈 캐시 재구축
     BuildRuntimeCache();
