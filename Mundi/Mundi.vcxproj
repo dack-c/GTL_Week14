@@ -787,7 +787,6 @@
     <ClInclude Include="Generated\UTestAutoBindComponent.generated.h" />
     <ClInclude Include="Generated\UTextRenderComponent.generated.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimationGraph.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimBlueprintCompiler.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\BlueprintActionDatabase.h" />
