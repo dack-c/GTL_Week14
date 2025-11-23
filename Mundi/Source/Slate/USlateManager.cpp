@@ -291,19 +291,6 @@ void USlateManager::OpenParticleViewer()
     ParticleViewerWindow->Initialize(x, y, w, h, World, Device);
 }
 
-void USlateManager::OpenParticleViewerWithSystem(UParticleSystem* ParticleSystem)
-{
-    if (!ParticleViewerWindow)
-    {
-        OpenParticleViewer();
-    }
-
-    if (ParticleViewerWindow && ParticleSystem)
-    {
-        ParticleViewerWindow->LoadParticleSystem(ParticleSystem);
-    }
-}
-
 void USlateManager::OpenParticleViewerWithSystem(UParticleSystem* ParticleSystem, const FString& SavePath)
 {
     if (!ParticleViewerWindow)
@@ -314,7 +301,7 @@ void USlateManager::OpenParticleViewerWithSystem(UParticleSystem* ParticleSystem
     if (ParticleViewerWindow && ParticleSystem)
     {
         ParticleViewerWindow->LoadParticleSystem(ParticleSystem);
-        ParticleViewerWindow->SetSavePath(SavePath);
+        if (!SavePath.empty()) { ParticleViewerWindow->SetSavePath(SavePath); }
     }
 }
 
@@ -880,6 +867,12 @@ void USlateManager::Shutdown()
     {
         delete AnimationGraphEditorWindow;
         AnimationGraphEditorWindow = nullptr;
+    }
+
+    if (ParticleViewerWindow)
+    {
+        delete ParticleViewerWindow;
+        ParticleViewerWindow = nullptr;
     }
 }
 

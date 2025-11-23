@@ -58,7 +58,6 @@ private:
 	UParticleSystem* Template = nullptr;
 
 private:
-
 	/** 런타임 데이터 */
 	TArray<FParticleEmitterInstance*> EmitterInstances;
 

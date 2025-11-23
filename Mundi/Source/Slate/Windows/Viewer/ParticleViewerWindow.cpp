@@ -20,6 +20,7 @@
 #include "Actor.h"
 #include "CameraActor.h"
 #include "imgui.h"
+#include "PlatformProcess.h"
 
 SParticleViewerWindow::SParticleViewerWindow()
 {
@@ -114,11 +115,15 @@ void SParticleViewerWindow::OnRender()
     {
         if (ImGui::BeginMenu("File"))
         {
+            if (ImGui::MenuItem("Create"))
+            {
+                CreateParticleSystem();
+            }
             if (ImGui::MenuItem("Save"))
             {
                 SaveParticleSystem();
             }
-            if (ImGui::MenuItem("Close")) { Close(); }
+            if (ImGui::MenuItem("Load")) { LoadParticleSystem(); }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit"))
@@ -786,27 +791,54 @@ void SParticleViewerWindow::OnRenderViewport()
     }
 }
 
-void SParticleViewerWindow::LoadParticleSystem(const FString& Path)
+void SParticleViewerWindow::CreateParticleSystem()
 {
-    // 경로에서 파티클 시스템 로드
-    UParticleSystem* LoadedSystem = UParticleSystem::LoadFromFile(Path);
+    // 빈 ParticleSystem 생성
+    UParticleSystem* NewSystem = NewObject<UParticleSystem>();
+    NewSystem->ObjectName = FName("NewParticleSystem");
+
+    LoadParticleSystem(NewSystem);
+}
+
+void SParticleViewerWindow::LoadParticleSystem()
+{
+    // 다이얼로그로 로드
+    std::filesystem::path InitialPath = GDataDir;
+    InitialPath /= "Particle";
+
+    if (!std::filesystem::exists(InitialPath))
+    {
+        std::filesystem::create_directories(InitialPath);
+    }
+
+    FWideString WideInitialPath = UTF8ToWide(InitialPath.string());
+    std::filesystem::path WidePath = FPlatformProcess::OpenLoadFileDialog(WideInitialPath, L"particle",L"Particle Files");
+    FString PathStr = WidePath.string();
+    
+    UParticleSystem* LoadedSystem = UParticleSystem::LoadFromFile(PathStr);
     if (LoadedSystem)
     {
         LoadParticleSystem(LoadedSystem);
 
         // 로드한 파일의 경로를 SavePath로 설정 (Save 시 같은 경로에 저장)
-        SavePath = Path;
+        SavePath = PathStr;
 
-        UE_LOG("ParticleSystem loaded from: %s", Path.c_str());
+        UE_LOG("ParticleSystem loaded from: %s", PathStr.c_str());
     }
     else
     {
-        UE_LOG("Failed to load ParticleSystem from: %s", Path.c_str());
+        UE_LOG("Failed to load ParticleSystem from: %s", PathStr.c_str());
     }
 }
 
 void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
 {
+    if (CurrentParticleSystem)
+    {
+        ObjectFactory::DeleteObject(CurrentParticleSystem);
+        CurrentParticleSystem = nullptr;
+    }
+    
     CurrentParticleSystem = ParticleSystem;
 
     if (!PreviewWorld || !ParticleSystem)
@@ -817,7 +849,6 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
     {
         // World의 Actor 리스트에서 제거하고 삭제
         PreviewActor->Destroy();
-        ObjectFactory::DeleteObject(PreviewActor);
         PreviewActor = nullptr;
         PreviewComponent = nullptr;
     }
@@ -829,17 +860,8 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
     PreviewActor->SetTickInEditor(true);  // 에디터 모드에서도 Tick 활성화
 
     // ParticleSystemComponent 생성 및 추가
-    PreviewComponent = NewObject<UParticleSystemComponent>();
+    PreviewComponent = Cast<UParticleSystemComponent>(PreviewActor->AddNewComponent(UParticleSystemComponent::StaticClass()));
     PreviewComponent->SetTemplate(ParticleSystem);
-
-    // Actor에 Component 추가 (OwnedComponents에 추가 - Tick되려면 필수!)
-    PreviewActor->AddOwnedComponent(PreviewComponent);
-
-    // Root로 설정
-    PreviewActor->SetRootComponent(PreviewComponent);
-
-    // 컴포넌트를 World에 등록
-    PreviewComponent->RegisterComponent(PreviewWorld);
 
     // Actor의 BeginPlay 호출 (InitializeComponent 호출)
     PreviewActor->BeginPlay();
@@ -874,7 +896,28 @@ void SParticleViewerWindow::SaveParticleSystem()
     }
     else
     {
-        // TODO: 파일 다이얼로그를 열어서 저장 경로 선택
-        UE_LOG("SavePath is not set. Please implement file dialog.");
+        std::filesystem::path InitialPath = GDataDir;
+        InitialPath /= "Particle";
+
+        // 폴더가 존재하지 않으면 생성 (선택 사항이지만 안전을 위해 추가)
+        if (!std::filesystem::exists(InitialPath))
+        {
+            std::filesystem::create_directories(InitialPath);
+        }
+
+        FWideString WideInitialPath = UTF8ToWide(InitialPath.string());
+        std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"particle",L"Particle Files");
+        FString PathStr = WidePath.string();
+        
+        if (!WidePath.empty())
+        {
+            // 파일 저장 시도
+            if (CurrentParticleSystem->SaveToFile(PathStr))
+            {
+                // 성공적으로 저장되었으면 SavePath를 업데이트
+                SavePath = PathStr;
+                UE_LOG("Particle system saved to: %s", SavePath.c_str());
+            }
+        }
     }
 }
