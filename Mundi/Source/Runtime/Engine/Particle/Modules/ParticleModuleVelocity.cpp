@@ -2,6 +2,7 @@
 #include "ParticleModuleVelocity.h"
 #include "../ParticleEmitter.h"
 #include "../ParticleHelper.h"
+#include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 
 IMPLEMENT_CLASS(UParticleModuleVelocity)
 

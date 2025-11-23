@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ParticleModuleLifetime.h"
 #include "../ParticleEmitter.h"
+#include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleHelper.h"
 
 IMPLEMENT_CLASS(UParticleModuleLifetime)
