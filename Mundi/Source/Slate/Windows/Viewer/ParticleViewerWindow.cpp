@@ -895,9 +895,7 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
     PreviewActor->BeginPlay();
 
     // 컴포넌트 초기화 및 활성화 (BeginPlay 이후에!)
-    PreviewComponent->InitParticles();
-    PreviewComponent->ActivateSystem();
-    PreviewComponent->SetActive(true);  // bIsActive를 명시적으로 true로 설정
+    PreviewComponent->ResetAndActivate();
 
     UE_LOG("Particle system loaded and spawned in preview world");
 }
@@ -952,9 +950,7 @@ void SParticleViewerWindow::CreateNewEmitter()
     // PreviewComponent가 있으면 다시 초기화
     if (PreviewComponent)
     {
-        PreviewComponent->InitParticles();
-        PreviewComponent->ActivateSystem();
-        PreviewComponent->SetActive(true);
+        PreviewComponent->ResetAndActivate();
     }
 
     UE_LOG("New emitter created successfully");
@@ -1001,12 +997,8 @@ void SParticleViewerWindow::DeleteSelectedEmitter()
     CurrentParticleSystem->BuildRuntimeCache();
 
     // PreviewComponent가 있으면 다시 초기화
-    if (PreviewComponent)
-    {
-        PreviewComponent->InitParticles();
-        PreviewComponent->ActivateSystem();
-        PreviewComponent->SetActive(true);
-    }
+    if (PreviewComponent) 
+        PreviewComponent->ResetAndActivate();
 
     UE_LOG("Emitter deleted successfully");
 }
