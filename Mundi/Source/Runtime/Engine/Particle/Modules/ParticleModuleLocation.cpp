@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ParticleModuleLocation.h"
 #include "../ParticleEmitter.h"
+#include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleHelper.h"
 
 IMPLEMENT_CLASS(UParticleModuleLocation)

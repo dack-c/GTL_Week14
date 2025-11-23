@@ -3,6 +3,7 @@
 #include "MeshBatchElement.h"
 #include "SceneView.h"
 #include "Source/Runtime/Engine/Particle/DynamicEmitterDataBase.h"
+#include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
