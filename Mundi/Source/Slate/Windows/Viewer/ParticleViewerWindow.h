@@ -13,7 +13,7 @@ class SParticleViewerWindow : public SWindow
 {                                                                                                  
 public:                                                                                            
     SParticleViewerWindow();                                                                       
-    virtual ~SParticleViewerWindow();                                                              
+    ~SParticleViewerWindow() override;                                                              
                                                                                                    
     bool Initialize(float StartX, float StartY, float Width, float Height, UWorld* InWorld, ID3D11Device* InDevice);                                                                           
                                                                                                    
@@ -30,8 +30,11 @@ public:
     FViewport* GetViewport() const { return Viewport; }                                            
     FViewportClient* GetViewportClient() const { return ViewportClient; }                          
                                                                                                    
+    // Create new particle system
+    void CreateParticleSystem();
+    
     // Load a particle system
-    void LoadParticleSystem(const FString& Path);
+    void LoadParticleSystem();
     void LoadParticleSystem(UParticleSystem* ParticleSystem);
 
     // Set save path for new particle systems

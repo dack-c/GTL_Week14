@@ -211,7 +211,7 @@ UParticleSystem* UParticleSystem::LoadFromFile(const FString& FilePath)
         return NewSystem;
     }
 
-    delete NewSystem;
+    ObjectFactory::DeleteObject(NewSystem);
     return nullptr;
 }
 
@@ -374,7 +374,7 @@ bool UParticleSystem::DeserializeFromJson(JSON& InJson)
     {
         if (Emitter)
         {
-            delete Emitter;
+            ObjectFactory::DeleteObject(Emitter);
         }
     }
     Emitters.Empty();
@@ -393,7 +393,7 @@ bool UParticleSystem::DeserializeFromJson(JSON& InJson)
         {
             JSON& EmitterJson = EmittersArray[i];
 
-            UParticleEmitter* NewEmitter = new UParticleEmitter();
+            UParticleEmitter* NewEmitter = Cast<UParticleEmitter>(NewObject(UParticleEmitter::StaticClass()));
             if (EmitterJson.hasKey("Name"))
             {
                 NewEmitter->ObjectName = FName(EmitterJson["Name"].ToString());
@@ -411,7 +411,7 @@ bool UParticleSystem::DeserializeFromJson(JSON& InJson)
                 {
                     JSON& LODJson = LODArray[lodIdx];
 
-                    UParticleLODLevel* NewLOD = new UParticleLODLevel();
+                    UParticleLODLevel* NewLOD = Cast<UParticleLODLevel>(NewObject(UParticleLODLevel::StaticClass()));
                     if (LODJson.hasKey("LODIndex")) NewLOD->LODIndex = LODJson["LODIndex"].ToInt();
                     if (LODJson.hasKey("bEnabled")) NewLOD->bEnabled = LODJson["bEnabled"].ToBool();
 
@@ -419,7 +419,8 @@ bool UParticleSystem::DeserializeFromJson(JSON& InJson)
                     if (LODJson.hasKey("RequiredModule"))
                     {
                         JSON& ReqJson = LODJson["RequiredModule"];
-                        UParticleModuleRequired* Req = new UParticleModuleRequired();
+                        
+                        UParticleModuleRequired* Req = Cast<UParticleModuleRequired>(NewObject(UParticleModuleRequired::StaticClass()));
 
                         if (ReqJson.hasKey("MaxParticles")) Req->MaxParticles = ReqJson["MaxParticles"].ToInt();
                         if (ReqJson.hasKey("EmitterDuration")) Req->EmitterDuration = (float)ReqJson["EmitterDuration"].ToFloat();
@@ -482,8 +483,8 @@ bool UParticleSystem::DeserializeFromJson(JSON& InJson)
                     if (LODJson.hasKey("SpawnModule"))
                     {
                         JSON& SpawnJson = LODJson["SpawnModule"];
-                        UParticleModuleSpawn* Spawn = new UParticleModuleSpawn();
-
+                        UParticleModuleSpawn* Spawn = Cast<UParticleModuleSpawn>(NewObject(UParticleModuleSpawn::StaticClass()));
+                        
                         if (SpawnJson.hasKey("SpawnRateType")) Spawn->SpawnRateType = static_cast<ESpawnRateType>(SpawnJson["SpawnRateType"].ToInt());
                         if (SpawnJson.hasKey("SpawnRate_Min")) Spawn->SpawnRate.MinValue = (float)SpawnJson["SpawnRate_Min"].ToFloat();
                         if (SpawnJson.hasKey("SpawnRate_Max")) Spawn->SpawnRate.MaxValue = (float)SpawnJson["SpawnRate_Max"].ToFloat();
@@ -538,7 +539,7 @@ UParticleModule* UParticleSystem::DeserializeModule(JSON& ModuleJson)
 
     if (ModuleType == "Lifetime")
     {
-        UParticleModuleLifetime* Lifetime = new UParticleModuleLifetime();
+        UParticleModuleLifetime* Lifetime = Cast<UParticleModuleLifetime>(NewObject(UParticleModuleLifetime::StaticClass()));
         if (ModuleJson.hasKey("Lifetime_Min")) Lifetime->Lifetime.MinValue = (float)ModuleJson["Lifetime_Min"].ToFloat();
         if (ModuleJson.hasKey("Lifetime_Max")) Lifetime->Lifetime.MaxValue = (float)ModuleJson["Lifetime_Max"].ToFloat();
         if (ModuleJson.hasKey("Lifetime_bUseRange")) Lifetime->Lifetime.bUseRange = ModuleJson["Lifetime_bUseRange"].ToBool();
@@ -546,7 +547,7 @@ UParticleModule* UParticleSystem::DeserializeModule(JSON& ModuleJson)
     }
     else if (ModuleType == "Velocity")
     {
-        UParticleModuleVelocity* Velocity = new UParticleModuleVelocity();
+        UParticleModuleVelocity* Velocity = Cast<UParticleModuleVelocity>(NewObject(UParticleModuleVelocity::StaticClass()));
         if (ModuleJson.hasKey("StartVelocity_Min"))
         {
             JSON& MinArr = ModuleJson["StartVelocity_Min"];
@@ -562,7 +563,7 @@ UParticleModule* UParticleSystem::DeserializeModule(JSON& ModuleJson)
     }
     else if (ModuleType == "Size")
     {
-        UParticleModuleSize* Size = new UParticleModuleSize();
+        UParticleModuleSize* Size = Cast<UParticleModuleSize>(NewObject(UParticleModuleSize::StaticClass()));
         if (ModuleJson.hasKey("StartSize_Min"))
         {
             JSON& MinArr = ModuleJson["StartSize_Min"];
@@ -578,7 +579,7 @@ UParticleModule* UParticleSystem::DeserializeModule(JSON& ModuleJson)
     }
     else if (ModuleType == "Color")
     {
-        UParticleModuleColor* Color = new UParticleModuleColor();
+        UParticleModuleColor* Color = Cast<UParticleModuleColor>(NewObject(UParticleModuleColor::StaticClass()));
         if (ModuleJson.hasKey("StartColor_Min"))
         {
             JSON& MinArr = ModuleJson["StartColor_Min"];
@@ -594,7 +595,7 @@ UParticleModule* UParticleSystem::DeserializeModule(JSON& ModuleJson)
     }
     else if (ModuleType == "Location")
     {
-        UParticleModuleLocation* Location = new UParticleModuleLocation();
+        UParticleModuleLocation* Location = Cast<UParticleModuleLocation>(NewObject(UParticleModuleLocation::StaticClass()));
         if (ModuleJson.hasKey("StartLocation_Min"))
         {
             JSON& MinArr = ModuleJson["StartLocation_Min"];
