@@ -434,8 +434,9 @@ struct FSkeletalMeshData
 
 struct FParticleSpriteVertex
 {
-    FVector Position;
-    FVector2D Corner;
-    FVector2D Size;
-    FLinearColor Color;
+    FVector Position;      // 12 bytes (offset 0)
+    FVector2D Corner;      // 8 bytes (offset 12)
+    FVector2D Size;        // 8 bytes (offset 20)
+    FLinearColor Color;    // 16 bytes (offset 28)
+    float Rotation;        // 4 bytes (offset 44)
 };

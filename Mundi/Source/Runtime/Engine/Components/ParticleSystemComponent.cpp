@@ -291,12 +291,13 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
             }
 
             const FLinearColor Color = Particle->Color;
+            const float Rotation = Particle->Rotation;
 
             // 첫 파티클만 로그 출력
             if (LocalIdx == 0 && WrittenParticles == 0)
             {
-                UE_LOG("[BuildParticleBatch] First Particle Color: (%.2f, %.2f, %.2f, %.2f)",
-                       Color.R, Color.G, Color.B, Color.A);
+                UE_LOG("[BuildParticleBatch] First Particle Color: (%.2f, %.2f, %.2f, %.2f), Rotation: %.2f",
+                       Color.R, Color.G, Color.B, Color.A, Rotation);
             }
 
             for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
@@ -306,6 +307,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
                 Vertex.Corner = CornerOffsets[CornerIndex];
                 Vertex.Size = Size;
                 Vertex.Color = Color;
+                Vertex.Rotation = Rotation;
             }
 
             ++WrittenParticles;

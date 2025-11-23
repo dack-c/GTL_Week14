@@ -8,6 +8,8 @@ IMPLEMENT_CLASS(UParticleModuleLifetime)
 UParticleModuleLifetime::UParticleModuleLifetime()
 {
     bSpawnModule = true;
+    bUpdateModule = false; // Lifetime은 ParticleEmitter에서 자동으로 처리됨
+    ModuleType = EParticleModuleType::Spawn;
 }
 
 void UParticleModuleLifetime::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
@@ -15,26 +17,36 @@ void UParticleModuleLifetime::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     if (!ParticleBase)
         return;
 
-    // 랜덤 시드 생성
+    // 랜덤 시드 생성 (파티클 카운터 기반)
     float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
 
-    // 수명 설정
+    // 수명 설정 (초 단위)
+    // Lifetime 분포에서 랜덤 값을 가져옴 (Min~Max 범위 또는 고정값)
     float MaxLifetime = Lifetime.GetValue(RandomSeed);
+
+    // OneOverMaxLifetime 계산 (성능 최적화: 매 프레임 나눗셈 대신 곱셈 사용)
     if (MaxLifetime > 0.0f)
     {
         ParticleBase->OneOverMaxLifetime = 1.0f / MaxLifetime;
     }
     else
     {
+        // 수명이 0 이하면 즉시 죽는 파티클 (무한 수명)
         ParticleBase->OneOverMaxLifetime = 0.0f;
     }
 
+    // 초기 상대 시간 (0.0 = 방금 생성됨, 1.0 = 수명 다함)
     ParticleBase->RelativeTime = 0.0f;
 }
 
 void UParticleModuleLifetime::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
 {
-    // Lifetime은 보통 별도의 업데이트가 필요없음
-    // RelativeTime은 다른 시스템에서 업데이트됨
-    // 필요시 여기에 추가 로직 구현 가능
+    // Lifetime 모듈은 Update 단계가 필요 없음
+    //
+    // RelativeTime 업데이트와 파티클 제거는 ParticleEmitter::Tick()의
+    // 메인 루프에서 자동으로 처리됨:
+    //   - Particle->RelativeTime += Particle->OneOverMaxLifetime * DeltaTime;
+    //   - if (Particle->RelativeTime >= 1.0f) KillParticle(i);
+    //
+    // 따라서 이 함수는 비어있어도 정상 동작함
 }
