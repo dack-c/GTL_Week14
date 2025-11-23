@@ -124,7 +124,7 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
         return;
     }
 
-    // EmitterInstance -> DaynamicEmitterReplayDatabase
+    // EmitterInstance -> DynamicEmitterReplayDatabase
     BuildEmitterRenderData();
 
     if (EmitterRenderData.IsEmpty())
@@ -159,7 +159,7 @@ void UParticleSystemComponent::BuildEmitterRenderData()
                 auto* SpriteData = new FDynamicSpriteEmitterData();
                 SpriteData->EmitterType = Type;
                 SpriteData->EmitterIndex = EmitterIdx;
-                SpriteData->SortMode = EParticleSortMode::ByViewDepth;
+                SpriteData->SortMode = Inst->CachedRequiredModule->SortMode;
                 SpriteData->SortPriority = 0;
 
                 if (Inst->CachedRequiredModule)
@@ -175,7 +175,7 @@ void UParticleSystemComponent::BuildEmitterRenderData()
                 auto* MeshData = new FDynamicMeshEmitterData();
                 MeshData->EmitterType = Type;
                 MeshData->EmitterIndex = EmitterIdx;
-                MeshData->SortMode = EParticleSortMode::ByViewDepth;
+                MeshData->SortMode = Inst->CachedRequiredModule->SortMode;
                 MeshData->SortPriority = 0;
 
                 Inst->BuildReplayData(MeshData->Source);
@@ -608,158 +608,4 @@ void UParticleSystemComponent::ClearEmitterRenderData()
         }
     }
     EmitterRenderData.Empty();
-}
-
-// ============================================================================
-// Debug, 곧 지울 놈들
-// ============================================================================
-void UParticleSystemComponent::BuildDebugEmitterData()
-{
-    if (!bEnableDebugEmitter)
-    {
-        return;
-    }
-
-    constexpr int32 DebugCount = 3;
-    const FVector DebugPositions[DebugCount] = {
-        FVector(0.0f, 0.0f, 100.0f),
-        FVector(80.0f, 20.0f, 120.0f),
-        FVector(-60.0f, -40.0f, 90.0f)
-    };
-    const FLinearColor DebugColors[DebugCount] = {
-        FLinearColor(1.0f, 0.2f, 0.2f, 0.85f),
-        FLinearColor(0.2f, 1.0f, 0.3f, 0.85f),
-        FLinearColor(0.2f, 0.4f, 1.0f, 0.85f)
-    };
-    const float DebugSizes[DebugCount] = { 50.0f, 70.0f, 90.0f };
-
-    auto* SpriteData = new FDynamicSpriteEmitterData();
-    SpriteData->EmitterIndex = -1;
-    SpriteData->SortMode = EParticleSortMode::ByViewDepth;
-    SpriteData->SortPriority = 0;
-
-    /*UMaterial* TempMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
-    if (TempMaterial)
-    {
-        FMaterialInfo Info = TempMaterial->GetMaterialInfo();
-        Info.DiffuseTextureFileName = FString("Data/cube_texture.png");
-        TempMaterial->SetMaterialInfo(Info);
-        SpriteData->Source.MaterialInterface = TempMaterial;
-    }*/
-
-
-    auto& Replay = SpriteData->Source;
-    Replay.EmitterType = EEmitterRenderType::Sprite;
-    Replay.ActiveParticleCount = DebugCount;
-    Replay.ParticleStride = sizeof(FBaseParticle);
-    Replay.DataContainer.Allocate(DebugCount * Replay.ParticleStride, DebugCount);
-
-    for (int32 Index = 0; Index < DebugCount; ++Index)
-    {
-        uint8* ParticleBase = Replay.DataContainer.ParticleData + Replay.ParticleStride * Index;
-        auto* Particle = reinterpret_cast<FBaseParticle*>(ParticleBase);
-        std::memset(Particle, 0, sizeof(FBaseParticle));
-
-        Particle->Location = DebugPositions[Index];
-        const float Size = DebugSizes[Index];
-        Particle->Size = FVector(Size, Size, 1.0f);
-        Particle->Color = DebugColors[Index];
-        Particle->RelativeTime = 0.0f;
-        Particle->OneOverMaxLifetime = 1.0f;
-
-        Replay.DataContainer.ParticleIndices[Index] = static_cast<uint16>(Index);
-    }
-
-    EmitterRenderData.Add(SpriteData);
-}
-void UParticleSystemComponent::TickDebugMesh(float DeltaTime)
-{
-    if (!bEnableDebugEmitter)
-        return;
-
-    // 1) 리소스 초기화 (한 번만)
-    if (!DebugMeshState.bInitialized)
-    {
-        auto& RM = UResourceManager::GetInstance();
-
-        DebugMeshState.Mesh = RM.Load<UStaticMesh>("Data/cube-tex.obj");
-
-        UMaterial* Mat = RM.Load<UMaterial>("Shaders/Materials/UberLit.hlsl");
-        if (Mat)
-        {
-            FMaterialInfo Info = Mat->GetMaterialInfo();
-            Info.DiffuseTextureFileName = FString("Data/cube_texture.png");
-            Mat->SetMaterialInfo(Info);
-            DebugMeshState.Material = Mat;
-        }
-
-        DebugMeshState.CurrentLocation = DebugMeshState.BaseLocation;
-
-        DebugMeshState.bInitialized =
-            (DebugMeshState.Mesh != nullptr && DebugMeshState.Material != nullptr);
-
-        UE_LOG("[TickDebugMesh] Init Mesh=%s Material=%s",
-            DebugMeshState.Mesh ? DebugMeshState.Mesh->GetName().c_str() : "NULL",
-            DebugMeshState.Material ? DebugMeshState.Material->GetName().c_str() : "NULL");
-
-        if (!DebugMeshState.bInitialized)
-        {
-            return;
-        }
-    }
-
-    // 2) 시간 누적
-    DebugMeshState.TimeSeconds += DeltaTime;
-
-    // 3) 2초 주기 sawtooth로 위로 상승시키기
-    const float Period = 2.0f;
-    float t = std::fmod(DebugMeshState.TimeSeconds, Period);
-
-    // BaseLocation에서 시작해서 2초 동안 Velocity * t 만큼 상승
-    DebugMeshState.CurrentLocation =
-        DebugMeshState.BaseLocation + DebugMeshState.Velocity * t;
-}
-void UParticleSystemComponent::BuildDebugMeshEmitterData()
-{
-    if (!bEnableDebugEmitter)
-        return;
-
-    if (!DebugMeshState.bInitialized)
-        return;
-
-    auto* MeshData = new FDynamicMeshEmitterData();
-    MeshData->EmitterIndex = -1;
-    MeshData->SortMode = EParticleSortMode::ByViewDepth;
-    MeshData->SortPriority = 0;
-    MeshData->bUseLocalSpace = false; // CurrentLocation을 월드로 쓴다고 가정
-
-    auto& Src = MeshData->Source;
-    Src.EmitterType = EEmitterRenderType::Mesh;
-    Src.Mesh = DebugMeshState.Mesh;
-    Src.InstanceStride = sizeof(FBaseParticle); // 나중에 instancing 하면 변경
-    Src.InstanceCount = 1;
-    Src.ActiveParticleCount = 1;
-    Src.ParticleStride = sizeof(FBaseParticle);
-    Src.Scale = FVector::One();
-
-    // 파티클 1개만 할당
-    Src.DataContainer.Allocate(sizeof(FBaseParticle), 1);
-
-    uint8* ParticleBase = Src.DataContainer.ParticleData;
-    auto* Particle = reinterpret_cast<FBaseParticle*>(ParticleBase);
-    std::memset(Particle, 0, sizeof(FBaseParticle));
-
-    // 위치/색/크기 세팅
-    Particle->Location = DebugMeshState.CurrentLocation;
-    Particle->Size = FVector(1.f, 1.f, 1.f); // 필요하면 Scale로 옮겨도 됨
-    Particle->Color = FLinearColor(1.f, 1.f, 1.f, 1.f);
-    Particle->RelativeTime = 0.f;
-    Particle->OneOverMaxLifetime = 1.f;
-
-    Src.DataContainer.ParticleIndices[0] = 0;
-
-    UE_LOG("[BuildDebugMeshEmitterData] Dice at (%.1f, %.1f, %.1f)",
-        Particle->Location.X, Particle->Location.Y, Particle->Location.Z);
-
-    EmitterRenderData.Add(MeshData);
 }

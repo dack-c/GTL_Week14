@@ -397,7 +397,8 @@ void SParticleViewerWindow::OnRender()
                         ImGui::Text("Sort Mode");
                         ImGui::NextColumn();
 
-                        const char* sortModes[] = { "None", "By Distance", "By Age", "View Depth" };
+                        // EParticleSortMode 순서와 맞출 것!
+                        const char* sortModes[] = { "None", "By Distance", "By Age", "By View Depth" };
                         int currentSortMode = (int)RequiredModule->SortMode;
 
                         ImGui::SetNextItemWidth(-1);
@@ -408,7 +409,7 @@ void SParticleViewerWindow::OnRender()
                                 bool isSelected = (currentSortMode == i);
                                 if (ImGui::Selectable(sortModes[i], isSelected))
                                 {
-                                    RequiredModule->SortMode = (ESortMode)i;
+                                    RequiredModule->SortMode = (EParticleSortMode)i;
                                 }
                             }
                             ImGui::EndCombo();
@@ -419,12 +420,23 @@ void SParticleViewerWindow::OnRender()
 
                     ImGui::Spacing();
 
+                    // Emitter 별 Priority 
+                    {
+                        ImGui::Text("Emitter Sort Priority");
+                        ImGui::NextColumn();
+                        ImGui::SetNextItemWidth(-1);
+                        ImGui::DragInt("##SortPriority", &RequiredModule->SortPriority, 1, 1, 10000);
+                        ImGui::NextColumn();
+                    }
+
+                    ImGui::Spacing();
+
                     // Max Particles
                     {
                         ImGui::Text("Max Particles");
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
-                        ImGui::DragInt("##MaxParticles", &RequiredModule->MaxParticles, 1.0f, 1, 10000);
+                        ImGui::DragInt("##MaxParticles", &RequiredModule->MaxParticles, 1, 1, 10000);
                         ImGui::NextColumn();
                     }
 

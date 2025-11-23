@@ -4,14 +4,6 @@
 #include "ParticleHelper.h"
 #include "Modules/ParticleModuleRequired.h"
 
-enum class EParticleSortMode : uint8 
-{ 
-    None, 
-    ByDistance, 
-    ByViewDepth, 
-    ByAge, 
-};
-
 struct FDynamicEmitterReplayDataBase
 {
     EEmitterRenderType EmitterType = EEmitterRenderType::Sprite;
@@ -82,30 +74,32 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
         {
             FVector Pos = GetParticlePosition(i);
 
+            // UE_LOG("%d", SortMode);
             switch (SortMode)
             {
-            case EParticleSortMode::ByDistance:
-                Keys[i] = (Pos - ViewOrigin).SizeSquared();
-                break;
+                case EParticleSortMode::ByDistance:
+                    Keys[i] = (Pos - ViewOrigin).SizeSquared();
+                    break;
 
-            case EParticleSortMode::ByViewDepth:
-                Keys[i] = FVector::Dot(Pos - ViewOrigin, ViewDir);
-                break;
+                case EParticleSortMode::ByViewDepth:
+                    Keys[i] = FVector::Dot(Pos - ViewOrigin, ViewDir);
+                    break;
 
-            case EParticleSortMode::ByAge:
-                Keys[i] = GetParticleAge(i);
-                break;
+                case EParticleSortMode::ByAge:
+                    Keys[i] = GetParticleAge(i);
+                    break;
 
-            default:
-                Keys[i] = 0.f;
-                break;
+                default:
+                    Keys[i] = 0.f;
+                    break;
             }
         }
 
         // Back-to-front (큰 값이 먼저)
         OutIndices.Sort([&Keys](int32 A, int32 B) {
-            return Keys[A] > Keys[B];
+            return Keys[A] < Keys[B];
             });
+        OutIndices;
     }
 
     const FBaseParticle* GetParticle(int32 Idx) const

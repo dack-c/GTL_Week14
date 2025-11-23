@@ -82,9 +82,4 @@ private:
 		UStaticMesh* Mesh = nullptr;
 		UMaterialInterface* Material = nullptr;
 	};
-	FDebugMeshParticleState DebugMeshState;
-	void TickDebugMesh(float DeltaTime);
-	void BuildDebugEmitterData();
-	void BuildDebugMeshEmitterData();
-	bool bEnableDebugEmitter = true;
 };
