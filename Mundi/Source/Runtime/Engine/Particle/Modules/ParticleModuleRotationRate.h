@@ -14,6 +14,10 @@ public:
     // 랜덤 각속도로 자연스러운 회전 버라이어티
     FRawDistributionFloat StartRotationRate = FRawDistributionFloat(0.0f);
 
+    // 초기 회전 각도 (라디안 단위)
+    // 파티클이 스폰될 때의 초기 각도 설정 (회전 속도와 함께 사용 가능)
+    FRawDistributionFloat InitialRotation = FRawDistributionFloat(0.0f);
+
     // ============================================================
     // 언리얼 스타일 구현
     // ============================================================

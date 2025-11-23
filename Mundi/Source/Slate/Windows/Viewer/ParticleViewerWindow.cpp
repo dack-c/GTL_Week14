@@ -548,6 +548,85 @@ void SParticleViewerWindow::OnRender()
                     ImGui::DragFloat("Start Alpha Min", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
                     ImGui::DragFloat("Start Alpha Max", &ColorModule->StartAlpha.MaxValue, 0.01f, 0.0f, 1.0f);
                 }
+                else if (auto* ColorOverLifeModule = dynamic_cast<UParticleModuleColorOverLife*>(SelectedModule))
+                {
+                    ImGui::Text("Color Over Life Settings");
+                    ImGui::Separator();
+
+                    ImGui::Checkbox("Use Color Over Life", &ColorOverLifeModule->bUseColorOverLife);
+                    if (ColorOverLifeModule->bUseColorOverLife)
+                    {
+                        ImGui::ColorEdit3("Color Min", &ColorOverLifeModule->ColorOverLife.MinValue.R);
+                        ImGui::ColorEdit3("Color Max", &ColorOverLifeModule->ColorOverLife.MaxValue.R);
+                        ImGui::Checkbox("Color Use Range", &ColorOverLifeModule->ColorOverLife.bUseRange);
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::Checkbox("Use Alpha Over Life", &ColorOverLifeModule->bUseAlphaOverLife);
+                    if (ColorOverLifeModule->bUseAlphaOverLife)
+                    {
+                        ImGui::DragFloat("Alpha Min", &ColorOverLifeModule->AlphaOverLife.MinValue, 0.01f, 0.0f, 1.0f);
+                        ImGui::DragFloat("Alpha Max", &ColorOverLifeModule->AlphaOverLife.MaxValue, 0.01f, 0.0f, 1.0f);
+                        ImGui::Checkbox("Alpha Use Range", &ColorOverLifeModule->AlphaOverLife.bUseRange);
+                    }
+                }
+                else if (auto* SizeMultiplyLifeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(SelectedModule))
+                {
+                    ImGui::Text("Size Multiply Life Settings");
+                    ImGui::Separator();
+
+                    ImGui::Text("Curve Control Points");
+
+                    ImGui::Text("Point 1:");
+                    ImGui::DragFloat("Time##P1", &SizeMultiplyLifeModule->Point1Time, 0.1f, 0.0f, 100.0f);
+                    ImGui::DragFloat3("Value##P1", &SizeMultiplyLifeModule->Point1Value.X, 0.1f, 0.0f, 100.0f);
+
+                    ImGui::Spacing();
+                    ImGui::Text("Point 2:");
+                    ImGui::DragFloat("Time##P2", &SizeMultiplyLifeModule->Point2Time, 0.1f, 0.0f, 100.0f);
+                    ImGui::DragFloat3("Value##P2", &SizeMultiplyLifeModule->Point2Value.X, 0.1f, 0.0f, 100.0f);
+
+                    ImGui::Spacing();
+                    ImGui::Text("Multiply Axes:");
+                    ImGui::Checkbox("Multiply X", &SizeMultiplyLifeModule->bMultiplyX);
+                    ImGui::Checkbox("Multiply Y", &SizeMultiplyLifeModule->bMultiplyY);
+                    ImGui::Checkbox("Multiply Z", &SizeMultiplyLifeModule->bMultiplyZ);
+
+                    ImGui::Spacing();
+                    ImGui::TextDisabled("Tip: Use curve editor to adjust visually");
+                }
+                else if (auto* RotationModule = dynamic_cast<UParticleModuleRotation*>(SelectedModule))
+                {
+                    ImGui::Text("Rotation Settings");
+                    ImGui::Separator();
+
+                    ImGui::DragFloat("Start Rotation Min (Radians)", &RotationModule->StartRotation.MinValue, 0.01f, -6.28f, 6.28f);
+                    ImGui::DragFloat("Start Rotation Max (Radians)", &RotationModule->StartRotation.MaxValue, 0.01f, -6.28f, 6.28f);
+                    ImGui::Checkbox("Use Range", &RotationModule->StartRotation.bUseRange);
+
+                    ImGui::Spacing();
+                    ImGui::TextDisabled("Tip: PI = 3.14159, 2*PI = 6.28318");
+                }
+                else if (auto* RotationRateModule = dynamic_cast<UParticleModuleRotationRate*>(SelectedModule))
+                {
+                    ImGui::Text("Rotation Rate Settings");
+                    ImGui::Separator();
+
+                    ImGui::Text("Initial Rotation");
+                    ImGui::DragFloat("Initial Rotation Min (Rad)", &RotationRateModule->InitialRotation.MinValue, 0.01f, 0.0f, 6.28318f);
+                    ImGui::DragFloat("Initial Rotation Max (Rad)", &RotationRateModule->InitialRotation.MaxValue, 0.01f, 0.0f, 6.28318f);
+                    ImGui::Checkbox("Use Initial Rotation Range", &RotationRateModule->InitialRotation.bUseRange);
+
+                    ImGui::Spacing();
+                    ImGui::Text("Rotation Speed");
+                    ImGui::DragFloat("Start Rotation Rate Min (Rad/s)", &RotationRateModule->StartRotationRate.MinValue, 0.01f, -10.0f, 10.0f);
+                    ImGui::DragFloat("Start Rotation Rate Max (Rad/s)", &RotationRateModule->StartRotationRate.MaxValue, 0.01f, -10.0f, 10.0f);
+                    ImGui::Checkbox("Use Rotation Rate Range", &RotationRateModule->StartRotationRate.bUseRange);
+
+                    ImGui::Spacing();
+                    ImGui::TextDisabled("Tip: PI = 3.14159, 2*PI = 6.28318");
+                    ImGui::TextDisabled("Tip: 1 rad/s = ~57 degrees/s");
+                }
             }
             else if (CurrentParticleSystem)
             {
@@ -880,7 +959,7 @@ void SParticleViewerWindow::OnRender()
         ImGui::Text("Curve Editor");
         ImGui::Separator();
 
-        // 커브 편집 툴바
+        // 툴바
         if (ImGui::Button("Horizontal")) {}
         ImGui::SameLine();
         if (ImGui::Button("Vertical")) {}
@@ -894,7 +973,408 @@ void SParticleViewerWindow::OnRender()
         if (ImGui::Button("Zoom")) {}
 
         ImGui::Separator();
-        ImGui::TextDisabled("Curve editing area (Coming Soon)");
+
+        // 커브 에디터 레이아웃: 왼쪽(모듈 목록) + 오른쪽(그래프)
+        ImVec2 availSize = ImGui::GetContentRegionAvail();
+        const float moduleListWidth = 200.0f;
+        const float graphWidth = availSize.x - moduleListWidth;
+
+        // 왼쪽: 밝은 회색 - 커브를 사용하는 모듈 목록
+        ImGui::BeginChild("ModuleList", ImVec2(moduleListWidth, 0), true, ImGuiWindowFlags_NoScrollbar);
+        {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            ImVec2 listPos = ImGui::GetCursorScreenPos();
+            ImVec2 listSize = ImGui::GetContentRegionAvail();
+
+            // 밝은 회색 배경
+            draw_list->AddRectFilled(listPos, ImVec2(listPos.x + listSize.x, listPos.y + listSize.y),
+                                    IM_COL32(120, 120, 120, 255));
+
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255)); // 검은색 텍스트
+
+            ImGui::Text("Curve Modules:");
+            ImGui::Separator();
+
+            // 커브를 사용하는 모듈들 나열
+            if (CurrentParticleSystem && SelectedEmitterIndex >= 0 &&
+                SelectedEmitterIndex < CurrentParticleSystem->Emitters.Num())
+            {
+                auto* Emitter = CurrentParticleSystem->Emitters[SelectedEmitterIndex];
+                if (Emitter && Emitter->LODLevels.Num() > 0)
+                {
+                    auto* LOD = Emitter->LODLevels[0];
+                    for (auto* Module : LOD->AllModulesCache)
+                    {
+                        // SizeMultiplyLife, ColorOverLife 등 커브를 사용하는 모듈만 표시
+                        if (auto* SizeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(Module))
+                        {
+                            if (ImGui::Selectable("SizeMultiplyLife", SelectedModule == Module))
+                            {
+                                SelectedModule = Module;
+                            }
+                        }
+                        else if (auto* ColorModule = dynamic_cast<UParticleModuleColorOverLife*>(Module))
+                        {
+                            if (ImGui::Selectable("ColorOverLife", SelectedModule == Module))
+                            {
+                                SelectedModule = Module;
+                            }
+                        }
+                    }
+                }
+            }
+
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+
+        // 오른쪽: 짙은 회색 모눈종이 - 커브 그래프
+        ImGui::BeginChild("CurveGraph", ImVec2(graphWidth, 0), true, ImGuiWindowFlags_NoScrollbar);
+        {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            ImVec2 graphPos = ImGui::GetCursorScreenPos();
+            ImVec2 graphSize = ImGui::GetContentRegionAvail();
+
+            // 축 여백 (왼쪽, 아래)
+            const float axisMarginLeft = 60.0f;
+            const float axisMarginBottom = 30.0f;
+
+            // 실제 그래프 영역 (먼저 선언)
+            ImVec2 graphAreaPos = ImVec2(graphPos.x + axisMarginLeft, graphPos.y);
+            ImVec2 graphAreaSize = ImVec2(graphSize.x - axisMarginLeft, graphSize.y - axisMarginBottom);
+
+            // 마우스 휠 줌 처리
+            if (ImGui::IsWindowHovered())
+            {
+                float wheel = ImGui::GetIO().MouseWheel;
+                if (wheel != 0.0f)
+                {
+                    float zoomFactor = 1.0f + wheel * 0.1f;
+                    CurveZoom *= zoomFactor;
+                    CurveZoom = FMath::Clamp(CurveZoom, 1.0f, 20.0f); // 1.0배(기본) ~ 20배 확대
+                }
+            }
+
+            // 짙은 회색 배경 (전체)
+            draw_list->AddRectFilled(graphPos, ImVec2(graphPos.x + graphSize.x, graphPos.y + graphSize.y),
+                                    IM_COL32(50, 50, 50, 255));
+
+            // 좌표계: X축(시간) 0~100, Y축(값) 0~100
+            const float timeMin = 0.0f;
+            const float timeMax = 100.0f;
+            const float valueMin = 0.0f;
+            const float valueMax = 100.0f;
+            const float fullRangeX = timeMax - timeMin;
+            const float fullRangeY = valueMax - valueMin;
+
+            // 줌/팬 적용된 가시 범위
+            float visibleRangeX = fullRangeX / CurveZoom;
+            float visibleRangeY = fullRangeY / CurveZoom;
+
+            // 중심점 (팬 오프셋 적용)
+            float centerX = CurvePan.X;
+            float centerY = CurvePan.Y;
+
+            // 가시 영역 계산
+            float viewMinX = centerX - visibleRangeX * 0.5f;
+            float viewMaxX = centerX + visibleRangeX * 0.5f;
+            float viewMinY = centerY - visibleRangeY * 0.5f;
+            float viewMaxY = centerY + visibleRangeY * 0.5f;
+
+            // 경계 제한 (범위를 벗어나지 않도록)
+            if (viewMinX < timeMin)
+            {
+                float offset = timeMin - viewMinX;
+                viewMinX += offset;
+                viewMaxX += offset;
+            }
+            if (viewMaxX > timeMax)
+            {
+                float offset = viewMaxX - timeMax;
+                viewMinX -= offset;
+                viewMaxX -= offset;
+            }
+            if (viewMinY < valueMin)
+            {
+                float offset = valueMin - viewMinY;
+                viewMinY += offset;
+                viewMaxY += offset;
+            }
+            if (viewMaxY > valueMax)
+            {
+                float offset = viewMaxY - valueMax;
+                viewMinY -= offset;
+                viewMaxY -= offset;
+            }
+
+            // 최종 가시 범위
+            visibleRangeX = viewMaxX - viewMinX;
+            visibleRangeY = viewMaxY - viewMinY;
+
+            // World to Screen 변환
+            auto WorldToScreen = [&](float worldX, float worldY) -> ImVec2 {
+                float normalizedX = (worldX - viewMinX) / visibleRangeX;
+                float normalizedY = (worldY - viewMinY) / visibleRangeY;
+                float screenX = graphAreaPos.x + normalizedX * graphAreaSize.x;
+                float screenY = graphAreaPos.y + graphAreaSize.y - normalizedY * graphAreaSize.y;
+                return ImVec2(screenX, screenY);
+            };
+
+            // Screen to World 변환 (포인트 드래그에 사용)
+            auto ScreenToWorld = [&](ImVec2 screenPos) -> FVector2D {
+                float normalizedX = (screenPos.x - graphAreaPos.x) / graphAreaSize.x;
+                float normalizedY = 1.0f - (screenPos.y - graphAreaPos.y) / graphAreaSize.y;
+                float worldX = viewMinX + normalizedX * visibleRangeX;
+                float worldY = viewMinY + normalizedY * visibleRangeY;
+                return FVector2D(worldX, worldY);
+            };
+
+            // 마우스 드래그로 팬 이동 또는 포인트 드래그
+            if (ImGui::IsWindowHovered())
+            {
+                ImGuiIO& io = ImGui::GetIO();
+
+                // 왼쪽 버튼 클릭 시작
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                {
+                    // 포인트를 클릭했는지 확인 (선택된 모듈이 있을 때만)
+                    if (SelectedModule)
+                    {
+                        if (auto* SizeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(SelectedModule))
+                        {
+                            // 키포인트 위치 계산
+                            ImVec2 p1Screen = WorldToScreen(SizeModule->Point1Time, SizeModule->Point1Value.X);
+                            ImVec2 p2Screen = WorldToScreen(SizeModule->Point2Time, SizeModule->Point2Value.X);
+
+                            // 마우스 위치와의 거리 계산
+                            float dist1 = sqrtf((io.MousePos.x - p1Screen.x) * (io.MousePos.x - p1Screen.x) +
+                                              (io.MousePos.y - p1Screen.y) * (io.MousePos.y - p1Screen.y));
+                            float dist2 = sqrtf((io.MousePos.x - p2Screen.x) * (io.MousePos.x - p2Screen.x) +
+                                              (io.MousePos.y - p2Screen.y) * (io.MousePos.y - p2Screen.y));
+
+                            const float clickRadius = 10.0f; // 클릭 가능 반경
+
+                            // 가장 가까운 포인트 찾기
+                            if (dist1 < clickRadius && dist1 <= dist2)
+                            {
+                                DraggingPointIndex = 0; // 점1
+                                bDraggingPoint = true;
+                            }
+                            else if (dist2 < clickRadius)
+                            {
+                                DraggingPointIndex = 1; // 점2
+                                bDraggingPoint = true;
+                            }
+                            else
+                            {
+                                // 포인트를 클릭하지 않았으면 팬 모드
+                                bCurvePanning = true;
+                                CurvePanStart = FVector2D(io.MousePos.x, io.MousePos.y);
+                            }
+                        }
+                        else
+                        {
+                            // 다른 모듈이면 팬만
+                            bCurvePanning = true;
+                            CurvePanStart = FVector2D(io.MousePos.x, io.MousePos.y);
+                        }
+                    }
+                    else
+                    {
+                        // 선택된 모듈이 없으면 팬만
+                        bCurvePanning = true;
+                        CurvePanStart = FVector2D(io.MousePos.x, io.MousePos.y);
+                    }
+                }
+
+                // 드래그 중
+                if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+                {
+                    if (bDraggingPoint && SelectedModule)
+                    {
+                        // 포인트 드래그 중
+                        if (auto* SizeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(SelectedModule))
+                        {
+                            FVector2D worldPos = ScreenToWorld(io.MousePos);
+
+                            // X: 시간 (0~100)
+                            float time = FMath::Clamp(worldPos.X, 0.0f, 100.0f);
+                            // Y: 값 (0~100)
+                            float value = FMath::Clamp(worldPos.Y, 0.0f, 100.0f);
+
+                            if (DraggingPointIndex == 0)
+                            {
+                                // 점1: 시간과 값 모두 변경 가능
+                                // 단, 점2보다 왼쪽에 있어야 함
+                                SizeModule->Point1Time = FMath::Min(time, SizeModule->Point2Time - 0.1f);
+                                SizeModule->Point1Value = FVector(value, value, value);
+                            }
+                            else if (DraggingPointIndex == 1)
+                            {
+                                // 점2: 시간과 값 모두 변경 가능
+                                // 단, 점1보다 오른쪽에 있어야 함
+                                SizeModule->Point2Time = FMath::Max(time, SizeModule->Point1Time + 0.1f);
+                                SizeModule->Point2Value = FVector(value, value, value);
+                            }
+                        }
+                    }
+                    else if (bCurvePanning)
+                    {
+                        // 팬 드래그 중
+                        ImVec2 delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+                        ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+
+                        // 스크린 공간 delta를 월드 공간으로 변환
+                        float worldDeltaX = -(delta.x / graphAreaSize.x) * visibleRangeX;
+                        float worldDeltaY = (delta.y / graphAreaSize.y) * visibleRangeY;
+
+                        CurvePan.X += worldDeltaX;
+                        CurvePan.Y += worldDeltaY;
+
+                        // 팬 범위 제한
+                        float halfRangeX = visibleRangeX * 0.5f;
+                        float halfRangeY = visibleRangeY * 0.5f;
+                        CurvePan.X = FMath::Clamp(CurvePan.X, timeMin + halfRangeX, timeMax - halfRangeX);
+                        CurvePan.Y = FMath::Clamp(CurvePan.Y, valueMin + halfRangeY, valueMax - halfRangeY);
+                    }
+                }
+
+                // 마우스 버튼 놓음
+                if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+                {
+                    bCurvePanning = false;
+                    bDraggingPoint = false;
+                    DraggingPointIndex = -1;
+                }
+            }
+
+            // 그리드 간격 (줌에 따라 동적 조정)
+            float gridStepX = 10.0f;
+            float gridStepY = 10.0f;
+
+            // 줌 레벨에 따라 그리드 세분화
+            if (CurveZoom >= 2.0f) { gridStepX = 5.0f; gridStepY = 5.0f; }
+            if (CurveZoom >= 4.0f) { gridStepX = 2.0f; gridStepY = 2.0f; }
+            if (CurveZoom >= 8.0f) { gridStepX = 1.0f; gridStepY = 1.0f; }
+            if (CurveZoom >= 16.0f) { gridStepX = 0.5f; gridStepY = 0.5f; }
+
+            // 그리드 시작점 (가시 영역 기준)
+            float gridStartX = floor(viewMinX / gridStepX) * gridStepX;
+            float gridStartY = floor(viewMinY / gridStepY) * gridStepY;
+
+            // 세로 그리드 라인 (X축 - 시간)
+            for (float x = gridStartX; x <= viewMaxX; x += gridStepX)
+            {
+                ImVec2 p0 = WorldToScreen(x, viewMinY);
+                ImVec2 p1 = WorldToScreen(x, viewMaxY);
+
+                if (p0.x >= graphAreaPos.x && p0.x <= graphAreaPos.x + graphAreaSize.x)
+                {
+                    // 정수 시간은 더 진하게
+                    bool isInteger = FMath::Abs(x - floor(x)) < 0.01f;
+                    draw_list->AddLine(p0, p1, isInteger ? IM_COL32(100, 100, 100, 255) : IM_COL32(70, 70, 70, 255),
+                                      isInteger ? 1.5f : 1.0f);
+
+                    // X축 레이블 (정수만 표시)
+                    if (isInteger)
+                    {
+                        char label[32];
+                        snprintf(label, sizeof(label), "%.1f", x);
+                        ImVec2 labelSize = ImGui::CalcTextSize(label);
+                        ImVec2 labelPos = ImVec2(p0.x - labelSize.x * 0.5f, graphAreaPos.y + graphAreaSize.y + 5);
+                        draw_list->AddText(labelPos, IM_COL32(200, 200, 200, 255), label);
+                    }
+                }
+            }
+
+            // 가로 그리드 라인 (Y축 - 값)
+            for (float y = gridStartY; y <= viewMaxY; y += gridStepY)
+            {
+                ImVec2 p0 = WorldToScreen(viewMinX, y);
+                ImVec2 p1 = WorldToScreen(viewMaxX, y);
+
+                if (p0.y >= graphAreaPos.y && p0.y <= graphAreaPos.y + graphAreaSize.y)
+                {
+                    // 정수 값은 더 진하게
+                    bool isInteger = FMath::Abs(y - floor(y)) < 0.01f;
+                    draw_list->AddLine(p0, p1, isInteger ? IM_COL32(100, 100, 100, 255) : IM_COL32(70, 70, 70, 255),
+                                      isInteger ? 1.5f : 1.0f);
+
+                    // Y축 레이블 (정수만 표시)
+                    if (isInteger)
+                    {
+                        char label[32];
+                        snprintf(label, sizeof(label), "%.1f", y);
+                        ImVec2 labelSize = ImGui::CalcTextSize(label);
+                        ImVec2 labelPos = ImVec2(graphAreaPos.x - labelSize.x - 5, p0.y - labelSize.y * 0.5f);
+                        draw_list->AddText(labelPos, IM_COL32(200, 200, 200, 255), label);
+                    }
+                }
+            }
+
+            // 축 경계선
+            draw_list->AddRect(graphAreaPos, ImVec2(graphAreaPos.x + graphAreaSize.x, graphAreaPos.y + graphAreaSize.y),
+                              IM_COL32(100, 100, 100, 255), 0.0f, 0, 2.0f);
+
+            // 선택된 모듈의 커브 그리기
+            if (SelectedModule)
+            {
+                if (auto* SizeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(SelectedModule))
+                {
+                    float p1Time = SizeModule->Point1Time;
+                    float p1Value = SizeModule->Point1Value.X;
+                    float p2Time = SizeModule->Point2Time;
+                    float p2Value = SizeModule->Point2Value.X;
+
+                    // 1. 점1 이전: 왼쪽 끝부터 점1까지 수평선
+                    ImVec2 leftStart = WorldToScreen(timeMin, p1Value);
+                    ImVec2 leftEnd = WorldToScreen(p1Time, p1Value);
+                    draw_list->AddLine(leftStart, leftEnd, IM_COL32(255, 100, 100, 255), 2.0f);
+
+                    // 2. 점1에서 점2까지 선형 보간
+                    ImVec2 p1Screen = WorldToScreen(p1Time, p1Value);
+                    ImVec2 p2Screen = WorldToScreen(p2Time, p2Value);
+                    draw_list->AddLine(p1Screen, p2Screen, IM_COL32(255, 100, 100, 255), 2.0f);
+
+                    // 3. 점2 이후: 점2부터 오른쪽 끝까지 수평선
+                    ImVec2 rightStart = WorldToScreen(p2Time, p2Value);
+                    ImVec2 rightEnd = WorldToScreen(timeMax, p2Value);
+                    draw_list->AddLine(rightStart, rightEnd, IM_COL32(255, 100, 100, 255), 2.0f);
+
+                    // 키포인트 그리기
+                    float radius1 = (DraggingPointIndex == 0) ? 8.0f : 6.0f;
+                    float radius2 = (DraggingPointIndex == 1) ? 8.0f : 6.0f;
+
+                    // 점1 (빨강)
+                    draw_list->AddCircleFilled(p1Screen, radius1, IM_COL32(255, 100, 100, 255));
+                    draw_list->AddCircle(p1Screen, radius1 + 1.0f, IM_COL32(255, 255, 255, 200), 0, 1.5f);
+
+                    // 점2 (노랑)
+                    draw_list->AddCircleFilled(p2Screen, radius2, IM_COL32(255, 255, 100, 255));
+                    draw_list->AddCircle(p2Screen, radius2 + 1.0f, IM_COL32(255, 255, 255, 200), 0, 1.5f);
+                }
+            }
+            else
+            {
+                // 선택된 모듈 없을 때
+                ImVec2 textSize = ImGui::CalcTextSize("Select a curve module from the list");
+                ImVec2 textPos = ImVec2(graphAreaPos.x + (graphAreaSize.x - textSize.x) * 0.5f,
+                                        graphAreaPos.y + (graphAreaSize.y - textSize.y) * 0.5f);
+                draw_list->AddText(textPos, IM_COL32(150, 150, 150, 255), "Select a curve module from the list");
+            }
+
+            // 줌 정보 표시
+            char zoomText[64];
+            snprintf(zoomText, sizeof(zoomText), "Zoom: %.1fx", CurveZoom);
+            ImVec2 zoomTextPos = ImVec2(graphPos.x + 10, graphPos.y + 10);
+            draw_list->AddText(zoomTextPos, IM_COL32(200, 200, 200, 255), zoomText);
+
+            // 더미 아이템으로 영역 차지
+            ImGui::Dummy(graphSize);
+        }
+        ImGui::EndChild();
     }
     ImGui::EndChild();
 

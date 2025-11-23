@@ -79,9 +79,19 @@ private:
     // Selected module for details panel
     class UParticleModule* SelectedModule = nullptr;
 
-    // Layout state                                                                                
-    float LeftPanelRatio = 0.25f;   // 25% of width                                                
-    float RightPanelRatio = 0.25f;  // 25% of width                                                
+    // Curve Editor state
+    float CurveZoom = 1.0f;          // 줌 레벨 (1.0 = 기본, 2.0 = 2배 확대)
+    FVector2D CurvePan = FVector2D(50.0f, 50.0f);  // 팬 오프셋 (중심점, 기본값은 50,50)
+    bool bCurvePanning = false;      // 팬 드래그 중인지
+    FVector2D CurvePanStart = FVector2D(0.0f, 0.0f);  // 드래그 시작 위치
+
+    // Curve point dragging
+    int32 DraggingPointIndex = -1;   // -1: none, 0: start, 1: mid, 2: end
+    bool bDraggingPoint = false;     // 포인트 드래그 중인지
+
+    // Layout state
+    float LeftPanelRatio = 0.25f;   // 25% of width
+    float RightPanelRatio = 0.25f;  // 25% of width
     float BottomPanelRatio = 0.3f;  // 30% of Height                                               
                                                                                                    
     // Cached center region for viewport                                                           

@@ -24,4 +24,6 @@ void UParticleModuleRotation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
 
     ParticleBase->Rotation = RotationValue;
     ParticleBase->BaseRotation = RotationValue;
+
+    UE_LOG("ParticleModuleRotation::Spawn - Set rotation to: %f radians", RotationValue);
 }
