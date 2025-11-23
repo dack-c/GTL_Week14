@@ -16,6 +16,7 @@ public:
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
     UParticleModule* AddModule(UClass* ParticleModuleClass);
+    void RemoveModule(UParticleModule* Module);
     void RebuildModuleCaches();
     
 public:

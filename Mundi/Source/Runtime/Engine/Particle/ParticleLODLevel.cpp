@@ -5,6 +5,7 @@
 #include "Modules/ParticleModuleSize.h"
 #include "Modules/ParticleModuleSpawn.h"
 #include "Modules/ParticleModuleVelocity.h"
+#include "Modules/ParticleModuleTypeDataBase.h"
 #include "JsonSerializer.h"
 #include "Modules/ParticleModuleColor.h"
 #include "Modules/ParticleModuleLocation.h"
@@ -251,15 +252,51 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 
 UParticleModule* UParticleLODLevel::AddModule(UClass* ParticleModuleClass)
 {
-    if (!ParticleModuleClass || !ParticleModuleClass->IsChildOf(UParticleModule::StaticClass())) 
-    { 
-        return nullptr; 
+    if (!ParticleModuleClass || !ParticleModuleClass->IsChildOf(UParticleModule::StaticClass()))
+    {
+        return nullptr;
     }
 
     UParticleModule* NewModule = Cast<UParticleModule>(NewObject(ParticleModuleClass));
     AllModulesCache.Add(NewModule);
 
     return NewModule;
+}
+
+void UParticleLODLevel::RemoveModule(UParticleModule* Module)
+{
+    if (!Module)
+    {
+        UE_LOG("RemoveModule: Module is null");
+        return;
+    }
+
+    UE_LOG("RemoveModule: Attempting to remove module: %s", Module->GetClass()->Name);
+
+    // Required, Spawn 모듈은 삭제 불가
+    if (Cast<UParticleModuleRequired>(Module))
+    {
+        UE_LOG("Required 모듈은 삭제할 수 없습니다.");
+        return;
+    }
+
+    if (Cast<UParticleModuleSpawn>(Module))
+    {
+        UE_LOG("Spawn 모듈은 삭제할 수 없습니다.");
+        return;
+    }
+
+    // AllModulesCache에서 제거
+    int32 RemovedCount = AllModulesCache.Remove(Module);
+    UE_LOG("RemoveModule: Removed %d instances from AllModulesCache", RemovedCount);
+
+    // 모듈 메모리 해제
+    ObjectFactory::DeleteObject(Module);
+    UE_LOG("RemoveModule: Module deleted");
+
+    // 캐시 재구성
+    RebuildModuleCaches();
+    UE_LOG("RemoveModule: Caches rebuilt. AllModulesCache size: %d", AllModulesCache.Num());
 }
 
 void UParticleLODLevel::RebuildModuleCaches()

@@ -12,6 +12,11 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSize.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocity.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColor.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLocation.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColorOverLife.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSizeMultiplyLife.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRotation.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRotationRate.h"
 #include "Source/Runtime/Core/Object/ObjectFactory.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Runtime/Engine/Components/ParticleSystemComponent.h"
@@ -584,11 +589,64 @@ void SParticleViewerWindow::OnRender()
         }
 
         // Delete 키 입력 감지 (EmitterPanel에 포커스가 있을 때)
-        if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) && SelectedEmitter)
+        if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
         {
             if (ImGui::IsKeyPressed(ImGuiKey_Delete))
             {
-                DeleteSelectedEmitter();
+                // 선택된 모듈이 있으면 모듈 삭제
+                if (SelectedModule)
+                {
+                    UE_LOG("Delete key pressed with selected module: %s", SelectedModule->GetClass()->Name);
+
+                    // Required 모듈은 삭제 불가
+                    if (Cast<UParticleModuleRequired>(SelectedModule))
+                    {
+                        UE_LOG("Required 모듈은 삭제할 수 없습니다.");
+                    }
+                    else
+                    {
+                        // 모듈이 속한 LOD 찾기
+                        UParticleLODLevel* OwnerLOD = nullptr;
+                        if (CurrentParticleSystem)
+                        {
+                            UE_LOG("Searching for owner LOD in %d emitters", CurrentParticleSystem->Emitters.Num());
+                            for (UParticleEmitter* Emitter : CurrentParticleSystem->Emitters)
+                            {
+                                if (Emitter && Emitter->LODLevels.Num() > 0)
+                                {
+                                    UParticleLODLevel* LOD = Emitter->LODLevels[0];
+                                    if (LOD)
+                                    {
+                                        UE_LOG("Checking LOD with %d modules", LOD->AllModulesCache.Num());
+                                        if (LOD->AllModulesCache.Contains(SelectedModule))
+                                        {
+                                            OwnerLOD = LOD;
+                                            UE_LOG("Found owner LOD!");
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (OwnerLOD)
+                        {
+                            UE_LOG("Calling RemoveModule on owner LOD");
+                            // 모듈 삭제
+                            OwnerLOD->RemoveModule(SelectedModule);
+                            SelectedModule = nullptr;
+                        }
+                        else
+                        {
+                            UE_LOG("ERROR: Could not find owner LOD for module!");
+                        }
+                    }
+                }
+                // 선택된 이미터가 있으면 이미터 삭제
+                else if (SelectedEmitter)
+                {
+                    DeleteSelectedEmitter();
+                }
             }
         }
 
@@ -685,6 +743,9 @@ void SParticleViewerWindow::OnRender()
                         UParticleLODLevel* LOD = Emitter->LODLevels[0];
                         if (LOD)
                         {
+                            // 모듈 리스트를 표시하고, 마우스가 모듈 위에 있는지 추적
+                            bool bMouseOverModule = false;
+
                             for (int m = 0; m < LOD->AllModulesCache.Num(); m++)
                             {
                                 if (UParticleModule* Module = LOD->AllModulesCache[m])
@@ -695,8 +756,81 @@ void SParticleViewerWindow::OnRender()
                                     {
                                         SelectedModule = Module;
                                     }
+
+                                    // 마우스가 이 모듈 위에 있는지 확인
+                                    if (ImGui::IsItemHovered())
+                                    {
+                                        bMouseOverModule = true;
+                                    }
+
                                     ImGui::PopID();
                                 }
+                            }
+
+                            // 이미터 블록의 빈 공간에서 우클릭 감지
+                            // (모듈 위가 아니고, EmitterBlock 내부인 경우)
+                            if (!bMouseOverModule &&
+                                ImGui::IsWindowHovered() &&
+                                ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+                            {
+                                // 빈 공간에 우클릭한 경우
+                                ImGui::OpenPopup("AddModuleContextMenu");
+                            }
+
+                            // 모듈 추가 컨텍스트 메뉴
+                            if (ImGui::BeginPopup("AddModuleContextMenu"))
+                            {
+                                ImGui::TextDisabled("모듈 추가");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Lifetime"))
+                                {
+                                    LOD->AddModule(UParticleModuleLifetime::StaticClass());
+                                }
+                                if (ImGui::MenuItem("Velocity"))
+                                {
+                                    LOD->AddModule(UParticleModuleVelocity::StaticClass());
+                                }
+                                if (ImGui::MenuItem("Size"))
+                                {
+                                    LOD->AddModule(UParticleModuleSize::StaticClass());
+                                }
+                                if (ImGui::MenuItem("Color"))
+                                {
+                                    LOD->AddModule(UParticleModuleColor::StaticClass());
+                                }
+                                if (ImGui::MenuItem("Location"))
+                                {
+                                    LOD->AddModule(UParticleModuleLocation::StaticClass());
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("라이프타임 기반");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Color Over Life"))
+                                {
+                                    LOD->AddModule(UParticleModuleColorOverLife::StaticClass());
+                                }
+                                if (ImGui::MenuItem("Size Multiply Life"))
+                                {
+                                    LOD->AddModule(UParticleModuleSizeMultiplyLife::StaticClass());
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("회전");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Rotation"))
+                                {
+                                    LOD->AddModule(UParticleModuleRotation::StaticClass());
+                                }
+                                if (ImGui::MenuItem("Rotation Rate"))
+                                {
+                                    LOD->AddModule(UParticleModuleRotationRate::StaticClass());
+                                }
+
+                                ImGui::EndPopup();
                             }
                         }
                     }
