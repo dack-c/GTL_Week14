@@ -547,7 +547,7 @@ void SParticleViewerWindow::OnRender()
     ImGui::SameLine();
 
     // 우측: Emitter/모듈 패널
-    ImGui::BeginChild("EmitterPanel", ImVec2(rightPanelWidth, mainContentHeight), true);
+    ImGui::BeginChild("EmitterPanel", ImVec2(rightPanelWidth, mainContentHeight), true, ImGuiWindowFlags_HorizontalScrollbar);
     {
         ImGui::Text("이미터");
         ImGui::Separator();
@@ -734,8 +734,8 @@ void SParticleViewerWindow::OnRender()
 
                 ImGui::PopID();
 
-                // 다음 이미터를 옆에 배치 (2열 레이아웃)
-                if ((i + 1) % 2 != 0 && i + 1 < CurrentParticleSystem->Emitters.Num())
+                // 다음 이미터를 옆에 배치 (가로로 계속 나열)
+                if (i + 1 < CurrentParticleSystem->Emitters.Num())
                 {
                     ImGui::SameLine();
                 }
