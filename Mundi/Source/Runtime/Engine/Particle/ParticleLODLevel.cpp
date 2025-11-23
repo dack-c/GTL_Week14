@@ -8,6 +8,10 @@
 #include "JsonSerializer.h"
 #include "Modules/ParticleModuleColor.h"
 #include "Modules/ParticleModuleLocation.h"
+#include "Modules/ParticleModuleColorOverLife.h"
+#include "Modules/ParticleModuleSizeMultiplyLife.h"
+#include "Modules/ParticleModuleRotation.h"
+#include "Modules/ParticleModuleRotationRate.h"
 
 IMPLEMENT_CLASS(UParticleLODLevel)
 
@@ -354,6 +358,58 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         }
         NewModule = Location;
     }
+    else if (ModuleType == "ColorOverLife")
+    {
+        auto* ColorOverLife = Cast<UParticleModuleColorOverLife>(AddModule(UParticleModuleColorOverLife::StaticClass()));
+        if (ColorOverLife)
+        {
+            FJsonSerializer::ReadLinearColor(ModuleJson, "ColorOverLife_Min", ColorOverLife->ColorOverLife.MinValue);
+            FJsonSerializer::ReadLinearColor(ModuleJson, "ColorOverLife_Max", ColorOverLife->ColorOverLife.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "ColorOverLife_bUseRange", ColorOverLife->ColorOverLife.bUseRange);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaOverLife_Min", ColorOverLife->AlphaOverLife.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaOverLife_Max", ColorOverLife->AlphaOverLife.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "AlphaOverLife_bUseRange", ColorOverLife->AlphaOverLife.bUseRange);
+            FJsonSerializer::ReadBool(ModuleJson, "bUseColorOverLife", ColorOverLife->bUseColorOverLife);
+            FJsonSerializer::ReadBool(ModuleJson, "bUseAlphaOverLife", ColorOverLife->bUseAlphaOverLife);
+        }
+        NewModule = ColorOverLife;
+    }
+    else if (ModuleType == "SizeMultiplyLife")
+    {
+        auto* SizeMultiplyLife = Cast<UParticleModuleSizeMultiplyLife>(AddModule(UParticleModuleSizeMultiplyLife::StaticClass()));
+        if (SizeMultiplyLife)
+        {
+            FJsonSerializer::ReadVector(ModuleJson, "LifeMultiplier_Min", SizeMultiplyLife->LifeMultiplier.MinValue);
+            FJsonSerializer::ReadVector(ModuleJson, "LifeMultiplier_Max", SizeMultiplyLife->LifeMultiplier.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "LifeMultiplier_bUseRange", SizeMultiplyLife->LifeMultiplier.bUseRange);
+            FJsonSerializer::ReadBool(ModuleJson, "bMultiplyX", SizeMultiplyLife->bMultiplyX);
+            FJsonSerializer::ReadBool(ModuleJson, "bMultiplyY", SizeMultiplyLife->bMultiplyY);
+            FJsonSerializer::ReadBool(ModuleJson, "bMultiplyZ", SizeMultiplyLife->bMultiplyZ);
+        }
+        NewModule = SizeMultiplyLife;
+    }
+    else if (ModuleType == "Rotation")
+    {
+        auto* Rotation = Cast<UParticleModuleRotation>(AddModule(UParticleModuleRotation::StaticClass()));
+        if (Rotation)
+        {
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotation_Min", Rotation->StartRotation.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotation_Max", Rotation->StartRotation.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "StartRotation_bUseRange", Rotation->StartRotation.bUseRange);
+        }
+        NewModule = Rotation;
+    }
+    else if (ModuleType == "RotationRate")
+    {
+        auto* RotationRate = Cast<UParticleModuleRotationRate>(AddModule(UParticleModuleRotationRate::StaticClass()));
+        if (RotationRate)
+        {
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotationRate_Min", RotationRate->StartRotationRate.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotationRate_Max", RotationRate->StartRotationRate.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "StartRotationRate_bUseRange", RotationRate->StartRotationRate.bUseRange);
+        }
+        NewModule = RotationRate;
+    }
 
     if (NewModule)
     {
@@ -405,9 +461,45 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["StartLocation_Max"] = FJsonSerializer::VectorToJson(Location->StartLocation.MaxValue);
         ModuleJson["StartLocation_bUseRange"] = Location->StartLocation.bUseRange;
     }
+    else if (auto* ColorOverLife = Cast<UParticleModuleColorOverLife>(Module))
+    {
+        ModuleJson["Type"] = "ColorOverLife";
+        ModuleJson["ColorOverLife_Min"] = FJsonSerializer::LinearColorToJson(ColorOverLife->ColorOverLife.MinValue);
+        ModuleJson["ColorOverLife_Max"] = FJsonSerializer::LinearColorToJson(ColorOverLife->ColorOverLife.MaxValue);
+        ModuleJson["ColorOverLife_bUseRange"] = ColorOverLife->ColorOverLife.bUseRange;
+        ModuleJson["AlphaOverLife_Min"] = ColorOverLife->AlphaOverLife.MinValue;
+        ModuleJson["AlphaOverLife_Max"] = ColorOverLife->AlphaOverLife.MaxValue;
+        ModuleJson["AlphaOverLife_bUseRange"] = ColorOverLife->AlphaOverLife.bUseRange;
+        ModuleJson["bUseColorOverLife"] = ColorOverLife->bUseColorOverLife;
+        ModuleJson["bUseAlphaOverLife"] = ColorOverLife->bUseAlphaOverLife;
+    }
+    else if (auto* SizeMultiplyLife = Cast<UParticleModuleSizeMultiplyLife>(Module))
+    {
+        ModuleJson["Type"] = "SizeMultiplyLife";
+        ModuleJson["LifeMultiplier_Min"] = FJsonSerializer::VectorToJson(SizeMultiplyLife->LifeMultiplier.MinValue);
+        ModuleJson["LifeMultiplier_Max"] = FJsonSerializer::VectorToJson(SizeMultiplyLife->LifeMultiplier.MaxValue);
+        ModuleJson["LifeMultiplier_bUseRange"] = SizeMultiplyLife->LifeMultiplier.bUseRange;
+        ModuleJson["bMultiplyX"] = SizeMultiplyLife->bMultiplyX;
+        ModuleJson["bMultiplyY"] = SizeMultiplyLife->bMultiplyY;
+        ModuleJson["bMultiplyZ"] = SizeMultiplyLife->bMultiplyZ;
+    }
+    else if (auto* Rotation = Cast<UParticleModuleRotation>(Module))
+    {
+        ModuleJson["Type"] = "Rotation";
+        ModuleJson["StartRotation_Min"] = Rotation->StartRotation.MinValue;
+        ModuleJson["StartRotation_Max"] = Rotation->StartRotation.MaxValue;
+        ModuleJson["StartRotation_bUseRange"] = Rotation->StartRotation.bUseRange;
+    }
+    else if (auto* RotationRate = Cast<UParticleModuleRotationRate>(Module))
+    {
+        ModuleJson["Type"] = "RotationRate";
+        ModuleJson["StartRotationRate_Min"] = RotationRate->StartRotationRate.MinValue;
+        ModuleJson["StartRotationRate_Max"] = RotationRate->StartRotationRate.MaxValue;
+        ModuleJson["StartRotationRate_bUseRange"] = RotationRate->StartRotationRate.bUseRange;
+    }
     else
     {
-        return {}; 
+        return {};
     }
 
     return ModuleJson;
