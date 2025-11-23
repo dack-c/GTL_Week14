@@ -82,22 +82,22 @@ namespace ObjectFactory
         if (!Obj) return;
 
         // Important: DO NOT dereference Obj fields before verifying it is still in GUObjectArray.
-        int32 foundIndex = -1;
+        int32 FoundIndex = -1;
         for (int32 i = 0; i < GUObjectArray.Num(); ++i)
         {
             if (GUObjectArray[i] == Obj)
             {
-                foundIndex = i;
+                FoundIndex = i;
                 break;
             }
         }
-        if (foundIndex < 0)
+        if (FoundIndex < 0)
         {
             // Not managed or already deleted.
             return;
         }
 
-        GUObjectArray[foundIndex] = nullptr;
+        GUObjectArray[FoundIndex] = nullptr;
         // Safe to delete now; Obj still valid since we found it in GUObjectArray
         Obj->DestroyInternal();
     }

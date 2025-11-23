@@ -355,6 +355,8 @@ void UEditorEngine::Shutdown()
     UUIManager::GetInstance().Release();
 
     USlateManager::GetInstance().Shutdown();
+    FBlueprintActionDatabase::GetInstance().Shutdown();
+
     // Delete all UObjects (Components, Actors, Resources)
     // Resource destructors will properly release D3D resources
     ObjectFactory::DeleteAll(true);
@@ -367,6 +369,7 @@ void UEditorEngine::Shutdown()
 
     // AudioDevice 종료
     FAudioDevice::Shutdown();
+
      
     // IMPORTANT: Explicitly release Renderer before RHIDevice destructor runs
     // Renderer may hold references to D3D resources

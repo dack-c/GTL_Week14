@@ -28,7 +28,8 @@ public:
 	/** 컴포넌트 제거 시 정리 (OnDestroy) */
 	virtual void DestroyParticles();
 	void ReleaseParticleBuffers();
-
+	void ClearEmitterRenderData();
+	
 	/** 활성화/비활성화 제어 */
 	void ActivateSystem() { bAutoActivate = true; }
 	void DeactivateSystem() { bAutoActivate = false; }
@@ -61,13 +62,9 @@ private:
 	/** 런타임 데이터 */
 	TArray<FParticleEmitterInstance*> EmitterInstances;
 
-	// 소유하는 저장소
-	TArray<FDynamicSpriteEmitterData> SpriteEmitterDataStorage;
-	TArray<FDynamicMeshEmitterData>   MeshEmitterDataStorage;
-
 	/** 렌더 스레드로 보낼 데이터 패킷들 */
 	TArray<FDynamicEmitterDataBase*> EmitterRenderData;	
-	int MaxDebugParticles = 0;
+	int MaxDebugParticles = 1000;
 	bool bEnableDebugEmitter = true;
 
 
