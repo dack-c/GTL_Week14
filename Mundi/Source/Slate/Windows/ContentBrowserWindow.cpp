@@ -420,11 +420,10 @@ void UContentBrowserWindow::HandleDoubleClick(FFileEntry& Entry)
     }
     else if (ext == ".particle")
     {
-        // ParticleSystem 파일 로드
-        UParticleSystem* LoadedSystem = UParticleSystem::LoadFromFile(pathUTF8);
+        UParticleSystem* LoadedSystem = UResourceManager::GetInstance().Load<UParticleSystem>(pathUTF8);
+
         if (LoadedSystem)
         {
-            // ParticleViewerWindow를 열고 로드된 시스템과 파일 경로 전달
             USlateManager::GetInstance().OpenParticleViewerWithSystem(LoadedSystem, pathUTF8);
             UE_LOG("Opening ParticleViewer for: %s", Entry.FileNameUTF8.c_str());
         }

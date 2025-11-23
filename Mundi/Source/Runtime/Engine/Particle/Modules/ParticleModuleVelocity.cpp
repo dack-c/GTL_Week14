@@ -5,6 +5,12 @@
 
 IMPLEMENT_CLASS(UParticleModuleVelocity)
 
+UParticleModuleVelocity::UParticleModuleVelocity()
+{
+    bSpawnModule = true;
+    bUpdateModule = true;
+}
+
 void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!ParticleBase)

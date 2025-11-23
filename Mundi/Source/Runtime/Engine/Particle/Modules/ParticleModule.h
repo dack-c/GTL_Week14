@@ -60,4 +60,7 @@ public:
 
     // Cache 단계에서 emitter가 채워줌(에셋 캐시)
     int32 PayloadOffset = -1;
+
+    bool bSpawnModule = false;  // 이 모듈은 Spawn 단계에서 사용 가능한가?
+    bool bUpdateModule = false; // 이 모듈은 Update 단계에서 사용 가능한가?
 };

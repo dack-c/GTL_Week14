@@ -11,8 +11,13 @@ class UParticleEmitter : public UObject
 {
     DECLARE_CLASS(UParticleEmitter, UObject)
 public:
-    void CacheEmitterModuleInfo();
+    UParticleEmitter();
+    ~UParticleEmitter() override;
 
+    UParticleLODLevel* AddLODLevel(int32 LODIndex = 0);
+    void CacheEmitterModuleInfo();
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    
 public:
     TArray<UParticleLODLevel*> LODLevels;
     EEmitterRenderType RenderType = EEmitterRenderType::Sprite;

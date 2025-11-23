@@ -5,6 +5,8 @@ class UParticleModuleVelocity : public UParticleModule
 {
     DECLARE_CLASS(UParticleModuleVelocity, UParticleModule)
 public:
+    UParticleModuleVelocity();
+    
     // 초기 속도
     FRawDistributionVector StartVelocity = FRawDistributionVector(FVector(0.0f, 0.0f, 10.0f));
 

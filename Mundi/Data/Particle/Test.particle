@@ -2,6 +2,25 @@
         "Emitters" : [{
             "LODLevels" : [{
                 "LODIndex" : 0,
+                "Modules" : [{
+                    "Lifetime_Max" : 3.000000,
+                    "Lifetime_Min" : 3.000000,
+                    "Lifetime_bUseRange" : false,
+                    "Type" : "Lifetime",
+                    "bEnabled" : true
+                  }, {
+                    "StartSize_Max" : [10.000000, 10.000000, 10.000000],
+                    "StartSize_Min" : [10.000000, 10.000000, 10.000000],
+                    "StartSize_bUseRange" : false,
+                    "Type" : "Size",
+                    "bEnabled" : true
+                  }, {
+                    "StartVelocity_Max" : [0.000000, 0.000000, 10.000000],
+                    "StartVelocity_Min" : [0.000000, 0.000000, 1.000000],
+                    "StartVelocity_bUseRange" : true,
+                    "Type" : "Velocity",
+                    "bEnabled" : true
+                  }],
                 "RequiredModule" : {
                   "BlendMode" : 5,
                   "EmitterDelay" : 0.000000,
@@ -20,7 +39,7 @@
                   "MaxParticles" : 1000,
                   "ScreenAlignment" : 0,
                   "SortMode" : 1,
-                  "SpawnRateBase" : 100.000000,
+                  "SpawnRateBase" : 10.000000,
                   "bKillOnCompleted" : false,
                   "bKillOnDeactivate" : true,
                   "bUseLocalSpace" : false
@@ -28,32 +47,14 @@
                 "SpawnModule" : {
                   "SpawnRateType" : 0,
                   "SpawnRate_Max" : 10.000000,
-                  "SpawnRate_Min" : 10.000000,
+                  "SpawnRate_Min" : 3.000000,
                   "SpawnRate_bUseRange" : false
                 },
-                "SpawnModules" : [{
-                    "Lifetime_Max" : 2.000000,
-                    "Lifetime_Min" : 2.000000,
-                    "Lifetime_bUseRange" : false,
-                    "Type" : "Lifetime"
-                  }, {
-                    "StartSize_Max" : [1.000000, 1.000000, 1.000000],
-                    "StartSize_Min" : [1.000000, 1.000000, 1.000000],
-                    "StartSize_bUseRange" : false,
-                    "Type" : "Size"
-                  }, {
-                    "StartVelocity_Max" : [5.000000, 5.000000, 20.000000],
-                    "StartVelocity_Min" : [0.000000, 0.000000, 10.000000],
-                    "StartVelocity_bUseRange" : true,
-                    "Type" : "Velocity"
-                  }],
-                "UpdateModules" : [],
                 "bEnabled" : true
               }],
-            "Name" : "Particle Emitter",
+            "Name" : "UParticleEmitter_1",
             "RenderType" : 0
           }],
-        "Name" : "NewParticleSystem",
-        "Type" : "ParticleSystem",
-        "Version" : 1
+        "Name" : "UParticleSystem_1",
+        "Type" : "ParticleSystem"
       }

@@ -24,6 +24,11 @@
 
 SParticleViewerWindow::SParticleViewerWindow()
 {
+    ParticlePath = std::filesystem::path(GDataDir) / "Particle";
+    if (!std::filesystem::exists(ParticlePath))
+    {
+        std::filesystem::create_directories(ParticlePath);
+    }
 }
 
 SParticleViewerWindow::~SParticleViewerWindow()
@@ -45,6 +50,14 @@ SParticleViewerWindow::~SParticleViewerWindow()
         ObjectFactory::DeleteObject(PreviewWorld);
         PreviewWorld = nullptr;
     }
+
+    // 임시 객체일 경우 삭제
+    if (CurrentParticleSystem && SavePath.empty())
+    {
+        ObjectFactory::DeleteObject(CurrentParticleSystem);
+    }
+    
+    CurrentParticleSystem = nullptr;
 }
 
 bool SParticleViewerWindow::Initialize(float StartX, float StartY, float Width, float Height, UWorld* InWorld, ID3D11Device* InDevice)
@@ -621,51 +634,9 @@ void SParticleViewerWindow::OnRender()
                         UParticleLODLevel* LOD = Emitter->LODLevels[0];
                         if (LOD)
                         {
-                            // 필수 모듈
-                            if (LOD->RequiredModule)
+                            for (int m = 0; m < LOD->AllModulesCache.Num(); m++)
                             {
-                                ImGui::PushID("req");
-                                bool isSelected = (SelectedModule == LOD->RequiredModule);
-                                if (ImGui::Selectable(LOD->RequiredModule->GetClass()->Name, isSelected, 0, ImVec2(0, 20)))
-                                {
-                                    SelectedModule = LOD->RequiredModule;
-                                }
-                                ImGui::PopID();
-                            }
-
-                            // 스폰 모듈
-                            if (LOD->SpawnModule)
-                            {
-                                ImGui::PushID("spawn");
-                                bool isSelected = (SelectedModule == LOD->SpawnModule);
-                                if (ImGui::Selectable(LOD->SpawnModule->GetClass()->Name, isSelected, 0, ImVec2(0, 20)))
-                                {
-                                    SelectedModule = LOD->SpawnModule;
-                                }
-                                ImGui::PopID();
-                            }
-
-                            // SpawnModules
-                            for (int m = 0; m < LOD->SpawnModules.Num(); m++)
-                            {
-                                UParticleModule* Module = LOD->SpawnModules[m];
-                                if (Module)
-                                {
-                                    ImGui::PushID(m);
-                                    bool isSelected = (SelectedModule == Module);
-                                    if (ImGui::Selectable(Module->GetClass()->Name, isSelected, 0, ImVec2(0, 20)))
-                                    {
-                                        SelectedModule = Module;
-                                    }
-                                    ImGui::PopID();
-                                }
-                            }
-
-                            // UpdateModules
-                            for (int m = 0; m < LOD->UpdateModules.Num(); m++)
-                            {
-                                UParticleModule* Module = LOD->UpdateModules[m];
-                                if (Module)
+                                if (UParticleModule* Module = LOD->AllModulesCache[m])
                                 {
                                     ImGui::PushID(m + 1000);
                                     bool isSelected = (SelectedModule == Module);
@@ -795,54 +766,39 @@ void SParticleViewerWindow::CreateParticleSystem()
 {
     // 빈 ParticleSystem 생성
     UParticleSystem* NewSystem = NewObject<UParticleSystem>();
-    NewSystem->ObjectName = FName("NewParticleSystem");
-
+    SavePath.clear();
     LoadParticleSystem(NewSystem);
 }
 
 void SParticleViewerWindow::LoadParticleSystem()
 {
     // 다이얼로그로 로드
-    std::filesystem::path InitialPath = GDataDir;
-    InitialPath /= "Particle";
-
-    if (!std::filesystem::exists(InitialPath))
-    {
-        std::filesystem::create_directories(InitialPath);
-    }
-
-    FWideString WideInitialPath = UTF8ToWide(InitialPath.string());
+    FWideString WideInitialPath = UTF8ToWide(ParticlePath.string());
     std::filesystem::path WidePath = FPlatformProcess::OpenLoadFileDialog(WideInitialPath, L"particle",L"Particle Files");
     FString PathStr = WidePath.string();
     
-    UParticleSystem* LoadedSystem = UParticleSystem::LoadFromFile(PathStr);
+    UParticleSystem* LoadedSystem = RESOURCE.Load<UParticleSystem>(PathStr);
     if (LoadedSystem)
     {
         LoadParticleSystem(LoadedSystem);
-
-        // 로드한 파일의 경로를 SavePath로 설정 (Save 시 같은 경로에 저장)
         SavePath = PathStr;
 
         UE_LOG("ParticleSystem loaded from: %s", PathStr.c_str());
-    }
-    else
-    {
-        UE_LOG("Failed to load ParticleSystem from: %s", PathStr.c_str());
     }
 }
 
 void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
 {
-    if (CurrentParticleSystem)
+    if (!PreviewWorld || !ParticleSystem) { return; }
+
+    // 별도로 저장되지 않을 때만 Delete (ResourceManager가 관리하고 있지 않은 상태)
+    if (SavePath.empty() && CurrentParticleSystem)
     {
         ObjectFactory::DeleteObject(CurrentParticleSystem);
         CurrentParticleSystem = nullptr;
     }
     
     CurrentParticleSystem = ParticleSystem;
-
-    if (!PreviewWorld || !ParticleSystem)
-        return;
 
     // 기존 PreviewActor가 있으면 제거
     if (PreviewActor)
@@ -876,48 +832,30 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
 
 void SParticleViewerWindow::SaveParticleSystem()
 {
-    if (!CurrentParticleSystem)
-    {
-        UE_LOG("No particle system to save");
-        return;
-    }
+    if (!CurrentParticleSystem) { return; }
 
-    // SavePath가 설정되어 있으면 (새로 생성한 경우) SavePath에 저장
+    // SavePath가 설정되어 있으면 SavePath에 저장
     if (!SavePath.empty())
     {
         if (CurrentParticleSystem->SaveToFile(SavePath))
         {
-            UE_LOG("Particle system saved to: %s", SavePath.c_str());
+            UE_LOG("Saved to: %s", SavePath.c_str());
         }
-        else
-        {
-            UE_LOG("Failed to save particle system");
-        }
+        return; 
     }
-    else
+
+    // Create 이후 처음 저장하는 경우
+    FWideString WideInitialPath = UTF8ToWide(ParticlePath.string());
+    std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"particle",L"Particle Files");
+    FString PathStr = WidePath.string();
+    
+    if (!WidePath.empty())
     {
-        std::filesystem::path InitialPath = GDataDir;
-        InitialPath /= "Particle";
-
-        // 폴더가 존재하지 않으면 생성 (선택 사항이지만 안전을 위해 추가)
-        if (!std::filesystem::exists(InitialPath))
+        if (CurrentParticleSystem->SaveToFile(PathStr))
         {
-            std::filesystem::create_directories(InitialPath);
-        }
-
-        FWideString WideInitialPath = UTF8ToWide(InitialPath.string());
-        std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"particle",L"Particle Files");
-        FString PathStr = WidePath.string();
-        
-        if (!WidePath.empty())
-        {
-            // 파일 저장 시도
-            if (CurrentParticleSystem->SaveToFile(PathStr))
-            {
-                // 성공적으로 저장되었으면 SavePath를 업데이트
-                SavePath = PathStr;
-                UE_LOG("Particle system saved to: %s", SavePath.c_str());
-            }
+            RESOURCE.Add<UParticleSystem>(PathStr, CurrentParticleSystem);
+            SavePath = PathStr;
+            UE_LOG("Particle system saved to: %s", SavePath.c_str());
         }
     }
 }

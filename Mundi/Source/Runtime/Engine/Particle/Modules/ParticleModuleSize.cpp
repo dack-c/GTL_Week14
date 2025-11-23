@@ -5,6 +5,12 @@
 
 IMPLEMENT_CLASS(UParticleModuleSize)
 
+UParticleModuleSize::UParticleModuleSize()
+{
+    bSpawnModule = true;
+    bUpdateModule = true;
+}
+
 void UParticleModuleSize::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!ParticleBase)

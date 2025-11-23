@@ -435,6 +435,28 @@ bool FParticleEmitterInstance::IsComplete() const
     return true;
 }
 
+UParticleEmitter::UParticleEmitter()
+{
+    AddLODLevel(0);
+}
+
+UParticleEmitter::~UParticleEmitter()
+{
+    for (auto& LODLevel : LODLevels)
+    {
+        ObjectFactory::DeleteObject(LODLevel);
+    }
+}
+
+UParticleLODLevel* UParticleEmitter::AddLODLevel(int32 LODIndex)
+{
+    UParticleLODLevel* LOD = NewObject<UParticleLODLevel>();
+    LOD->LODIndex = LODIndex;
+    LOD->bEnabled = true;
+    LODLevels.Add(LOD);
+    return LOD;
+}
+
 void UParticleEmitter::CacheEmitterModuleInfo()
 {
     // 보통 LOD0 기준으로 캐시 (또는 LOD별 따로 캐시)
@@ -474,4 +496,72 @@ void UParticleEmitter::CacheEmitterModuleInfo()
     }
 
     ParticleSizeBytes = Offset;
+}
+
+void UParticleEmitter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    Super::Serialize(bInIsLoading, InOutHandle);
+    if (bInIsLoading)
+    {
+        // =========================================================
+        // [LOAD] 역직렬화 로직
+        // =========================================================
+        // 기존 데이터 초기화 (생성자가 만든 기본값 등 제거)
+        for (UParticleLODLevel* LOD : LODLevels)
+        {
+            ObjectFactory::DeleteObject(LOD);
+        }
+        LODLevels.Empty();
+
+        // 기본 속성 로드
+        FString NameStr;
+        if (FJsonSerializer::ReadString(InOutHandle, "Name", NameStr))
+        {
+            ObjectName = FName(NameStr);
+        }
+
+        int32 RenderTypeVal = 0;
+        if (FJsonSerializer::ReadInt32(InOutHandle, "RenderType", RenderTypeVal))
+        {
+            RenderType = static_cast<EEmitterRenderType>(RenderTypeVal);
+        }
+
+        // LODLevels 배열 로드
+        if (InOutHandle.hasKey("LODLevels"))
+        {
+            JSON LODArray = InOutHandle["LODLevels"];
+            for (int i = 0; i < LODArray.size(); ++i)
+            {
+                JSON LODJson = LODArray[i];
+                UParticleLODLevel* NewLOD = Cast<UParticleLODLevel>(NewObject(UParticleLODLevel::StaticClass()));
+                if (NewLOD)
+                {
+                    NewLOD->Serialize(true, LODJson);
+                    LODLevels.Add(NewLOD);
+                }
+            }
+        }
+    }
+    else
+    {
+        // =========================================================
+        // [SAVE] 직렬화 로직
+        // =========================================================
+        // 기본 속성 저장
+        InOutHandle["Name"] = ObjectName.ToString();
+        InOutHandle["RenderType"] = static_cast<int32>(RenderType);
+
+        // LODLevels 배열 저장 (하위 객체 위임)
+        JSON LODArray = JSON::Make(JSON::Class::Array);
+        for (UParticleLODLevel* LOD : LODLevels)
+        {
+            if (LOD)
+            {
+                JSON LODJson = JSON::Make(JSON::Class::Object);
+                LOD->Serialize(false, LODJson);
+                LODArray.append(LODJson);
+            }
+        }
+        InOutHandle["LODLevels"] = LODArray;
+    }
 }

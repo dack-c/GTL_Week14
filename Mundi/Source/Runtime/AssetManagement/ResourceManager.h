@@ -16,6 +16,7 @@
 #include "Object.h"
 #include "SkeletalMesh.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
+#include "Source/Runtime/Engine/Particle/ParticleSystem.h"
 // ... 기타 include ...
 
 // --- 전방 선언 ---
@@ -262,6 +263,8 @@ EResourceType UResourceManager::GetResourceType()
         return EResourceType::Sound;
 	if (T::StaticClass() == UAnimSequence::StaticClass())
 		return EResourceType::Animation;
+	if (T::StaticClass() == UParticleSystem::StaticClass())
+		return EResourceType::Particle;
 
     return EResourceType::None;
 }

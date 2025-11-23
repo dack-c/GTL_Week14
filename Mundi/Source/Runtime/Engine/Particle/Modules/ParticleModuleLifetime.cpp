@@ -5,6 +5,11 @@
 
 IMPLEMENT_CLASS(UParticleModuleLifetime)
 
+UParticleModuleLifetime::UParticleModuleLifetime()
+{
+    bSpawnModule = true;
+}
+
 void UParticleModuleLifetime::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!ParticleBase)

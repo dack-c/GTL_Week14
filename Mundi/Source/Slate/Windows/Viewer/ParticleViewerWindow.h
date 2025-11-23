@@ -60,6 +60,7 @@ private:
     AActor* PreviewActor = nullptr;
     UParticleSystemComponent* PreviewComponent = nullptr;
 
+    std::filesystem::path ParticlePath;
     // Save path (for new particle systems created from content browser)
     FString SavePath;
 
@@ -76,7 +77,7 @@ private:
                                                                                                    
     // Cached center region for viewport                                                           
     FRect CenterRect;                                                                              
-                                                                                                   
+    
     // Window state                                                                                
     bool bIsOpen = true;                                                                           
     bool bInitialPlacementDone = false;                                                            

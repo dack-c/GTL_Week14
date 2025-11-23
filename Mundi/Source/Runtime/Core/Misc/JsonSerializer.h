@@ -312,6 +312,39 @@ public:
 		OutValue = InDefaultValue;
 		return false;
 	}
+	/**
+	 * @brief JSON 객체에서 키를 찾아 FLinearColor 값을 안전하게 읽어옵니다.
+	 * @return 성공하면 true, 실패하면 false를 반환합니다.
+	 */
+	static bool ReadLinearColor(const JSON& InJson, const FString& InKey, FLinearColor& OutValue, const FLinearColor& InDefaultValue = FLinearColor(0,0,0,1), bool bInUseLog = true)
+	{
+		if (InJson.hasKey(InKey))
+		{
+			const JSON& ColorJson = InJson.at(InKey);
+			// LinearColor는 R, G, B, A 4개의 성분을 가짐
+			if (ColorJson.JSONType() == JSON::Class::Array && ColorJson.size() == 4)
+			{
+				try
+				{
+					OutValue = FLinearColor(
+						static_cast<float>(ColorJson.at(0).ToFloat()), // R
+						static_cast<float>(ColorJson.at(1).ToFloat()), // G
+						static_cast<float>(ColorJson.at(2).ToFloat()), // B
+						static_cast<float>(ColorJson.at(3).ToFloat())  // A
+					);
+					return true;
+				}
+				catch (const std::exception&)
+				{
+				}
+			}
+		}
+		if (bInUseLog)
+			UE_LOG("[JsonSerializer] %s LinearColor 파싱에 실패했습니다 (기본값 사용)", InKey.c_str());
+       
+		OutValue = InDefaultValue;
+		return false;
+	}
 
 	//====================================================================================
 	// Converting To JSON
@@ -337,8 +370,14 @@ public:
 		VectorArray.append(InFloat);
 		return VectorArray;
 	}
-
-
+	
+	static JSON LinearColorToJson(const FLinearColor& InColor)
+	{
+		JSON ColorArray = JSON::Make(JSON::Class::Array);
+		ColorArray.append(InColor.R, InColor.G, InColor.B, InColor.A);
+		return ColorArray;
+	}
+	
 	//====================================================================================
 	// File I/O
 	//====================================================================================
