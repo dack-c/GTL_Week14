@@ -3,31 +3,12 @@
 #include "MeshBatchElement.h"
 #include "SceneView.h"
 #include "Source/Runtime/Engine/Particle/DynamicEmitterDataBase.h"
+#include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
 {
-    // FOR TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     bCanEverTick = true;  // 파티클 시스템은 매 프레임 Tick 필요
     bAutoActivate = true;
-
-    // 디버그용 파티클 3개
-    //FDynamicEmitterDataBase* P0 = new FDynamicEmitterDataBase();
-    //P0->Position = FVector(0, 0, 1);
-    //P0->Size = 3.0f;
-    //P0->Color = FLinearColor(1.0f, 0.0f, 0.0f, 0.5f);
-    //EmitterRenderData.Add(std::move(P0));
-
-    //FDynamicEmitterDataBase* P1 = new FDynamicEmitterDataBase();
-    //P1->Position = FVector(1, 0, 1);
-    //P1->Size = 4.0f;
-    //P1->Color = FLinearColor(0.0f, 1.0f, 0.0f, 0.5f);
-    //EmitterRenderData.Add(std::move(P1));
-
-    //FDynamicEmitterDataBase* P2 = new FDynamicEmitterDataBase();
-    //P2->Position = FVector(0, 1, 1.5);
-    //P2->Size = 5.0f;
-    //P2->Color = FLinearColor(0.0f, 0.0f, 1.0f, 0.5f);
-    //EmitterRenderData.Add(std::move(P2));
 
     MaxDebugParticles = 128; 
 }
@@ -77,6 +58,8 @@ void UParticleSystemComponent::InitParticles()
 void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    TickDebugMesh(DeltaTime);
 
     static bool bFirstTick = true;
     if (bFirstTick)
@@ -183,13 +166,14 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
     if (EmitterRenderData.IsEmpty())
         return;
 
-    BuildParticleBatch(OutMeshBatchElements, View);
+    BuildSpriteParticleBatch(OutMeshBatchElements, View);
+    BuildMeshParticleBatch(OutMeshBatchElements, View);
 
     // 이번 프레임 끝에 DynamicData 파괴
     ClearEmitterRenderData();
 }
 
-void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
+void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
     if (EmitterRenderData.IsEmpty())
         return;
@@ -441,6 +425,162 @@ void UParticleSystemComponent::BuildParticleBatch(TArray<FMeshBatchElement>& Out
     }
 }
 
+void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
+{
+    if (EmitterRenderData.IsEmpty())
+        return;
+
+    const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
+    FVector ViewDir = FVector(1, 0, 0);
+    if (View)
+    {
+        ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
+    }
+
+    for (FDynamicEmitterDataBase* Base : EmitterRenderData)
+    {
+        if (!Base || Base->EmitterType != EEmitterRenderType::Mesh)
+            continue;
+
+        auto* MeshData = static_cast<FDynamicMeshEmitterData*>(Base);
+        const auto* Src = static_cast<const FDynamicMeshEmitterReplayData*>(MeshData->GetSource());
+        if (!Src || !Src->Mesh || Src->ActiveParticleCount <= 0)
+            continue;
+
+        UStaticMesh* StaticMesh = Src->Mesh;
+
+        UParticleEmitter* SourceEmitter = nullptr;
+        UParticleModuleRequired* RequiredModule = nullptr;
+        if (Template && MeshData->EmitterIndex >= 0 && MeshData->EmitterIndex < Template->Emitters.Num())
+        {
+            SourceEmitter = Template->Emitters[MeshData->EmitterIndex];
+            if (SourceEmitter && SourceEmitter->LODLevels.Num() > 0)
+            {
+                UParticleLODLevel* LOD0 = SourceEmitter->LODLevels[0];
+                if (LOD0)
+                {
+                    RequiredModule = LOD0->RequiredModule;
+                }
+            }
+        }
+
+        UMaterialInterface* Material = nullptr;
+        if (Src->OverrideMaterial)
+        {
+            Material = Src->OverrideMaterial;
+        }
+        else if (RequiredModule && RequiredModule->Material)
+        {
+            Material = RequiredModule->Material;
+        }
+
+        if (!Material && SourceEmitter && SourceEmitter->bUseMeshMaterials && StaticMesh)
+        {
+            const TArray<FGroupInfo>& Groups = StaticMesh->GetMeshGroupInfo();
+            if (!Groups.IsEmpty())
+            {
+                const FString& MatName = Groups[0].InitialMaterialName;
+                if (!MatName.empty())
+                {
+                    UMaterial* MeshMaterial = UResourceManager::GetInstance().Load<UMaterial>(MatName);
+                    Material = MeshMaterial;
+                }
+            }
+        }
+
+
+        if (!Material)
+        {
+            Material = ParticleMaterial;
+        }
+
+        if (!Material)
+        {
+            UE_LOG("[BuildMeshParticleBatch] No material for mesh emitter %d", MeshData->EmitterIndex);
+            continue;
+        }
+        UShader* MeshShader = Material->GetShader();
+        if (!MeshShader)
+        {
+            UE_LOG("[BuildMeshParticleBatch] Material %s has no shader",
+                Material->GetName().c_str());
+            continue;
+        }
+
+        TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
+        ShaderMacros.Append(Material->GetShaderMacros());
+
+        FShaderVariant* ShaderVariant = MeshShader->GetOrCompileShaderVariant(ShaderMacros);
+        if (!ShaderVariant)
+        {
+            UE_LOG("[BuildMeshParticleBatch] Failed to get shader variant for %s",
+                Material->GetName().c_str());
+            continue;
+        }
+
+        ID3D11Buffer* MeshVB = StaticMesh->GetVertexBuffer();
+        ID3D11Buffer* MeshIB = StaticMesh->GetIndexBuffer();
+        const uint32  MeshIndexCount = StaticMesh->GetIndexCount();
+        const uint32  MeshVertexStride = StaticMesh->GetVertexStride();
+        const D3D11_PRIMITIVE_TOPOLOGY Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+        if (!MeshVB || !MeshIB || MeshIndexCount == 0)
+        {
+            UE_LOG("[BuildMeshParticleBatch] Mesh %s has invalid buffers",
+                StaticMesh->GetName().c_str());
+            continue;
+        }
+
+        const int32 NumParticles = Src->ActiveParticleCount;
+
+        TArray<int32> SortIndices;
+        MeshData->SortParticles(ViewOrigin, ViewDir, SortIndices);
+        const bool bUseSortIndices = (SortIndices.Num() == NumParticles);
+
+        for (int32 LocalIdx = 0; LocalIdx < NumParticles; ++LocalIdx)
+        {
+            const int32 ParticleIdx =
+                bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+
+            const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
+            if (!Particle)
+                continue;
+
+            FVector ParticleWorldPos = Particle->Location;
+            FMatrix ComponentWorld = GetWorldMatrix();
+
+            if (MeshData->bUseLocalSpace)
+            {
+                ParticleWorldPos = ComponentWorld.TransformPosition(ParticleWorldPos);
+            }
+
+            FMatrix Translation = FMatrix::MakeTranslation(ParticleWorldPos);
+            FMatrix Scale = FMatrix::MakeScale(Particle->Size);
+            FMatrix ParticleWorld = Scale * Translation * ComponentWorld;
+
+            const int32 BatchIndex = OutMeshBatchElements.Add(FMeshBatchElement());
+            FMeshBatchElement& Batch = OutMeshBatchElements[BatchIndex];
+
+            Batch.VertexShader = ShaderVariant->VertexShader;
+            Batch.PixelShader = ShaderVariant->PixelShader;
+            Batch.InputLayout = ShaderVariant->InputLayout;
+
+            Batch.Material = Material;
+            Batch.VertexBuffer = MeshVB;
+            Batch.IndexBuffer = MeshIB;
+            Batch.VertexStride = MeshVertexStride;
+            Batch.IndexCount = MeshIndexCount;
+            Batch.StartIndex = 0;
+            Batch.BaseVertexIndex = 0;
+            Batch.PrimitiveTopology = Topology;
+
+            Batch.WorldMatrix = ParticleWorld;
+            Batch.ObjectID = InternalIndex;
+
+        }
+    }
+}
+
 void UParticleSystemComponent::BuildEmitterRenderData()
 {
     // 1) 이전 프레임 데이터 정리
@@ -483,12 +623,20 @@ void UParticleSystemComponent::BuildEmitterRenderData()
                 case EEmitterRenderType::Mesh:
                 {
                     auto* MeshData = new FDynamicMeshEmitterData();
+
                     MeshData->EmitterIndex = EmitterIdx;
                     MeshData->SortMode = EParticleSortMode::ByViewDepth;
                     MeshData->SortPriority = 0;
 
                     Inst->BuildReplayData(MeshData->Source);
                     NewData = MeshData;
+
+                    if (!MeshData->Source.Mesh)
+                    {
+                        delete MeshData;
+                        NewData = nullptr;
+                    }
+
                     break;
                 }
             }
@@ -505,6 +653,7 @@ void UParticleSystemComponent::BuildEmitterRenderData()
     {
         //BuildDebugEmitterData();
     }
+    BuildDebugMeshEmitterData();
 }
 
 void UParticleSystemComponent::BuildDebugEmitterData()
@@ -646,4 +795,99 @@ bool UParticleSystemComponent::EnsureParticleBuffers(uint32 ParticleCapacity)
     }
 
     return true;
+}
+
+void UParticleSystemComponent::TickDebugMesh(float DeltaTime)
+{
+    if (!bEnableDebugEmitter)
+        return;
+
+    // 1) 리소스 초기화 (한 번만)
+    if (!DebugMeshState.bInitialized)
+    {
+        auto& RM = UResourceManager::GetInstance();
+
+        DebugMeshState.Mesh = RM.Load<UStaticMesh>("Data/cube-tex.obj");
+
+        UMaterial* Mat = RM.Load<UMaterial>("Shaders/Materials/UberLit.hlsl");
+        if (Mat)
+        {
+            FMaterialInfo Info = Mat->GetMaterialInfo();
+            Info.DiffuseTextureFileName = FString("Data/cube_texture.png");
+            Mat->SetMaterialInfo(Info);
+            DebugMeshState.Material = Mat;
+        }
+
+        DebugMeshState.CurrentLocation = DebugMeshState.BaseLocation;
+
+        DebugMeshState.bInitialized =
+            (DebugMeshState.Mesh != nullptr && DebugMeshState.Material != nullptr);
+
+        UE_LOG("[TickDebugMesh] Init Mesh=%s Material=%s",
+            DebugMeshState.Mesh ? DebugMeshState.Mesh->GetName().c_str() : "NULL",
+            DebugMeshState.Material ? DebugMeshState.Material->GetName().c_str() : "NULL");
+
+        if (!DebugMeshState.bInitialized)
+        {
+            return;
+        }
+    }
+
+    // 2) 시간 누적
+    DebugMeshState.TimeSeconds += DeltaTime;
+
+    // 3) 2초 주기 sawtooth로 위로 상승시키기
+    const float Period = 2.0f;
+    float t = std::fmod(DebugMeshState.TimeSeconds, Period);
+
+    // BaseLocation에서 시작해서 2초 동안 Velocity * t 만큼 상승
+    DebugMeshState.CurrentLocation =
+        DebugMeshState.BaseLocation + DebugMeshState.Velocity * t;
+}
+
+
+void UParticleSystemComponent::BuildDebugMeshEmitterData()
+{
+    if (!bEnableDebugEmitter)
+        return;
+
+    if (!DebugMeshState.bInitialized)
+        return;
+
+    auto* MeshData = new FDynamicMeshEmitterData();
+    MeshData->EmitterIndex = -1;
+    MeshData->SortMode = EParticleSortMode::ByViewDepth;
+    MeshData->SortPriority = 0;
+    MeshData->bUseLocalSpace = false; // CurrentLocation을 월드로 쓴다고 가정
+
+    auto& Src = MeshData->Source;
+    Src.EmitterType = EEmitterRenderType::Mesh;
+    Src.Mesh = DebugMeshState.Mesh;
+    Src.InstanceStride = sizeof(FBaseParticle); // 나중에 instancing 하면 변경
+    Src.InstanceCount = 1;
+    Src.ActiveParticleCount = 1;
+    Src.ParticleStride = sizeof(FBaseParticle);
+    Src.Scale = FVector::One();
+    Src.OverrideMaterial = DebugMeshState.Material;
+
+    // 파티클 1개만 할당
+    Src.DataContainer.Allocate(sizeof(FBaseParticle), 1);
+
+    uint8* ParticleBase = Src.DataContainer.ParticleData;
+    auto* Particle = reinterpret_cast<FBaseParticle*>(ParticleBase);
+    std::memset(Particle, 0, sizeof(FBaseParticle));
+
+    // 위치/색/크기 세팅
+    Particle->Location = DebugMeshState.CurrentLocation;
+    Particle->Size = FVector(1.f, 1.f, 1.f); // 필요하면 Scale로 옮겨도 됨
+    Particle->Color = FLinearColor(1.f, 1.f, 1.f, 1.f);
+    Particle->RelativeTime = 0.f;
+    Particle->OneOverMaxLifetime = 1.f;
+
+    Src.DataContainer.ParticleIndices[0] = 0;
+
+    UE_LOG("[BuildDebugMeshEmitterData] Dice at (%.1f, %.1f, %.1f)",
+        Particle->Location.X, Particle->Location.Y, Particle->Location.Z);
+
+    EmitterRenderData.Add(MeshData);
 }

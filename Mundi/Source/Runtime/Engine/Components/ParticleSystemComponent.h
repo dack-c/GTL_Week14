@@ -38,8 +38,8 @@ public:
 	void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
 
 	// sprite, mesh 나눠 BuildBatch
-	// 추후 FDynamicEmitterDataBase를 바꿀 것!
-	void BuildParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+	void BuildSpriteParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+	void BuildMeshParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildEmitterRenderData();
 	void BuildDebugEmitterData();
 
@@ -58,6 +58,26 @@ private:
 	UParticleSystem* Template = nullptr;
 
 private:
+	struct FDebugMeshParticleState
+	{
+		bool bEnabled = true;
+		bool bInitialized = false;
+
+		float  TimeSeconds = 0.f;
+
+		FVector BaseLocation = FVector(0.f, 0.f, 5.f);
+		FVector Velocity = FVector(0.f, 0.f, 5.f);
+		FVector CurrentLocation = FVector::Zero();
+
+		UStaticMesh* Mesh = nullptr;
+		UMaterialInterface* Material = nullptr;
+	};
+
+	FDebugMeshParticleState DebugMeshState;
+
+	void TickDebugMesh(float DeltaTime);
+	void BuildDebugMeshEmitterData();
+
 	/** 런타임 데이터 */
 	TArray<FParticleEmitterInstance*> EmitterInstances;
 
@@ -65,7 +85,6 @@ private:
 	TArray<FDynamicEmitterDataBase*> EmitterRenderData;	
 	int MaxDebugParticles = 1000;
 	bool bEnableDebugEmitter = true;
-
 
 	ID3D11Buffer* ParticleVertexBuffer = nullptr;
 	ID3D11Buffer* ParticleIndexBuffer = nullptr;
