@@ -381,34 +381,17 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
         case EEmitterRenderType::Sprite:
         {
             auto& SpriteOut = static_cast<FDynamicSpriteEmitterReplayData&>(OutData);
-
-            SpriteOut.MaterialInterface = CachedRequiredModule
-                ? CachedRequiredModule->Material
-                : nullptr;
-
             SpriteOut.RequiredModule = CachedRequiredModule;
-
-            UE_LOG("[BuildReplayData] MaterialInterface: %s, CachedRequiredModule: %s",
-                   SpriteOut.MaterialInterface ? SpriteOut.MaterialInterface->GetName().c_str() : "NULL",
-                   CachedRequiredModule ? "Valid" : "NULL");
-
             break;
         }
         case EEmitterRenderType::Mesh: 
         {
             auto& MeshOut = static_cast<FDynamicMeshEmitterReplayData&>(OutData);
             MeshOut.Mesh = Template ? Template->Mesh : nullptr;
-            MeshOut.OverrideMaterial = nullptr;
-
-            if (Template && !Template->bUseMeshMaterials && CachedRequiredModule)
-            {
-                MeshOut.OverrideMaterial = CachedRequiredModule->Material;
-            }
-            // MeshOut.InstanceStride = /* instance 데이터 stride */;
-            // MeshOut.InstanceCount = InstanceCount;
+            MeshOut.InstanceStride = sizeof(FBaseParticle); // 추후 변경
+            MeshOut.InstanceCount = ActiveParticles;
         }
     }
-
 }
 
 bool FParticleEmitterInstance::IsComplete() const

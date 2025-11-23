@@ -29,6 +29,7 @@ public:
 	virtual void DestroyParticles();
 	void ReleaseParticleBuffers();
 	void ClearEmitterRenderData();
+	UMaterialInterface* ResolveEmitterMaterial(const FDynamicEmitterDataBase& DynData) const;
 	
 	/** 활성화/비활성화 제어 */
 	void ActivateSystem() { bAutoActivate = true; }
@@ -38,13 +39,9 @@ public:
 	void CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View) override;
 
 	// sprite, mesh 나눠 BuildBatch
+	void BuildEmitterRenderData();
 	void BuildSpriteParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildMeshParticleBatch(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
-	void BuildEmitterRenderData();
-	void BuildDebugEmitterData();
-
-	UMaterialInterface* GetMaterial(uint32 InSectionIndex) const override;
-	void SetMaterial(uint32 InSectionIndex, UMaterialInterface* InNewMaterial) override;
 
 	bool EnsureParticleBuffers(uint32 ParticleCapacity);
 
@@ -72,11 +69,11 @@ private:
 		UStaticMesh* Mesh = nullptr;
 		UMaterialInterface* Material = nullptr;
 	};
-
 	FDebugMeshParticleState DebugMeshState;
-
 	void TickDebugMesh(float DeltaTime);
+	void BuildDebugEmitterData();
 	void BuildDebugMeshEmitterData();
+	bool bEnableDebugEmitter = true;
 
 	/** 런타임 데이터 */
 	TArray<FParticleEmitterInstance*> EmitterInstances;
@@ -84,13 +81,12 @@ private:
 	/** 렌더 스레드로 보낼 데이터 패킷들 */
 	TArray<FDynamicEmitterDataBase*> EmitterRenderData;	
 	int MaxDebugParticles = 1000;
-	bool bEnableDebugEmitter = true;
-
+	
 	ID3D11Buffer* ParticleVertexBuffer = nullptr;
 	ID3D11Buffer* ParticleIndexBuffer = nullptr;
 	uint32 ParticleVertexCapacity = 0;
 	uint32 ParticleIndexCount = 0;
-	UMaterialInterface* ParticleMaterial = nullptr;
+	UMaterialInterface* FallbackMaterial = nullptr;
 
 	/** 자동 시작 여부 */
 	bool bAutoActivate = true;

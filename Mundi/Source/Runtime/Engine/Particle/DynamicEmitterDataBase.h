@@ -27,27 +27,28 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayData : public FDynamicEmitterReplayDataBase
 {
-    UMaterialInterface* MaterialInterface = nullptr;
     UParticleModuleRequired* RequiredModule = nullptr;
 };
 
 struct FDynamicMeshEmitterReplayData : public FDynamicEmitterReplayDataBase
 {
     UStaticMesh* Mesh = nullptr;
-    UMaterialInterface* OverrideMaterial = nullptr; // 있으면 이걸로 덮어씀
-    // TODO : GPU Instancing
     int32 InstanceStride = 0;
     int32 InstanceCount = 0;
 };
 
 struct FDynamicEmitterDataBase {
     EEmitterRenderType EmitterType = EEmitterRenderType::Sprite;
-    int32 EmitterIndex = 0; bool bUseLocalSpace = false; 
+    int32 EmitterIndex = 0; 
+    
+    bool bUseLocalSpace = false; 
+    
     bool bUseSoftParticle = false; 
     float SoftFadeDistance = 50.0f; // 투명 파티클 정렬 기준 
     
     EParticleSortMode SortMode = EParticleSortMode::None; 
     int32 SortPriority = 0; // Emitter 우선순위 
+    
     virtual ~FDynamicEmitterDataBase() = default; 
     
     virtual const FDynamicEmitterReplayDataBase* GetSource() const = 0; 

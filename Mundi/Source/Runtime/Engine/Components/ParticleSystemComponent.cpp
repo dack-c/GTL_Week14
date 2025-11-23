@@ -154,6 +154,46 @@ void UParticleSystemComponent::ClearEmitterRenderData()
     EmitterRenderData.Empty();
 }
 
+UMaterialInterface* UParticleSystemComponent::ResolveEmitterMaterial(const FDynamicEmitterDataBase& DynData) const
+{
+    UParticleEmitter* SourceEmitter = nullptr;
+    UParticleModuleRequired* RequiredModule = nullptr;
+
+    if (Template &&
+        DynData.EmitterIndex >= 0 &&
+        DynData.EmitterIndex < Template->Emitters.Num())
+    {
+        SourceEmitter = Template->Emitters[DynData.EmitterIndex];
+        if (SourceEmitter && !SourceEmitter->LODLevels.IsEmpty())
+        {
+            if (auto* LOD0 = SourceEmitter->LODLevels[0])
+                RequiredModule = LOD0->RequiredModule;
+        }
+    }
+
+    if (RequiredModule && RequiredModule->Material)
+        return RequiredModule->Material;
+
+    // 만약 MeshEmitter + bUseMeshMaterials -> StaticMesh 재질
+    if (DynData.EmitterType == EEmitterRenderType::Mesh &&
+        SourceEmitter && SourceEmitter->bUseMeshMaterials)
+    {
+        auto* MeshData = static_cast<const FDynamicMeshEmitterData*>(&DynData);
+        if (MeshData->Source.Mesh)
+        {
+            const auto& Groups = MeshData->Source.Mesh->GetMeshGroupInfo();
+            if (!Groups.IsEmpty())
+            {
+                const FString& MatName = Groups[0].InitialMaterialName;
+                if (!MatName.empty())
+                    if (auto* M = UResourceManager::GetInstance().Load<UMaterial>(MatName))
+                        return M;
+            }
+        }
+    }
+    return FallbackMaterial;
+}
+
 void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
     if (!IsVisible())
@@ -335,18 +375,18 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
     }
 
     // 파티클 전용 쉐이더 로드 (파티클은 특별한 vertex layout 필요)
-    if (!ParticleMaterial)
+    if (!FallbackMaterial)
     {
-        ParticleMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
+        FallbackMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
     }
 
-    if (!ParticleMaterial)
+    if (!FallbackMaterial)
     {
         UE_LOG("[BuildParticleBatch] ERROR: Failed to load particle shader!");
         return;
     }
 
-    UShader* ParticleShader = ParticleMaterial->GetShader();
+    UShader* ParticleShader = FallbackMaterial->GetShader();
     if (!ParticleShader)
     {
         UE_LOG("[BuildParticleBatch] ERROR: Particle material has no shader!");
@@ -354,11 +394,11 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
     }
 
     UE_LOG("[BuildParticleBatch] Using ParticleMaterial: %s, Shader: %s",
-           ParticleMaterial->GetName().c_str(),
+           FallbackMaterial->GetName().c_str(),
            ParticleShader ? ParticleShader->GetName().c_str() : "NULL");
 
     TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
-    ShaderMacros.Append(ParticleMaterial->GetShaderMacros());
+    ShaderMacros.Append(FallbackMaterial->GetShaderMacros());
 
     FShaderVariant* ShaderVariant = ParticleShader->GetOrCompileShaderVariant(ShaderMacros);
     if (!ShaderVariant)
@@ -369,31 +409,8 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
 
     for (const FSpriteBatchCommand& Cmd : SpriteBatchCommands)
     {
-        // 각 Emitter의 Material을 가져옴 (텍스처 적용용)
-        UMaterialInterface* EmitterMaterial = nullptr;
-        if (Cmd.SpriteData)
-        {
-            const auto* ReplayData = static_cast<const FDynamicSpriteEmitterReplayData*>(Cmd.SpriteData->GetSource());
-            if (ReplayData)
-            {
-                EmitterMaterial = ReplayData->MaterialInterface;
-                UE_LOG("[BuildParticleBatch] ReplayData->MaterialInterface: %s",
-                       EmitterMaterial ? EmitterMaterial->GetName().c_str() : "NULL");
-            }
-            else
-            {
-                UE_LOG("[BuildParticleBatch] ReplayData is NULL!");
-            }
-        }
-        else
-        {
-            UE_LOG("[BuildParticleBatch] SpriteData is NULL!");
-        }
-
         if (Cmd.ParticleCount == 0)
-        {
             continue;
-        }
 
         // Mesh Batch Element 생성
         const int32 BatchIndex = OutMeshBatchElements.Add(FMeshBatchElement());
@@ -403,13 +420,8 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
         Batch.VertexShader = ShaderVariant->VertexShader;
         Batch.PixelShader = ShaderVariant->PixelShader;
         Batch.InputLayout = ShaderVariant->InputLayout;
-
-        // Material은 EmitterMaterial 사용 (텍스처 바인딩용), 없으면 기본 파티클 Material
-        Batch.Material = EmitterMaterial ? EmitterMaterial : ParticleMaterial;
-
-        UE_LOG("[BuildParticleBatch] Batch VS: %p, PS: %p, Material: %s",
-               Batch.VertexShader, Batch.PixelShader,
-               Batch.Material ? Batch.Material->GetName().c_str() : "NULL");
+        
+        Batch.Material = ResolveEmitterMaterial(*Cmd.SpriteData);
 
         Batch.VertexBuffer = ParticleVertexBuffer;
         Batch.IndexBuffer = ParticleIndexBuffer;
@@ -421,8 +433,6 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
         Batch.WorldMatrix = GetWorldMatrix();
         Batch.ObjectID = InternalIndex;
 
-        UE_LOG("[BuildParticleBatch] Shader: ParticleSprite, Material: %s, Particles: %d",
-               Batch.Material ? Batch.Material->GetName().c_str() : "NULL", Cmd.ParticleCount);
     }
 }
 
@@ -449,65 +459,8 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FMeshBatchElement>&
             continue;
 
         UStaticMesh* StaticMesh = Src->Mesh;
-
-        UParticleEmitter* SourceEmitter = nullptr;
-        UParticleModuleRequired* RequiredModule = nullptr;
-        if (Template && MeshData->EmitterIndex >= 0 && MeshData->EmitterIndex < Template->Emitters.Num())
-        {
-            SourceEmitter = Template->Emitters[MeshData->EmitterIndex];
-            if (SourceEmitter && SourceEmitter->LODLevels.Num() > 0)
-            {
-                UParticleLODLevel* LOD0 = SourceEmitter->LODLevels[0];
-                if (LOD0)
-                {
-                    RequiredModule = LOD0->RequiredModule;
-                }
-            }
-        }
-
-        UMaterialInterface* Material = nullptr;
-        if (Src->OverrideMaterial)
-        {
-            Material = Src->OverrideMaterial;
-        }
-        else if (RequiredModule && RequiredModule->Material)
-        {
-            Material = RequiredModule->Material;
-        }
-
-        if (!Material && SourceEmitter && SourceEmitter->bUseMeshMaterials && StaticMesh)
-        {
-            const TArray<FGroupInfo>& Groups = StaticMesh->GetMeshGroupInfo();
-            if (!Groups.IsEmpty())
-            {
-                const FString& MatName = Groups[0].InitialMaterialName;
-                if (!MatName.empty())
-                {
-                    UMaterial* MeshMaterial = UResourceManager::GetInstance().Load<UMaterial>(MatName);
-                    Material = MeshMaterial;
-                }
-            }
-        }
-
-
-        if (!Material)
-        {
-            Material = ParticleMaterial;
-        }
-
-        if (!Material)
-        {
-            UE_LOG("[BuildMeshParticleBatch] No material for mesh emitter %d", MeshData->EmitterIndex);
-            continue;
-        }
+        UMaterialInterface* Material =  ResolveEmitterMaterial(*MeshData);;
         UShader* MeshShader = Material->GetShader();
-        if (!MeshShader)
-        {
-            UE_LOG("[BuildMeshParticleBatch] Material %s has no shader",
-                Material->GetName().c_str());
-            continue;
-        }
-
         TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
         ShaderMacros.Append(Material->GetShaderMacros());
 
@@ -630,12 +583,15 @@ void UParticleSystemComponent::BuildEmitterRenderData()
                     MeshData->SortPriority = 0;
 
                     Inst->BuildReplayData(MeshData->Source);
-                    NewData = MeshData;
 
                     if (!MeshData->Source.Mesh)
                     {
                         delete MeshData;
                         NewData = nullptr;
+                    }
+                    else
+                    {
+                        NewData = MeshData;
                     }
 
                     break;
@@ -682,18 +638,14 @@ void UParticleSystemComponent::BuildDebugEmitterData()
     SpriteData->SortMode = EParticleSortMode::ByViewDepth;
     SpriteData->SortPriority = 0;
 
-    UMaterial* TempMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
+    /*UMaterial* TempMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
     if (TempMaterial)
     {
         FMaterialInfo Info = TempMaterial->GetMaterialInfo();
         Info.DiffuseTextureFileName = FString("Data/cube_texture.png");
         TempMaterial->SetMaterialInfo(Info);
         SpriteData->Source.MaterialInterface = TempMaterial;
-    }
-    else
-    {
-        SpriteData->Source.MaterialInterface = ParticleMaterial;
-    }
+    }*/
 
 
     auto& Replay = SpriteData->Source;
@@ -719,16 +671,6 @@ void UParticleSystemComponent::BuildDebugEmitterData()
     }
 
     EmitterRenderData.Add(SpriteData);
-}
-
-UMaterialInterface* UParticleSystemComponent::GetMaterial(uint32 InSectionIndex) const
-{
-    return ParticleMaterial;
-}
-
-void UParticleSystemComponent::SetMaterial(uint32 InSectionIndex, UMaterialInterface* InNewMaterial)
-{
-    ParticleMaterial = InNewMaterial;
 }
 
 bool UParticleSystemComponent::EnsureParticleBuffers(uint32 ParticleCapacity)
@@ -869,7 +811,6 @@ void UParticleSystemComponent::BuildDebugMeshEmitterData()
     Src.ActiveParticleCount = 1;
     Src.ParticleStride = sizeof(FBaseParticle);
     Src.Scale = FVector::One();
-    Src.OverrideMaterial = DebugMeshState.Material;
 
     // 파티클 1개만 할당
     Src.DataContainer.Allocate(sizeof(FBaseParticle), 1);
