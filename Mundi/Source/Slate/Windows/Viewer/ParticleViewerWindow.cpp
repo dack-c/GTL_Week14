@@ -78,6 +78,7 @@ bool SParticleViewerWindow::Initialize(float StartX, float StartY, float Width, 
     PreviewWorld->SetWorldType(EWorldType::PreviewMinimal);
     PreviewWorld->Initialize();
     PreviewWorld->GetRenderSettings().DisableShowFlag(EEngineShowFlags::SF_EditorIcon);
+    PreviewWorld->GetRenderSettings().DisableShowFlag(EEngineShowFlags::SF_Grid);
 
     PreviewWorld->GetGizmoActor()->SetSpace(EGizmoSpace::Local);
 
@@ -86,6 +87,7 @@ bool SParticleViewerWindow::Initialize(float StartX, float StartY, float Width, 
     {
         PreviewWorld->GetRenderSettings().SetShowFlags(InWorld->GetRenderSettings().GetShowFlags());
         PreviewWorld->GetRenderSettings().DisableShowFlag(EEngineShowFlags::SF_EditorIcon);
+        PreviewWorld->GetRenderSettings().DisableShowFlag(EEngineShowFlags::SF_Grid);
     }
 
     // 2. Viewport 생성
