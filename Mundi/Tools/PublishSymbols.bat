@@ -22,45 +22,27 @@ set TOOL_DIR=%~dp0SymStore
 set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 
 :: ========================================================
-:: [Setup 3] Symbol Server Path & IP Check (with timeout)
+:: [Setup 3] Symbol Server Path & IP Check
 :: ========================================================
 set SERVER_IP=172.21.11.109
 set STORE_PATH=\\%SERVER_IP%\SymbolStore
 
-echo [SymStore] Checking server availability (timeout: 3 seconds)...
+echo [SymStore] Checking server availability...
 
-:: Create temporary PowerShell script with Job timeout
-set "PS_SCRIPT=%TEMP%\check_symstore_%RANDOM%.ps1"
+:: 1. TCP Port 445 Check (3000ms Timeout)
+powershell -Command "$t = New-Object System.Net.Sockets.TcpClient; $r = $t.BeginConnect('%SERVER_IP%', 445, $null, $null); if ($r.AsyncWaitHandle.WaitOne(3000)) { exit 0 } else { exit 1 }"
 
-(
-echo $timeoutSec = 3
-echo $job = Start-Job -ScriptBlock {
-echo     param($path^)
-echo     Test-Path -Path $path -PathType Container
-echo } -ArgumentList '%STORE_PATH%'
-echo.
-echo $completed = Wait-Job $job -Timeout $timeoutSec
-echo.
-echo if ($completed^) {
-echo     $result = Receive-Job $job
-echo     Remove-Job $job -Force
-echo     if ($result^) { exit 0 } else { exit 1 }
-echo } else {
-echo     Remove-Job $job -Force
-echo     exit 1
-echo }
-) > "%PS_SCRIPT%"
+if errorlevel 1 (
+    echo [Warning] Server connection timeout or unreachable.
+    echo Target: %SERVER_IP%
+    echo Skipping symbol upload.
+    exit /b 0
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_SCRIPT%"
-set RESULT=%ERRORLEVEL%
-
-del "%PS_SCRIPT%" 2>nul
-
-if %RESULT% NEQ 0 (
-    echo.
-    echo [Warning] Cannot access Symbol Store path: "%STORE_PATH%"
-    echo           Server might be unreachable or you lack permissions.
-    echo           Skipping symbol upload.
+:: 2. Path Check
+if not exist "%STORE_PATH%" (
+    echo [Warning] Server is reachable, but path not found: "%STORE_PATH%"
+    echo Skipping symbol upload.
     exit /b 0
 )
 
