@@ -38,8 +38,10 @@ PSInput mainVS(VSInput In)
     PSInput Out;
 
     // 카메라 오른쪽/위 벡터를 ViewMatrix에서 추출
-    float3 Right = InverseViewMatrix[0].xyz;
-    float3 Up = InverseViewMatrix[1].xyz;
+    // float3 Right = InverseViewMatrix[0].xyz;
+    // float3 Up = InverseViewMatrix[1].xyz;
+    float3 Right = normalize(float3(ViewMatrix._11, ViewMatrix._21, ViewMatrix._31));
+    float3 Up = normalize(float3(ViewMatrix._12, ViewMatrix._22, ViewMatrix._32));
 
     float2 halfSize = In.Size * 0.5f;
 

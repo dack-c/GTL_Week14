@@ -292,7 +292,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
 
         // 파티클 정렬
         TArray<int32> SortIndices;
-        SpriteData->SortParticles(ViewOrigin, ViewDir, SortIndices);
+        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
         const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
 
         // 파티클 순회하며 버텍스 생성
@@ -311,8 +311,19 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
             }
 
             const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
-            const FLinearColor Color = Particle->Color;
+            FLinearColor Color = Particle->Color;
             const float Rotation = Particle->Rotation;
+
+            //if (LocalIdx < 10)
+            //    Color = FLinearColor(1, 0, 0, 0.5);
+            //else if (LocalIdx < 20)
+            //    Color = FLinearColor(1, 1, 0, 0.5);
+            //else if(LocalIdx < 30)
+            //    Color = FLinearColor(0, 1, 0, 0.5);
+            //else if (LocalIdx < 40)
+            //    Color = FLinearColor(0, 1, 1, 0.5);
+            //else if (LocalIdx < 50)
+            //    Color = FLinearColor(0, 0, 1, 0.5);
 
             // 4개 코너 버텍스 생성
             for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
@@ -402,7 +413,7 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FMeshBatchElement>&
     {
         ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
     }
-
+    
     for (FDynamicEmitterDataBase* Base : EmitterRenderData)
     {
         if (!Base || Base->EmitterType != EParticleType::Mesh)
@@ -442,11 +453,11 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FMeshBatchElement>&
         }
 
         // 파티클 정렬
-        TArray<int32> SortIndices;
-        MeshData->SortParticles(ViewOrigin, ViewDir, SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
         const FMatrix ComponentWorld = GetWorldMatrix();
+
+        TArray<int32> SortIndices;
+        MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
+        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
 
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
