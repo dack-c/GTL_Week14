@@ -53,7 +53,7 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
 {
     virtual const FDynamicEmitterReplayDataBase* GetSource() const = 0;
 
-    void SortParticles(const FVector& ViewOrigin, const FVector& ViewDir, TArray<int32>& OutIndices) const
+    void SortParticles(const FVector& ViewOrigin, const FVector& ViewDir, const FMatrix& WorldMatrix, TArray<int32>& OutIndices) const
     {
         const auto* Src = GetSource();
         const int32 Num = Src->ActiveParticleCount;
@@ -74,7 +74,11 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
         {
             FVector Pos = GetParticlePosition(i);
 
-            // UE_LOG("%d", SortMode);
+            if (bUseLocalSpace)
+            {
+                Pos = WorldMatrix.TransformPosition(Pos);
+            }
+
             switch (SortMode)
             {
                 case EParticleSortMode::ByDistance:
@@ -97,9 +101,8 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
 
         // Back-to-front (큰 값이 먼저)
         OutIndices.Sort([&Keys](int32 A, int32 B) {
-            return Keys[A] < Keys[B];
+            return Keys[A] > Keys[B];
             });
-        OutIndices;
     }
 
     const FBaseParticle* GetParticle(int32 Idx) const
@@ -117,6 +120,7 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
 
     FVector GetParticlePosition(int32 Idx) const
     {
+
         if (const FBaseParticle* P = GetParticle(Idx))
             return P->Location;
         return FVector::Zero();

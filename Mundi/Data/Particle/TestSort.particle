@@ -16,11 +16,26 @@
                     "bEnabled" : true
                   }, {
                     "Gravity" : [0.000000, 0.000000, 0.000000],
-                    "StartVelocity_Max" : [0.000000, 0.000000, 2.000000],
-                    "StartVelocity_Min" : [0.000000, 0.000000, 2.000000],
+                    "StartVelocity_Max" : [5.000000, -4.000000, 2.000000],
+                    "StartVelocity_Min" : [-5.000000, -4.000000, 2.000000],
                     "StartVelocity_bUseRange" : true,
                     "Type" : "Velocity",
                     "bEnabled" : true
+                  }, {
+                    "AlphaOverLife_Max" : 0.500000,
+                    "AlphaOverLife_Min" : 0.500000,
+                    "AlphaOverLife_bUseRange" : false,
+                    "AlphaPoint1Time" : 0.000000,
+                    "AlphaPoint1Value" : 0.683761,
+                    "AlphaPoint2Time" : 1.000000,
+                    "AlphaPoint2Value" : 0.598291,
+                    "ColorOverLife_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_bUseRange" : false,
+                    "Type" : "ColorOverLife",
+                    "bEnabled" : true,
+                    "bUseAlphaOverLife" : true,
+                    "bUseColorOverLife" : false
                   }],
                 "RequiredModule" : {
                   "BlendMode" : 3,
@@ -39,7 +54,7 @@
                   "Material" : "Ch06_body1",
                   "MaxParticles" : 1000,
                   "ScreenAlignment" : 0,
-                  "SortMode" : 1,
+                  "SortMode" : 3,
                   "SpawnRateBase" : 10.000000,
                   "bKillOnCompleted" : false,
                   "bKillOnDeactivate" : true,
@@ -47,8 +62,8 @@
                 },
                 "SpawnModule" : {
                   "SpawnRateType" : 0,
-                  "SpawnRate_Max" : 2.000000,
-                  "SpawnRate_Min" : 2.000000,
+                  "SpawnRate_Max" : 10.000000,
+                  "SpawnRate_Min" : 10.000000,
                   "SpawnRate_bUseRange" : false
                 },
                 "bEnabled" : true
