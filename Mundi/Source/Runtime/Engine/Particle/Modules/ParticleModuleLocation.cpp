@@ -12,22 +12,22 @@ void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
         return;
 
     // 랜덤 시드 생성
-    float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
+    float RandomValue = Owner->GetRandomFloat();
 
     FVector SpawnLocation = FVector(0.0f,0.0f,0.0f);
 
     switch (DistributionType)
     {
     case ELocationDistributionType::Point:
-        SpawnLocation = StartLocation.GetValue(RandomSeed);
+        SpawnLocation = StartLocation.GetValue(RandomValue);
         break;
 
     case ELocationDistributionType::Box:
         {
             // 박스 영역 내 랜덤 위치
-            float rx = (RandomSeed * 2.0f - 1.0f) * BoxExtent.X;
-            float ry = (fmodf(RandomSeed * 7.919f, 1.0f) * 2.0f - 1.0f) * BoxExtent.Y;
-            float rz = (fmodf(RandomSeed * 13.531f, 1.0f) * 2.0f - 1.0f) * BoxExtent.Z;
+            float rx = (RandomValue * 2.0f - 1.0f) * BoxExtent.X;
+            float ry = (fmodf(RandomValue * 7.919f, 1.0f) * 2.0f - 1.0f) * BoxExtent.Y;
+            float rz = (fmodf(RandomValue * 13.531f, 1.0f) * 2.0f - 1.0f) * BoxExtent.Z;
             SpawnLocation = FVector(rx, ry, rz);
         }
         break;
@@ -35,9 +35,9 @@ void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     case ELocationDistributionType::Sphere:
         {
             // 구 영역 내 랜덤 위치
-            float theta = RandomSeed * 2.0f * PI;
-            float phi = fmodf(RandomSeed * 7.919f, 1.0f) * PI;
-            float r = fmodf(RandomSeed * 13.531f, 1.0f) * SphereRadius;
+            float theta = RandomValue * 2.0f * PI;
+            float phi = fmodf(RandomValue * 7.919f, 1.0f) * PI;
+            float r = fmodf(RandomValue * 13.531f, 1.0f) * SphereRadius;
 
             SpawnLocation.X = r * sinf(phi) * cosf(theta);
             SpawnLocation.Y = r * sinf(phi) * sinf(theta);
@@ -48,9 +48,9 @@ void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     case ELocationDistributionType::Cylinder:
         {
             // 원통 영역 내 랜덤 위치
-            float angle = RandomSeed * 2.0f * PI;
-            float radius = fmodf(RandomSeed * 7.919f, 1.0f) * CylinderRadius;
-            float height = (fmodf(RandomSeed * 13.531f, 1.0f) * 2.0f - 1.0f) * CylinderHeight * 0.5f;
+            float angle = RandomValue * 2.0f * PI;
+            float radius = fmodf(RandomValue * 7.919f, 1.0f) * CylinderRadius;
+            float height = (fmodf(RandomValue * 13.531f, 1.0f) * 2.0f - 1.0f) * CylinderHeight * 0.5f;
 
             SpawnLocation.X = radius * cosf(angle);
             SpawnLocation.Y = radius * sinf(angle);

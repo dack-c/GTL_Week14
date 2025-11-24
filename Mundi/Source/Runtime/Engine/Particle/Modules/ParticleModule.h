@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <random>
 
 // Forward declarations
 struct FParticleEmitterInstance;
@@ -16,12 +17,13 @@ struct FRawDistribution
     FRawDistribution(const T& value) : MinValue(value), MaxValue(value), bUseRange(false) {}
     FRawDistribution(const T& min, const T& max) : MinValue(min), MaxValue(max), bUseRange(true) {}
 
-    T GetValue(float randomSeed = 0.0f) const
+    T GetValue(float Ratio) const 
     {
         if (bUseRange)
         {
-            // MinValue와 MaxValue 사이를 보간
-            return MinValue + (MaxValue - MinValue) * randomSeed;
+            // Ratio가 0~1 범위를 벗어날 경우를 대비해 Clamp를 걸거나,
+            // 성능을 믿고 그냥 곱하거나 선택 (보통 그냥 곱함)
+            return MinValue + (MaxValue - MinValue) * Ratio;
         }
         return MinValue;
     }

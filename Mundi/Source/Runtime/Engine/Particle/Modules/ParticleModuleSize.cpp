@@ -18,10 +18,10 @@ void UParticleModuleSize::Spawn(FParticleEmitterInstance* Owner, int32 Offset, f
         return;
 
     // 랜덤 시드 생성
-    float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
+    float RandomValue = Owner->GetRandomFloat();
 
     // 초기 크기 설정
-    FVector Size = StartSize.GetValue(RandomSeed);
+    FVector Size = StartSize.GetValue(RandomValue);
 
     if (bUniformSize)
     {

@@ -15,12 +15,9 @@ void UParticleModuleLifetime::Spawn(FParticleEmitterInstance* Owner, int32 Offse
 {
     if (!ParticleBase)
         return;
-
-    // 랜덤 시드 생성
-    float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
-
+    
     // 수명 설정
-    float MaxLifetime = Lifetime.GetValue(RandomSeed);
+    float MaxLifetime = Lifetime.GetValue(Owner->GetRandomFloat());
     if (MaxLifetime > 0.0f)
     {
         ParticleBase->OneOverMaxLifetime = 1.0f / MaxLifetime;

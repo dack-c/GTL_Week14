@@ -11,12 +11,12 @@ void UParticleModuleColor::Spawn(FParticleEmitterInstance* Owner, int32 Offset, 
     if (!ParticleBase)
         return;
 
-    // 랜덤 시드 생성 (파티클 카운터 기반)
-    float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
-
+    float ColorRatio = Owner->GetRandomFloat(); 
+    float AlphaRatio = Owner->GetRandomFloat();
+    
     // 초기 색상 설정
-    ParticleBase->Color = StartColor.GetValue(RandomSeed);
-    ParticleBase->Color.A = StartAlpha.GetValue(RandomSeed);
+    ParticleBase->Color = StartColor.GetValue(ColorRatio);
+    ParticleBase->Color.A = StartAlpha.GetValue(AlphaRatio);
 
     // Base 색상도 저장 (나중에 참조용)
     ParticleBase->BaseColor = ParticleBase->Color;

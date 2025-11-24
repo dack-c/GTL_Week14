@@ -18,11 +18,11 @@ void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offse
         return;
 
     // 랜덤 시드 생성
-    float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
+    float RandomValue = Owner->GetRandomFloat();
 
     // 초기 속도 설정
-    FVector Velocity = StartVelocity.GetValue(RandomSeed);
-    float Multiplier = VelocityMultiplier.GetValue(RandomSeed);
+    FVector Velocity = StartVelocity.GetValue(RandomValue);
+    float Multiplier = VelocityMultiplier.GetValue(RandomValue);
 
     ParticleBase->Velocity = Velocity * Multiplier;
     ParticleBase->BaseVelocity = ParticleBase->Velocity;

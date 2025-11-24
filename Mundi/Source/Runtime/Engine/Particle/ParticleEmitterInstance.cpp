@@ -43,6 +43,9 @@ void FParticleEmitterInstance::Init(UParticleEmitter* InTemplate, UParticleSyste
     }
 
     InitializeParticleMemory();
+    
+    std::random_device Rd;
+    InitRandom(Rd());
 }
 
 void FParticleEmitterInstance::InitializeParticleMemory()
@@ -231,7 +234,7 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
     bool bEmitterFinished = CachedRequiredModule && CachedRequiredModule->EmitterLoops > 0
                                 && LoopCount >= CachedRequiredModule->EmitterLoops;
 
-    float RandomValue = FloatHash(ParticleCounter);
+    float RandomValue = GetRandomFloat();
 
     // 아직 안 끝났을 때만 스폰 시도
     if (!bEmitterFinished)
@@ -411,4 +414,15 @@ bool FParticleEmitterInstance::IsComplete() const
 
     // 루프도 끝났고 파티클도 다 사라짐
     return true;
+}
+
+void FParticleEmitterInstance::InitRandom(uint32 Seed)
+{
+    RandomStream.seed(Seed);
+}
+
+float FParticleEmitterInstance::GetRandomFloat()
+{
+    std::uniform_real_distribution<float> Dist(0.0f, 1.0f);
+    return Dist(RandomStream);
 }

@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <random>
+
 #include "ParticleEmitter.h"
 
 class UParticleSystemComponent;
@@ -52,6 +54,9 @@ struct FParticleEmitterInstance
     float EmitterDuration = 1.0f;
     /** Emitter Loop 카운트 */
     int32 LoopCount = 0;
+
+    /** 랜덤 생성기 */
+    std::mt19937 RandomStream;
     
     /** 필수 모듈 캐싱(LOD에 따라 바뀜) */
     UParticleModuleRequired* CachedRequiredModule;
@@ -92,4 +97,8 @@ struct FParticleEmitterInstance
     bool IsComplete() const;
 
     EEmitterRenderType GetDynamicType() const { return Template->RenderType; };
+
+    void InitRandom(uint32 Seed);
+
+    float GetRandomFloat();
 };
