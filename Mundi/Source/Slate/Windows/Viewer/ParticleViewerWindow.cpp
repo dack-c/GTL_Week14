@@ -850,8 +850,8 @@ void SParticleViewerWindow::CreateParticleSystem()
 {
     // 빈 ParticleSystem 생성
     UParticleSystem* NewSystem = NewObject<UParticleSystem>();
-    SavePath.clear();
     LoadParticleSystem(NewSystem);
+    SavePath.clear();
 }
 
 void SParticleViewerWindow::LoadParticleSystem()

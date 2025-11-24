@@ -1918,7 +1918,7 @@ bool UPropertyRenderer::RenderParticleSystemProperty(const FProperty& Prop, void
        if (!USlateManager::GetInstance().IsParticleViewerOpen())
        {
           if (CurrentPS)
-             USlateManager::GetInstance().OpenParticleViewerWithSystem(CurrentPS);
+             USlateManager::GetInstance().OpenParticleViewerWithSystem(CurrentPS, CurrentPS->GetFilePath());
           else
              USlateManager::GetInstance().OpenParticleViewer();
        }

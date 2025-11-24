@@ -137,6 +137,7 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
     {
         return;
     }
+    TIME_PROFILE(Particle_CollectBatches)
 
     // EmitterInstance -> DynamicEmitterReplayDatabase
     BuildEmitterRenderData();
