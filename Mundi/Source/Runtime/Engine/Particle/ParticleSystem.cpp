@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ParticleSystem.h"
 #include "ParticleEmitter.h"
 #include "JsonSerializer.h"

@@ -720,7 +720,7 @@ void FSceneRenderer::GatherVisibleProxies()
 					}
 					else if (UParticleSystemComponent* ParticleComponent = Cast<UParticleSystemComponent>(PrimitiveComponent))
 					{
-						Proxies.Particles.Add(ParticleComponent);
+						if (bDrawParticle) { Proxies.Particles.Add(ParticleComponent); }
 					}
 				}
 				else
@@ -932,6 +932,8 @@ void FSceneRenderer::RenderOpaquePass(EViewMode InRenderViewMode)
 
 void FSceneRenderer::RenderParticlePass()
 {
+	GPU_TIME_PROFILE("Particle_Draw")
+	
 	if (Proxies.Particles.empty()) 
 		return;
 

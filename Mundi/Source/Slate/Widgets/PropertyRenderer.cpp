@@ -13,6 +13,7 @@
 #include "StaticMeshComponent.h"
 #include "LightComponentBase.h"
 #include "LightComponent.h"
+#include "ParticleSystemComponent.h"
 #include "PointLightComponent.h"
 #include "SpotLightComponent.h"
 #include "PlatformProcess.h"
@@ -1899,40 +1900,80 @@ bool UPropertyRenderer::RenderTransformProperty(const FProperty& Prop, void* Ins
 
 bool UPropertyRenderer::RenderParticleSystemProperty(const FProperty& Prop, void* Instance)
 {
-	// Get the particle system pointer from the property
-	UParticleSystem** PSPtr = Prop.GetValuePtr<UParticleSystem*>(Instance);
-	if (!PSPtr)
-		return false;
+    // Get the particle system pointer from the property
+    UParticleSystem** PSPtr = Prop.GetValuePtr<UParticleSystem*>(Instance);
+    if (!PSPtr)
+       return false;
 
-	UParticleSystem* CurrentPS = *PSPtr;
-	FString CurrentName = CurrentPS ? CurrentPS->GetName() : "None";
+    UParticleSystem* CurrentPS = *PSPtr;
+    FString CurrentName = CurrentPS ? CurrentPS->GetFilePath() : "None";
+    const char* PreviewValue = CurrentName.c_str();
 
-	ImGui::Text("%s:", Prop.Name);
-	ImGui::SameLine();
-	ImGui::TextColored(ImVec4(0.7f, 0.7f, 1.0f, 1.0f), "%s", CurrentName.c_str());
+    ImGui::Text("%s:", Prop.Name);
+    ImGui::SameLine();
+	
+    // Particle Viewer 버튼
+    if (ImGui::Button("Particle Viewer"))
+    {
+       if (!USlateManager::GetInstance().IsParticleViewerOpen())
+       {
+          if (CurrentPS)
+             USlateManager::GetInstance().OpenParticleViewerWithSystem(CurrentPS, CurrentPS->GetFilePath());
+          else
+             USlateManager::GetInstance().OpenParticleViewer();
+       }
+       else
+       {
+          USlateManager::GetInstance().CloseParticleViewer();
+       }
+    }
 
-	// Particle Viewer 버튼
-	if (ImGui::Button("Particle Viewer"))
+    // 리소스 가져오기
+    TArray<UParticleSystem*> ParticleSystems = RESOURCE.GetAll<UParticleSystem>();
+    TArray<FString> ParticleSystemNames = RESOURCE.GetAllFilePaths<UParticleSystem>();
+    
+    bool bValueChanged = false;
+
+    ImGui::PushID(Prop.Name);
+    if (ImGui::BeginCombo("##PSSelect", PreviewValue))
+    {
+        // 1. 'None' 옵션 추가 (선택 해제 기능)
+        bool bIsNoneSelected = (CurrentPS == nullptr);
+        if (ImGui::Selectable("None", bIsNoneSelected))
+        {
+            *PSPtr = nullptr;
+            bValueChanged = true;
+        }
+        if (bIsNoneSelected)
+            ImGui::SetItemDefaultFocus();
+
+        for (int i = 0; i < ParticleSystems.Num(); ++i)
+        {
+            UParticleSystem* Item = ParticleSystems[i];
+            
+            bool bIsSelected = (CurrentPS == Item);
+
+            if (ImGui::Selectable(Item->GetFilePath().c_str(), bIsSelected))
+            {
+                *PSPtr = Item;
+                bValueChanged = true;
+            }
+
+            if (bIsSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    
+    ImGui::PopID();
+
+	if (bValueChanged)
 	{
-		if (!USlateManager::GetInstance().IsParticleViewerOpen())
-		{
-			if (CurrentPS)
-			{
-				USlateManager::GetInstance().OpenParticleViewerWithSystem(CurrentPS);
-			}
-			else
-			{
-				USlateManager::GetInstance().OpenParticleViewer();
-			}
-		}
-		else
-		{
-			USlateManager::GetInstance().CloseParticleViewer();
-		}
+		UParticleSystemComponent* PSC = static_cast<UParticleSystemComponent*>(Instance);
+		PSC->SetTemplate(*PSPtr);
 	}
 
-	// TODO: Particle System 선택 콤보박스 (나중에 추가)
-	// ImGui::Combo("##PS", ...)
-
-	return false;
+    return bValueChanged;
 }

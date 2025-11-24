@@ -3,8 +3,8 @@
             "LODLevels" : [{
                 "LODIndex" : 0,
                 "Modules" : [{
-                    "Lifetime_Max" : 3.000000,
-                    "Lifetime_Min" : 3.000000,
+                    "Lifetime_Max" : 20.000000,
+                    "Lifetime_Min" : 20.000000,
                     "Lifetime_bUseRange" : false,
                     "Type" : "Lifetime",
                     "bEnabled" : true
@@ -16,14 +16,14 @@
                     "bEnabled" : true
                   }, {
                     "Gravity" : [0.000000, 0.000000, 0.000000],
-                    "StartVelocity_Max" : [0.000000, 0.000000, 10.000000],
-                    "StartVelocity_Min" : [0.000000, 0.000000, 1.000000],
+                    "StartVelocity_Max" : [0.000000, 0.000000, 2.000000],
+                    "StartVelocity_Min" : [0.000000, 0.000000, 2.000000],
                     "StartVelocity_bUseRange" : true,
                     "Type" : "Velocity",
                     "bEnabled" : true
                   }],
                 "RequiredModule" : {
-                  "BlendMode" : 5,
+                  "BlendMode" : 3,
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
                   "EmitterLoops" : 0,
@@ -36,7 +36,7 @@
                   "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_bUseRange" : false,
-                  "Material" : "MatID_1",
+                  "Material" : "Ch06_body1",
                   "MaxParticles" : 1000,
                   "ScreenAlignment" : 0,
                   "SortMode" : 1,
@@ -47,15 +47,15 @@
                 },
                 "SpawnModule" : {
                   "SpawnRateType" : 0,
-                  "SpawnRate_Max" : 100.000000,
-                  "SpawnRate_Min" : 100.000000,
+                  "SpawnRate_Max" : 2.000000,
+                  "SpawnRate_Min" : 2.000000,
                   "SpawnRate_bUseRange" : false
                 },
                 "bEnabled" : true
               }],
-            "Name" : "UParticleEmitter_1",
+            "Name" : "UParticleEmitter_5",
             "RenderType" : 0
           }],
-        "Name" : "UParticleSystem_1",
+        "Name" : "UParticleSystem_3",
         "Type" : "ParticleSystem"
       }

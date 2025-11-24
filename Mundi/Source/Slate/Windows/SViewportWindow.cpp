@@ -437,6 +437,9 @@ void SViewportWindow::LoadToolbarIcons(ID3D11Device* Device)
 
 	IconShadow = NewObject<UTexture>();
 	IconShadow->Load(GDataDir + "/Icon/Viewport_Shadow.png", Device);
+	
+	IconParticle = NewObject<UTexture>();
+	IconParticle->Load(GDataDir + "/Icon/Viewport_Particle.png", Device);
 
 	IconShadowAA = NewObject<UTexture>();
 	IconShadowAA->Load(GDataDir + "/Icon/Viewport_ShadowAA.png", Device);
@@ -1506,6 +1509,16 @@ void SViewportWindow::RenderShowFlagDropdownMenu()
 				ImGui::SetTooltip("스키닝 통계를 표시합니다.");
 			}
 
+			bool bParticleStats = UStatsOverlayD2D::Get().IsParticleVisible();
+			if (ImGui::Checkbox(" PARTICLE", &bParticleStats))
+			{
+				UStatsOverlayD2D::Get().ToggleParticle();
+			}
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("파티클 통계를 표시합니다.");
+			}
+
 			ImGui::EndMenu();
 		}
 
@@ -1696,6 +1709,24 @@ void SViewportWindow::RenderShowFlagDropdownMenu()
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::SetTooltip("그림자를 표시합니다.");
+		}
+		
+		// ===== 파티클 =====
+		bool bParticle = RenderSettings.IsShowFlagEnabled(EEngineShowFlags::SF_Particle);
+		if (ImGui::Checkbox("##Particle", &bParticle))
+		{
+			RenderSettings.ToggleShowFlag(EEngineShowFlags::SF_Particle);
+		}
+		ImGui::SameLine();
+		if (IconParticle && IconParticle->GetShaderResourceView())
+		{
+			ImGui::Image((void*)IconParticle->GetShaderResourceView(), IconSize);
+			ImGui::SameLine(0, 4);
+		}
+		ImGui::Text(" 파티클");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("파티클을 표시합니다.");
 		}
 
 		// --- 섹션: 그래픽스 기능 ---

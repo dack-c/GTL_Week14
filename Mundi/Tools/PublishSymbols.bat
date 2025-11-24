@@ -27,14 +27,26 @@ set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 set SERVER_IP=172.21.11.109
 set STORE_PATH=\\%SERVER_IP%\SymbolStore
 
-if not exist "%STORE_PATH%" (
-    echo.
-    echo [Warning] Cannot access Symbol Store path: "%STORE_PATH%"
-    echo           Server might be unreachable or you lack permissions.
-    echo           Skipping symbol upload.
-    
+echo [SymStore] Checking server availability...
+
+:: 1. TCP Port 445 Check (3000ms Timeout)
+powershell -Command "$t = New-Object System.Net.Sockets.TcpClient; $r = $t.BeginConnect('%SERVER_IP%', 445, $null, $null); if ($r.AsyncWaitHandle.WaitOne(3000)) { exit 0 } else { exit 1 }"
+
+if errorlevel 1 (
+    echo [Warning] Server connection timeout or unreachable.
+    echo Target: %SERVER_IP%
+    echo Skipping symbol upload.
     exit /b 0
 )
+
+:: 2. Path Check
+if not exist "%STORE_PATH%" (
+    echo [Warning] Server is reachable, but path not found: "%STORE_PATH%"
+    echo Skipping symbol upload.
+    exit /b 0
+)
+
+echo [SymStore] Server is accessible.
 
 :: ========================================================
 :: [Setup 4] Version Tag (Auto-generated from Date_Time)
@@ -42,7 +54,7 @@ if not exist "%STORE_PATH%" (
 set "NOW_TIME=%time: =0%"
 set VERSION_TAG=Build_%CONFIG%_%date:~0,4%-%date:~5,2%-%date:~8,2%_%NOW_TIME:~0,2%%NOW_TIME:~3,2%
 
-echo.
+
 echo ========================================================
 echo   Target Config : %CONFIG%
 echo   Source Path   : %BIN_DIR%

@@ -20,15 +20,6 @@ enum class EScreenAlignment : uint8
     LocalSpace     // 로컬 공간
 };
 
-// 정렬 모드
-enum class ESortMode : uint8
-{
-    None,          // 정렬 안함
-    ByDistance,    // 거리순
-    ByAge,         // 생성 시간순
-    ViewDepth      // 뷰 깊이순
-};
-
 class UParticleModuleRequired : public UParticleModule
 {
     DECLARE_CLASS(UParticleModuleRequired, UParticleModule)
@@ -56,7 +47,8 @@ public:
     EBlendMode BlendMode = EBlendMode::Alpha;
 
     EScreenAlignment ScreenAlignment = EScreenAlignment::CameraFacing;
-    ESortMode SortMode = ESortMode::ByDistance;
+    EParticleSortMode SortMode = EParticleSortMode::ByDistance;
+    int SortPriority = -1;
 
     // ---- (선택) 기본 초기값 fallback ----
     FRawDistributionVector InitialSize;
