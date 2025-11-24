@@ -22,19 +22,25 @@ set TOOL_DIR=%~dp0SymStore
 set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 
 :: ========================================================
-:: [Setup 3] Symbol Server Path & IP Check
+:: [Setup 3] Symbol Server Path & IP Check (with timeout)
 :: ========================================================
 set SERVER_IP=172.21.11.109
 set STORE_PATH=\\%SERVER_IP%\SymbolStore
 
-if not exist "%STORE_PATH%" (
+echo [SymStore] Checking server availability (timeout: 3 seconds)...
+
+:: Use PowerShell with timeout for reliable network path check
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='SilentlyContinue'; $timeout=3; $job=Start-Job -ScriptBlock {Test-Path -Path '%STORE_PATH%' -PathType Container}; $completed=Wait-Job -Job $job -Timeout $timeout; if($completed){$result=Receive-Job -Job $job; Remove-Job -Job $job -Force; if($result){exit 0}else{exit 1}}else{Remove-Job -Job $job -Force; exit 1}"
+
+if errorlevel 1 (
     echo.
     echo [Warning] Cannot access Symbol Store path: "%STORE_PATH%"
     echo           Server might be unreachable or you lack permissions.
     echo           Skipping symbol upload.
-    
     exit /b 0
 )
+
+echo [SymStore] Server is accessible.
 
 :: ========================================================
 :: [Setup 4] Version Tag (Auto-generated from Date_Time)
