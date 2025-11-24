@@ -1718,7 +1718,7 @@ void SParticleViewerWindow::LoadParticleSystem()
     // 다이얼로그로 로드
     FWideString WideInitialPath = UTF8ToWide(ParticlePath.string());
     std::filesystem::path WidePath = FPlatformProcess::OpenLoadFileDialog(WideInitialPath, L"particle",L"Particle Files");
-    FString PathStr = WidePath.string();
+    FString PathStr = ResolveAssetRelativePath(WidePath.string(), ParticlePath.string());
     
     UParticleSystem* LoadedSystem = RESOURCE.Load<UParticleSystem>(PathStr);
     if (LoadedSystem)
