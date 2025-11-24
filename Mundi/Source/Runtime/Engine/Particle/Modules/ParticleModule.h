@@ -42,10 +42,6 @@ class UParticleModule : public UObject
 {
     DECLARE_CLASS(UParticleModule, UObject)
 public:
-    // ============================================================
-    // 언리얼 스타일 인터페이스
-    // ============================================================
-
     // 파티클 생성 시 호출 (단일 파티클)
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase) {}
 

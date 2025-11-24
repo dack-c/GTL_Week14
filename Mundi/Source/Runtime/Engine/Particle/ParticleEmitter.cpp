@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleEmitter.h"
 #include "ParticleHelper.h"
 #include "ParticleLODLevel.h"
@@ -10,7 +10,7 @@ IMPLEMENT_CLASS(UParticleEmitter)
 
 UParticleEmitter::UParticleEmitter()
 {
-    RenderType = EEmitterRenderType::Sprite;
+    RenderType = EParticleType::Sprite;
     AddLODLevel(0);
 }
 
@@ -97,7 +97,7 @@ void UParticleEmitter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         int32 RenderTypeVal = 0;
         if (FJsonSerializer::ReadInt32(InOutHandle, "RenderType", RenderTypeVal))
         {
-            RenderType = static_cast<EEmitterRenderType>(RenderTypeVal);
+            RenderType = static_cast<EParticleType>(RenderTypeVal);
         }
 
         // LODLevels 배열 로드

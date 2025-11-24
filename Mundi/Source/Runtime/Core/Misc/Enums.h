@@ -256,7 +256,7 @@ enum class EWorldType : uint8
     PreviewMinimal, 
 };
 
-enum class EEmitterRenderType : uint8
+enum class EParticleType : uint8
 {
     Sprite,
     Mesh

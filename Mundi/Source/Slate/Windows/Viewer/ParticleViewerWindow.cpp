@@ -12,6 +12,7 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSize.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocity.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColor.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
 #include "Source/Runtime/Core/Object/ObjectFactory.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Runtime/Engine/Components/ParticleSystemComponent.h"
@@ -257,7 +258,7 @@ void SParticleViewerWindow::OnRender()
                     // 2열 레이아웃 시작
                     ImGui::Columns(2, "RequiredModuleColumns", false);
                     ImGui::SetColumnWidth(0, 150.0f);
-
+                    
                     // Material
                     {
                         ImGui::Text("Material");
@@ -555,6 +556,91 @@ void SParticleViewerWindow::OnRender()
                     ImGui::DragFloat("Start Alpha Min", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
                     ImGui::DragFloat("Start Alpha Max", &ColorModule->StartAlpha.MaxValue, 0.01f, 0.0f, 1.0f);
                 }
+                else if (auto* MeshModule = dynamic_cast<UParticleModuleMesh*>(SelectedModule))
+                {
+                    ImGui::Spacing();
+                    ImGui::Columns(2, "MeshModuleColumns", false);
+                    ImGui::SetColumnWidth(0, 150.0f);
+
+                    // Mesh
+                    {
+                        ImGui::Text("Mesh");
+                        ImGui::NextColumn();
+
+                        const char* currentMeshName = MeshModule->Mesh
+                            ? MeshModule->Mesh->GetName().c_str()
+                            : "None";
+
+                        ImGui::Text("%s", currentMeshName);
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::BeginCombo("##MeshCombo", ""))   // 빈 라벨 + 위에 Text로 이름 표시
+                        {
+                            // None
+                            if (ImGui::Selectable("None##MeshNone", MeshModule->Mesh == nullptr))
+                            {
+                                MeshModule->SetMesh(nullptr, SelectedEmitter);
+                            }
+
+                            ImGui::Separator();
+
+                            // 모든 StaticMesh 리소스 가져오기
+                            TArray<UStaticMesh*> AllMeshes = UResourceManager::GetInstance().GetAll<UStaticMesh>();
+
+                            for (int i = 0; i < AllMeshes.Num(); ++i)
+                            {
+                                UStaticMesh* Mesh = AllMeshes[i];
+                                if (!Mesh) continue;
+
+                                ImGui::PushID(i);
+
+                                bool isSelected = (MeshModule->Mesh == Mesh);
+
+                                // 미리보기(있으면)
+                                UTexture* PreviewTex = Mesh->GetPreviewTexture(); // 네가 준비한 API가 있다면
+                                if (PreviewTex && PreviewTex->GetShaderResourceView())
+                                {
+                                    ImGui::Image((void*)PreviewTex->GetShaderResourceView(), ImVec2(30, 30));
+                                    ImGui::SameLine();
+                                }
+
+                                if (ImGui::Selectable(Mesh->GetName().c_str(), isSelected))
+                                {
+                                    // 여기서 SetMesh 호출 → Mesh 머티리얼이 Required로 들어감
+                                    MeshModule->SetMesh(Mesh, SelectedEmitter);
+                                }
+
+                                ImGui::PopID();
+                            }
+
+                            ImGui::EndCombo();
+                        }
+
+                        ImGui::NextColumn();
+                    }
+
+                    // Mesh material 연동 여부
+                    {
+                        ImGui::Text("Use Mesh Materials");
+                        ImGui::NextColumn();
+
+                        bool bUseMeshMat = MeshModule->bUseMeshMaterials;
+                        if (ImGui::Checkbox("##UseMeshMaterials", &bUseMeshMat))
+                        {
+                            MeshModule->bUseMeshMaterials = bUseMeshMat;
+
+                            // 체크 켰고, Mesh도 있고, Required도 있으면 즉시 동기화
+                            if (bUseMeshMat && MeshModule->Mesh && SelectedEmitter)
+                            {
+                                MeshModule->SetMesh(MeshModule->Mesh, SelectedEmitter);
+                            }
+                        }
+
+                        ImGui::NextColumn();
+                    }
+
+                    ImGui::Columns(1);
+                    }
             }
             else if (CurrentParticleSystem)
             {

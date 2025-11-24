@@ -6,7 +6,7 @@
 
 struct FDynamicEmitterReplayDataBase
 {
-    EEmitterRenderType EmitterType = EEmitterRenderType::Sprite;
+    EParticleType EmitterType = EParticleType::Sprite;
 
     int32 ActiveParticleCount = 0; // Vertex Buffer 크기 계산용
     int32 ParticleStride = 0; // 파티클 하나의 byte stride
@@ -30,7 +30,7 @@ struct FDynamicMeshEmitterReplayData : public FDynamicEmitterReplayDataBase
 };
 
 struct FDynamicEmitterDataBase {
-    EEmitterRenderType EmitterType = EEmitterRenderType::Sprite;
+    EParticleType EmitterType = EParticleType::Sprite;
     int32 EmitterIndex = 0; 
     
     bool bUseLocalSpace = false; 
@@ -136,7 +136,7 @@ struct FDynamicSpriteEmitterData : public FDynamicTranslucentEmitterDataBase
 
     FDynamicSpriteEmitterData()
     {
-        EmitterType = EEmitterRenderType::Sprite;
+        EmitterType = EParticleType::Sprite;
     }
 
     virtual const FDynamicEmitterReplayDataBase* GetSource() const override
@@ -151,7 +151,7 @@ struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
 
     FDynamicMeshEmitterData()
     {
-        EmitterType = EEmitterRenderType::Mesh;
+        EmitterType = EParticleType::Mesh;
     }
 
     virtual const FDynamicEmitterReplayDataBase* GetSource() const override
