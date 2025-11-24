@@ -8,6 +8,7 @@
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
 #include "Source/Runtime/Engine/Particle/ParticleStats.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLocation.h"
 
 // ============================================================================
 // Constructor & Destructor
@@ -658,4 +659,182 @@ void UParticleSystemComponent::ClearEmitterRenderData()
         }
     }
     EmitterRenderData.Empty();
+}
+
+void UParticleSystemComponent::RenderDebugVolume(URenderer* Renderer) const
+{
+    if (!Template) return;
+
+    const FTransform WorldTransform = GetWorldTransform();
+    TArray<FVector> StartPoints;
+    TArray<FVector> EndPoints;
+    TArray<FVector4> Colors;
+
+    // 각 Emitter의 Location 모듈 찾아서 범위 그리기
+    for (const auto* Emitter : Template->Emitters)
+    {
+        if (!Emitter || Emitter->LODLevels.IsEmpty()) continue;
+
+        const UParticleLODLevel* LOD = Emitter->LODLevels[0];
+        if (!LOD) continue;
+
+        // Location 모듈 찾기
+        UParticleModuleLocation* LocationModule = nullptr;
+        for (auto* Module : LOD->AllModulesCache)
+        {
+            if (auto* LocMod = Cast<UParticleModuleLocation>(Module))
+            {
+                LocationModule = LocMod;
+                break;
+            }
+        }
+
+        if (!LocationModule) continue;
+
+        const FVector4 DebugColor(0.0f, 1.0f, 0.0f, 1.0f); // 초록색
+
+        switch (LocationModule->DistributionType)
+        {
+        case ELocationDistributionType::Box:
+        {
+            // Box 8개 꼭지점
+            const FVector Extent = LocationModule->BoxExtent;
+            FVector LocalCorners[8] = {
+                {-Extent.X, -Extent.Y, -Extent.Z}, {+Extent.X, -Extent.Y, -Extent.Z},
+                {-Extent.X, +Extent.Y, -Extent.Z}, {+Extent.X, +Extent.Y, -Extent.Z},
+                {-Extent.X, -Extent.Y, +Extent.Z}, {+Extent.X, -Extent.Y, +Extent.Z},
+                {-Extent.X, +Extent.Y, +Extent.Z}, {+Extent.X, +Extent.Y, +Extent.Z},
+            };
+
+            FVector WorldCorners[8];
+            for (int i = 0; i < 8; i++)
+            {
+                WorldCorners[i] = WorldTransform.TransformPosition(LocalCorners[i]);
+            }
+
+            // 12개 엣지
+            static const int Edges[12][2] = {
+                {0,1},{1,3},{3,2},{2,0}, // bottom
+                {4,5},{5,7},{7,6},{6,4}, // top
+                {0,4},{1,5},{2,6},{3,7}  // verticals
+            };
+
+            for (int i = 0; i < 12; ++i)
+            {
+                StartPoints.Add(WorldCorners[Edges[i][0]]);
+                EndPoints.Add(WorldCorners[Edges[i][1]]);
+                Colors.Add(DebugColor);
+            }
+        }
+        break;
+
+        case ELocationDistributionType::Sphere:
+        {
+            // Sphere를 원으로 표현 (3개 원: XY, YZ, XZ 평면)
+            const float Radius = LocationModule->SphereRadius;
+            const int Segments = 32;
+
+            // XY 평면 원
+            for (int i = 0; i < Segments; ++i)
+            {
+                float angle1 = (float)i / Segments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / Segments * 2.0f * PI;
+
+                FVector p1(Radius * cosf(angle1), Radius * sinf(angle1), 0.0f);
+                FVector p2(Radius * cosf(angle2), Radius * sinf(angle2), 0.0f);
+
+                StartPoints.Add(WorldTransform.TransformPosition(p1));
+                EndPoints.Add(WorldTransform.TransformPosition(p2));
+                Colors.Add(DebugColor);
+            }
+
+            // YZ 평면 원
+            for (int i = 0; i < Segments; ++i)
+            {
+                float angle1 = (float)i / Segments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / Segments * 2.0f * PI;
+
+                FVector p1(0.0f, Radius * cosf(angle1), Radius * sinf(angle1));
+                FVector p2(0.0f, Radius * cosf(angle2), Radius * sinf(angle2));
+
+                StartPoints.Add(WorldTransform.TransformPosition(p1));
+                EndPoints.Add(WorldTransform.TransformPosition(p2));
+                Colors.Add(DebugColor);
+            }
+
+            // XZ 평면 원
+            for (int i = 0; i < Segments; ++i)
+            {
+                float angle1 = (float)i / Segments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / Segments * 2.0f * PI;
+
+                FVector p1(Radius * cosf(angle1), 0.0f, Radius * sinf(angle1));
+                FVector p2(Radius * cosf(angle2), 0.0f, Radius * sinf(angle2));
+
+                StartPoints.Add(WorldTransform.TransformPosition(p1));
+                EndPoints.Add(WorldTransform.TransformPosition(p2));
+                Colors.Add(DebugColor);
+            }
+        }
+        break;
+
+        case ELocationDistributionType::Cylinder:
+        {
+            // Cylinder: 상단/하단 원 + 수직선
+            const float Radius = LocationModule->CylinderRadius;
+            const float HalfHeight = LocationModule->CylinderHeight * 0.5f;
+            const int Segments = 32;
+
+            // 상단 원 (Z = +HalfHeight)
+            for (int i = 0; i < Segments; ++i)
+            {
+                float angle1 = (float)i / Segments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / Segments * 2.0f * PI;
+
+                FVector p1(Radius * cosf(angle1), Radius * sinf(angle1), HalfHeight);
+                FVector p2(Radius * cosf(angle2), Radius * sinf(angle2), HalfHeight);
+
+                StartPoints.Add(WorldTransform.TransformPosition(p1));
+                EndPoints.Add(WorldTransform.TransformPosition(p2));
+                Colors.Add(DebugColor);
+            }
+
+            // 하단 원 (Z = -HalfHeight)
+            for (int i = 0; i < Segments; ++i)
+            {
+                float angle1 = (float)i / Segments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / Segments * 2.0f * PI;
+
+                FVector p1(Radius * cosf(angle1), Radius * sinf(angle1), -HalfHeight);
+                FVector p2(Radius * cosf(angle2), Radius * sinf(angle2), -HalfHeight);
+
+                StartPoints.Add(WorldTransform.TransformPosition(p1));
+                EndPoints.Add(WorldTransform.TransformPosition(p2));
+                Colors.Add(DebugColor);
+            }
+
+            // 수직선 4개 (상단-하단 연결)
+            for (int i = 0; i < 4; ++i)
+            {
+                float angle = (float)i / 4.0f * 2.0f * PI;
+                FVector pTop(Radius * cosf(angle), Radius * sinf(angle), HalfHeight);
+                FVector pBottom(Radius * cosf(angle), Radius * sinf(angle), -HalfHeight);
+
+                StartPoints.Add(WorldTransform.TransformPosition(pTop));
+                EndPoints.Add(WorldTransform.TransformPosition(pBottom));
+                Colors.Add(DebugColor);
+            }
+        }
+        break;
+
+        case ELocationDistributionType::Point:
+            // Point는 범위가 없으므로 그리지 않음
+            break;
+        }
+    }
+
+    if (!StartPoints.IsEmpty())
+    {
+        Renderer->AddLines(StartPoints, EndPoints, Colors);
+    }
 }

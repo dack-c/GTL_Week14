@@ -40,6 +40,9 @@ public:
 
 	void DuplicateSubObjects() override;
 
+	// Location 모듈 범위 디버그 드로잉
+	void RenderDebugVolume(class URenderer* Renderer) const override;
+
 private:
 	// sprite, mesh 나눠 BuildBatch
 	void BuildEmitterRenderData();
