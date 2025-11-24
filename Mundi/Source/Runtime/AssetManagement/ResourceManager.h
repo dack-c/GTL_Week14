@@ -76,6 +76,8 @@ public:
 	void UpdateDynamicVertexBuffer(const FString& name, TArray<FBillboardVertexInfo_GPU>& vertices);
 	UMaterial* GetDefaultMaterial();
 
+	void PreloadParticles();
+
 	// --- 디버그 및 기본 메시 생성 ---
 	void CreateDefaultShader();
 	void CreateDefaultMaterial();

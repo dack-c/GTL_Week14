@@ -197,9 +197,8 @@ bool UGameEngine::Startup(HINSTANCE hInstance)
     INPUT.Initialize(HWnd);
 
     FObjManager::Preload();
-
-    // Preload audio assets
     FAudioDevice::Preload();
+    RESOURCE.PreloadParticles();
 
     ///////////////////////////////////
     WorldContexts.Add(FWorldContext(NewObject<UWorld>(), EWorldType::Game));
