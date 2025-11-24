@@ -1041,6 +1041,74 @@ void SParticleViewerWindow::OnRender()
 
                     ImGui::Separator();
 
+                    // TypeData 모듈 슬롯 (메쉬 모듈용)
+                    if (Emitter->LODLevels.Num() > 0)
+                    {
+                        UParticleLODLevel* LOD = Emitter->LODLevels[0];
+                        if (LOD && LOD->TypeDataModule)
+                        {
+                            UParticleModule* TypeDataModule = LOD->TypeDataModule;
+                            ImGui::PushID(9999); // TypeData 고유 ID
+                            bool isSelected = (SelectedModule == TypeDataModule);
+
+                            // 모듈 이름 추출
+                            const char* fullName = TypeDataModule->GetClass()->Name;
+                            const char* displayName = fullName;
+                            const char* prefix = "UParticleModule";
+                            size_t prefixLen = strlen(prefix);
+                            if (strncmp(fullName, prefix, prefixLen) == 0)
+                            {
+                                displayName = fullName + prefixLen;
+                            }
+
+                            // TypeData 모듈 표시 (회색 배경)
+                            float itemWidth = ImGui::GetContentRegionAvail().x;
+                            float buttonWidth = 20.0f;
+                            float rightMargin = 10.0f;
+                            float nameWidth = itemWidth - buttonWidth * 2 - rightMargin - 8;
+
+                            // 배경색 설정 (어두운 회색)
+                            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+                            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+                            ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+                            if (ImGui::Selectable(displayName, isSelected, 0, ImVec2(nameWidth, 20)))
+                            {
+                                SelectedModule = TypeDataModule;
+                            }
+
+                            ImGui::PopStyleColor(3);
+
+                            // 버튼들
+                            ImGui::SameLine();
+                            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+
+                            // 활성화 버튼 (항상 활성화 상태)
+                            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.0f, 1.0f));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.7f, 0.0f, 1.0f));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.8f, 0.0f, 1.0f));
+                            if (ImGui::Button("V##TypeData", ImVec2(buttonWidth, 20)))
+                            {
+                                // TypeData는 비활성화 불가
+                            }
+                            ImGui::PopStyleColor(3);
+                            ImGui::PopStyleVar();
+
+                            ImGui::PopID();
+                        }
+                        else if (LOD)
+                        {
+                            // TypeData 모듈이 없을 때 빈 슬롯 표시
+                            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                            ImGui::Button("##EmptyTypeDataSlot", ImVec2(-1, 30));
+                            ImGui::PopStyleColor(3);
+                        }
+                    }
+
+                    ImGui::Separator();
+
                     // 모듈 리스트
                     if (Emitter->LODLevels.Num() > 0)
                     {
@@ -1054,6 +1122,12 @@ void SParticleViewerWindow::OnRender()
                             {
                                 if (UParticleModule* Module = LOD->AllModulesCache[m])
                                 {
+                                    // TypeData 모듈은 이미 위에 표시했으므로 스킵
+                                    if (Cast<UParticleModuleTypeDataBase>(Module))
+                                    {
+                                        continue;
+                                    }
+
                                     ImGui::PushID(m + 1000);
                                     bool isSelected = (SelectedModule == Module);
 
