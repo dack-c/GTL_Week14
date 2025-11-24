@@ -30,7 +30,7 @@ set STORE_PATH=\\%SERVER_IP%\SymbolStore
 echo [SymStore] Checking server availability (timeout: 3 seconds)...
 
 :: Use PowerShell with timeout for reliable network path check
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='SilentlyContinue'; $timeout=3; $job=Start-Job -ScriptBlock {Test-Path -Path '%STORE_PATH%' -PathType Container}; $completed=Wait-Job -Job $job -Timeout $timeout; if($completed){$result=Receive-Job -Job $job; Remove-Job -Job $job -Force; if($result){exit 0}else{exit 1}}else{Remove-Job -Job $job -Force; exit 1}"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$timeout=3; $psi=New-Object System.Diagnostics.ProcessStartInfo; $psi.FileName='cmd.exe'; $psi.Arguments='/c dir \\\%SERVER_IP%\SymbolStore >nul 2>&1'; $psi.CreateNoWindow=$true; $psi.UseShellExecute=$false; $p=[System.Diagnostics.Process]::Start($psi); if($p.WaitForExit($timeout*1000)){if($p.ExitCode -eq 0){exit 0}else{exit 1}}else{$p.Kill(); exit 1}"
 
 if errorlevel 1 (
     echo.
