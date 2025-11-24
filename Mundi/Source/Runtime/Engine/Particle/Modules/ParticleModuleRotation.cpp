@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "ParticleModuleRotation.h"
-#include "../ParticleEmitter.h"
+#include "../ParticleEmitterInstance.h"
 #include "../ParticleHelper.h"
 
 IMPLEMENT_CLASS(UParticleModuleRotation)
