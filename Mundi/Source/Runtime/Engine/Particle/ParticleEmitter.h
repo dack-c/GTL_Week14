@@ -13,33 +13,7 @@ public:
 
     UParticleLODLevel* AddLODLevel(int32 LODIndex = 0);
     void CacheEmitterModuleInfo();
-    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
-    template<typename T>
-    T* GetModule(int32 LODIndex = 0) const
-    {
-        // LOD 존재 검증
-        if (LODLevels.Num() <= LODIndex || LODLevels[LODIndex] == nullptr)
-            return nullptr;
-
-        const UParticleLODLevel* LOD = LODLevels[LODIndex];
-
-        // 캐시가 비었다면 Rebuild 필요
-        if (LOD->AllModulesCache.Num() == 0)
-            return nullptr;
-
-        for (UParticleModule* M : LOD->AllModulesCache)
-        {
-            if (!M || !M->bEnabled)
-                continue;
-
-            // 템플릿 타입과 정확히 매칭되는 모듈 가져오기
-            if (auto* Casted = dynamic_cast<T*>(M))
-                return Casted;
-        }
-
-        return nullptr;
-    }
-    
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;    
 public:
     TArray<UParticleLODLevel*> LODLevels;
     EParticleType RenderType = EParticleType::Sprite;

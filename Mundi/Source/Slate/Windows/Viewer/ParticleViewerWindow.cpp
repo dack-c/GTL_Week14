@@ -579,7 +579,7 @@ void SParticleViewerWindow::OnRender()
                             // None
                             if (ImGui::Selectable("None##MeshNone", MeshModule->Mesh == nullptr))
                             {
-                                MeshModule->SetMesh(nullptr, SelectedEmitter);
+                                // MeshModule->SetMesh(nullptr, SelectedEmitter);
                             }
 
                             ImGui::Separator();
@@ -597,17 +597,17 @@ void SParticleViewerWindow::OnRender()
                                 bool isSelected = (MeshModule->Mesh == Mesh);
 
                                 // 미리보기(있으면)
-                                UTexture* PreviewTex = Mesh->GetPreviewTexture(); // 네가 준비한 API가 있다면
-                                if (PreviewTex && PreviewTex->GetShaderResourceView())
+                                // UTexture* PreviewTex = Mesh->GetPreviewTexture(); // 네가 준비한 API가 있다면
+                                // if (PreviewTex && PreviewTex->GetShaderResourceView())
                                 {
-                                    ImGui::Image((void*)PreviewTex->GetShaderResourceView(), ImVec2(30, 30));
+                                    // ImGui::Image((void*)PreviewTex->GetShaderResourceView(), ImVec2(30, 30));
                                     ImGui::SameLine();
                                 }
 
                                 if (ImGui::Selectable(Mesh->GetName().c_str(), isSelected))
                                 {
                                     // 여기서 SetMesh 호출 → Mesh 머티리얼이 Required로 들어감
-                                    MeshModule->SetMesh(Mesh, SelectedEmitter);
+                                    // MeshModule->SetMesh(Mesh, SelectedEmitter);
                                 }
 
                                 ImGui::PopID();
@@ -632,7 +632,7 @@ void SParticleViewerWindow::OnRender()
                             // 체크 켰고, Mesh도 있고, Required도 있으면 즉시 동기화
                             if (bUseMeshMat && MeshModule->Mesh && SelectedEmitter)
                             {
-                                MeshModule->SetMesh(MeshModule->Mesh, SelectedEmitter);
+                                // MeshModule->SetMesh(MeshModule->Mesh, SelectedEmitter);
                             }
                         }
 
