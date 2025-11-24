@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class UParticleLODLevel;
 class UParticleSystemComponent;
@@ -13,7 +13,11 @@ public:
 
     UParticleLODLevel* AddLODLevel(int32 LODIndex = 0);
     void CacheEmitterModuleInfo();
-    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;    
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    
+    template<typename T> 
+    T* GetModule(int32 LODIndex = 0) const;
+    
 public:
     TArray<UParticleLODLevel*> LODLevels;
     EParticleType RenderType = EParticleType::Sprite;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ParticleModuleTypeDataBase.h"
 #include "Name.h"
 

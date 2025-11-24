@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleModuleMesh.h"
 #include "../ParticleEmitter.h"
 #include "../ParticleLODLevel.h"
@@ -65,7 +65,7 @@ void UParticleModuleMesh::SetOverrideMaterial(UMaterialInterface* InMaterial, UP
 
     //if (UParticleModuleRequired* Required = OwnerEmitter->GetModule<UParticleModuleRequired>())
     //{
-    //    Required->Material = InMaterial;
+    //    // Required->Material = InMaterial;
     //}
 }
 
