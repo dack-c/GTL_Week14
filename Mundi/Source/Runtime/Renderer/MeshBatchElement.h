@@ -66,6 +66,9 @@ struct FMeshBatchElement
 	ID3D11ShaderResourceView* GPUSkinMatrixSRV = nullptr;
 	ID3D11ShaderResourceView* GPUSkinNormalMatrixSRV = nullptr;
 
+	// Sort Priority 용 Int : emitter별 Sort
+	int SortPriority = -1;
+
 	// --- 기본 생성자 ---
 	FMeshBatchElement() = default;
 
@@ -78,6 +81,9 @@ struct FMeshBatchElement
 	bool operator<(const FMeshBatchElement& B) const
 	{
 		const FMeshBatchElement& A = *this; // A는 'this' (자신), B는 비교 대상
+
+		// 0순위: 수동 지정한 우선순위
+		if (A.SortPriority >= 0 && B.SortPriority >= 0 && A.SortPriority != B.SortPriority) return A.SortPriority < B.SortPriority;
 
 		// 1순위: 셰이더 프로그램 (VS, PS)
 		if (A.VertexShader != B.VertexShader) return A.VertexShader < B.VertexShader;

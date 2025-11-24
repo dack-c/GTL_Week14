@@ -261,6 +261,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
         FDynamicSpriteEmitterData* SpriteData = nullptr;
         uint32 StartParticle = 0;
         uint32 ParticleCount = 0;
+        int SortPriority = -1;
     };
 
     TArray<FSpriteBatchCommand> SpriteBatchCommands;
@@ -314,6 +315,8 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
             FLinearColor Color = Particle->Color;
             const float Rotation = Particle->Rotation;
 
+            // Sorting 시각화, 50개까지만 높을수록 빨강 낮을수록 파랑
+            // 빨강이 먼저 그려지고 파랑이 맨 나중에 -> 뒤 색깔 반영하는 건 파랑
             //if (LocalIdx < 10)
             //    Color = FLinearColor(1, 0, 0, 0.5);
             //else if (LocalIdx < 20)
@@ -346,6 +349,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
             Cmd.SpriteData = SpriteData;
             Cmd.StartParticle = StartParticle;
             Cmd.ParticleCount = WrittenParticles - StartParticle;
+            Cmd.SortPriority = Src->RequiredModule->SortPriority;
             SpriteBatchCommands.Add(Cmd);
         }
 
@@ -399,6 +403,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
         Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         Batch.WorldMatrix = GetWorldMatrix();
         Batch.ObjectID = InternalIndex;
+        Batch.SortPriority = Cmd.SortPriority;
     }
 }
 
