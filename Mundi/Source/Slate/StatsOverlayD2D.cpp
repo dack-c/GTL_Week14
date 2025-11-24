@@ -14,6 +14,7 @@
 #include "LightStats.h"
 #include "ShadowStats.h"
 #include "SkinningStats.h"
+#include "Source/Runtime/Engine/Particle/ParticleStats.h"
 
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "dwrite")
@@ -32,10 +33,71 @@ void UStatsOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
 	D3DContext = InContext;
 	SwapChain = InSwapChain;
 	bInitialized = (D3DDevice && D3DContext && SwapChain);
+
+	
+	if (!bInitialized)
+	{
+		return;
+	}
+
+	D2D1_FACTORY_OPTIONS FactoryOpts{};
+#ifdef _DEBUG
+	FactoryOpts.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+#endif
+	if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory1), &FactoryOpts, (void**)&D2DFactory)))
+	{
+		return;
+	}
+
+	IDXGIDevice* DxgiDevice = nullptr;
+	if (FAILED(D3DDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&DxgiDevice)))
+	{
+		return;
+	}
+
+	if (FAILED(D2DFactory->CreateDevice(DxgiDevice, &D2DDevice)))
+	{
+		SafeRelease(DxgiDevice);
+		return;
+	}
+	SafeRelease(DxgiDevice);
+
+	if (FAILED(D2DDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &D2DContext)))
+	{
+		return;
+	}
+
+	if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&DWriteFactory)))
+	{
+		return;
+	}
+
+	if (DWriteFactory)
+	{
+		DWriteFactory->CreateTextFormat(
+			L"Segoe UI",
+			nullptr,
+			DWRITE_FONT_WEIGHT_NORMAL,
+			DWRITE_FONT_STYLE_NORMAL,
+			DWRITE_FONT_STRETCH_NORMAL,
+			16.0f,
+			L"en-us",
+			&TextFormat);
+
+		if (TextFormat)
+		{
+			TextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+			TextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+		}
+	}
+
+	EnsureInitialized();
 }
 
 void UStatsOverlayD2D::Shutdown()
 {
+	ReleaseD2DResources();
+
 	D3DDevice = nullptr;
 	D3DContext = nullptr;
 	SwapChain = nullptr;
@@ -44,114 +106,87 @@ void UStatsOverlayD2D::Shutdown()
 
 void UStatsOverlayD2D::EnsureInitialized()
 {
+	if (!D2DContext)
+	{
+		return;
+	}
+
+	SafeRelease(BrushYellow);
+	SafeRelease(BrushSkyBlue);
+	SafeRelease(BrushLightGreen);
+	SafeRelease(BrushOrange);
+	SafeRelease(BrushCyan);
+	SafeRelease(BrushViolet);
+	SafeRelease(BrushDeepPink);
+	SafeRelease(BrushBlack);
+
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &BrushYellow);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::SkyBlue), &BrushSkyBlue);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::LightGreen), &BrushLightGreen);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Orange), &BrushOrange);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Cyan), &BrushCyan);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Violet), &BrushViolet);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::DeepPink), &BrushDeepPink);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.6f), &BrushBlack);
+
 }
 
-void UStatsOverlayD2D::ReleaseD2DTarget()
+void UStatsOverlayD2D::ReleaseD2DResources()
 {
+	SafeRelease(BrushBlack);
+	SafeRelease(BrushDeepPink);
+	SafeRelease(BrushViolet);
+	SafeRelease(BrushCyan);
+	SafeRelease(BrushOrange);
+	SafeRelease(BrushLightGreen);
+	SafeRelease(BrushSkyBlue);
+	SafeRelease(BrushYellow);
+
+	SafeRelease(TextFormat);
+	SafeRelease(DWriteFactory);
+	SafeRelease(D2DContext);
+	SafeRelease(D2DDevice);
+	SafeRelease(D2DFactory);
+
 }
 
 static void DrawTextBlock(
 	ID2D1DeviceContext* InD2dCtx,
-	IDWriteFactory* InDwrite,
+	IDWriteTextFormat* InTextFormat,
 	const wchar_t* InText,
 	const D2D1_RECT_F& InRect,
-	float InFontSize,
-	D2D1::ColorF InBgColor,
-	D2D1::ColorF InTextColor)
+	ID2D1SolidColorBrush* InBgBrush,
+	ID2D1SolidColorBrush* InTextBrush)
 {
-	if (!InD2dCtx || !InDwrite || !InText) return;
-
-	ID2D1SolidColorBrush* BrushFill = nullptr;
-	InD2dCtx->CreateSolidColorBrush(InBgColor, &BrushFill);
-
-	ID2D1SolidColorBrush* BrushText = nullptr;
-	InD2dCtx->CreateSolidColorBrush(InTextColor, &BrushText);
-
-	InD2dCtx->FillRectangle(InRect, BrushFill);
-
-	IDWriteTextFormat* Format = nullptr;
-	InDwrite->CreateTextFormat(
-		L"Segoe UI",
-		nullptr,
-		DWRITE_FONT_WEIGHT_NORMAL,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		InFontSize,
-		L"en-us",
-		&Format);
-
-	if (Format)
+	if (!InD2dCtx || !InTextFormat || !InText || !InBgBrush || !InTextBrush)
 	{
-		Format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		Format->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-		InD2dCtx->DrawTextW(
-			InText,
-			static_cast<UINT32>(wcslen(InText)),
-			Format,
-			InRect,
-			BrushText);
-		Format->Release();
+		return;
 	}
 
-	SafeRelease(BrushText);
-	SafeRelease(BrushFill);
+	InD2dCtx->FillRectangle(InRect, InBgBrush);
+	InD2dCtx->DrawTextW(
+		InText,
+		static_cast<UINT32>(wcslen(InText)),
+		InTextFormat,
+		InRect,
+		InTextBrush);
 }
 
 void UStatsOverlayD2D::Draw()
 {
 	if (!bInitialized || (!bShowFPS && !bShowMemory && !bShowPicking && !bShowDecal && !bShowTileCulling && !bShowLights && !bShowShadow && !bShowSkinning) || !SwapChain)
+	{
 		return;
+	}
 
-	ID2D1Factory1* D2dFactory = nullptr;
-	D2D1_FACTORY_OPTIONS Opts{};
-#ifdef _DEBUG
-	Opts.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
-#endif
-	if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory1), &Opts, (void**)&D2dFactory)))
+	if (!D2DContext || !TextFormat)
+	{
 		return;
+	}
 
 	IDXGISurface* Surface = nullptr;
 	if (FAILED(SwapChain->GetBuffer(0, __uuidof(IDXGISurface), (void**)&Surface)))
 	{
-		SafeRelease(D2dFactory);
-		return;
-	}
-
-	IDXGIDevice* DxgiDevice = nullptr;
-	if (FAILED(D3DDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&DxgiDevice)))
-	{
-		SafeRelease(Surface);
-		SafeRelease(D2dFactory);
-		return;
-	}
-
-	ID2D1Device* D2dDevice = nullptr;
-	if (FAILED(D2dFactory->CreateDevice(DxgiDevice, &D2dDevice)))
-	{
-		SafeRelease(DxgiDevice);
-		SafeRelease(Surface);
-		SafeRelease(D2dFactory);
-		return;
-	}
-
-	ID2D1DeviceContext* D2dCtx = nullptr;
-	if (FAILED(D2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &D2dCtx)))
-	{
-		SafeRelease(D2dDevice);
-		SafeRelease(DxgiDevice);
-		SafeRelease(Surface);
-		SafeRelease(D2dFactory);
-		return;
-	}
-
-	IDWriteFactory* Dwrite = nullptr;
-	if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&Dwrite)))
-	{
-		SafeRelease(D2dCtx);
-		SafeRelease(D2dDevice);
-		SafeRelease(DxgiDevice);
-		SafeRelease(Surface);
-		SafeRelease(D2dFactory);
 		return;
 	}
 
@@ -163,23 +198,18 @@ void UStatsOverlayD2D::Draw()
 	BmpProps.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
 
 	ID2D1Bitmap1* TargetBmp = nullptr;
-	if (FAILED(D2dCtx->CreateBitmapFromDxgiSurface(Surface, &BmpProps, &TargetBmp)))
+	if (FAILED(D2DContext->CreateBitmapFromDxgiSurface(Surface, &BmpProps, &TargetBmp)))
 	{
-		SafeRelease(Dwrite);
-		SafeRelease(D2dCtx);
-		SafeRelease(D2dDevice);
-		SafeRelease(DxgiDevice);
 		SafeRelease(Surface);
-		SafeRelease(D2dFactory);
 		return;
 	}
 
-	D2dCtx->SetTarget(TargetBmp);
+	D2DContext->SetTarget(TargetBmp);
 
-	D2dCtx->BeginDraw();
+	D2DContext->BeginDraw();
 	const float Margin = 12.0f;
 	const float Space = 8.0f;   // 패널간의 간격
-	const float PanelWidth = 200.0f;
+	const float PanelWidth = 250.0f;
 	const float PanelHeight = 48.0f;
 	float NextY = 70.0f;
 
@@ -193,17 +223,13 @@ void UStatsOverlayD2D::Draw()
 		swprintf_s(Buf, L"FPS: %.1f\nFrame time: %.2f ms", Fps, Ms);
 
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + PanelHeight);
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::Yellow));
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushYellow);
 
 		NextY += PanelHeight + Space;
 	}
 
 	if (bShowPicking)
 	{
-		// Build the entire block in one Buffer to avoid overwriting previous lines
 		wchar_t Buf[256];
 		double LastMs = FWindowsPlatformTime::ToMilliseconds(CPickingSystem::GetLastPickTime());
 		double TotalMs = FWindowsPlatformTime::ToMilliseconds(CPickingSystem::GetTotalPickTime());
@@ -211,13 +237,9 @@ void UStatsOverlayD2D::Draw()
 		double AvgMs = (Count > 0) ? (TotalMs / (double)Count) : 0.0;
 		swprintf_s(Buf, L"Pick Count: %u\nLast: %.3f ms\nAvg: %.3f ms\nTotal: %.3f ms", Count, LastMs, AvgMs, TotalMs);
 
-		// Increase panel height to fit multiple lines
 		const float PickPanelHeight = 96.0f;
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + PickPanelHeight);
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::SkyBlue));
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushSkyBlue);
 
 		NextY += PickPanelHeight + Space;
 	}
@@ -230,10 +252,7 @@ void UStatsOverlayD2D::Draw()
 		swprintf_s(Buf, L"Memory: %.1f MB\nAllocs: %u", Mb, FMemoryManager::TotalAllocationCount);
 
 		D2D1_RECT_F Rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + PanelHeight);
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, Rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::LightGreen));
+		DrawTextBlock(D2DContext, TextFormat, Buf, Rc, BrushBlack, BrushLightGreen);
 
 		NextY += PanelHeight + Space;
 	}
@@ -261,21 +280,15 @@ void UStatsOverlayD2D::Draw()
 		const float decalPanelHeight = 140.0f;
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + decalPanelHeight);
 
-		// 4. DrawTextBlock 함수를 호출하여 화면에 그립니다. 색상은 구분을 위해 주황색(Orange)으로 설정합니다.
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::Orange));
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushOrange);
 
 		NextY += decalPanelHeight + Space;
 	}
 
 	if (bShowTileCulling)
 	{
-		// 1. FTileCullingStatManager로부터 통계 데이터를 가져옵니다.
 		const FTileCullingStats& TileStats = FTileCullingStatManager::GetInstance().GetStats();
 
-		// 2. 출력할 문자열 버퍼를 만듭니다.
 		wchar_t Buf[512];
 		swprintf_s(Buf, L"[Tile Culling Stats]\nTiles: %u x %u (%u)\nLights: %u (P:%u S:%u)\nMin/Avg/Max: %u / %.1f / %u\nCulling Eff: %.1f%%\nBuffer: %u KB",
 			TileStats.TileCountX,
@@ -290,25 +303,17 @@ void UStatsOverlayD2D::Draw()
 			TileStats.CullingEfficiency,
 			TileStats.LightIndexBufferSizeBytes / 1024);
 
-		// 3. 텍스트를 여러 줄 표시해야 하므로 패널 높이를 늘립니다.
 		const float tilePanelHeight = 160.0f;
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + tilePanelHeight);
-
-		// 4. DrawTextBlock 함수를 호출하여 화면에 그립니다. 색상은 구분을 위해 cyan으로 설정합니다.
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::Cyan));
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushCyan);
 
 		NextY += tilePanelHeight + Space;
 	}
 
 	if (bShowLights)
 	{
-		// 1. FLightStatManager로부터 통계 데이터를 가져옵니다.
 		const FLightStats& LightStats = FLightStatManager::GetInstance().GetStats();
 
-		// 2. 출력할 문자열 버퍼를 만듭니다.
 		wchar_t Buf[512];
 		swprintf_s(Buf, L"[Light Stats]\nTotal Lights: %u\n  Point: %u\n  Spot: %u\n  Directional: %u\n  Ambient: %u",
 			LightStats.TotalLights,
@@ -317,25 +322,17 @@ void UStatsOverlayD2D::Draw()
 			LightStats.TotalDirectionalLights,
 			LightStats.TotalAmbientLights);
 
-		// 3. 텍스트를 여러 줄 표시해야 하므로 패널 높이를 늘립니다.
 		const float lightPanelHeight = 140.0f;
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + lightPanelHeight);
-
-		// 4. DrawTextBlock 함수를 호출하여 화면에 그립니다. 색상은 구분을 위해 보라색(Purple)으로 설정합니다.
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::Violet));
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushViolet);
 
 		NextY += lightPanelHeight + Space;
 	}
 
 	if (bShowShadow)
 	{
-		// 1. FShadowStatManager로부터 통계 데이터를 가져옵니다.
 		const FShadowStats& ShadowStats = FShadowStatManager::GetInstance().GetStats();
 
-		// 2. 출력할 문자열 버퍼를 만듭니다.
 		wchar_t Buf[512];
 		swprintf_s(Buf, L"[Shadow Stats]\nShadow Lights: %u\n  Point: %u\n  Spot: %u\n  Directional: %u\n\nAtlas 2D: %u x %u (%.1f MB)\nAtlas Cube: %u x %u x %u (%.1f MB)\n\nTotal Memory: %.1f MB",
 			ShadowStats.TotalShadowCastingLights,
@@ -351,30 +348,18 @@ void UStatsOverlayD2D::Draw()
 			ShadowStats.ShadowAtlasCubeMemoryMB,
 			ShadowStats.TotalShadowMemoryMB);
 
-		// 3. 텍스트를 여러 줄 표시해야 하므로 패널 높이를 늘립니다.
 		const float shadowPanelHeight = 260.0f;
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + shadowPanelHeight);
-
-		// 4. DrawTextBlock 함수를 호출하여 화면에 그립니다. 색상은 구분을 위해 한색(Magenta)으로 설정합니다.
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::DeepPink));
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushDeepPink);
 
 		NextY += shadowPanelHeight + Space;
 
-
 		rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth, NextY + 40);
+		DrawTextBlock(D2DContext, TextFormat, FScopeCycleCounter::GetTimeProfile("ShadowMapPass").GetConstWChar_tWithKey("ShadowMapPass"), rc, BrushBlack, BrushDeepPink);
 
-		// 4. DrawTextBlock 함수를 호출하여 화면에 그립니다. 색상은 구분을 위해 한색(Magenta)으로 설정합니다.
-		DrawTextBlock(
-			D2dCtx, Dwrite, FScopeCycleCounter::GetTimeProfile("ShadowMapPass").GetConstWChar_tWithKey("ShadowMapPass"), rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::DeepPink));
-
-		NextY += 40 + Space;
+		NextY += shadowPanelHeight + Space;
 	}
-
+	
 	if (bShowSkinning)
 	{		
 		// GPU 스키닝
@@ -410,106 +395,47 @@ void UStatsOverlayD2D::Draw()
 
 		const float SkinningPanelHeight = 180.0f;
 		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth + 50.0f, NextY + SkinningPanelHeight);
-
-		DrawTextBlock(
-			D2dCtx, Dwrite, Buf, rc, 16.0f,
-			D2D1::ColorF(0, 0, 0, 0.6f),
-			D2D1::ColorF(D2D1::ColorF::DeepPink));
-
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushDeepPink);
 		NextY += SkinningPanelHeight + Space;		
 	}
 	
-	D2dCtx->EndDraw();
-	D2dCtx->SetTarget(nullptr);
+	if (bShowParticle)
+	{		
+		const FParticleStats& ParticleStats = FParticleStatManager::GetInstance().GetStats();
+    
+		double EmitterTickTime = FScopeCycleCounter::GetTimeProfile("Particle_EmitterTick").GetTime();
+		double CollectBatchesTime = FScopeCycleCounter::GetTimeProfile("Particle_CollectBatches").GetTime();
+		double GPUDrawTime = FGPUProfiler::GetInstance().GetStat("Particle_Draw");
 
+		wchar_t Buf[512];
+		swprintf_s(
+		   Buf,
+		   L"[Particle Stats]\n"
+		   L" Active Particles : %u\n"       // uint32
+		   L" Draw Calls       : %u\n"       // uint32
+		   L"[Times (ms)]\n"
+		   L" Simulation (CPU) : %.3f\n"     // double (Tick)
+		   L" Render Prep (CPU): %.3f\n"     // double (CollectBatches/Sort/Map)
+		   L" GPU Draw Time    : %.3f\n",    // double
+       
+		   ParticleStats.TotalActiveParticles,
+		   ParticleStats.DrawCalls,
+		   EmitterTickTime,
+		   CollectBatchesTime,
+		   GPUDrawTime
+		);
+
+		constexpr float ParticlePanelHeight = 160.0f;
+		D2D1_RECT_F rc = D2D1::RectF(Margin, NextY, Margin + PanelWidth + 50.0f, NextY + ParticlePanelHeight);
+		DrawTextBlock(D2DContext, TextFormat, Buf, rc, BrushBlack, BrushCyan);
+		NextY += ParticlePanelHeight + Space;		
+	}
+	D2DContext->EndDraw();
+	D2DContext->SetTarget(nullptr);
+
+	FParticleStatManager::GetInstance().ResetStats();
 	FScopeCycleCounter::TimeProfileInit();
 
-
 	SafeRelease(TargetBmp);
-	SafeRelease(Dwrite);
-	SafeRelease(D2dCtx);
-	SafeRelease(D2dDevice);
-	SafeRelease(DxgiDevice);
 	SafeRelease(Surface);
-	SafeRelease(D2dFactory);
-}
-
-void UStatsOverlayD2D::SetShowFPS(bool b)
-{
-	bShowFPS = b;
-}
-
-void UStatsOverlayD2D::SetShowMemory(bool b)
-{
-	bShowMemory = b;
-}
-
-void UStatsOverlayD2D::SetShowPicking(bool b)
-{
-	bShowPicking = b;
-}
-
-void UStatsOverlayD2D::SetShowDecal(bool b)
-{
-	bShowDecal = b;
-}
-
-void UStatsOverlayD2D::ToggleFPS()
-{
-	bShowFPS = !bShowFPS;
-}
-
-void UStatsOverlayD2D::ToggleMemory()
-{
-	bShowMemory = !bShowMemory;
-}
-
-void UStatsOverlayD2D::TogglePicking()
-{
-	bShowPicking = !bShowPicking;
-}
-
-void UStatsOverlayD2D::ToggleDecal()
-{
-	bShowDecal = !bShowDecal;
-}
-
-void UStatsOverlayD2D::SetShowTileCulling(bool b)
-{
-	bShowTileCulling = b;
-}
-
-void UStatsOverlayD2D::ToggleTileCulling()
-{
-	bShowTileCulling = !bShowTileCulling;
-}
-
-void UStatsOverlayD2D::SetShowLights(bool b)
-{
-	bShowLights = b;
-}
-
-void UStatsOverlayD2D::ToggleLights()
-{
-	bShowLights = !bShowLights;
-}
-
-void UStatsOverlayD2D::SetShowShadow(bool b)
-{
-	bShowShadow = b;
-}
-
-void UStatsOverlayD2D::SetShowSkinning(bool b)
-{
-	bShowSkinning = b;
-}
-
-void UStatsOverlayD2D::ToggleShadow()
-{
-	bShowShadow = !bShowShadow;
-}
-
-void UStatsOverlayD2D::ToggleSkinning()
-{
-	bShowSkinning = !bShowSkinning;
 }

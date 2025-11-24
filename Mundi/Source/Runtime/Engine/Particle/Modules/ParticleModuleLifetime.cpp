@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ParticleModuleLifetime.h"
 #include "../ParticleEmitter.h"
+#include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleHelper.h"
 
 IMPLEMENT_CLASS(UParticleModuleLifetime)
@@ -16,15 +17,9 @@ void UParticleModuleLifetime::Spawn(FParticleEmitterInstance* Owner, int32 Offse
 {
     if (!ParticleBase)
         return;
-
-    // 랜덤 시드 생성 (파티클 카운터 기반)
-    float RandomSeed = (float)(Owner->ParticleCounter % 1000) / 1000.0f;
-
-    // 수명 설정 (초 단위)
-    // Lifetime 분포에서 랜덤 값을 가져옴 (Min~Max 범위 또는 고정값)
-    float MaxLifetime = Lifetime.GetValue(RandomSeed);
-
-    // OneOverMaxLifetime 계산 (성능 최적화: 매 프레임 나눗셈 대신 곱셈 사용)
+    
+    // 수명 설정
+    float MaxLifetime = Lifetime.GetValue(Owner->GetRandomFloat());
     if (MaxLifetime > 0.0f)
     {
         ParticleBase->OneOverMaxLifetime = 1.0f / MaxLifetime;

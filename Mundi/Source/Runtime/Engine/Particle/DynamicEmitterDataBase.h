@@ -4,17 +4,9 @@
 #include "ParticleHelper.h"
 #include "Modules/ParticleModuleRequired.h"
 
-enum class EParticleSortMode : uint8 
-{ 
-    None, 
-    ByDistance, 
-    ByViewDepth, 
-    ByAge, 
-};
-
 struct FDynamicEmitterReplayDataBase
 {
-    EEmitterRenderType EmitterType = EEmitterRenderType::Sprite;
+    EParticleType EmitterType = EParticleType::Sprite;
 
     int32 ActiveParticleCount = 0; // Vertex Buffer 크기 계산용
     int32 ParticleStride = 0; // 파티클 하나의 byte stride
@@ -27,27 +19,28 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayData : public FDynamicEmitterReplayDataBase
 {
-    UMaterialInterface* MaterialInterface = nullptr;
     UParticleModuleRequired* RequiredModule = nullptr;
 };
 
 struct FDynamicMeshEmitterReplayData : public FDynamicEmitterReplayDataBase
 {
     UStaticMesh* Mesh = nullptr;
-    UMaterialInterface* OverrideMaterial = nullptr; // 있으면 이걸로 덮어씀
-    // TODO : GPU Instancing
     int32 InstanceStride = 0;
     int32 InstanceCount = 0;
 };
 
 struct FDynamicEmitterDataBase {
-    EEmitterRenderType EmitterType = EEmitterRenderType::Sprite;
-    int32 EmitterIndex = 0; bool bUseLocalSpace = false; 
+    EParticleType EmitterType = EParticleType::Sprite;
+    int32 EmitterIndex = 0; 
+    
+    bool bUseLocalSpace = false; 
+    
     bool bUseSoftParticle = false; 
     float SoftFadeDistance = 50.0f; // 투명 파티클 정렬 기준 
     
     EParticleSortMode SortMode = EParticleSortMode::None; 
     int32 SortPriority = 0; // Emitter 우선순위 
+    
     virtual ~FDynamicEmitterDataBase() = default; 
     
     virtual const FDynamicEmitterReplayDataBase* GetSource() const = 0; 
@@ -81,30 +74,32 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
         {
             FVector Pos = GetParticlePosition(i);
 
+            // UE_LOG("%d", SortMode);
             switch (SortMode)
             {
-            case EParticleSortMode::ByDistance:
-                Keys[i] = (Pos - ViewOrigin).SizeSquared();
-                break;
+                case EParticleSortMode::ByDistance:
+                    Keys[i] = (Pos - ViewOrigin).SizeSquared();
+                    break;
 
-            case EParticleSortMode::ByViewDepth:
-                Keys[i] = FVector::Dot(Pos - ViewOrigin, ViewDir);
-                break;
+                case EParticleSortMode::ByViewDepth:
+                    Keys[i] = FVector::Dot(Pos - ViewOrigin, ViewDir);
+                    break;
 
-            case EParticleSortMode::ByAge:
-                Keys[i] = GetParticleAge(i);
-                break;
+                case EParticleSortMode::ByAge:
+                    Keys[i] = GetParticleAge(i);
+                    break;
 
-            default:
-                Keys[i] = 0.f;
-                break;
+                default:
+                    Keys[i] = 0.f;
+                    break;
             }
         }
 
         // Back-to-front (큰 값이 먼저)
         OutIndices.Sort([&Keys](int32 A, int32 B) {
-            return Keys[A] > Keys[B];
+            return Keys[A] < Keys[B];
             });
+        OutIndices;
     }
 
     const FBaseParticle* GetParticle(int32 Idx) const
@@ -141,7 +136,7 @@ struct FDynamicSpriteEmitterData : public FDynamicTranslucentEmitterDataBase
 
     FDynamicSpriteEmitterData()
     {
-        EmitterType = EEmitterRenderType::Sprite;
+        EmitterType = EParticleType::Sprite;
     }
 
     virtual const FDynamicEmitterReplayDataBase* GetSource() const override
@@ -156,7 +151,7 @@ struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
 
     FDynamicMeshEmitterData()
     {
-        EmitterType = EEmitterRenderType::Mesh;
+        EmitterType = EParticleType::Mesh;
     }
 
     virtual const FDynamicEmitterReplayDataBase* GetSource() const override

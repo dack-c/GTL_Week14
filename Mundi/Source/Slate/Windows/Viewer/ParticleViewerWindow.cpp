@@ -12,6 +12,7 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSize.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocity.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColor.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLocation.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSizeMultiplyLife.h"
@@ -262,7 +263,7 @@ void SParticleViewerWindow::OnRender()
                     // 2열 레이아웃 시작
                     ImGui::Columns(2, "RequiredModuleColumns", false);
                     ImGui::SetColumnWidth(0, 150.0f);
-
+                    
                     // Material
                     {
                         ImGui::Text("Material");
@@ -402,7 +403,8 @@ void SParticleViewerWindow::OnRender()
                         ImGui::Text("Sort Mode");
                         ImGui::NextColumn();
 
-                        const char* sortModes[] = { "None", "By Distance", "By Age", "View Depth" };
+                        // EParticleSortMode 순서와 맞출 것!
+                        const char* sortModes[] = { "None", "By Distance", "By Age", "By View Depth" };
                         int currentSortMode = (int)RequiredModule->SortMode;
 
                         ImGui::SetNextItemWidth(-1);
@@ -413,7 +415,7 @@ void SParticleViewerWindow::OnRender()
                                 bool isSelected = (currentSortMode == i);
                                 if (ImGui::Selectable(sortModes[i], isSelected))
                                 {
-                                    RequiredModule->SortMode = (ESortMode)i;
+                                    RequiredModule->SortMode = (EParticleSortMode)i;
                                 }
                             }
                             ImGui::EndCombo();
@@ -424,12 +426,23 @@ void SParticleViewerWindow::OnRender()
 
                     ImGui::Spacing();
 
+                    // Emitter 별 Priority 
+                    {
+                        ImGui::Text("Emitter Sort Priority");
+                        ImGui::NextColumn();
+                        ImGui::SetNextItemWidth(-1);
+                        ImGui::DragInt("##SortPriority", &RequiredModule->SortPriority, 1, 1, 10000);
+                        ImGui::NextColumn();
+                    }
+
+                    ImGui::Spacing();
+
                     // Max Particles
                     {
                         ImGui::Text("Max Particles");
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
-                        ImGui::DragInt("##MaxParticles", &RequiredModule->MaxParticles, 1.0f, 1, 10000);
+                        ImGui::DragInt("##MaxParticles", &RequiredModule->MaxParticles, 1, 1, 10000);
                         ImGui::NextColumn();
                     }
 
@@ -570,7 +583,7 @@ void SParticleViewerWindow::OnRender()
                         ImGui::Checkbox("Alpha Use Range", &ColorOverLifeModule->AlphaOverLife.bUseRange);
                     }
                 }
-                else if (auto* SizeMultiplyLifeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(SelectedModule))
+                else if (auto* SizeMultiplyLifeModule = Cast<UParticleModuleSizeMultiplyLife>(SelectedModule))
                 {
                     ImGui::Text("Size Multiply Life Settings");
                     ImGui::Separator();
@@ -595,7 +608,7 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Spacing();
                     ImGui::TextDisabled("Tip: Use curve editor to adjust visually");
                 }
-                else if (auto* RotationModule = dynamic_cast<UParticleModuleRotation*>(SelectedModule))
+                else if (auto* RotationModule = Cast<UParticleModuleRotation>(SelectedModule))
                 {
                     ImGui::Text("Rotation Settings");
                     ImGui::Separator();
@@ -607,7 +620,7 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Spacing();
                     ImGui::TextDisabled("Tip: PI = 3.14159, 2*PI = 6.28318");
                 }
-                else if (auto* RotationRateModule = dynamic_cast<UParticleModuleRotationRate*>(SelectedModule))
+                else if (auto* RotationRateModule = Cast<UParticleModuleRotationRate>(SelectedModule))
                 {
                     ImGui::Text("Rotation Rate Settings");
                     ImGui::Separator();
@@ -627,6 +640,91 @@ void SParticleViewerWindow::OnRender()
                     ImGui::TextDisabled("Tip: PI = 3.14159, 2*PI = 6.28318");
                     ImGui::TextDisabled("Tip: 1 rad/s = ~57 degrees/s");
                 }
+                else if (auto* MeshModule = Cast<UParticleModuleMesh>(SelectedModule))
+                {
+                    ImGui::Spacing();
+                    ImGui::Columns(2, "MeshModuleColumns", false);
+                    ImGui::SetColumnWidth(0, 150.0f);
+
+                    // Mesh
+                    {
+                        ImGui::Text("Mesh");
+                        ImGui::NextColumn();
+
+                        const char* currentMeshName = MeshModule->Mesh
+                            ? MeshModule->Mesh->GetName().c_str()
+                            : "None";
+
+                        ImGui::Text("%s", currentMeshName);
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::BeginCombo("##MeshCombo", ""))   // 빈 라벨 + 위에 Text로 이름 표시
+                        {
+                            // None
+                            if (ImGui::Selectable("None##MeshNone", MeshModule->Mesh == nullptr))
+                            {
+                                // MeshModule->SetMesh(nullptr, SelectedEmitter);
+                            }
+
+                            ImGui::Separator();
+
+                            // 모든 StaticMesh 리소스 가져오기
+                            TArray<UStaticMesh*> AllMeshes = UResourceManager::GetInstance().GetAll<UStaticMesh>();
+
+                            for (int i = 0; i < AllMeshes.Num(); ++i)
+                            {
+                                UStaticMesh* Mesh = AllMeshes[i];
+                                if (!Mesh) continue;
+
+                                ImGui::PushID(i);
+
+                                bool isSelected = (MeshModule->Mesh == Mesh);
+
+                                // 미리보기(있으면)
+                                // UTexture* PreviewTex = Mesh->GetPreviewTexture(); // 네가 준비한 API가 있다면
+                                // if (PreviewTex && PreviewTex->GetShaderResourceView())
+                                {
+                                    // ImGui::Image((void*)PreviewTex->GetShaderResourceView(), ImVec2(30, 30));
+                                    ImGui::SameLine();
+                                }
+
+                                if (ImGui::Selectable(Mesh->GetName().c_str(), isSelected))
+                                {
+                                    // 여기서 SetMesh 호출 → Mesh 머티리얼이 Required로 들어감
+                                    // MeshModule->SetMesh(Mesh, SelectedEmitter);
+                                }
+
+                                ImGui::PopID();
+                            }
+
+                            ImGui::EndCombo();
+                        }
+
+                        ImGui::NextColumn();
+                    }
+
+                    // Mesh material 연동 여부
+                    {
+                        ImGui::Text("Use Mesh Materials");
+                        ImGui::NextColumn();
+
+                        bool bUseMeshMat = MeshModule->bUseMeshMaterials;
+                        if (ImGui::Checkbox("##UseMeshMaterials", &bUseMeshMat))
+                        {
+                            MeshModule->bUseMeshMaterials = bUseMeshMat;
+
+                            // 체크 켰고, Mesh도 있고, Required도 있으면 즉시 동기화
+                            if (bUseMeshMat && MeshModule->Mesh && SelectedEmitter)
+                            {
+                                // MeshModule->SetMesh(MeshModule->Mesh, SelectedEmitter);
+                            }
+                        }
+
+                        ImGui::NextColumn();
+                    }
+
+                    ImGui::Columns(1);
+                    }
             }
             else if (CurrentParticleSystem)
             {
@@ -1611,8 +1709,8 @@ void SParticleViewerWindow::CreateParticleSystem()
 {
     // 빈 ParticleSystem 생성
     UParticleSystem* NewSystem = NewObject<UParticleSystem>();
-    SavePath.clear();
     LoadParticleSystem(NewSystem);
+    SavePath.clear();
 }
 
 void SParticleViewerWindow::LoadParticleSystem()
@@ -1658,7 +1756,6 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
     PreviewActor = PreviewWorld->SpawnActor<AActor>();
     PreviewActor->ObjectName = FName("ParticlePreviewActor");
     PreviewActor->SetActorLocation(FVector(0, 0, 0));
-    PreviewActor->SetTickInEditor(true);  // 에디터 모드에서도 Tick 활성화
 
     // ParticleSystemComponent 생성 및 추가
     PreviewComponent = Cast<UParticleSystemComponent>(PreviewActor->AddNewComponent(UParticleSystemComponent::StaticClass()));
@@ -1668,9 +1765,7 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
     PreviewActor->BeginPlay();
 
     // 컴포넌트 초기화 및 활성화 (BeginPlay 이후에!)
-    PreviewComponent->InitParticles();
-    PreviewComponent->ActivateSystem();
-    PreviewComponent->SetActive(true);  // bIsActive를 명시적으로 true로 설정
+    PreviewComponent->ResetAndActivate();
 
     UE_LOG("Particle system loaded and spawned in preview world");
 }
@@ -1725,9 +1820,7 @@ void SParticleViewerWindow::CreateNewEmitter()
     // PreviewComponent가 있으면 다시 초기화
     if (PreviewComponent)
     {
-        PreviewComponent->InitParticles();
-        PreviewComponent->ActivateSystem();
-        PreviewComponent->SetActive(true);
+        PreviewComponent->ResetAndActivate();
     }
 
     UE_LOG("New emitter created successfully");
@@ -1774,12 +1867,8 @@ void SParticleViewerWindow::DeleteSelectedEmitter()
     CurrentParticleSystem->BuildRuntimeCache();
 
     // PreviewComponent가 있으면 다시 초기화
-    if (PreviewComponent)
-    {
-        PreviewComponent->InitParticles();
-        PreviewComponent->ActivateSystem();
-        PreviewComponent->SetActive(true);
-    }
+    if (PreviewComponent) 
+        PreviewComponent->ResetAndActivate();
 
     UE_LOG("Emitter deleted successfully");
 }

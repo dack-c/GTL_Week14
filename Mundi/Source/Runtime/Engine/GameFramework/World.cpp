@@ -259,10 +259,7 @@ void UWorld::Tick(float DeltaSeconds)
 			{
 				if (Actor->CanEverTick())
 				{
-					if (Actor->CanTickInEditor() || bPie)
-					{
-						Actor->Tick(GetDeltaTime(EDeltaTime::Game) * Actor->GetCustomTimeDillation());
-					}
+					Actor->Tick(GetDeltaTime(EDeltaTime::Game) * Actor->GetCustomTimeDillation());
 				}
 			}
 		}
@@ -513,7 +510,8 @@ void UWorld::SetLevel(std::unique_ptr<ULevel> InLevel)
 			{
 				Actor->SetWorld(this);
 				Actor->RegisterAllComponents(this);
-}
+				Actor->BeginPlay();
+			}
         }
     }
 

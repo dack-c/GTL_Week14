@@ -146,7 +146,7 @@
       <Message>[CodeGen] Generating Lua binding code...</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-        <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Debug\libfbxsdk.dll" "$(OutDir)"
+      <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Debug\libfbxsdk.dll" "$(OutDir)"
             xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\Debug\lua.dll" "$(OutDir)"
             xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
             call "$(ProjectDir)Tools\PublishSymbols.bat" $(Configuration)
@@ -216,11 +216,11 @@
       <Message>[CodeGen] Generating Lua binding code...</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-        <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Release\libfbxsdk.dll" "$(OutDir)"
+      <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Release\libfbxsdk.dll" "$(OutDir)"
             xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\Release\lua.dll" "$(OutDir)"
             xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
             call "$(ProjectDir)Tools\PublishSymbols.bat" $(Configuration)
-        </Command>    
+        </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -397,6 +397,7 @@
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleColorOverLife.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleLifetime.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleLocation.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleMesh.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRequired.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRotation.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRotationRate.cpp" />
@@ -407,6 +408,7 @@
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleVelocity.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleDataContainer.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleEmitter.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Particle\ParticleEmitterInstance.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleLODLevel.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleSystem.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\GameObject.cpp" />
@@ -790,7 +792,6 @@
     <ClInclude Include="Generated\UTestAutoBindComponent.generated.h" />
     <ClInclude Include="Generated\UTextRenderComponent.generated.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimationGraph.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimBlueprintCompiler.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\BlueprintActionDatabase.h" />
@@ -882,6 +883,7 @@
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleColorOverLife.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleLifetime.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleLocation.h" />
+    <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleMesh.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRequired.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRotation.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRotationRate.h" />
@@ -892,8 +894,10 @@
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleVelocity.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleDataContainer.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleEmitter.h" />
+    <ClInclude Include="Source\Runtime\Engine\Particle\ParticleEmitterInstance.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleHelper.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleLODLevel.h" />
+    <ClInclude Include="Source\Runtime\Engine\Particle\ParticleStats.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleSystem.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\GameObject.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.h" />

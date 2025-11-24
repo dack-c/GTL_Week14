@@ -256,8 +256,16 @@ enum class EWorldType : uint8
     PreviewMinimal, 
 };
 
-enum class EEmitterRenderType : uint8
+enum class EParticleType : uint8
 {
     Sprite,
     Mesh
+};
+
+enum class EParticleSortMode : uint8
+{
+    None,          // 정렬 안함
+    ByDistance,    // 거리순
+    ByAge,         // 생성 시간순
+    ByViewDepth    // 뷰 깊이순, 정면일수록 우선순위
 };

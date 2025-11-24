@@ -655,6 +655,44 @@ UMaterial* UResourceManager::GetDefaultMaterial()
     return DefaultMaterialInstance;
 }
 
+void UResourceManager::PreloadParticles()
+{
+    const fs::path ParticleDir(GDataDir + "/Particle");
+    if (!fs::exists(ParticleDir) || !fs::is_directory(ParticleDir))
+    {
+        UE_LOG("UResourceManager::PreloadParticles: Data directory not found: %s", ParticleDir.string().c_str());
+        return;
+    }
+
+    size_t LoadedCount = 0;
+    std::unordered_set<FString> ProcessedFiles; //중복 로딩 방지
+
+    for (const auto& Entry : fs::recursive_directory_iterator(ParticleDir))
+    {
+        if (!Entry.is_regular_file()) { continue; }
+
+        const fs::path& Path = Entry.path();
+        FString Extension = Path.extension().string();
+        std::ranges::transform(Extension, Extension.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+        if (Extension == ".particle")
+        {
+            FString PathStr = NormalizePath(Path.string());
+
+            // 이미 처리된 파일인지 확인
+            if (!ProcessedFiles.contains(PathStr))
+            {
+                ProcessedFiles.insert(PathStr);
+                // Load wav file 
+                ++LoadedCount;
+                Load<UParticleSystem>(Path.string());
+            }
+        }
+    }
+
+    UE_LOG("UResourceManager::PreloadParticles: Loaded %zu .particle files from %s", LoadedCount, ParticleDir.string().c_str());
+}
+
 // 여기서 텍스처 데이터 로드 및 
 FTextureData* UResourceManager::CreateOrGetTextureData(const FWideString& FilePath)
 {

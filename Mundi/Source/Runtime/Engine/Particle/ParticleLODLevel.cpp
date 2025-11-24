@@ -114,7 +114,7 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 int32 BlendModeVal = 0, AlignVal = 0, SortVal = 0;
                 if (FJsonSerializer::ReadInt32(ReqJson, "BlendMode", BlendModeVal)) Req->BlendMode = (EBlendMode)BlendModeVal;
                 if (FJsonSerializer::ReadInt32(ReqJson, "ScreenAlignment", AlignVal)) Req->ScreenAlignment = (EScreenAlignment)AlignVal;
-                if (FJsonSerializer::ReadInt32(ReqJson, "SortMode", SortVal)) Req->SortMode = (ESortMode)SortVal;
+                if (FJsonSerializer::ReadInt32(ReqJson, "SortMode", SortVal)) Req->SortMode = (EParticleSortMode)SortVal;
 
                 // Material
                 FString MatPath;
