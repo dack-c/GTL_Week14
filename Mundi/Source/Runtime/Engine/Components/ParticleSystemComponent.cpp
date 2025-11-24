@@ -7,6 +7,7 @@
 #include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
 #include "Source/Runtime/Engine/Particle/ParticleStats.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
 
 // ============================================================================
 // Constructor & Destructor
@@ -490,7 +491,8 @@ UMaterialInterface* UParticleSystemComponent::ResolveEmitterMaterial(const FDyna
 {
     UParticleEmitter* SourceEmitter = nullptr;
     UParticleModuleRequired* RequiredModule = nullptr;
-
+    UParticleModuleMesh* MeshModule = nullptr;
+    
     if (Template &&
         DynData.EmitterIndex >= 0 &&
         DynData.EmitterIndex < Template->Emitters.Num())
@@ -499,21 +501,27 @@ UMaterialInterface* UParticleSystemComponent::ResolveEmitterMaterial(const FDyna
         if (SourceEmitter && !SourceEmitter->LODLevels.IsEmpty())
         {
             if (auto* LOD0 = SourceEmitter->LODLevels[0])
+            {
                 RequiredModule = LOD0->RequiredModule;
+                MeshModule = Cast<UParticleModuleMesh>(LOD0->TypeDataModule);
+            }
         }
     }
-
-    if (RequiredModule && RequiredModule->Material)
-        return RequiredModule->Material;
+    
 
     // 만약 MeshEmitter + bUseMeshMaterials -> StaticMesh 재질
-    if (DynData.EmitterType == EParticleType::Mesh &&
-        SourceEmitter && SourceEmitter->bUseMeshMaterials)
+    if (DynData.EmitterType == EParticleType::Mesh && MeshModule)
     {
-        auto* MeshData = static_cast<const FDynamicMeshEmitterData*>(&DynData);
-        if (MeshData->Source.Mesh)
+        // Override Material 사용 (bUseMeshMaterials = false)
+        if (!MeshModule->bUseMeshMaterials && MeshModule->OverrideMaterial)
         {
-            const auto& Groups = MeshData->Source.Mesh->GetMeshGroupInfo();
+            return MeshModule->OverrideMaterial;
+        }
+
+        // Mesh 기본 Material 사용 (bUseMeshMaterials = true)
+        if (MeshModule->bUseMeshMaterials && MeshModule->Mesh)
+        {
+            const auto& Groups = MeshModule->Mesh->GetMeshGroupInfo();
             if (!Groups.IsEmpty())
             {
                 const FString& MatName = Groups[0].InitialMaterialName;
@@ -523,6 +531,12 @@ UMaterialInterface* UParticleSystemComponent::ResolveEmitterMaterial(const FDyna
             }
         }
     }
+
+    if (RequiredModule && RequiredModule->Material)
+    {
+        return RequiredModule->Material;
+    }
+    
     return FallbackMaterial;
 }
 

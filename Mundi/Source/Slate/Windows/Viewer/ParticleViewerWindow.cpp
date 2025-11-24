@@ -651,19 +651,29 @@ void SParticleViewerWindow::OnRender()
                         ImGui::Text("Mesh");
                         ImGui::NextColumn();
 
-                        const char* currentMeshName = MeshModule->Mesh
-                            ? MeshModule->Mesh->GetName().c_str()
-                            : "None";
-
-                        ImGui::Text("%s", currentMeshName);
+                        // 현재 선택된 메쉬의 파일명만 추출
+                        FString currentMeshName = "None";
+                        if (MeshModule->Mesh)
+                        {
+                            FString fullPath = MeshModule->Mesh->GetAssetPathFileName();
+                            size_t lastSlash = fullPath.find_last_of("/\\");
+                            if (lastSlash != FString::npos)
+                            {
+                                currentMeshName = fullPath.substr(lastSlash + 1);
+                            }
+                            else
+                            {
+                                currentMeshName = fullPath;
+                            }
+                        }
 
                         ImGui::SetNextItemWidth(-1);
-                        if (ImGui::BeginCombo("##MeshCombo", ""))   // 빈 라벨 + 위에 Text로 이름 표시
+                        if (ImGui::BeginCombo("##MeshCombo", currentMeshName.c_str()))
                         {
                             // None
                             if (ImGui::Selectable("None##MeshNone", MeshModule->Mesh == nullptr))
                             {
-                                // MeshModule->SetMesh(nullptr, SelectedEmitter);
+                                MeshModule->SetMesh(nullptr, SelectedEmitter);
                             }
 
                             ImGui::Separator();
@@ -680,18 +690,31 @@ void SParticleViewerWindow::OnRender()
 
                                 bool isSelected = (MeshModule->Mesh == Mesh);
 
-                                // 미리보기(있으면)
-                                // UTexture* PreviewTex = Mesh->GetPreviewTexture(); // 네가 준비한 API가 있다면
-                                // if (PreviewTex && PreviewTex->GetShaderResourceView())
+                                // 파일 경로에서 파일명만 추출
+                                FString fullPath = Mesh->GetAssetPathFileName();
+                                FString displayName = fullPath;
+                                size_t lastSlash = fullPath.find_last_of("/\\");
+                                if (lastSlash != FString::npos)
                                 {
-                                    // ImGui::Image((void*)PreviewTex->GetShaderResourceView(), ImVec2(30, 30));
-                                    ImGui::SameLine();
+                                    displayName = fullPath.substr(lastSlash + 1);
                                 }
 
-                                if (ImGui::Selectable(Mesh->GetName().c_str(), isSelected))
+                                if (ImGui::Selectable(displayName.c_str(), isSelected))
                                 {
-                                    // 여기서 SetMesh 호출 → Mesh 머티리얼이 Required로 들어감
-                                    // MeshModule->SetMesh(Mesh, SelectedEmitter);
+                                    MeshModule->SetMesh(Mesh, SelectedEmitter);
+
+                                    // PreviewComponent 재시작 (EmitterInstance를 다시 초기화)
+                                    if (PreviewComponent && CurrentParticleSystem)
+                                    {
+                                        CurrentParticleSystem->BuildRuntimeCache();
+                                        PreviewComponent->ResetAndActivate();
+                                    }
+                                }
+
+                                // 툴팁에 전체 경로 표시
+                                if (ImGui::IsItemHovered())
+                                {
+                                    ImGui::SetTooltip("%s", fullPath.c_str());
                                 }
 
                                 ImGui::PopID();
@@ -716,8 +739,102 @@ void SParticleViewerWindow::OnRender()
                             // 체크 켰고, Mesh도 있고, Required도 있으면 즉시 동기화
                             if (bUseMeshMat && MeshModule->Mesh && SelectedEmitter)
                             {
-                                // MeshModule->SetMesh(MeshModule->Mesh, SelectedEmitter);
+                                MeshModule->SetMesh(MeshModule->Mesh, SelectedEmitter);
                             }
+                        }
+
+                        ImGui::NextColumn();
+                    }
+
+                    // Override Material (Use Mesh Materials가 false일 때만 표시)
+                    if (!MeshModule->bUseMeshMaterials)
+                    {
+                        ImGui::Text("Override Material");
+                        ImGui::NextColumn();
+
+                        // 텍스처 미리보기
+                        UTexture* PreviewTexture = MeshModule->OverrideMaterial ? MeshModule->OverrideMaterial->GetTexture(EMaterialTextureSlot::Diffuse) : nullptr;
+                        if (PreviewTexture && PreviewTexture->GetShaderResourceView())
+                        {
+                            ImGui::Image((void*)PreviewTexture->GetShaderResourceView(), ImVec2(128, 128));
+                        }
+                        else
+                        {
+                            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                            ImGui::Button("##matpreview", ImVec2(128, 128));
+                            ImGui::PopStyleColor();
+                        }
+
+                        // 현재 선택된 머티리얼의 파일명만 추출
+                        FString currentMaterialName = "None";
+                        if (MeshModule->OverrideMaterial)
+                        {
+                            FString fullPath = MeshModule->OverrideMaterial->GetFilePath();
+                            size_t lastSlash = fullPath.find_last_of("/\\");
+                            if (lastSlash != FString::npos)
+                            {
+                                currentMaterialName = fullPath.substr(lastSlash + 1);
+                            }
+                            else
+                            {
+                                currentMaterialName = fullPath;
+                            }
+                        }
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::BeginCombo("##MaterialCombo", currentMaterialName.c_str()))
+                        {
+                            // None
+                            if (ImGui::Selectable("None##MaterialNone", MeshModule->OverrideMaterial == nullptr))
+                            {
+                                MeshModule->SetOverrideMaterial(nullptr, SelectedEmitter);
+                            }
+
+                            ImGui::Separator();
+
+                            // 모든 Material 리소스 가져오기
+                            TArray<UMaterial*> AllMaterials = UResourceManager::GetInstance().GetAll<UMaterial>();
+
+                            for (int i = 0; i < AllMaterials.Num(); ++i)
+                            {
+                                UMaterial* Material = AllMaterials[i];
+                                if (!Material) continue;
+
+                                ImGui::PushID(i);
+
+                                bool isSelected = (MeshModule->OverrideMaterial == Material);
+
+                                // 파일 경로에서 파일명만 추출
+                                FString fullPath = Material->GetFilePath();
+                                FString displayName = fullPath;
+                                size_t lastSlash = fullPath.find_last_of("/\\");
+                                if (lastSlash != FString::npos)
+                                {
+                                    displayName = fullPath.substr(lastSlash + 1);
+                                }
+
+                                if (ImGui::Selectable(displayName.c_str(), isSelected))
+                                {
+                                    MeshModule->SetOverrideMaterial(Material, SelectedEmitter);
+
+                                    // PreviewComponent 재시작 (EmitterInstance를 다시 초기화)
+                                    if (PreviewComponent && CurrentParticleSystem)
+                                    {
+                                        CurrentParticleSystem->BuildRuntimeCache();
+                                        PreviewComponent->ResetAndActivate();
+                                    }
+                                }
+
+                                // 툴팁에 전체 경로 표시
+                                if (ImGui::IsItemHovered())
+                                {
+                                    ImGui::SetTooltip("%s", fullPath.c_str());
+                                }
+
+                                ImGui::PopID();
+                            }
+
+                            ImGui::EndCombo();
                         }
 
                         ImGui::NextColumn();
@@ -809,9 +926,19 @@ void SParticleViewerWindow::OnRender()
                         if (OwnerLOD)
                         {
                             UE_LOG("Calling RemoveModule on owner LOD");
+
                             // 모듈 삭제
                             OwnerLOD->RemoveModule(SelectedModule);
                             SelectedModule = nullptr;
+
+                            // 런타임 캐시 재구축 (이 과정에서 CacheEmitterModuleInfo()가 RenderType을 자동으로 복원함)
+                            CurrentParticleSystem->BuildRuntimeCache();
+
+                            // PreviewComponent 재시작 (EmitterInstance를 다시 초기화하여 새로운 RenderType 반영)
+                            if (PreviewComponent)
+                            {
+                                PreviewComponent->ResetAndActivate();
+                            }
                         }
                         else
                         {
@@ -1079,6 +1206,26 @@ void SParticleViewerWindow::OnRender()
                                 if (ImGui::MenuItem("Rotation Rate"))
                                 {
                                     LOD->AddModule(UParticleModuleRotationRate::StaticClass());
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("렌더링 타입");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Mesh"))
+                                {
+                                    UParticleModuleMesh* MeshModule = Cast<UParticleModuleMesh>(LOD->AddModule(UParticleModuleMesh::StaticClass()));
+                                    if (MeshModule && SelectedEmitter)
+                                    {
+                                        MeshModule->ApplyToEmitter(SelectedEmitter);
+
+                                        // 런타임 캐시 재구축 및 컴포넌트 재시작
+                                        if (CurrentParticleSystem && PreviewComponent)
+                                        {
+                                            CurrentParticleSystem->BuildRuntimeCache();
+                                            PreviewComponent->ResetAndActivate();
+                                        }
+                                    }
                                 }
 
                                 ImGui::EndPopup();
