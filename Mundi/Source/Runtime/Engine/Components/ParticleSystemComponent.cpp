@@ -175,10 +175,10 @@ void UParticleSystemComponent::BuildEmitterRenderData()
             FParticleEmitterInstance* Inst = EmitterInstances[EmitterIdx];
             if (!Inst || Inst->ActiveParticles <= 0) continue;
 
-            const EEmitterRenderType Type = Inst->GetDynamicType();
+            const EParticleType Type = Inst->GetDynamicType();
             FDynamicEmitterDataBase* NewData = nullptr;
 
-            if (Type == EEmitterRenderType::Sprite)
+            if (Type == EParticleType::Sprite)
             {
                 auto* SpriteData = new FDynamicSpriteEmitterData();
                 SpriteData->EmitterType = Type;
@@ -194,7 +194,7 @@ void UParticleSystemComponent::BuildEmitterRenderData()
                 Inst->BuildReplayData(SpriteData->Source);
                 NewData = SpriteData;
             }
-            else if (Type == EEmitterRenderType::Mesh)
+            else if (Type == EParticleType::Mesh)
             {
                 auto* MeshData = new FDynamicMeshEmitterData();
                 MeshData->EmitterType = Type;
@@ -231,7 +231,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
     uint32 TotalParticles = 0;
     for (FDynamicEmitterDataBase* Base : EmitterRenderData)
     {
-        if (!Base || Base->EmitterType != EEmitterRenderType::Sprite) continue;
+        if (!Base || Base->EmitterType != EParticleType::Sprite) continue;
 
         const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(Base->GetSource());
         if (Src)
@@ -282,7 +282,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
     // 4) 각 Emitter의 Particle을 Vertex Buffer에 기록
     for (FDynamicEmitterDataBase* Base : EmitterRenderData)
     {
-        if (!Base || Base->EmitterType != EEmitterRenderType::Sprite) continue;
+        if (!Base || Base->EmitterType != EParticleType::Sprite) continue;
 
         auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(Base);
         const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(SpriteData->GetSource());
@@ -403,7 +403,7 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FMeshBatchElement>&
 
     for (FDynamicEmitterDataBase* Base : EmitterRenderData)
     {
-        if (!Base || Base->EmitterType != EEmitterRenderType::Mesh)
+        if (!Base || Base->EmitterType != EParticleType::Mesh)
             continue;
 
         auto* MeshData = static_cast<FDynamicMeshEmitterData*>(Base);
@@ -505,7 +505,7 @@ UMaterialInterface* UParticleSystemComponent::ResolveEmitterMaterial(const FDyna
         return RequiredModule->Material;
 
     // 만약 MeshEmitter + bUseMeshMaterials -> StaticMesh 재질
-    if (DynData.EmitterType == EEmitterRenderType::Mesh &&
+    if (DynData.EmitterType == EParticleType::Mesh &&
         SourceEmitter && SourceEmitter->bUseMeshMaterials)
     {
         auto* MeshData = static_cast<const FDynamicMeshEmitterData*>(&DynData);

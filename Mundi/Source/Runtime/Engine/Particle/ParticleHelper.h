@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "ParticleEmitterInstance.h"
+
 // 파티클 한 알의 기본 스탯
 struct FBaseParticle
 {

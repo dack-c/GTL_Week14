@@ -381,13 +381,13 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
      // 3) 타입별 추가 필드 세팅
     switch (OutData.EmitterType)
     {
-        case EEmitterRenderType::Sprite:
+        case EParticleType::Sprite:
         {
             auto& SpriteOut = static_cast<FDynamicSpriteEmitterReplayData&>(OutData);
             SpriteOut.RequiredModule = CachedRequiredModule;
             break;
         }
-        case EEmitterRenderType::Mesh: 
+        case EParticleType::Mesh: 
         {
             auto& MeshOut = static_cast<FDynamicMeshEmitterReplayData&>(OutData);
             MeshOut.Mesh = Template ? Template->Mesh : nullptr;

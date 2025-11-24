@@ -96,7 +96,7 @@ struct FParticleEmitterInstance
 
     bool IsComplete() const;
 
-    EEmitterRenderType GetDynamicType() const { return Template->RenderType; };
+    EParticleType GetDynamicType() const { return Template->RenderType; };
 
     void InitRandom(uint32 Seed);
 

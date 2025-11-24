@@ -5,9 +5,14 @@
 #include "Modules/ParticleModuleSize.h"
 #include "Modules/ParticleModuleSpawn.h"
 #include "Modules/ParticleModuleVelocity.h"
+#include "Modules/ParticleModuleTypeDataBase.h"
 #include "JsonSerializer.h"
 #include "Modules/ParticleModuleColor.h"
 #include "Modules/ParticleModuleLocation.h"
+#include "Modules/ParticleModuleColorOverLife.h"
+#include "Modules/ParticleModuleSizeMultiplyLife.h"
+#include "Modules/ParticleModuleRotation.h"
+#include "Modules/ParticleModuleRotationRate.h"
 
 IMPLEMENT_CLASS(UParticleLODLevel)
 
@@ -247,15 +252,56 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 
 UParticleModule* UParticleLODLevel::AddModule(UClass* ParticleModuleClass)
 {
-    if (!ParticleModuleClass || !ParticleModuleClass->IsChildOf(UParticleModule::StaticClass())) 
-    { 
-        return nullptr; 
+    if (!ParticleModuleClass || !ParticleModuleClass->IsChildOf(UParticleModule::StaticClass()))
+    {
+        return nullptr;
     }
 
     UParticleModule* NewModule = Cast<UParticleModule>(NewObject(ParticleModuleClass));
     AllModulesCache.Add(NewModule);
 
+    // 캐시 재구성하여 SpawnModules, UpdateModules에 추가
+    RebuildModuleCaches();
+
+    UE_LOG("AddModule: Added %s, now rebuilding caches", ParticleModuleClass->Name);
+
     return NewModule;
+}
+
+void UParticleLODLevel::RemoveModule(UParticleModule* Module)
+{
+    if (!Module)
+    {
+        UE_LOG("RemoveModule: Module is null");
+        return;
+    }
+
+    UE_LOG("RemoveModule: Attempting to remove module: %s", Module->GetClass()->Name);
+
+    // Required, Spawn 모듈은 삭제 불가
+    if (Cast<UParticleModuleRequired>(Module))
+    {
+        UE_LOG("Required 모듈은 삭제할 수 없습니다.");
+        return;
+    }
+
+    if (Cast<UParticleModuleSpawn>(Module))
+    {
+        UE_LOG("Spawn 모듈은 삭제할 수 없습니다.");
+        return;
+    }
+
+    // AllModulesCache에서 제거
+    int32 RemovedCount = AllModulesCache.Remove(Module);
+    UE_LOG("RemoveModule: Removed %d instances from AllModulesCache", RemovedCount);
+
+    // 모듈 메모리 해제
+    ObjectFactory::DeleteObject(Module);
+    UE_LOG("RemoveModule: Module deleted");
+
+    // 캐시 재구성
+    RebuildModuleCaches();
+    UE_LOG("RemoveModule: Caches rebuilt. AllModulesCache size: %d", AllModulesCache.Num());
 }
 
 void UParticleLODLevel::RebuildModuleCaches()
@@ -354,6 +400,70 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         }
         NewModule = Location;
     }
+    else if (ModuleType == "ColorOverLife")
+    {
+        auto* ColorOverLife = Cast<UParticleModuleColorOverLife>(AddModule(UParticleModuleColorOverLife::StaticClass()));
+        if (ColorOverLife)
+        {
+            FJsonSerializer::ReadLinearColor(ModuleJson, "ColorOverLife_Min", ColorOverLife->ColorOverLife.MinValue);
+            FJsonSerializer::ReadLinearColor(ModuleJson, "ColorOverLife_Max", ColorOverLife->ColorOverLife.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "ColorOverLife_bUseRange", ColorOverLife->ColorOverLife.bUseRange);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaOverLife_Min", ColorOverLife->AlphaOverLife.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaOverLife_Max", ColorOverLife->AlphaOverLife.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "AlphaOverLife_bUseRange", ColorOverLife->AlphaOverLife.bUseRange);
+
+            // Alpha 커브 2-point 시스템
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint1Time", ColorOverLife->AlphaPoint1Time);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint1Value", ColorOverLife->AlphaPoint1Value);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint2Time", ColorOverLife->AlphaPoint2Time);
+            FJsonSerializer::ReadFloat(ModuleJson, "AlphaPoint2Value", ColorOverLife->AlphaPoint2Value);
+
+            FJsonSerializer::ReadBool(ModuleJson, "bUseColorOverLife", ColorOverLife->bUseColorOverLife);
+            FJsonSerializer::ReadBool(ModuleJson, "bUseAlphaOverLife", ColorOverLife->bUseAlphaOverLife);
+        }
+        NewModule = ColorOverLife;
+    }
+    else if (ModuleType == "SizeMultiplyLife")
+    {
+        auto* SizeMultiplyLife = Cast<UParticleModuleSizeMultiplyLife>(AddModule(UParticleModuleSizeMultiplyLife::StaticClass()));
+        if (SizeMultiplyLife)
+        {
+            FJsonSerializer::ReadFloat(ModuleJson, "Point1Time", SizeMultiplyLife->Point1Time);
+            FJsonSerializer::ReadVector(ModuleJson, "Point1Value", SizeMultiplyLife->Point1Value);
+            FJsonSerializer::ReadFloat(ModuleJson, "Point2Time", SizeMultiplyLife->Point2Time);
+            FJsonSerializer::ReadVector(ModuleJson, "Point2Value", SizeMultiplyLife->Point2Value);
+            FJsonSerializer::ReadBool(ModuleJson, "bMultiplyX", SizeMultiplyLife->bMultiplyX);
+            FJsonSerializer::ReadBool(ModuleJson, "bMultiplyY", SizeMultiplyLife->bMultiplyY);
+            FJsonSerializer::ReadBool(ModuleJson, "bMultiplyZ", SizeMultiplyLife->bMultiplyZ);
+        }
+        NewModule = SizeMultiplyLife;
+    }
+    else if (ModuleType == "Rotation")
+    {
+        auto* Rotation = Cast<UParticleModuleRotation>(AddModule(UParticleModuleRotation::StaticClass()));
+        if (Rotation)
+        {
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotation_Min", Rotation->StartRotation.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotation_Max", Rotation->StartRotation.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "StartRotation_bUseRange", Rotation->StartRotation.bUseRange);
+        }
+        NewModule = Rotation;
+    }
+    else if (ModuleType == "RotationRate")
+    {
+        auto* RotationRate = Cast<UParticleModuleRotationRate>(AddModule(UParticleModuleRotationRate::StaticClass()));
+        if (RotationRate)
+        {
+            FJsonSerializer::ReadFloat(ModuleJson, "InitialRotation_Min", RotationRate->InitialRotation.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "InitialRotation_Max", RotationRate->InitialRotation.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "InitialRotation_bUseRange", RotationRate->InitialRotation.bUseRange);
+
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotationRate_Min", RotationRate->StartRotationRate.MinValue);
+            FJsonSerializer::ReadFloat(ModuleJson, "StartRotationRate_Max", RotationRate->StartRotationRate.MaxValue);
+            FJsonSerializer::ReadBool(ModuleJson, "StartRotationRate_bUseRange", RotationRate->StartRotationRate.bUseRange);
+        }
+        NewModule = RotationRate;
+    }
 
     if (NewModule)
     {
@@ -405,9 +515,57 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["StartLocation_Max"] = FJsonSerializer::VectorToJson(Location->StartLocation.MaxValue);
         ModuleJson["StartLocation_bUseRange"] = Location->StartLocation.bUseRange;
     }
+    else if (auto* ColorOverLife = Cast<UParticleModuleColorOverLife>(Module))
+    {
+        ModuleJson["Type"] = "ColorOverLife";
+        ModuleJson["ColorOverLife_Min"] = FJsonSerializer::LinearColorToJson(ColorOverLife->ColorOverLife.MinValue);
+        ModuleJson["ColorOverLife_Max"] = FJsonSerializer::LinearColorToJson(ColorOverLife->ColorOverLife.MaxValue);
+        ModuleJson["ColorOverLife_bUseRange"] = ColorOverLife->ColorOverLife.bUseRange;
+        ModuleJson["AlphaOverLife_Min"] = ColorOverLife->AlphaOverLife.MinValue;
+        ModuleJson["AlphaOverLife_Max"] = ColorOverLife->AlphaOverLife.MaxValue;
+        ModuleJson["AlphaOverLife_bUseRange"] = ColorOverLife->AlphaOverLife.bUseRange;
+
+        // Alpha 커브 2-point 시스템
+        ModuleJson["AlphaPoint1Time"] = ColorOverLife->AlphaPoint1Time;
+        ModuleJson["AlphaPoint1Value"] = ColorOverLife->AlphaPoint1Value;
+        ModuleJson["AlphaPoint2Time"] = ColorOverLife->AlphaPoint2Time;
+        ModuleJson["AlphaPoint2Value"] = ColorOverLife->AlphaPoint2Value;
+
+        ModuleJson["bUseColorOverLife"] = ColorOverLife->bUseColorOverLife;
+        ModuleJson["bUseAlphaOverLife"] = ColorOverLife->bUseAlphaOverLife;
+    }
+    else if (auto* SizeMultiplyLife = Cast<UParticleModuleSizeMultiplyLife>(Module))
+    {
+        ModuleJson["Type"] = "SizeMultiplyLife";
+        ModuleJson["Point1Time"] = SizeMultiplyLife->Point1Time;
+        ModuleJson["Point1Value"] = FJsonSerializer::VectorToJson(SizeMultiplyLife->Point1Value);
+        ModuleJson["Point2Time"] = SizeMultiplyLife->Point2Time;
+        ModuleJson["Point2Value"] = FJsonSerializer::VectorToJson(SizeMultiplyLife->Point2Value);
+        ModuleJson["bMultiplyX"] = SizeMultiplyLife->bMultiplyX;
+        ModuleJson["bMultiplyY"] = SizeMultiplyLife->bMultiplyY;
+        ModuleJson["bMultiplyZ"] = SizeMultiplyLife->bMultiplyZ;
+    }
+    else if (auto* Rotation = Cast<UParticleModuleRotation>(Module))
+    {
+        ModuleJson["Type"] = "Rotation";
+        ModuleJson["StartRotation_Min"] = Rotation->StartRotation.MinValue;
+        ModuleJson["StartRotation_Max"] = Rotation->StartRotation.MaxValue;
+        ModuleJson["StartRotation_bUseRange"] = Rotation->StartRotation.bUseRange;
+    }
+    else if (auto* RotationRate = Cast<UParticleModuleRotationRate>(Module))
+    {
+        ModuleJson["Type"] = "RotationRate";
+        ModuleJson["InitialRotation_Min"] = RotationRate->InitialRotation.MinValue;
+        ModuleJson["InitialRotation_Max"] = RotationRate->InitialRotation.MaxValue;
+        ModuleJson["InitialRotation_bUseRange"] = RotationRate->InitialRotation.bUseRange;
+
+        ModuleJson["StartRotationRate_Min"] = RotationRate->StartRotationRate.MinValue;
+        ModuleJson["StartRotationRate_Max"] = RotationRate->StartRotationRate.MaxValue;
+        ModuleJson["StartRotationRate_bUseRange"] = RotationRate->StartRotationRate.bUseRange;
+    }
     else
     {
-        return {}; 
+        return {};
     }
 
     return ModuleJson;

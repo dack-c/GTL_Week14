@@ -13,11 +13,10 @@ public:
 
     UParticleLODLevel* AddLODLevel(int32 LODIndex = 0);
     void CacheEmitterModuleInfo();
-    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
-    
+    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;    
 public:
     TArray<UParticleLODLevel*> LODLevels;
-    EEmitterRenderType RenderType = EEmitterRenderType::Sprite;
+    EParticleType RenderType = EParticleType::Sprite;
 
     // Mesh 타입인 경우에만 사용
     UStaticMesh* Mesh = nullptr;

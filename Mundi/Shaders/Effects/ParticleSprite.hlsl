@@ -23,6 +23,7 @@ struct VSInput
     float2 Corner : TEXCOORD0;
     float2 Size : TEXCOORD1;
     float4 Color : COLOR0;
+    float Rotation : TEXCOORD2;
 };
 
 struct PSInput
@@ -42,10 +43,17 @@ PSInput mainVS(VSInput In)
 
     float2 halfSize = In.Size * 0.5f;
 
+    // Rotation 적용: Corner를 회전시킴
+    float cosR = cos(In.Rotation);
+    float sinR = sin(In.Rotation);
+    float2 rotatedCorner;
+    rotatedCorner.x = In.Corner.x * cosR - In.Corner.y * sinR;
+    rotatedCorner.y = In.Corner.x * sinR + In.Corner.y * cosR;
+
     float3 worldPos =
         In.Position
-        + Right * In.Corner.x * halfSize.x
-        + Up * In.Corner.y * halfSize.y;
+        + Right * rotatedCorner.x * halfSize.x
+        + Up * rotatedCorner.y * halfSize.y;
 
     float4 viewPos = mul(float4(worldPos, 1.0f), ViewMatrix);
     float4 projPos = mul(viewPos, ProjectionMatrix);

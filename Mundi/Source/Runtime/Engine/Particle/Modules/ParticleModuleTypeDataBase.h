@@ -1,22 +1,13 @@
 ﻿#pragma once
 #include "ParticleModule.h"
 
-// 파티클 렌더링 타입
-enum class EParticleTypeDataType : uint8
-{
-    Sprite,   // 빌보드 (가장 일반적)
-    Mesh,     // 메시 파티클
-    Ribbon,   // 리본/트레일
-    Beam      // 빔
-};
-
 // TypeData 모듈 기본 클래스
 // 파티클의 렌더링 방식을 정의
 class UParticleModuleTypeDataBase : public UParticleModule
 {
 public:
     // 렌더링 타입
-    EParticleTypeDataType TypeDataType = EParticleTypeDataType::Sprite;
+    EParticleType TypeDataType = EParticleType::Sprite;
 
     // ============================================================
     // 가상 메서드
