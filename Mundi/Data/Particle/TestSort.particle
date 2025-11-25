@@ -52,7 +52,7 @@
                   "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_bUseRange" : false,
                   "Material" : "Ch06_body1",
-                  "MaxParticles" : 1000,
+                  "MaxParticles" : 10000,
                   "ScreenAlignment" : 0,
                   "SortMode" : 3,
                   "SpawnRateBase" : 10.000000,
@@ -62,8 +62,8 @@
                 },
                 "SpawnModule" : {
                   "SpawnRateType" : 0,
-                  "SpawnRate_Max" : 10.000000,
-                  "SpawnRate_Min" : 10.000000,
+                  "SpawnRate_Max" : 10000.000000,
+                  "SpawnRate_Min" : 10000.000000,
                   "SpawnRate_bUseRange" : false
                 },
                 "bEnabled" : true

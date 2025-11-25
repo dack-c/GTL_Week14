@@ -333,16 +333,16 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FMeshBatchElement
 
         // === MeshBatchElement 하나 생성해서 Instanced Draw 준비 ===
 
-        if (!FallbackMaterial)
-            FallbackMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite_Instanced.hlsl");
+        if (!InstanceFallbackMaterial)
+            InstanceFallbackMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite_Instanced.hlsl");
 
-        if (!FallbackMaterial || !FallbackMaterial->GetShader())
+        if (!InstanceFallbackMaterial || !InstanceFallbackMaterial->GetShader())
             return;
 
         TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
-        ShaderMacros.Append(FallbackMaterial->GetShaderMacros());
+        ShaderMacros.Append(InstanceFallbackMaterial->GetShaderMacros());
 
-        FShaderVariant* ShaderVariant = FallbackMaterial->GetShader()
+        FShaderVariant* ShaderVariant = InstanceFallbackMaterial->GetShader()
             ->GetOrCompileShaderVariant(ShaderMacros);
         if (!ShaderVariant) return;
 

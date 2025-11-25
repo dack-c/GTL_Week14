@@ -17,6 +17,8 @@ public:
 	UParticleSystemComponent();
 	~UParticleSystemComponent() override;
 
+	UPROPERTY(EditAnywhere, Category = "렌더링")
+	bool bUseGpuInstancing = false;
 public:
 	// 컴포넌트 초기화 & LifeCycle
 	virtual void InitParticles();
@@ -67,13 +69,12 @@ private:
 	uint32 ParticleVertexCapacity = 0;
 	uint32 ParticleIndexCount = 0;
 	UMaterialInterface* FallbackMaterial = nullptr;
+	UMaterialInterface* InstanceFallbackMaterial = nullptr;
 
 	// GPU Instancing
 	ID3D11Buffer* ParticleInstanceBuffer = nullptr;
 	ID3D11ShaderResourceView* ParticleInstanceSRV = nullptr;
 	uint32               InstanceCapacity = 0;
-
-	bool bUseGpuInstancing = true;
 
 	// Settings
 	bool bAutoActivate = true;
