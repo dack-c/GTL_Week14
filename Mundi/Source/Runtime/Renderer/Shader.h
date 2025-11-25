@@ -45,7 +45,7 @@ public:
 	static uint64 GenerateShaderKey(const TArray<FShaderMacro>& InMacros);
 	static FString GenerateMacrosToString(const TArray<FShaderMacro>& InMacros);	// UI 출력 or 디버깅용
 
-	void Load(const FString& ShaderPath, ID3D11Device* InDevice, const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
+	bool Load(const FString& ShaderPath, ID3D11Device* InDevice, const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
 
 	FShaderVariant* GetOrCompileShaderVariant(const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
 	bool CompileVariantInternal(ID3D11Device* InDevice, const FString& InShaderPath, const TArray<FShaderMacro>& InMacros, FShaderVariant& OutVariant);

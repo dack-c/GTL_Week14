@@ -8,9 +8,10 @@ ULineDynamicMesh::~ULineDynamicMesh()
     ReleaseResources();
 }
 
-void ULineDynamicMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
+bool ULineDynamicMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {
     Device = InDevice;
+    return true;
 }
 
 void ULineDynamicMesh::Load(uint32 InMaxVertices, uint32 InMaxIndices, ID3D11Device* InDevice)

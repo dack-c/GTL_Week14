@@ -11,7 +11,7 @@ public:
     UDynamicMesh() = default;
     virtual ~UDynamicMesh() override;
 
-    void Load(const FString& InFilePath, ID3D11Device* InDevice); //Temp
+    bool Load(const FString& InFilePath, ID3D11Device* InDevice); //Temp
     void Load(uint32 MaxVertices, uint32 MaxIndices, ID3D11Device* InDevice, EVertexLayoutType InVertexType = EVertexLayoutType::PositionColor);
     // Initialize dynamic buffers with maximum capacity
     bool Initialize(uint32 MaxVertices, uint32 MaxIndices, ID3D11Device* InDevice, EVertexLayoutType InVertexType = EVertexLayoutType::PositionColor);

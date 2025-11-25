@@ -48,18 +48,19 @@ UParticleEmitter* UParticleSystem::AddEmitter(UClass* EmitterClass)
     return nullptr;
 }
 
-void UParticleSystem::Load(const FString& InFilePath, ID3D11Device* InDevice)
+bool UParticleSystem::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {
     JSON Root;
     if (!FJsonSerializer::LoadJsonFromFile(Root, UTF8ToWide(InFilePath)))
     {
         UE_LOG("[UParticleSystem] Failed to load file: %s", InFilePath.c_str());
-        return;
+        return false;
     }
 
     Serialize(true, Root);
 
     UE_LOG("[UParticleSystem] Loaded successfully: %s", InFilePath.c_str());
+    return true;
 }
 
 bool UParticleSystem::SaveToFile(const FString& FilePath)

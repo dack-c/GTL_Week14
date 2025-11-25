@@ -7,9 +7,10 @@ UDynamicMesh::~UDynamicMesh()
     ReleaseResources();
 }
 
-void UDynamicMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
+bool UDynamicMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {
     //Temp Methods
+    return true;
 }
 
 void UDynamicMesh::Load(uint32 InMaxVertices, uint32 InMaxIndices, ID3D11Device* InDevice, EVertexLayoutType InVertexType)

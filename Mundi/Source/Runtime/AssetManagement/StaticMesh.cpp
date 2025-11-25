@@ -47,7 +47,7 @@ UStaticMesh::~UStaticMesh()
     ReleaseResources();
 }
 
-void UStaticMesh::Load(const FString& InFilePath, ID3D11Device* InDevice, EVertexLayoutType InVertexType)
+bool UStaticMesh::Load(const FString& InFilePath, ID3D11Device* InDevice, EVertexLayoutType InVertexType)
 {
     assert(InDevice);
 
@@ -66,8 +66,7 @@ void UStaticMesh::Load(const FString& InFilePath, ID3D11Device* InDevice, EVerte
         if (SkeletalData->Vertices.empty() || SkeletalData->Indices.empty())
         {
             UE_LOG("ERROR: Failed to load FBX mesh from '%s'", InFilePath.c_str());
-            delete SkeletalData;
-            return;
+            return false;
         }
 
         // SkeletalMeshData를 StaticMesh로 변환
@@ -94,9 +93,10 @@ void UStaticMesh::Load(const FString& InFilePath, ID3D11Device* InDevice, EVerte
         VertexCount = static_cast<uint32>(StaticMeshAsset->Vertices.size());
         IndexCount = static_cast<uint32>(StaticMeshAsset->Indices.size());
     }
+    return true;
 }
 
-void UStaticMesh::Load(FMeshData* InData, ID3D11Device* InDevice, EVertexLayoutType InVertexType)
+bool UStaticMesh::Load(FMeshData* InData, ID3D11Device* InDevice, EVertexLayoutType InVertexType)
 {
     SetVertexType(InVertexType);
 
@@ -117,6 +117,8 @@ void UStaticMesh::Load(FMeshData* InData, ID3D11Device* InDevice, EVertexLayoutT
 
     VertexCount = static_cast<uint32>(InData->Vertices.size());
     IndexCount = static_cast<uint32>(InData->Indices.size());
+
+    return true;
 }
 
 void UStaticMesh::SetVertexType(EVertexLayoutType InVertexType)

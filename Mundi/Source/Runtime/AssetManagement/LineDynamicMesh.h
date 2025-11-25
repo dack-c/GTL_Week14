@@ -10,7 +10,7 @@ public:
     ULineDynamicMesh() = default;
     virtual ~ULineDynamicMesh() override;
 
-    void Load(const FString& InFilePath, ID3D11Device* InDevice);
+    bool Load(const FString& InFilePath, ID3D11Device* InDevice);
 
     void Load(uint32 MaxVertices, uint32 MaxIndices, ID3D11Device* InDevice);
     bool Initialize(uint32 MaxVertices, uint32 MaxIndices, ID3D11Device* InDevice);

@@ -195,17 +195,21 @@ inline T* UResourceManager::Load(const FString& InFilePath, Args && ...InArgs)
 	{
 		if constexpr (std::is_same_v<T, UShader>)
 		{
-			UShader* Shader = static_cast<UShader*>((*iter).second);
+			UShader* Shader = static_cast<UShader*>(iter->second);
 			Shader->GetOrCompileShaderVariant(std::forward<Args>(InArgs)...);	// 매크로에 해당하는 셰이더를 별도로 컴파일 하기 위해
 			return Shader;
 		}
 
-		return static_cast<T*>((*iter).second);
+		return static_cast<T*>(iter->second);
 	}
 	else//없으면 해당 리소스의 Load실행
 	{
 		T* Resource = NewObject<T>();
-		Resource->Load(NormalizedPath, Device, std::forward<Args>(InArgs)...);
+		if (!Resource->Load(NormalizedPath, Device, std::forward<Args>(InArgs)...))
+		{
+			DeleteObject(Resource);
+			return nullptr;
+		}
 		Resource->SetFilePath(NormalizedPath);
 		Resources[typeIndex][NormalizedPath] = Resource;
 		return Resource;

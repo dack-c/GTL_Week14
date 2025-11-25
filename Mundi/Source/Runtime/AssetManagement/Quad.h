@@ -12,7 +12,7 @@ public:
     UQuad() = default;
     virtual ~UQuad() override;
 
-    void Load(const FString& InFilePath, ID3D11Device* InDevice);
+    bool Load(const FString& InFilePath, ID3D11Device* InDevice);
     void Load(FMeshData* InData, ID3D11Device* InDevice, bool IsTextQuad = false);
 
     ID3D11Buffer* GetVertexBuffer() const { return VertexBuffer; }

@@ -13,7 +13,7 @@ UMaterial::UMaterial()
 }
 
 // 해당 경로의 셰이더 또는 텍스쳐를 로드해서 머티리얼로 생성 후 반환한다
-void UMaterial::Load(const FString& InFilePath, ID3D11Device* InDevice)
+bool UMaterial::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {
 	MaterialInfo.MaterialName = InFilePath;
 
@@ -35,6 +35,7 @@ void UMaterial::Load(const FString& InFilePath, ID3D11Device* InDevice)
 	{
 		throw std::runtime_error(".dds나 .hlsl만 입력해주세요. 현재 입력 파일명 : " + InFilePath);
 	}
+	return true;
 }
 
 void UMaterial::Serialize(const bool bInIsLoading, JSON& InOutHandle)
