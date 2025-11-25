@@ -8,6 +8,7 @@
 #include "Modules/ParticleModuleSpawn.h"
 #include "Modules/ParticleModuleSubUV.h"
 #include "Modules/ParticleModuleMesh.h"
+#include "Modules/ParticleModuleRibbon.h"
 
 void FParticleEmitterInstance::Init(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
 {
@@ -395,6 +396,17 @@ FDynamicEmitterDataBase* FParticleEmitterInstance::CreateDynamicData()
             NewData = nullptr;
         }
     }
+    else if (Type == EParticleType::Ribbon)
+    {
+        // RIBBON
+        auto* RibbonData = new FDynamicRibbonEmitterData();
+        RibbonData->EmitterType = Type;
+
+        // 데이터 채우기
+        BuildReplayData(RibbonData->Source);
+        
+        NewData = RibbonData;
+    }
 
     return NewData;
 }
@@ -478,6 +490,33 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
                 }
             }
         }
+        case EParticleType::Ribbon:
+        {
+            auto& RibbonOut = static_cast<FDynamicRibbonEmitterReplayData&>(OutData);
+
+            RibbonOut.Width = 10.0f;
+            RibbonOut.TilingDistance = 0.0f;
+            RibbonOut.TrailLifetime = 1.0f;
+            RibbonOut.bUseCameraFacing = true;
+
+            if (CurrentLODLevel)
+            {
+                for (UParticleModule* Module : CurrentLODLevel->AllModulesCache)
+                {
+                    if (auto* RibbonModule = Cast<UParticleModuleRibbon>(Module))
+                    {
+                        RibbonOut.Width = RibbonModule->Width;
+                        RibbonOut.TilingDistance = RibbonModule->TilingDistance;
+                        RibbonOut.TrailLifetime = RibbonModule->TrailLifetime;
+                        RibbonOut.bUseCameraFacing = RibbonModule->bUseCameraFacing;
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        default:
+            break;
     }
 }
 
