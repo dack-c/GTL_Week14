@@ -6,6 +6,7 @@ class UParticleModuleRibbon : public UParticleModuleTypeDataBase
 	DECLARE_CLASS(UParticleModuleRibbon, UParticleModuleTypeDataBase)
 public:
 	UParticleModuleRibbon();
+    void ApplyToEmitter(UParticleEmitter* OwnerEmitter);
 
     // 리본 전체 기본 폭 (World Space)
     float Width;

@@ -97,8 +97,8 @@ float4 mainPS(PSInput In) : SV_TARGET
             float2 uv1 = In.UV * scale + offset1;
 
             // 두 프레임 샘플 후 보간
-            float4 c0 = ParticleTex.Sample(ParticleSampler, uv0);
-            float4 c1 = ParticleTex.Sample(ParticleSampler, uv1);
+            float4 c0 = RibbonTex.Sample(RibbonSampler, uv0);
+            float4 c1 = RibbonTex.Sample(RibbonSampler, uv1);
             float4 tex = lerp(c0, c1, alpha);
             float4 finalColor = tex * In.Color;
 
