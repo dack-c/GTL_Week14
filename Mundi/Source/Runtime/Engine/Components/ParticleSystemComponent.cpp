@@ -613,26 +613,17 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
         for (int32 i = 0; i < Count; ++i)
         {
             const FBaseParticle* Particle = RibbonData->GetParticle(i);
-            const FVector CurrentPos = Particle->Location;
-
-            FVector ParticleWorldPos = Particle->Location;
-            FMatrix ParticleWorld;
-
-            if (RibbonData->bUseLocalSpace)  // Local Space: 로컬 좌표 + 컴포넌트 변환 (컴포넌트 종속)
-            {
-                ParticleWorld = FMatrix::MakeScale(Particle->Size) * FMatrix::MakeTranslation(ParticleWorldPos) * GetWorldMatrix();
-            }
-            else  // World Space
-            {
-                ParticleWorld = FMatrix::MakeScale(Particle->Size) * FMatrix::MakeTranslation(ParticleWorldPos);
-            }
+            
+            const FVector ParticleWorldPos = RibbonData->bUseLocalSpace
+                ? GetWorldMatrix().TransformPosition(Particle->Location)
+                : Particle->Location;
 
             // A. Tangent (진행 방향) 계산
             FVector Tangent;
             if (i == 0)
-                Tangent = (RibbonData->GetParticlePosition(i + 1) - CurrentPos).GetSafeNormal();
+                Tangent = (RibbonData->GetParticlePosition(i + 1) - ParticleWorldPos).GetSafeNormal();
             else if (i == Count - 1)
-                Tangent = (CurrentPos - RibbonData->GetParticlePosition(i - 1)).GetSafeNormal();
+                Tangent = (ParticleWorldPos - RibbonData->GetParticlePosition(i - 1)).GetSafeNormal();
             else
             {
                 // Catmull-Rom 스타일 혹은 단순 평균
@@ -646,7 +637,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
             if (Src->bUseCameraFacing)
             {
                 // 카메라를 바라보도록: (Current - Camera) X Tangent
-                FVector ToCam = (ViewOrigin - CurrentPos).GetSafeNormal();
+                FVector ToCam = (ViewOrigin - ParticleWorldPos).GetSafeNormal();
                 RightVector = (FVector::Cross(ToCam, Tangent)).GetSafeNormal();
             }
             else
@@ -659,7 +650,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
             if (i > 0)
             {
                 FVector PrevPos = RibbonData->GetParticlePosition(i - 1);
-                CurrentDistance += FVector::Distance(CurrentPos, PrevPos);
+                CurrentDistance += FVector::Distance(ParticleWorldPos, PrevPos);
             }
 
             float V_Coord = (Src->TilingDistance > 0.0f)
@@ -679,7 +670,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
             // D. 버텍스 생성 (Top/Bottom pair)
             // Top Vertex (U=0)
             FParticleSpriteVertex& V0 = Vertices[VertexCursor++];
-            V0.Position = CurrentPos + (RightVector * Width * 0.5f);
+            V0.Position = ParticleWorldPos + (RightVector * Width * 0.5f);
             V0.Corner = FVector2D(0.0f, V_Coord); // Corner를 UV로 전용
             V0.Color = Color;
             V0.Size = FVector2D(Width, 0); // 필요 시 사용
@@ -688,7 +679,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
 
             // Bottom Vertex (U=1)
             FParticleSpriteVertex& V1 = Vertices[VertexCursor++];
-            V1.Position = CurrentPos - (RightVector * Width * 0.5f);
+            V1.Position = ParticleWorldPos - (RightVector * Width * 0.5f);
             V1.Corner = FVector2D(1.0f, V_Coord);
             V1.Color = Color;
             V1.Size = FVector2D(Width, 0);
@@ -701,10 +692,10 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
         {
             // 현재 세그먼트의 시작 정점 번호 (상대적 0번)
             // 리본 내의 i번째 점은, 버텍스 버퍼에서 (Base + i*2) 위치에 있음
-            uint32 V_TopLeft = VertexCursor + (i * 2);
-            uint32 V_BottomLeft = VertexCursor + (i * 2) + 1;
-            uint32 V_TopRight = VertexCursor + ((i + 1) * 2);
-            uint32 V_BottomRight = VertexCursor + ((i + 1) * 2) + 1;
+            uint32 V_TopLeft = BaseVertexIndex + (i * 2);
+            uint32 V_BottomLeft = BaseVertexIndex + (i * 2) + 1;
+            uint32 V_TopRight = BaseVertexIndex + ((i + 1) * 2);
+            uint32 V_BottomRight = BaseVertexIndex + ((i + 1) * 2) + 1;
 
             // 삼각형 1 (TL - TR - BL)
             IndicesPtr[IndexCursor++] = V_TopLeft;
@@ -716,7 +707,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
             IndicesPtr[IndexCursor++] = V_TopRight;
             IndicesPtr[IndexCursor++] = V_BottomRight;
         }
-
+        
         FRibbonBatchCommand Cmd;
         Cmd.RibbonData = RibbonData;
         Cmd.StartIndex = BaseIndexIndex;
@@ -725,8 +716,8 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
         RibbonCommands.Add(Cmd);
     }
 
-    Context->Unmap(ParticleVertexBuffer, 0);
-    Context->Unmap(ParticleIndexBuffer, 0);
+    Context->Unmap(RibbonVertexBuffer, 0);
+    Context->Unmap(RibbonIndexBuffer, 0);
 
     if (RibbonCommands.IsEmpty())
         return;
@@ -1611,3 +1602,4 @@ void UParticleSystemComponent::RenderDebugVolume(URenderer* Renderer) const
         Renderer->AddLines(StartPoints, EndPoints, Colors);
     }
 }
+

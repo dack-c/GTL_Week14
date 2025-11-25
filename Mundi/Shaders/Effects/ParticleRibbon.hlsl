@@ -109,6 +109,8 @@ float4 mainPS(PSInput In) : SV_TARGET
                 discard;
             }
             
+            finalColor = float4(1.0, 1.0, 0.0, 1.0);
+            
             return finalColor;
         }
     }

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleViewerWindow.h"
 #include "Source/Runtime/Renderer/FViewport.h"
 #include "Source/Runtime/Renderer/FViewportClient.h"
@@ -15,6 +15,7 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocity.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColor.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRibbon.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLocation.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSizeMultiplyLife.h"
@@ -1560,8 +1561,114 @@ void SParticleViewerWindow::OnRender()
                             ImGui::TreePop();
                         }
                     }
-                    }
-            }
+                }
+                else if (auto* RibbonModule = Cast<UParticleModuleRibbon>(SelectedModule))
+                {
+                     ImGui::Text("Ribbon Settings");
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // 두 컬럼 레이아웃 (레이블 / 값)
+    ImGui::Columns(2, "RibbonModuleColumns", false);
+    ImGui::SetColumnWidth(0, 150.0f);
+
+    // ─────────────────────────────────────
+    // Width
+    // ─────────────────────────────────────
+    ImGui::Text("Width");
+    ImGui::NextColumn();
+    {
+        ImGui::SetNextItemWidth(-1);
+        // 월드 유닛 기준, 너무 크게는 막아두고 싶은 경우 범위 적당히
+        ImGui::DragFloat("##RibbonWidth",
+                         &RibbonModule->Width,
+                         0.1f,   // step
+                         0.0f,   // min
+                         10000.0f, // max
+                         "%.2f");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("리본의 전체 폭 (world units).\n예: 10.0이면 좌우로 5.0씩 퍼짐.");
+        }
+    }
+    ImGui::NextColumn();
+
+    // ─────────────────────────────────────
+    // Tiling Distance
+    // ─────────────────────────────────────
+    ImGui::Text("Tiling Distance");
+    ImGui::NextColumn();
+    {
+        ImGui::SetNextItemWidth(-1);
+        ImGui::DragFloat("##RibbonTilingDistance",
+                         &RibbonModule->TilingDistance,
+                         1.0f,
+                         0.0f,
+                         100000.0f,
+                         "%.1f");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(
+                "리본 길이 방향 UV 타일링 거리.\n"
+                "0.0  : 전체 길이를 0~1로 Stretch\n"
+                ">0.0: 실제 거리 / TilingDistance = V 좌표 (타일 반복)\n"
+                "예: TilingDistance=100이면 100 unit마다 1 타일 반복."
+            );
+        }
+    }
+    ImGui::NextColumn();
+
+    // ─────────────────────────────────────
+    // Trail Lifetime
+    // ─────────────────────────────────────
+    ImGui::Text("Trail Lifetime");
+    ImGui::NextColumn();
+    {
+        ImGui::SetNextItemWidth(-1);
+        ImGui::DragFloat("##RibbonTrailLifetime",
+                         &RibbonModule->TrailLifetime,
+                         0.1f,
+                         0.0f,
+                         60.0f,
+                         "%.2f");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(
+                "리본 트레일 전체 수명 (초 단위).\n"
+                "시뮬레이션 단계에서 이 값을 기준으로 오래된 Spine 포인트를 잘라내거나\n"
+                "알파를 줄이는 데 사용할 수 있음."
+            );
+        }
+    }
+    ImGui::NextColumn();
+
+    // ─────────────────────────────────────
+    // Camera Facing
+    // ─────────────────────────────────────
+    ImGui::Text("Camera Facing");
+    ImGui::NextColumn();
+    {
+        bool bFacing = RibbonModule->bUseCameraFacing;
+        if (ImGui::Checkbox("##RibbonUseCameraFacing", &bFacing))
+        {
+            RibbonModule->bUseCameraFacing = bFacing;
+        }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(
+                "켜면 리본의 폭 방향이 항상 카메라를 향하도록 보정.\n"
+                "끄면 월드 업(또는 다른 규칙)을 기준으로 폭 방향을 계산."
+            );
+        }
+    }
+    ImGui::NextColumn();
+
+    ImGui::Columns(1);
+    ImGui::Spacing();
+    ImGui::TextDisabled("Tip: Width, TilingDistance, TrailLifetime 값은 FDynamicRibbonEmitterReplayData로 복사되어");
+    ImGui::TextDisabled("BuildRibbonParticleBatch()에서 Spine 포인트를 리본 메쉬로 전개할 때 사용됩니다.");
+}
+                }
             else if (CurrentParticleSystem)
             {
                 ImGui::TextDisabled("No module selected");
@@ -2379,6 +2486,15 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                     if (MeshModule && SelectedEmitter)
                                     {
                                         MeshModule->ApplyToEmitter(SelectedEmitter);
+                                        CurrentParticleSystem->BuildRuntimeCache();
+                                        PreviewComponent->ResetAndActivate();
+                                    }
+                                }
+                                if (ImGui::MenuItem("Ribbon"))
+                                {
+                                    UParticleModuleRibbon* RibbonModule = Cast<UParticleModuleRibbon>(LOD->AddModule(UParticleModuleRibbon::StaticClass()));
+                                    if (RibbonModule && SelectedEmitter)
+                                    {
                                         CurrentParticleSystem->BuildRuntimeCache();
                                         PreviewComponent->ResetAndActivate();
                                     }
