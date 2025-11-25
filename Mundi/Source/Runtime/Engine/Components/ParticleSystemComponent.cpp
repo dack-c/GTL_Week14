@@ -137,8 +137,8 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
         FVector Center = GetWorldLocation();
         
         FAABB QueryBox;
-        QueryBox.Min = Center - FVector(SearchRadius);
-        QueryBox.Max = Center + FVector(SearchRadius);
+        QueryBox.Min = Center - FVector(SearchRadius, SearchRadius, SearchRadius);
+        QueryBox.Max = Center + FVector(SearchRadius, SearchRadius, SearchRadius);
 
         TArray<UPrimitiveComponent*> Candidates = GetWorld()->GetPartitionManager()->GetBVH()->QueryIntersectedComponents(QueryBox);
         Context.WorldColliders.Reserve(Candidates.Num());

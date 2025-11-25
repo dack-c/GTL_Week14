@@ -10,10 +10,9 @@ enum class EParticleCollisionResponse : uint8
     Kill    // 삭제
 };
 
-UCLASS()
 class UParticleModuleCollision : public UParticleModule
 {
-    DECLARE_CLASS(UParticleModule, UObject)
+    DECLARE_CLASS(UParticleModuleCollision, UParticleModule)
 
 public:
     UParticleModuleCollision();

@@ -30,6 +30,7 @@
 #include "CameraActor.h"
 #include "imgui.h"
 #include "PlatformProcess.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleCollision.h"
 
 SParticleViewerWindow::SParticleViewerWindow()
 {
@@ -1561,6 +1562,56 @@ void SParticleViewerWindow::OnRender()
                         }
                     }
                     }
+                else if (auto* CollisionModule = Cast<UParticleModuleCollision>(SelectedModule))
+                {
+                    ImGui::Text("Collision Settings");
+                    ImGui::Separator();
+
+                    const char* ResponseItems[] = { "Bounce", "Stop", "Kill" }; 
+                    int CurrentResponse = (int)CollisionModule->CollisionResponse;
+    
+                    if (ImGui::Combo("Response", &CurrentResponse, ResponseItems, IM_ARRAYSIZE(ResponseItems)))
+                    {
+                        CollisionModule->CollisionResponse = (EParticleCollisionResponse)CurrentResponse;
+                    }
+                    ImGui::Spacing();
+
+                    ImGui::Text("Physics Properties");
+                    // Restitution은 Bounce 모드일 때만 유효
+                    if (CollisionModule->CollisionResponse != EParticleCollisionResponse::Bounce)
+                    {
+                        ImGui::BeginDisabled(); // UI 비활성화 시작
+                    }
+    
+                    // 1.0을 넘으면 에너지가 증폭
+                    ImGui::DragFloat("Restitution (Bounciness)", &CollisionModule->Restitution, 0.01f, 0.0f, 2.0f, "%.2f");
+    
+                    if (CollisionModule->CollisionResponse != EParticleCollisionResponse::Bounce)
+                    {
+                        ImGui::EndDisabled(); // UI 비활성화 끝
+                    }
+
+                    // 마찰 계수 (0.0 ~ 1.0)
+                    ImGui::DragFloat("Friction", &CollisionModule->Friction, 0.01f, 0.0f, 1.0f, "%.2f");
+
+                    // 파티클 반지름 스케일 (충돌체 크기 보정)
+                    ImGui::DragFloat("Radius Scale", &CollisionModule->RadiusScale, 0.05f, 0.01f, 10.0f, "%.2f");
+
+                    ImGui::Spacing();
+
+                    // 3. Events
+                    ImGui::Text("Events");
+                    ImGui::Checkbox("Write Collision Events", &CollisionModule->bWriteEvent);
+    
+                    if (CollisionModule->bWriteEvent)
+                    {
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("(Delegate Broadcast)");
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::TextDisabled("Note: Requires valid depth buffer or scene geometry.");
+                }
             }
             else if (CurrentParticleSystem)
             {
@@ -2391,6 +2442,17 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 if (ImGui::MenuItem("SubUV"))
                                 {
                                     LOD->AddModule(UParticleModuleSubUV::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("충돌");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Collision"))
+                                {
+                                    LOD->AddModule(UParticleModuleCollision::StaticClass());
                                     CurrentParticleSystem->BuildRuntimeCache();
                                     PreviewComponent->ResetAndActivate();
                                 }
