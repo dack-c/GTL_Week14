@@ -7,6 +7,7 @@
 #include "Modules/ParticleModuleRequired.h"
 #include "Modules/ParticleModuleSpawn.h"
 #include "Modules/ParticleModuleSubUV.h"
+#include "Modules/ParticleModuleMesh.h"
 
 void FParticleEmitterInstance::Init(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
 {
@@ -468,6 +469,14 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             MeshOut.Mesh = Template ? Template->Mesh : nullptr;
             MeshOut.InstanceStride = sizeof(FBaseParticle); // 추후 변경
             MeshOut.InstanceCount = ActiveParticles;
+
+            for (UParticleModule* Module : CurrentLODLevel->AllModulesCache)
+            {
+                if (UParticleModuleMesh* ModuleMesh = Cast<UParticleModuleMesh>(Module))
+                {
+                    MeshOut.bLighting = ModuleMesh->bLighting;
+                }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Vector.h" // uint8
 #include "ParticleDataContainer.h"
 #include "ParticleHelper.h"
@@ -31,6 +31,7 @@ struct FDynamicMeshEmitterReplayData : public FDynamicEmitterReplayDataBase
     UStaticMesh* Mesh = nullptr;
     int32 InstanceStride = 0;
     int32 InstanceCount = 0;
+    bool bLighting = false;
 };
 
 struct FDynamicEmitterDataBase {

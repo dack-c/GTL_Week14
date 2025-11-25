@@ -535,20 +535,37 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
             continue;
 
         UStaticMesh* StaticMesh = Src->Mesh;
-        UMaterialInterface* Material = ResolveEmitterMaterial(*MeshData);;
-
-        if (!Material || !Material->GetShader()) continue;
         
         TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
-        ShaderMacros.Append(Material->GetShaderMacros());
 
-        FShaderVariant* ShaderVariant = Material->GetShader()->GetOrCompileShaderVariant(ShaderMacros);
-        if (!ShaderVariant)
+        bool bUseLighting = Src->bLighting;
+        if (bUseLighting)
         {
-            UE_LOG("[BuildMeshParticleBatch] Failed to get shader variant for %s",
-                Material->GetName().c_str());
+            ShaderMacros.Add(FShaderMacro("PARTICLE_LIGHTING", "1"));
+        }
+        else
+        {
+            ShaderMacros.Add(FShaderMacro("PARTICLE_LIGHTING", "0"));
+        }
+
+        UMaterial* ParticleMeshMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleMesh.hlsl");
+
+        if (!ParticleMeshMaterial || !ParticleMeshMaterial->GetShader())
+        {
+            UE_LOG("[BuildMeshParticleBatch] Failed to load ParticleMesh shader");
             continue;
         }
+
+        ShaderMacros.Append(ParticleMeshMaterial->GetShaderMacros());
+
+        FShaderVariant* ShaderVariant = ParticleMeshMaterial->GetShader()->GetOrCompileShaderVariant(ShaderMacros);
+        if (!ShaderVariant)
+        {
+            UE_LOG("[BuildMeshParticleBatch] Failed to compile ParticleMesh shader variant");
+            continue;
+        }
+
+        UMaterialInterface* Material = ResolveEmitterMaterial(*MeshData);
 
         ID3D11Buffer* MeshVB = StaticMesh->GetVertexBuffer();
         ID3D11Buffer* MeshIB = StaticMesh->GetIndexBuffer();
@@ -578,7 +595,7 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
 
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
-            const int32 ParticleIdx = MeshData->AsyncSortedIndices[LocalIdx];
+            const int32 ParticleIdx = bUseSortIndices ? MeshData->AsyncSortedIndices[LocalIdx] : LocalIdx;
             const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
             if (!Particle)
                 continue;
