@@ -27,9 +27,12 @@ void UParticleModuleSubUV::Spawn(FParticleEmitterInstance* Owner, int32 Offset, 
     float RandomSeed = Owner->GetRandomFloat();
     float InitialIndex = CalculateSubImageIndex(Owner, ParticleBase, RandomSeed);
 
-    // Payload에 저장
-    float& SubImageIndexPayload = PARTICLE_ELEMENT(float, Offset);
-    SubImageIndexPayload = InitialIndex;
+    // Payload에 저장 (ParticleBase 포인터 기준으로 직접 접근)
+    uint8* ParticleBytes = reinterpret_cast<uint8*>(ParticleBase);
+    float* SubImageIndexPtr = reinterpret_cast<float*>(ParticleBytes + Offset);
+    *SubImageIndexPtr = InitialIndex;
+
+    UE_LOG("SubUV Spawn: Index=%f", InitialIndex);
 }
 
 void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
@@ -50,6 +53,13 @@ void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset,
         // Payload에 저장
         float& SubImageIndexPayload = PARTICLE_ELEMENT(float, Offset);
         SubImageIndexPayload = NewIndex;
+
+        // 첫 번째 파티클만 디버그 출력
+        FBaseParticle* FirstParticle = reinterpret_cast<FBaseParticle*>(Owner->ParticleData);
+        if (&Particle == FirstParticle)
+        {
+            UE_LOG("SubUV Update: RelativeTime=%f, NewIndex=%f", Particle.RelativeTime, NewIndex);
+        }
     }
     END_UPDATE_LOOP;
 }
@@ -59,14 +69,25 @@ float UParticleModuleSubUV::CalculateSubImageIndex(FParticleEmitterInstance* Own
     // Required 모듈에서 타일 수 가져오기
     UParticleModuleRequired* Required = Owner->CachedRequiredModule;
     if (!Required)
+    {
+        UE_LOG("SubUV: Required module is null!");
         return 0.0f;
+    }
 
     int32 NX = Required->SubImages_Horizontal;
     int32 NY = Required->SubImages_Vertical;
     int32 TotalFrames = NX * NY;
 
+    static int32 CalcLogCounter = 0;
+    if (CalcLogCounter++ % 60 == 0)
+    {
+        UE_LOG("SubUV Calculate: NX=%d, NY=%d, TotalFrames=%d", NX, NY, TotalFrames);
+    }
+
     if (TotalFrames <= 1)
+    {
         return 0.0f;  // 애니메이션 없음
+    }
 
     float Index = 0.0f;
 
@@ -89,10 +110,33 @@ float UParticleModuleSubUV::CalculateSubImageIndex(FParticleEmitterInstance* Own
         float t = bUseRealTime ? Owner->EmitterTime : Particle->RelativeTime;
 
         // 커브에서 인덱스 가져오기
-        // SubImageIndex 커브는 보통 0~1 범위를 출력하도록 설정됨
-        // 이를 0 ~ (TotalFrames-1) 범위로 스케일링
-        float NormalizedIndex = SubImageIndex.GetValue(t);
+        float NormalizedIndex;
+        if (SubImageIndex.bUseRange)
+        {
+            // Range 모드: MinValue~MaxValue 사이를 t로 보간
+            NormalizedIndex = SubImageIndex.GetValue(t);
+        }
+        else
+        {
+            // 고정값 모드: t를 직접 사용 (0~1 → 0~1)
+            // 사용자가 MinValue를 설정했다면 그 값을 곱함
+            NormalizedIndex = t * SubImageIndex.MinValue;
+            // MinValue가 0이면 그냥 t를 사용
+            if (SubImageIndex.MinValue == 0.0f)
+            {
+                NormalizedIndex = t;
+            }
+        }
+
+        // 0~1 범위를 0 ~ (TotalFrames-1) 범위로 스케일링
         Index = NormalizedIndex * (TotalFrames - 1);
+
+        static int32 LinearLogCounter = 0;
+        if (LinearLogCounter++ % 60 == 0)
+        {
+            UE_LOG("SubUV Linear: t=%f, bUseRange=%d, MinVal=%f, NormalizedIndex=%f, Index=%f",
+                t, SubImageIndex.bUseRange, SubImageIndex.MinValue, NormalizedIndex, Index);
+        }
         break;
     }
     }
