@@ -528,6 +528,8 @@ void UResourceManager::InitShaderILMap()
                  D3D11_INPUT_PER_VERTEX_DATA, 0 });  // Rotation
     layout.Add({ "TEXCOORD", 3, DXGI_FORMAT_R32_FLOAT,          0, 48,
                  D3D11_INPUT_PER_VERTEX_DATA, 0 });  // SubImageIndex (SubUV)
+    layout.Add({ "TEXCOORD", 4, DXGI_FORMAT_R32G32B32_FLOAT,          0, 52,
+                 D3D11_INPUT_PER_VERTEX_DATA, 0 });  // SubImageIndex (SubUV)
     ShaderToInputLayoutMap["Shaders/Effects/ParticleSprite.hlsl"] = layout;
     layout.clear();
 

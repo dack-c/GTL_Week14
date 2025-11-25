@@ -943,7 +943,7 @@ void FSceneRenderer::RenderParticlePass()
 
 	RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId); // Scene+Depth
 
-	RHIDevice->RSSetState(ERasterizerMode::Solid);
+	RHIDevice->RSSetState(ERasterizerMode::Solid_NoCull);
 	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
 	RHIDevice->OMSetBlendState(true);
 	
@@ -1569,6 +1569,13 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 			}
 		}
 
+		if (Batch.ScreenAlignment != EScreenAlignment::None)
+		{
+			FParticleEmitterType ParticleEmitterType;
+			ParticleEmitterType.ScreenAlignment = static_cast<uint32>(Batch.ScreenAlignment);
+			RHIDevice->SetAndUpdateConstantBuffer(ParticleEmitterType);
+		}
+		
 		// 5. 드로우 콜 실행
 		if (Batch.bInstancedDraw)
 		{

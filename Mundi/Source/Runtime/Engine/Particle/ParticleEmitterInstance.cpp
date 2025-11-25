@@ -358,14 +358,10 @@ FDynamicEmitterDataBase* FParticleEmitterInstance::CreateDynamicData()
         auto* SpriteData = new FDynamicSpriteEmitterData();
         SpriteData->EmitterType = Type;
         SpriteData->SortMode = CachedRequiredModule->SortMode;
+        SpriteData->Alignment = CachedRequiredModule->ScreenAlignment;
         SpriteData->SortPriority = 0;
+        SpriteData->bUseLocalSpace = CachedRequiredModule->bUseLocalSpace;
         
-        if (CachedRequiredModule)
-        {
-            SpriteData->SortMode = CachedRequiredModule->SortMode;
-            SpriteData->bUseLocalSpace = CachedRequiredModule->bUseLocalSpace;
-        }
-
         // 데이터 채우기 (Memcpy)
         BuildReplayData(SpriteData->Source);
         NewData = SpriteData;
@@ -375,12 +371,8 @@ FDynamicEmitterDataBase* FParticleEmitterInstance::CreateDynamicData()
         auto* MeshData = new FDynamicMeshEmitterData();
         MeshData->EmitterType = Type;
         MeshData->SortMode = CachedRequiredModule->SortMode;
+        MeshData->Alignment = CachedRequiredModule->ScreenAlignment;
         MeshData->SortPriority = 0;
-        
-        if (CachedRequiredModule)
-        {
-            MeshData->SortMode = CachedRequiredModule->SortMode;
-        }
 
         // 데이터 채우기
         BuildReplayData(MeshData->Source);

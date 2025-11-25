@@ -610,8 +610,8 @@ void SParticleViewerWindow::OnRender()
                         ImGui::Text("Screen Alignment");
                         ImGui::NextColumn();
 
-                        const char* screenAlignments[] = { "Camera Facing", "Velocity", "Local Space" };
-                        int currentAlignment = (int)RequiredModule->ScreenAlignment;
+                        const char* screenAlignments[] = { "Camera Facing", "Velocity" };
+                        int currentAlignment = static_cast<int>(RequiredModule->ScreenAlignment);
 
                         ImGui::SetNextItemWidth(-1);
                         if (ImGui::BeginCombo("##ScreenAlignmentCombo", screenAlignments[currentAlignment]))
@@ -621,7 +621,7 @@ void SParticleViewerWindow::OnRender()
                                 bool isSelected = (currentAlignment == i);
                                 if (ImGui::Selectable(screenAlignments[i], isSelected))
                                 {
-                                    RequiredModule->ScreenAlignment = (EScreenAlignment)i;
+                                    RequiredModule->ScreenAlignment = static_cast<EScreenAlignment>(i);
                                 }
                             }
                             ImGui::EndCombo();

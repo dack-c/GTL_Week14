@@ -353,6 +353,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Instanced(
             Inst.Size = FVector2D(Particle->Size.X, Particle->Size.Y);
             Inst.Color = Particle->Color;
             Inst.Rotation = Particle->Rotation;
+            Inst.Velocity = Particle->Velocity;
         }
 
         const uint32 InstancesWritten = WrittenInstances - StartInstance;
@@ -412,7 +413,8 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Instanced(
         Batch.WorldMatrix = GetWorldMatrix();
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
-
+        
+        Batch.ScreenAlignment = Cmd.SpriteData->Alignment;
         Batch.InstanceCount = Cmd.InstanceCount;
         Batch.InstanceStart = Cmd.StartInstance;
         Batch.bInstancedDraw = true;
@@ -490,6 +492,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
             const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
             const FLinearColor Color = Particle->Color;
             const float Rotation = Particle->Rotation;
+            const FVector Velocity = Particle->Velocity;
 
             // 4개 코너 버텍스 생성
             for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
@@ -501,6 +504,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
                 Vertex.Color = Color;
                 Vertex.Rotation = Rotation;
                 Vertex.SubImageIndex = SubImageIndex;
+                Vertex.Velocity = Velocity;
             }
 
             ++WrittenParticles;
@@ -561,6 +565,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
         Batch.WorldMatrix = GetWorldMatrix();
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
+        Batch.ScreenAlignment = Cmd.SpriteData->Alignment;
 
         // SubUV 파라미터 설정
         const FDynamicSpriteEmitterReplayData* SrcData =

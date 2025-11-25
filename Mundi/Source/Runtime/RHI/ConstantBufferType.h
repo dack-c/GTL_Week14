@@ -219,6 +219,13 @@ struct FSubUVBufferType
     float Padding0;              // 16바이트 정렬
 };
 
+// b3: 파티클 이미터 파라미터
+struct FParticleEmitterType
+{
+    uint32 ScreenAlignment;  // Screen Alignment (0 - Camera, 1 - Velocity)
+    FVector Padding0;        // 16바이트 정렬
+};
+
 #define CONSTANT_BUFFER_INFO(TYPE, SLOT, VS, PS) \
 constexpr uint32 TYPE##Slot = SLOT;\
 constexpr bool TYPE##IsVS = VS;\
@@ -243,7 +250,8 @@ MACRO(FLightBufferType)             \
 MACRO(FViewportConstants)           \
 MACRO(FTileCullingBufferType)       \
 MACRO(FPointLightShadowBufferType)  \
-MACRO(FSubUVBufferType)
+MACRO(FSubUVBufferType) \
+MACRO(FParticleEmitterType)
 
 // 16 바이트 패딩 어썰트
 #define STATIC_ASSERT_CBUFFER_ALIGNMENT(Type) \
@@ -270,6 +278,7 @@ CONSTANT_BUFFER_INFO(FViewportConstants, 10, true, true)   // 뷰 포트 크기�
 CONSTANT_BUFFER_INFO(FTileCullingBufferType, 11, false, true)  // b11, PS only (UberLit.hlsl과 일치)
 CONSTANT_BUFFER_INFO(FPointLightShadowBufferType, 12, true, true)  // b12, VS+PS
 CONSTANT_BUFFER_INFO(FSubUVBufferType, 2, true, true)  // b2, VS+PS (ParticleSprite.hlsl용)
+CONSTANT_BUFFER_INFO(FParticleEmitterType, 3, true, false)  // b3, VS (ParticleSprite.hlsl용)
 
 
 

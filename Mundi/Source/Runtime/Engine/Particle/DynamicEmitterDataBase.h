@@ -43,6 +43,7 @@ struct FDynamicEmitterDataBase {
     bool bUseSoftParticle = false; 
     float SoftFadeDistance = 50.0f; // 투명 파티클 정렬 기준 
     
+    EScreenAlignment Alignment = EScreenAlignment::None; 
     EParticleSortMode SortMode = EParticleSortMode::None; 
     int32 SortPriority = 0; // Emitter 우선순위
     TArray<int32> AsyncSortedIndices;

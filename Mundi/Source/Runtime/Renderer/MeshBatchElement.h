@@ -1,6 +1,8 @@
 #pragma once
 #include "pch.h"
 
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRequired.h"
+
 // 전방 선언
 class UShader;
 class UMaterial;
@@ -70,6 +72,8 @@ struct FMeshBatchElement
 	int32 SubImages_Horizontal = 1;
 	int32 SubImages_Vertical = 1;
 	int32 SubUV_InterpMethod = 0;  // 0=None, 1=LinearBlend
+
+	EScreenAlignment ScreenAlignment = EScreenAlignment::None;
 
 	// Sort Priority 용 Int : emitter별 Sort
 	int SortPriority = -1;

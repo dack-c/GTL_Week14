@@ -19,7 +19,8 @@ enum class EScreenAlignment : uint8
 {
     CameraFacing,  // 카메라를 향함 (빌보드)
     Velocity,      // 속도 방향
-    LocalSpace     // 로컬 공간
+
+    None
 };
 
 class UParticleModuleRequired : public UParticleModule

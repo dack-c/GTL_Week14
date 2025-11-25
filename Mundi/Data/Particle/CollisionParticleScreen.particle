@@ -104,7 +104,7 @@
                   "InitialSize_bUseRange" : false,
                   "Material" : "material",
                   "MaxParticles" : 10000,
-                  "ScreenAlignment" : 1,
+                  "ScreenAlignment" : 0,
                   "SortMode" : 1,
                   "SpawnRateBase" : 10.000000,
                   "SubImages_Horizontal" : 1,
