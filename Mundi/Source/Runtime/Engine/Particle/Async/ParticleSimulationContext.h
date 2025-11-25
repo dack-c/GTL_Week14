@@ -10,14 +10,14 @@ struct FParticleSimulationContext
     FVector ComponentLocation;
     FQuat   ComponentRotation;
     FVector ComponentScale;
-    FMatrix WorldToLocal; // 스폰 위치 계산용
-    FMatrix LocalToWorld; // 월드 변환용
+    FMatrix ComponentWorldMatrix;
+
+    // 카메라
+    FVector CameraLocation;
+    FQuat CameraRotation;
 
     // 상태 정보
     bool bIsActive;
     bool bSuppressSpawning;
     int32 CurrentLODIndex;
-
-    // 기타
-    FVector CameraLocation;
 };

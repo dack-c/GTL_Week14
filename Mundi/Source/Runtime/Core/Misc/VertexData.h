@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Archive.h"
 #include "Vector.h"
 #include "Name.h"
@@ -441,4 +441,12 @@ struct FParticleSpriteVertex
     float Rotation;        // 4 bytes (offset 44)
     float SubImageIndex;   // 4 bytes (offset 48) - SubUV 애니메이션용 float 프레임 인덱스
     float Padding[3];      // 12 bytes (offset 52) - 16바이트 정렬 맞추기
+};
+
+struct FParticleInstanceData
+{
+    FVector Position;  
+    FVector2D Size;    
+    FLinearColor Color;
+    float Rotation;
 };

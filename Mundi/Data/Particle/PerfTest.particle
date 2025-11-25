@@ -36,9 +36,18 @@
                     "bEnabled" : true,
                     "bUseAlphaOverLife" : true,
                     "bUseColorOverLife" : false
+                  }, {
+                    "InterpMethod" : 1,
+                    "SubImageIndex_Max" : 1.000000,
+                    "SubImageIndex_Min" : 0.000000,
+                    "SubImageIndex_bUseRange" : false,
+                    "Type" : "SubUV",
+                    "bEnabled" : true,
+                    "bUseRealTime" : false
                   }],
                 "RequiredModule" : {
                   "BlendMode" : 5,
+                  "DiffuseTexture" : "Data/Freshly_Bitten_Apple_tgzpdhlpa_Mid_2K_BaseColor.jpg",
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
                   "EmitterLoops" : 0,
@@ -56,6 +65,8 @@
                   "ScreenAlignment" : 0,
                   "SortMode" : 1,
                   "SpawnRateBase" : 10.000000,
+                  "SubImages_Horizontal" : 16,
+                  "SubImages_Vertical" : 16,
                   "bKillOnCompleted" : false,
                   "bKillOnDeactivate" : true,
                   "bUseLocalSpace" : false

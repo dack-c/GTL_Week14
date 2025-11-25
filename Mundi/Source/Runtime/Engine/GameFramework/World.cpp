@@ -363,6 +363,15 @@ void UWorld::RequestSlomo(float Duration, float Dilation)
 	TimeDuration = FMath::Max(Duration, TimeDuration);
 }
 
+class UCameraComponent* UWorld::GetWorldCamera() 
+{
+	if (bPie)
+	{
+		return GetPlayerCameraManager()->GetViewCamera();
+	}
+	return GetEditorCameraActor()->GetCameraComponent();
+}
+
 void UWorld::SetEditorCameraActor(ACameraActor* InCamera)
 {
 	MainEditorCameraActor = InCamera;
