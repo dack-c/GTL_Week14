@@ -5,6 +5,7 @@
 #include "Modules/ParticleModule.h"
 #include "Modules/ParticleModuleRequired.h"
 #include "Modules/ParticleModuleMesh.h"
+#include "Modules/ParticleModuleRibbon.h"
 
 IMPLEMENT_CLASS(UParticleEmitter)
 
@@ -68,6 +69,10 @@ void UParticleEmitter::CacheEmitterModuleInfo()
         if (UParticleModuleMesh* MeshModule = Cast<UParticleModuleMesh>(LOD0->TypeDataModule))
         {
             MeshModule->ApplyToEmitter(this);
+        }
+        else if (UParticleModuleRibbon* RibbonModule = Cast<UParticleModuleRibbon>(LOD0->TypeDataModule))
+        {
+            RibbonModule->ApplyToEmitter(this);
         }
     }
     else

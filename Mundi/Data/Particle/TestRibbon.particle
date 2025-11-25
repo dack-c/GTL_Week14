@@ -22,11 +22,16 @@
                     "Type" : "Velocity",
                     "bEnabled" : true
                   }, {
-                    "Type" : "Ribbon",
-                    "bEnabled" : true,
-                    "Width" : 10.0,
-                    "TilingDistance" : 20.0,
-                    "Distance" : 100.0
+                    "BoxExtent" : [100.000000, 100.000000, 100.000000],
+                    "CylinderHeight" : 200.000000,
+                    "CylinderRadius" : 100.000000,
+                    "DistributionType" : 0,
+                    "SphereRadius" : 100.000000,
+                    "StartLocation_Max" : [15.000000, 9.000000, 83.000000],
+                    "StartLocation_Min" : [67.000000, -21.000000, 38.000000],
+                    "StartLocation_bUseRange" : false,
+                    "Type" : "Location",
+                    "bEnabled" : true
                   }],
                 "RequiredModule" : {
                   "BlendMode" : 5,
@@ -60,8 +65,8 @@
                 },
                 "bEnabled" : true
               }],
-            "Name" : "UParticleEmitter_10",
-            "RenderType" : 2
+            "Name" : "UParticleEmitter_11",
+            "RenderType" : 0
           }],
         "Name" : "UParticleSystem_6",
         "Type" : "ParticleSystem"

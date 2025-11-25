@@ -489,6 +489,7 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
                     MeshOut.bLighting = ModuleMesh->bLighting;
                 }
             }
+            break;
         }
         case EParticleType::Ribbon:
         {
@@ -515,6 +516,8 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             }
             break;
         }
+
+
         default:
             break;
     }
