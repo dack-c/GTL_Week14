@@ -2,6 +2,8 @@
 #include "ParticleViewerWindow.h"
 #include "Source/Runtime/Renderer/FViewport.h"
 #include "Source/Runtime/Renderer/FViewportClient.h"
+#include "Source/Runtime/Renderer/Material.h"
+#include "Source/Runtime/Renderer/Shader.h"
 #include "Source/Runtime/Engine/Particle/ParticleSystem.h"
 #include "Source/Runtime/Engine/Particle/ParticleEmitter.h"
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
@@ -263,38 +265,32 @@ void SParticleViewerWindow::OnRender()
                 {
                     ImGui::Spacing();
 
-                    // 2열 레이아웃 시작
-                    ImGui::Columns(2, "RequiredModuleColumns", false);
-                    ImGui::SetColumnWidth(0, 150.0f);
-                    
-                    // Material
+                    // Materials 섹션 (스태틱메쉬 디테일 패널 스타일)
+                    if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                        ImGui::Text("Material");
-                        ImGui::NextColumn();
-
                         // 머터리얼 텍스처 가져오기
                         UTexture* DiffuseTexture = RequiredModule->Material ? RequiredModule->Material->GetTexture(EMaterialTextureSlot::Diffuse) : nullptr;
-                        const char* currentMaterialName = RequiredModule->Material ? RequiredModule->Material->GetName().c_str() : "None";
 
-                        // 미리보기 정사각형 (50x50)
+                        // 머터리얼 선택 콤보박스 (텍스처 미리보기 포함)
+                        ImGui::Columns(2, "MaterialSelectColumns", false);
+                        ImGui::SetColumnWidth(0, 50.0f);
+
+                        // 미리보기 정사각형 (40x40)
                         if (DiffuseTexture && DiffuseTexture->GetShaderResourceView())
                         {
-                            ImGui::Image((void*)DiffuseTexture->GetShaderResourceView(), ImVec2(50, 50));
+                            ImGui::Image((void*)DiffuseTexture->GetShaderResourceView(), ImVec2(40, 40));
                         }
                         else
                         {
                             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                            ImGui::Button("##matpreview", ImVec2(50, 50));
+                            ImGui::Button("##matpreview", ImVec2(40, 40));
                             ImGui::PopStyleColor();
                         }
+                        ImGui::NextColumn();
 
-                        ImGui::SameLine();
-
-                        // 머터리얼 이름 + 콤보박스
-                        ImGui::BeginGroup();
-                        ImGui::Text("%s", currentMaterialName);
+                        FString currentMaterialPath = RequiredModule->Material ? RequiredModule->Material->GetFilePath() : "None";
                         ImGui::SetNextItemWidth(-1);
-                        if (ImGui::BeginCombo("##MaterialCombo", ""))
+                        if (ImGui::BeginCombo("##MaterialCombo", currentMaterialPath.c_str()))
                         {
                             // None 옵션
                             if (ImGui::Selectable("None##MatNone", RequiredModule->Material == nullptr))
@@ -325,7 +321,7 @@ void SParticleViewerWindow::OnRender()
                                             ImGui::SameLine();
                                         }
 
-                                        if (ImGui::Selectable(Mat->GetName().c_str(), isSelected))
+                                        if (ImGui::Selectable(Mat->GetFilePath().c_str(), isSelected))
                                         {
                                             RequiredModule->Material = Mat;
                                         }
@@ -340,12 +336,293 @@ void SParticleViewerWindow::OnRender()
 
                             ImGui::EndCombo();
                         }
-                        ImGui::EndGroup();
+                        ImGui::Columns(1);
 
-                        ImGui::NextColumn();
+                        // MaterialSlots[0] TreeNode
+                        if (ImGui::TreeNodeEx("MaterialSlots [0]", ImGuiTreeNodeFlags_DefaultOpen))
+                        {
+                            if (RequiredModule->Material)
+                            {
+                                UMaterial* CurrentMaterial = RequiredModule->Material;
+
+                                ImGui::Columns(2, "MaterialDetailsColumns", false);
+                                ImGui::SetColumnWidth(0, 150.0f);
+
+                                // Shader (읽기 전용)
+                                ImGui::Text("Shader");
+                                ImGui::NextColumn();
+                                UShader* CurrentShader = CurrentMaterial->GetShader();
+                                FString ShaderPath = CurrentShader ? CurrentShader->GetFilePath() : "None";
+                                ImGui::SetNextItemWidth(-1);
+                                ImGui::BeginDisabled(true);
+                                char shaderBuffer[512];
+                                strncpy_s(shaderBuffer, sizeof(shaderBuffer), ShaderPath.c_str(), _TRUNCATE);
+                                ImGui::InputText("##Shader", shaderBuffer, sizeof(shaderBuffer), ImGuiInputTextFlags_ReadOnly);
+                                ImGui::EndDisabled();
+                                ImGui::NextColumn();
+
+                                // MacroKey (읽기 전용)
+                                ImGui::Text("MacroKey");
+                                ImGui::NextColumn();
+                                FString MacroKey = UShader::GenerateMacrosToString(CurrentMaterial->GetShaderMacros());
+                                char macroBuffer[512];
+                                strncpy_s(macroBuffer, sizeof(macroBuffer), MacroKey.c_str(), _TRUNCATE);
+                                ImGui::SetNextItemWidth(-1);
+                                ImGui::BeginDisabled(true);
+                                ImGui::InputText("##MacroKey", macroBuffer, sizeof(macroBuffer), ImGuiInputTextFlags_ReadOnly);
+                                ImGui::EndDisabled();
+                                ImGui::NextColumn();
+
+                                // 모든 텍스처 가져오기 (Diffuse/Normal 선택용)
+                                TArray<UTexture*> AllTextures = UResourceManager::GetInstance().GetAll<UTexture>();
+
+                                // Diffuse Texture
+                                ImGui::Text("Diffuse Texture");
+                                ImGui::NextColumn();
+                                {
+                                    UTexture* DiffTex = CurrentMaterial->GetTexture(EMaterialTextureSlot::Diffuse);
+                                    if (DiffTex && DiffTex->GetShaderResourceView())
+                                    {
+                                        ImGui::Image((void*)DiffTex->GetShaderResourceView(), ImVec2(30, 30));
+                                        ImGui::SameLine();
+                                    }
+                                    FString DiffTexPath = DiffTex ? DiffTex->GetFilePath() : "None";
+                                    ImGui::SetNextItemWidth(-1);
+                                    if (ImGui::BeginCombo("##DiffuseTexture", DiffTexPath.c_str()))
+                                    {
+                                        // None 옵션
+                                        if (ImGui::Selectable("None##DiffNone", DiffTex == nullptr))
+                                        {
+                                            // 텍스처를 None으로 설정하려면 MaterialInfo 수정 필요
+                                            FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                            Info.DiffuseTextureFileName = "";
+                                            CurrentMaterial->SetMaterialInfo(Info);
+                                            CurrentMaterial->ResolveTextures();
+                                        }
+                                        ImGui::Separator();
+
+                                        for (int i = 0; i < AllTextures.Num(); i++)
+                                        {
+                                            UTexture* Tex = AllTextures[i];
+                                            if (Tex)
+                                            {
+                                                ImGui::PushID(i);
+                                                bool isSelected = (DiffTex == Tex);
+
+                                                if (Tex->GetShaderResourceView())
+                                                {
+                                                    ImGui::Image((void*)Tex->GetShaderResourceView(), ImVec2(24, 24));
+                                                    ImGui::SameLine();
+                                                }
+
+                                                if (ImGui::Selectable(Tex->GetFilePath().c_str(), isSelected))
+                                                {
+                                                    FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                                    Info.DiffuseTextureFileName = Tex->GetFilePath();
+                                                    CurrentMaterial->SetMaterialInfo(Info);
+                                                    CurrentMaterial->ResolveTextures();
+                                                }
+                                                ImGui::PopID();
+                                            }
+                                        }
+                                        ImGui::EndCombo();
+                                    }
+                                }
+                                ImGui::NextColumn();
+
+                                // Normal Texture
+                                ImGui::Text("Normal Texture");
+                                ImGui::NextColumn();
+                                {
+                                    UTexture* NormTex = CurrentMaterial->GetTexture(EMaterialTextureSlot::Normal);
+                                    if (NormTex && NormTex->GetShaderResourceView())
+                                    {
+                                        ImGui::Image((void*)NormTex->GetShaderResourceView(), ImVec2(30, 30));
+                                        ImGui::SameLine();
+                                    }
+                                    FString NormTexPath = NormTex ? NormTex->GetFilePath() : "None";
+                                    ImGui::SetNextItemWidth(-1);
+                                    if (ImGui::BeginCombo("##NormalTexture", NormTexPath.c_str()))
+                                    {
+                                        // None 옵션
+                                        if (ImGui::Selectable("None##NormNone", NormTex == nullptr))
+                                        {
+                                            FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                            Info.NormalTextureFileName = "";
+                                            CurrentMaterial->SetMaterialInfo(Info);
+                                            CurrentMaterial->ResolveTextures();
+                                        }
+                                        ImGui::Separator();
+
+                                        for (int i = 0; i < AllTextures.Num(); i++)
+                                        {
+                                            UTexture* Tex = AllTextures[i];
+                                            if (Tex)
+                                            {
+                                                ImGui::PushID(1000 + i); // Diffuse와 ID 충돌 방지
+                                                bool isSelected = (NormTex == Tex);
+
+                                                if (Tex->GetShaderResourceView())
+                                                {
+                                                    ImGui::Image((void*)Tex->GetShaderResourceView(), ImVec2(24, 24));
+                                                    ImGui::SameLine();
+                                                }
+
+                                                if (ImGui::Selectable(Tex->GetFilePath().c_str(), isSelected))
+                                                {
+                                                    FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                                    Info.NormalTextureFileName = Tex->GetFilePath();
+                                                    CurrentMaterial->SetMaterialInfo(Info);
+                                                    CurrentMaterial->ResolveTextures();
+                                                }
+                                                ImGui::PopID();
+                                            }
+                                        }
+                                        ImGui::EndCombo();
+                                    }
+                                }
+                                ImGui::NextColumn();
+
+                                ImGui::Separator();
+
+                                // FMaterialInfo 속성들 (편집 가능)
+                                FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                bool bInfoChanged = false;
+
+                                // Colors
+                                FLinearColor TempColor;
+
+                                // Diffuse Color
+                                TempColor = FLinearColor(Info.DiffuseColor);
+                                ImGui::Text("Diffuse Color");
+                                ImGui::NextColumn();
+                                if (ImGui::ColorEdit3("##DiffuseColor", &TempColor.R))
+                                {
+                                    Info.DiffuseColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Ambient Color
+                                TempColor = FLinearColor(Info.AmbientColor);
+                                ImGui::Text("Ambient Color");
+                                ImGui::NextColumn();
+                                if (ImGui::ColorEdit3("##AmbientColor", &TempColor.R))
+                                {
+                                    Info.AmbientColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Specular Color
+                                TempColor = FLinearColor(Info.SpecularColor);
+                                ImGui::Text("Specular Color");
+                                ImGui::NextColumn();
+                                if (ImGui::ColorEdit3("##SpecularColor", &TempColor.R))
+                                {
+                                    Info.SpecularColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Emissive Color
+                                TempColor = FLinearColor(Info.EmissiveColor);
+                                ImGui::Text("Emissive Color");
+                                ImGui::NextColumn();
+                                if (ImGui::ColorEdit3("##EmissiveColor", &TempColor.R))
+                                {
+                                    Info.EmissiveColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Transmission Filter
+                                TempColor = FLinearColor(Info.TransmissionFilter);
+                                ImGui::Text("Transmission Filter");
+                                ImGui::NextColumn();
+                                if (ImGui::ColorEdit3("##TransmissionFilter", &TempColor.R))
+                                {
+                                    Info.TransmissionFilter = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Scalar 값들
+
+                                // Specular Exponent
+                                ImGui::Text("Specular Exponent");
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(-1);
+                                if (ImGui::DragFloat("##SpecularExponent", &Info.SpecularExponent, 1.0f, 0.0f, 1024.0f))
+                                {
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Transparency
+                                ImGui::Text("Transparency");
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(-1);
+                                if (ImGui::DragFloat("##Transparency", &Info.Transparency, 0.01f, 0.0f, 1.0f))
+                                {
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Optical Density
+                                ImGui::Text("Optical Density");
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(-1);
+                                if (ImGui::DragFloat("##OpticalDensity", &Info.OpticalDensity, 0.01f, 0.0f, 10.0f))
+                                {
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Bump Multiplier
+                                ImGui::Text("Bump Multiplier");
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(-1);
+                                if (ImGui::DragFloat("##BumpMultiplier", &Info.BumpMultiplier, 0.01f, 0.0f, 5.0f))
+                                {
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // Illum Model
+                                ImGui::Text("Illum Model");
+                                ImGui::NextColumn();
+                                ImGui::SetNextItemWidth(-1);
+                                if (ImGui::DragInt("##IllumModel", &Info.IlluminationModel, 1, 0, 10))
+                                {
+                                    bInfoChanged = true;
+                                }
+                                ImGui::NextColumn();
+
+                                // 값이 변경되었으면 MaterialInfo 업데이트
+                                if (bInfoChanged)
+                                {
+                                    CurrentMaterial->SetMaterialInfo(Info);
+                                }
+
+                                ImGui::Columns(1);
+                            }
+                            else
+                            {
+                                ImGui::TextDisabled("No Material Selected");
+                            }
+                            ImGui::TreePop();
+                        }
+                        ImGui::TreePop();
                     }
 
                     ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    // 2열 레이아웃 시작 (나머지 Required 모듈 속성들)
+                    ImGui::Columns(2, "RequiredModuleColumns", false);
+                    ImGui::SetColumnWidth(0, 150.0f);
 
                     // Blend Mode
                     {
@@ -855,101 +1132,372 @@ void SParticleViewerWindow::OnRender()
                         ImGui::NextColumn();
                     }
 
+                    ImGui::Columns(1);
+
                     // Override Material (Use Mesh Materials가 false일 때만 표시)
                     if (!MeshModule->bUseMeshMaterials)
                     {
-                        ImGui::Text("Override Material");
-                        ImGui::NextColumn();
+                        ImGui::Spacing();
+                        ImGui::Separator();
+                        ImGui::Spacing();
 
-                        // 텍스처 미리보기
-                        UTexture* PreviewTexture = MeshModule->OverrideMaterial ? MeshModule->OverrideMaterial->GetTexture(EMaterialTextureSlot::Diffuse) : nullptr;
-                        if (PreviewTexture && PreviewTexture->GetShaderResourceView())
+                        // Materials 섹션 (스태틱메쉬 디테일 패널 스타일)
+                        if (ImGui::TreeNodeEx("Materials##MeshModule", ImGuiTreeNodeFlags_DefaultOpen))
                         {
-                            ImGui::Image((void*)PreviewTexture->GetShaderResourceView(), ImVec2(128, 128));
-                        }
-                        else
-                        {
-                            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                            ImGui::Button("##matpreview", ImVec2(128, 128));
-                            ImGui::PopStyleColor();
-                        }
+                            // 머터리얼 텍스처 가져오기
+                            UTexture* DiffuseTexture = MeshModule->OverrideMaterial ? MeshModule->OverrideMaterial->GetTexture(EMaterialTextureSlot::Diffuse) : nullptr;
 
-                        // 현재 선택된 머티리얼의 파일명만 추출
-                        FString currentMaterialName = "None";
-                        if (MeshModule->OverrideMaterial)
-                        {
-                            FString fullPath = MeshModule->OverrideMaterial->GetFilePath();
-                            size_t lastSlash = fullPath.find_last_of("/\\");
-                            if (lastSlash != FString::npos)
+                            // 머터리얼 선택 콤보박스 (텍스처 미리보기 포함)
+                            ImGui::Columns(2, "MeshMaterialSelectColumns", false);
+                            ImGui::SetColumnWidth(0, 50.0f);
+
+                            // 미리보기 정사각형 (40x40)
+                            if (DiffuseTexture && DiffuseTexture->GetShaderResourceView())
                             {
-                                currentMaterialName = fullPath.substr(lastSlash + 1);
+                                ImGui::Image((void*)DiffuseTexture->GetShaderResourceView(), ImVec2(40, 40));
                             }
                             else
                             {
-                                currentMaterialName = fullPath;
+                                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                                ImGui::Button("##meshmatpreview", ImVec2(40, 40));
+                                ImGui::PopStyleColor();
                             }
-                        }
+                            ImGui::NextColumn();
 
-                        ImGui::SetNextItemWidth(-1);
-                        if (ImGui::BeginCombo("##MaterialCombo", currentMaterialName.c_str()))
-                        {
-                            // None
-                            if (ImGui::Selectable("None##MaterialNone", MeshModule->OverrideMaterial == nullptr))
+                            FString currentMaterialPath = MeshModule->OverrideMaterial ? MeshModule->OverrideMaterial->GetFilePath() : "None";
+                            ImGui::SetNextItemWidth(-1);
+                            if (ImGui::BeginCombo("##MeshMaterialCombo", currentMaterialPath.c_str()))
                             {
-                                MeshModule->SetOverrideMaterial(nullptr, SelectedEmitter);
-                            }
-
-                            ImGui::Separator();
-
-                            // 모든 Material 리소스 가져오기
-                            TArray<UMaterial*> AllMaterials = UResourceManager::GetInstance().GetAll<UMaterial>();
-
-                            for (int i = 0; i < AllMaterials.Num(); ++i)
-                            {
-                                UMaterial* Material = AllMaterials[i];
-                                if (!Material) continue;
-
-                                ImGui::PushID(i);
-
-                                bool isSelected = (MeshModule->OverrideMaterial == Material);
-
-                                // 파일 경로에서 파일명만 추출
-                                FString fullPath = Material->GetFilePath();
-                                FString displayName = fullPath;
-                                size_t lastSlash = fullPath.find_last_of("/\\");
-                                if (lastSlash != FString::npos)
+                                // None 옵션
+                                if (ImGui::Selectable("None##MeshMatNone", MeshModule->OverrideMaterial == nullptr))
                                 {
-                                    displayName = fullPath.substr(lastSlash + 1);
+                                    MeshModule->SetOverrideMaterial(nullptr, SelectedEmitter);
                                 }
 
-                                if (ImGui::Selectable(displayName.c_str(), isSelected))
-                                {
-                                    MeshModule->SetOverrideMaterial(Material, SelectedEmitter);
+                                ImGui::Separator();
 
-                                    // PreviewComponent 재시작 (EmitterInstance를 다시 초기화)
-                                    if (PreviewComponent && CurrentParticleSystem)
+                                // 모든 머터리얼 가져오기
+                                TArray<UMaterial*> AllMaterials = UResourceManager::GetInstance().GetAll<UMaterial>();
+
+                                if (AllMaterials.Num() > 0)
+                                {
+                                    for (int i = 0; i < AllMaterials.Num(); i++)
                                     {
-                                        CurrentParticleSystem->BuildRuntimeCache();
-                                        PreviewComponent->ResetAndActivate();
+                                        UMaterial* Mat = AllMaterials[i];
+                                        if (Mat)
+                                        {
+                                            ImGui::PushID(i + 2000); // ID 충돌 방지
+                                            bool isSelected = (MeshModule->OverrideMaterial == Mat);
+
+                                            // 텍스처 미리보기 + 이름
+                                            UTexture* MatTexture = Mat->GetTexture(EMaterialTextureSlot::Diffuse);
+                                            if (MatTexture && MatTexture->GetShaderResourceView())
+                                            {
+                                                ImGui::Image((void*)MatTexture->GetShaderResourceView(), ImVec2(30, 30));
+                                                ImGui::SameLine();
+                                            }
+
+                                            if (ImGui::Selectable(Mat->GetFilePath().c_str(), isSelected))
+                                            {
+                                                MeshModule->SetOverrideMaterial(Mat, SelectedEmitter);
+
+                                                // PreviewComponent 재시작
+                                                if (PreviewComponent && CurrentParticleSystem)
+                                                {
+                                                    CurrentParticleSystem->BuildRuntimeCache();
+                                                    PreviewComponent->ResetAndActivate();
+                                                }
+                                            }
+                                            ImGui::PopID();
+                                        }
                                     }
                                 }
-
-                                // 툴팁에 전체 경로 표시
-                                if (ImGui::IsItemHovered())
+                                else
                                 {
-                                    ImGui::SetTooltip("%s", fullPath.c_str());
+                                    ImGui::TextDisabled("No materials found");
                                 }
 
-                                ImGui::PopID();
+                                ImGui::EndCombo();
                             }
+                            ImGui::Columns(1);
 
-                            ImGui::EndCombo();
+                            // MaterialSlots[0] TreeNode
+                            if (ImGui::TreeNodeEx("MaterialSlots [0]##MeshModule", ImGuiTreeNodeFlags_DefaultOpen))
+                            {
+                                UMaterial* CurrentMaterial = Cast<UMaterial>(MeshModule->OverrideMaterial);
+                                if (CurrentMaterial)
+                                {
+
+                                    ImGui::Columns(2, "MeshMaterialDetailsColumns", false);
+                                    ImGui::SetColumnWidth(0, 150.0f);
+
+                                    // Shader (읽기 전용)
+                                    ImGui::Text("Shader");
+                                    ImGui::NextColumn();
+                                    UShader* CurrentShader = CurrentMaterial->GetShader();
+                                    FString ShaderPath = CurrentShader ? CurrentShader->GetFilePath() : "None";
+                                    ImGui::SetNextItemWidth(-1);
+                                    ImGui::BeginDisabled(true);
+                                    char shaderBuffer[512];
+                                    strncpy_s(shaderBuffer, sizeof(shaderBuffer), ShaderPath.c_str(), _TRUNCATE);
+                                    ImGui::InputText("##MeshShader", shaderBuffer, sizeof(shaderBuffer), ImGuiInputTextFlags_ReadOnly);
+                                    ImGui::EndDisabled();
+                                    ImGui::NextColumn();
+
+                                    // MacroKey (읽기 전용)
+                                    ImGui::Text("MacroKey");
+                                    ImGui::NextColumn();
+                                    FString MacroKey = UShader::GenerateMacrosToString(CurrentMaterial->GetShaderMacros());
+                                    char macroBuffer[512];
+                                    strncpy_s(macroBuffer, sizeof(macroBuffer), MacroKey.c_str(), _TRUNCATE);
+                                    ImGui::SetNextItemWidth(-1);
+                                    ImGui::BeginDisabled(true);
+                                    ImGui::InputText("##MeshMacroKey", macroBuffer, sizeof(macroBuffer), ImGuiInputTextFlags_ReadOnly);
+                                    ImGui::EndDisabled();
+                                    ImGui::NextColumn();
+
+                                    // 모든 텍스처 가져오기 (Diffuse/Normal 선택용)
+                                    TArray<UTexture*> AllTextures = UResourceManager::GetInstance().GetAll<UTexture>();
+
+                                    // Diffuse Texture
+                                    ImGui::Text("Diffuse Texture");
+                                    ImGui::NextColumn();
+                                    {
+                                        UTexture* DiffTex = CurrentMaterial->GetTexture(EMaterialTextureSlot::Diffuse);
+                                        if (DiffTex && DiffTex->GetShaderResourceView())
+                                        {
+                                            ImGui::Image((void*)DiffTex->GetShaderResourceView(), ImVec2(30, 30));
+                                            ImGui::SameLine();
+                                        }
+                                        FString DiffTexPath = DiffTex ? DiffTex->GetFilePath() : "None";
+                                        ImGui::SetNextItemWidth(-1);
+                                        if (ImGui::BeginCombo("##MeshDiffuseTexture", DiffTexPath.c_str()))
+                                        {
+                                            // None 옵션
+                                            if (ImGui::Selectable("None##MeshDiffNone", DiffTex == nullptr))
+                                            {
+                                                FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                                Info.DiffuseTextureFileName = "";
+                                                CurrentMaterial->SetMaterialInfo(Info);
+                                                CurrentMaterial->ResolveTextures();
+                                            }
+                                            ImGui::Separator();
+
+                                            for (int i = 0; i < AllTextures.Num(); i++)
+                                            {
+                                                UTexture* Tex = AllTextures[i];
+                                                if (Tex)
+                                                {
+                                                    ImGui::PushID(i + 3000);
+                                                    bool isSelected = (DiffTex == Tex);
+
+                                                    if (Tex->GetShaderResourceView())
+                                                    {
+                                                        ImGui::Image((void*)Tex->GetShaderResourceView(), ImVec2(24, 24));
+                                                        ImGui::SameLine();
+                                                    }
+
+                                                    if (ImGui::Selectable(Tex->GetFilePath().c_str(), isSelected))
+                                                    {
+                                                        FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                                        Info.DiffuseTextureFileName = Tex->GetFilePath();
+                                                        CurrentMaterial->SetMaterialInfo(Info);
+                                                        CurrentMaterial->ResolveTextures();
+                                                    }
+                                                    ImGui::PopID();
+                                                }
+                                            }
+                                            ImGui::EndCombo();
+                                        }
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Normal Texture
+                                    ImGui::Text("Normal Texture");
+                                    ImGui::NextColumn();
+                                    {
+                                        UTexture* NormTex = CurrentMaterial->GetTexture(EMaterialTextureSlot::Normal);
+                                        if (NormTex && NormTex->GetShaderResourceView())
+                                        {
+                                            ImGui::Image((void*)NormTex->GetShaderResourceView(), ImVec2(30, 30));
+                                            ImGui::SameLine();
+                                        }
+                                        FString NormTexPath = NormTex ? NormTex->GetFilePath() : "None";
+                                        ImGui::SetNextItemWidth(-1);
+                                        if (ImGui::BeginCombo("##MeshNormalTexture", NormTexPath.c_str()))
+                                        {
+                                            // None 옵션
+                                            if (ImGui::Selectable("None##MeshNormNone", NormTex == nullptr))
+                                            {
+                                                FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                                Info.NormalTextureFileName = "";
+                                                CurrentMaterial->SetMaterialInfo(Info);
+                                                CurrentMaterial->ResolveTextures();
+                                            }
+                                            ImGui::Separator();
+
+                                            for (int i = 0; i < AllTextures.Num(); i++)
+                                            {
+                                                UTexture* Tex = AllTextures[i];
+                                                if (Tex)
+                                                {
+                                                    ImGui::PushID(i + 4000);
+                                                    bool isSelected = (NormTex == Tex);
+
+                                                    if (Tex->GetShaderResourceView())
+                                                    {
+                                                        ImGui::Image((void*)Tex->GetShaderResourceView(), ImVec2(24, 24));
+                                                        ImGui::SameLine();
+                                                    }
+
+                                                    if (ImGui::Selectable(Tex->GetFilePath().c_str(), isSelected))
+                                                    {
+                                                        FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                                        Info.NormalTextureFileName = Tex->GetFilePath();
+                                                        CurrentMaterial->SetMaterialInfo(Info);
+                                                        CurrentMaterial->ResolveTextures();
+                                                    }
+                                                    ImGui::PopID();
+                                                }
+                                            }
+                                            ImGui::EndCombo();
+                                        }
+                                    }
+                                    ImGui::NextColumn();
+
+                                    ImGui::Separator();
+
+                                    // FMaterialInfo 속성들 (편집 가능)
+                                    FMaterialInfo Info = CurrentMaterial->GetMaterialInfo();
+                                    bool bInfoChanged = false;
+
+                                    // Colors
+                                    FLinearColor TempColor;
+
+                                    // Diffuse Color
+                                    TempColor = FLinearColor(Info.DiffuseColor);
+                                    ImGui::Text("Diffuse Color");
+                                    ImGui::NextColumn();
+                                    if (ImGui::ColorEdit3("##MeshDiffuseColor", &TempColor.R))
+                                    {
+                                        Info.DiffuseColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Ambient Color
+                                    TempColor = FLinearColor(Info.AmbientColor);
+                                    ImGui::Text("Ambient Color");
+                                    ImGui::NextColumn();
+                                    if (ImGui::ColorEdit3("##MeshAmbientColor", &TempColor.R))
+                                    {
+                                        Info.AmbientColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Specular Color
+                                    TempColor = FLinearColor(Info.SpecularColor);
+                                    ImGui::Text("Specular Color");
+                                    ImGui::NextColumn();
+                                    if (ImGui::ColorEdit3("##MeshSpecularColor", &TempColor.R))
+                                    {
+                                        Info.SpecularColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Emissive Color
+                                    TempColor = FLinearColor(Info.EmissiveColor);
+                                    ImGui::Text("Emissive Color");
+                                    ImGui::NextColumn();
+                                    if (ImGui::ColorEdit3("##MeshEmissiveColor", &TempColor.R))
+                                    {
+                                        Info.EmissiveColor = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Transmission Filter
+                                    TempColor = FLinearColor(Info.TransmissionFilter);
+                                    ImGui::Text("Transmission Filter");
+                                    ImGui::NextColumn();
+                                    if (ImGui::ColorEdit3("##MeshTransmissionFilter", &TempColor.R))
+                                    {
+                                        Info.TransmissionFilter = FVector(TempColor.R, TempColor.G, TempColor.B);
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Scalar 값들
+
+                                    // Specular Exponent
+                                    ImGui::Text("Specular Exponent");
+                                    ImGui::NextColumn();
+                                    ImGui::SetNextItemWidth(-1);
+                                    if (ImGui::DragFloat("##MeshSpecularExponent", &Info.SpecularExponent, 1.0f, 0.0f, 1024.0f))
+                                    {
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Transparency
+                                    ImGui::Text("Transparency");
+                                    ImGui::NextColumn();
+                                    ImGui::SetNextItemWidth(-1);
+                                    if (ImGui::DragFloat("##MeshTransparency", &Info.Transparency, 0.01f, 0.0f, 1.0f))
+                                    {
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Optical Density
+                                    ImGui::Text("Optical Density");
+                                    ImGui::NextColumn();
+                                    ImGui::SetNextItemWidth(-1);
+                                    if (ImGui::DragFloat("##MeshOpticalDensity", &Info.OpticalDensity, 0.01f, 0.0f, 10.0f))
+                                    {
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Bump Multiplier
+                                    ImGui::Text("Bump Multiplier");
+                                    ImGui::NextColumn();
+                                    ImGui::SetNextItemWidth(-1);
+                                    if (ImGui::DragFloat("##MeshBumpMultiplier", &Info.BumpMultiplier, 0.01f, 0.0f, 5.0f))
+                                    {
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // Illum Model
+                                    ImGui::Text("Illum Model");
+                                    ImGui::NextColumn();
+                                    ImGui::SetNextItemWidth(-1);
+                                    if (ImGui::DragInt("##MeshIllumModel", &Info.IlluminationModel, 1, 0, 10))
+                                    {
+                                        bInfoChanged = true;
+                                    }
+                                    ImGui::NextColumn();
+
+                                    // 값이 변경되었으면 MaterialInfo 업데이트
+                                    if (bInfoChanged)
+                                    {
+                                        CurrentMaterial->SetMaterialInfo(Info);
+                                    }
+
+                                    ImGui::Columns(1);
+                                }
+                                else
+                                {
+                                    ImGui::TextDisabled("No Material Selected");
+                                }
+                                ImGui::TreePop();
+                            }
+                            ImGui::TreePop();
                         }
-
-                        ImGui::NextColumn();
                     }
-
-                    ImGui::Columns(1);
                     }
             }
             else if (CurrentParticleSystem)
