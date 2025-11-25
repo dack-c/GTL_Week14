@@ -48,60 +48,83 @@ struct FDynamicEmitterDataBase {
 
 // FDynamicSpriteEmitterDataBase 에서 헷갈려서 아래 네이밍으로 바꿈
 // 정렬 속성 상속을 위한 중간 struct
-// TODO : cpp로 옮겨!
 struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
 {
+    TArray<float> CachedSortKeys;
+
     virtual const FDynamicEmitterReplayDataBase* GetSource() const = 0;
 
-    void SortParticles(const FVector& ViewOrigin, const FVector& ViewDir, const FMatrix& WorldMatrix, TArray<int32>& OutIndices) const
+    void SortParticles(const FVector& ViewOrigin, const FVector& ViewDir, const FMatrix& WorldMatrix, TArray<int32>& OutIndices)
     {
-        const auto* Src = GetSource();
-        const int32 Num = Src->ActiveParticleCount;
-
-        if (Num == 0 || SortMode == EParticleSortMode::None)
-            return;
-
-        // 인덱스 초기화
-        OutIndices.SetNum(Num);
-        for (int32 i = 0; i < Num; ++i)
-            OutIndices[i] = i;
-
-        // 정렬 키 계산
-        TArray<float> Keys;
-        Keys.SetNum(Num);
-
-        for (int32 i = 0; i < Num; ++i)
+        
+        const FDynamicEmitterReplayDataBase* Source = GetSource();
+        if (!Source)
         {
-            FVector Pos = GetParticlePosition(i);
+            OutIndices.Empty();
+            return;
+        }
 
-            if (bUseLocalSpace)
-            {
-                Pos = WorldMatrix.TransformPosition(Pos);
-            }
+        const int32 NumParticles = Source->ActiveParticleCount;
+        if (NumParticles <= 0 || SortMode == EParticleSortMode::None)
+        {
+            OutIndices.Empty();
+            return;
+        }
+
+        OutIndices.SetNum(NumParticles);
+        for (int32 Index = 0; Index < NumParticles; ++Index)
+        {
+            OutIndices[Index] = Index;
+        }
+
+        if (CachedSortKeys.Num() < NumParticles)
+        {
+            CachedSortKeys.SetNum(NumParticles);
+        }
+        
+        FVector EffectiveViewOrigin = ViewOrigin;
+        FVector EffectiveViewDir = ViewDir;
+
+        if (bUseLocalSpace)
+        {
+            FMatrix WorldToLocal = WorldMatrix.InverseAffine();
+            EffectiveViewOrigin = WorldToLocal.TransformPosition(ViewOrigin);
+            EffectiveViewDir = WorldToLocal.TransformVector(ViewDir).GetSafeNormal();
+        }
+
+        // 4) 정렬 키 계산
+        for (int32 i = 0; i < NumParticles; ++i)
+        {
+            const FVector Pos = GetParticlePosition(i);
 
             switch (SortMode)
             {
-                case EParticleSortMode::ByDistance:
-                    Keys[i] = (Pos - ViewOrigin).SizeSquared();
-                    break;
+            case EParticleSortMode::ByDistance:
+            {
+                const FVector Delta = Pos - EffectiveViewOrigin;
+                CachedSortKeys[i] = Delta.SizeSquared();
+                break;
+            }
+            case EParticleSortMode::ByViewDepth:
+            {
+                const FVector Delta = Pos - EffectiveViewOrigin;
+                CachedSortKeys[i] = FVector::Dot(Delta, EffectiveViewDir);
+                break;
+            }
+            case EParticleSortMode::ByAge:
+                CachedSortKeys[i] = GetParticleAge(i);
+                break;
 
-                case EParticleSortMode::ByViewDepth:
-                    Keys[i] = FVector::Dot(Pos - ViewOrigin, ViewDir);
-                    break;
-
-                case EParticleSortMode::ByAge:
-                    Keys[i] = GetParticleAge(i);
-                    break;
-
-                default:
-                    Keys[i] = 0.f;
-                    break;
+            default:
+                CachedSortKeys[i] = 0.0f;
+                break;
             }
         }
 
-        // Back-to-front (큰 값이 먼저)
-        OutIndices.Sort([&Keys](int32 A, int32 B) {
-            return Keys[A] > Keys[B];
+        // 5) Back-to-front (큰 키가 먼저)
+        OutIndices.Sort([this](int32 A, int32 B)
+            {
+                return CachedSortKeys[A] > CachedSortKeys[B];
             });
     }
 
