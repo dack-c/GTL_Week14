@@ -403,7 +403,7 @@ void UStatsOverlayD2D::Draw()
 	{		
 		const FParticleStats& ParticleStats = FParticleStatManager::GetInstance().GetStats();
     
-		double EmitterTickTime = FScopeCycleCounter::GetTimeProfile("Particle_EmitterTick").GetTime();
+		double SimulationTime = FScopeCycleCounter::GetTimeProfile("Particle_Simulation").GetTime();
 		double CollectBatchesTime = FScopeCycleCounter::GetTimeProfile("Particle_CollectBatches").GetTime();
 		double GPUDrawTime = FGPUProfiler::GetInstance().GetStat("Particle_Draw");
 
@@ -415,12 +415,12 @@ void UStatsOverlayD2D::Draw()
 		   L" Draw Calls       : %u\n"       // uint32
 		   L"[Times (ms)]\n"
 		   L" Simulation (CPU) : %.3f\n"     // double (Tick)
-		   L" Render Prep (CPU): %.3f\n"     // double (CollectBatches/Sort/Map)
+		   L" Collect Batches (CPU): %.3f\n"     // double (CollectBatches/Sort/Map)
 		   L" GPU Draw Time    : %.3f\n",    // double
        
 		   ParticleStats.TotalActiveParticles,
 		   ParticleStats.DrawCalls,
-		   EmitterTickTime,
+		   SimulationTime,
 		   CollectBatchesTime,
 		   GPUDrawTime
 		);

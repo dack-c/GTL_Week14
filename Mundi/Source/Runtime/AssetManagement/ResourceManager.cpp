@@ -530,6 +530,10 @@ void UResourceManager::InitShaderILMap()
     ShaderToInputLayoutMap["Shaders/Effects/ParticleSprite.hlsl"] = layout;
     layout.clear();
 
+    // GPU instancing shader procedurally builds quad vertices (SV_VertexID), so no input layout is needed.
+    ShaderToInputLayoutMap["Shaders/Effects/ParticleSprite_Instanced.hlsl"] = layout;
+    layout.clear();
+
     ShaderToInputLayoutMap["Shaders/Utility/FullScreenTriangle_VS.hlsl"] = {};  // FullScreenTriangle 는 InputLayout을 사용하지 않는다
 }
 

@@ -951,8 +951,6 @@ void FSceneRenderer::RenderParticlePass()
 	ID3D11ShaderResourceView* SceneDepthSRV = RHIDevice->GetSRV(RHI_SRV_Index::SceneDepth);
 	if (SceneDepthSRV)
 	{
-		RHIDevice->GetDeviceContext()->PSSetShaderResources(2, 1, &SceneDepthSRV);
-
 		ID3D11SamplerState* DepthSampler = RHIDevice->GetSamplerState(RHI_Sampler_Index::LinearClamp);
 		if (DepthSampler)
 		{
@@ -1360,6 +1358,7 @@ void FSceneRenderer::RenderFinalOverlayLines()
 void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, bool bClearListAfterDraw)
 {
 	if (InMeshBatches.IsEmpty()) return;
+	constexpr UINT ParticleInstanceDataSlot = 14;
 
 	// RHI 상태 초기 설정 (Opaque Pass 기본값)
 	// RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual); // 깊이 쓰기 ON
@@ -1385,6 +1384,7 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 	ID3D11ShaderResourceView* CurrentSkinMatrixSRV = nullptr;
 	ID3D11ShaderResourceView* CurrentSkinNormalMatrixSRV = nullptr;
 	RHIDevice->GetDeviceContext()->VSSetShaderResources(12, 2, nullSRVs);
+	ID3D11ShaderResourceView* CurrentInstancingSRV = nullptr;
 
 	// 기본 샘플러 미리 가져오기 (루프 내 반복 호출 방지)
 	ID3D11SamplerState* DefaultSampler = RHIDevice->GetSamplerState(RHI_Sampler_Index::Default);
@@ -1396,10 +1396,12 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 	for (const FMeshBatchElement& Batch : InMeshBatches)
 	{
 		// --- 필수 요소 유효성 검사 ---
-		if (!Batch.VertexShader || !Batch.PixelShader || !Batch.VertexBuffer || !Batch.IndexBuffer || Batch.VertexStride == 0)
+		const bool bMissingShaders = (!Batch.VertexShader || !Batch.PixelShader);
+		const bool bNeedsGeometryBuffers = !Batch.bInstancedDraw;
+		const bool bMissingGeometry = bNeedsGeometryBuffers && (!Batch.VertexBuffer || !Batch.IndexBuffer || Batch.VertexStride == 0);
+		const bool bInvalidInstancing = Batch.bInstancedDraw && Batch.InstanceCount == 0;
+		if (bMissingShaders || bMissingGeometry || bInvalidInstancing)
 		{
-			// 셰이더나 버퍼, 스트라이드 정보가 없으면 그릴 수 없음
-			//UE_LOG("[%s] 머티리얼에 셰이더가 컴파일에 실패했거나 없습니다!", Batch.Material->GetFilePath().c_str());	// NOTE: 로그가 매 프레임 떠서 셰이더 컴파일 에러 로그를 볼 수 없어서 주석 처리
 			continue;
 		}
 
@@ -1505,18 +1507,35 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 			CurrentSkinNormalMatrixSRV = Batch.GPUSkinNormalMatrixSRV;
 		}
 
+		if (Batch.bInstancedDraw)
+		{
+			if (Batch.InstancingShaderResourceView != CurrentInstancingSRV)
+			{
+				ID3D11ShaderResourceView* SRV = Batch.InstancingShaderResourceView;
+				RHIDevice->GetDeviceContext()->VSSetShaderResources(ParticleInstanceDataSlot, 1, &SRV);
+				CurrentInstancingSRV = SRV;
+			}
+		}
+		else if (CurrentInstancingSRV)
+		{
+			ID3D11ShaderResourceView* SRV = nullptr;
+			RHIDevice->GetDeviceContext()->VSSetShaderResources(ParticleInstanceDataSlot, 1, &SRV);
+			CurrentInstancingSRV = nullptr;
+		}
+
 		// 3. IA (Input Assembler) 상태 변경
 		if (Batch.VertexBuffer != CurrentVertexBuffer ||
 			Batch.IndexBuffer != CurrentIndexBuffer ||
 			Batch.VertexStride != CurrentVertexStride ||
 			Batch.PrimitiveTopology != CurrentTopology)
 		{
-			UINT Stride = Batch.VertexStride;
+			UINT Stride = Batch.VertexBuffer ? Batch.VertexStride : 0;
 			UINT Offset = 0;
 
 			// Vertex/Index 버퍼 바인딩
 			RHIDevice->GetDeviceContext()->IASetVertexBuffers(0, 1, &Batch.VertexBuffer, &Stride, &Offset);
-			RHIDevice->GetDeviceContext()->IASetIndexBuffer(Batch.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			DXGI_FORMAT IndexFormat = Batch.IndexBuffer ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_UNKNOWN;
+			RHIDevice->GetDeviceContext()->IASetIndexBuffer(Batch.IndexBuffer, IndexFormat, 0);
 
 			// 토폴로지 설정 (이전 코드의 5번에서 이동하여 최적화)
 			RHIDevice->GetDeviceContext()->IASetPrimitiveTopology(Batch.PrimitiveTopology);
@@ -1551,13 +1570,33 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 		}
 
 		// 5. 드로우 콜 실행
-		RHIDevice->GetDeviceContext()->DrawIndexed(Batch.IndexCount, Batch.StartIndex, Batch.BaseVertexIndex);
+		if (Batch.bInstancedDraw)
+		{
+			if (Batch.IndexBuffer && Batch.VertexBuffer && Batch.VertexStride > 0)
+			{
+				RHIDevice->GetDeviceContext()->DrawIndexedInstanced(Batch.IndexCount, Batch.InstanceCount, Batch.StartIndex, Batch.BaseVertexIndex, Batch.InstanceStart);
+			}
+			else
+			{
+				RHIDevice->GetDeviceContext()->DrawInstanced(Batch.IndexCount, Batch.InstanceCount, 0, Batch.InstanceStart);
+			}
+		}
+		else
+		{
+			RHIDevice->GetDeviceContext()->DrawIndexed(Batch.IndexCount, Batch.StartIndex, Batch.BaseVertexIndex);
+		}
 	}
 
 	// 루프 종료 후 리스트 비우기 (옵션)
 	if (bClearListAfterDraw)
 	{
 		InMeshBatches.Empty();
+		if (CurrentInstancingSRV)
+		{
+			ID3D11ShaderResourceView* SRV = nullptr;
+			RHIDevice->GetDeviceContext()->VSSetShaderResources(ParticleInstanceDataSlot, 1, &SRV);
+			CurrentInstancingSRV = nullptr;
+		}
 	}
 }
 

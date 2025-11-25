@@ -215,7 +215,6 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
 // 비동기 고려된 Tick, 안에서 Component Raw Pointer 절대 사용금지!!!!!!!!
 void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
 {
-    TIME_PROFILE(Particle_EmitterTick)
     if (!Context.bIsActive && ActiveParticles <= 0) { return; }
     UpdateModuleCache();
     
