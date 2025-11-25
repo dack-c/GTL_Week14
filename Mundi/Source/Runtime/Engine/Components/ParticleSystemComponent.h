@@ -50,6 +50,14 @@ private:
 	// sprite, mesh 나눠 BuildBatch
 	void BuildSpriteParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildMeshParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+	void BuildMeshParticleBatch_Instanced(
+		TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
+		TArray<FMeshBatchElement>& OutMeshBatchElements,
+		const FSceneView* View);
+	void BuildMeshParticleBatch_Immediate(
+		TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
+		TArray<FMeshBatchElement>& OutMeshBatchElements,
+		const FSceneView* View);
 	void BuildSpriteParticleBatch_Instanced(
 		TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
 		TArray<FMeshBatchElement>& OutMeshBatchElements,
@@ -69,7 +77,9 @@ private:
 	// Resource 관리
 	bool EnsureParticleBuffers(uint32 ParticleCapacity);
 	bool EnsureInstanceBuffer(uint32 InstanceCount);
+	bool EnsureMeshInstanceBuffer(uint32 InstanceCount);
 	void ReleaseParticleBuffers();
+	void ReleaseInstanceBuffers();
 	
 private:	
 	UPROPERTY(EditAnywhere, Category = "Particle", DisplayName = "파티클 시스템")
@@ -90,6 +100,9 @@ private:
 	ID3D11Buffer* ParticleInstanceBuffer = nullptr;
 	ID3D11ShaderResourceView* ParticleInstanceSRV = nullptr;
 	uint32               InstanceCapacity = 0;
+	ID3D11Buffer* MeshInstanceBuffer = nullptr;
+	ID3D11ShaderResourceView* MeshInstanceSRV = nullptr;
+	uint32               MeshInstanceCapacity = 0;
 
 	//Async
 	FParticleAsyncUpdater AsyncUpdater;
