@@ -53,9 +53,7 @@ PSInput mainVS(VSInput In)
     // 카메라 오른쪽/위 벡터를 ViewMatrix에서 추출
     float3 Right = InverseViewMatrix[0].xyz;
     float3 Up = InverseViewMatrix[1].xyz;
-
-    float2 halfSize = In.Size * 0.5f;
-
+    
     // Rotation 적용: Corner를 회전시킴
     float cosR = cos(In.Rotation);
     float sinR = sin(In.Rotation);
@@ -63,6 +61,7 @@ PSInput mainVS(VSInput In)
     rotatedCorner.x = In.Corner.x * cosR - In.Corner.y * sinR;
     rotatedCorner.y = In.Corner.x * sinR + In.Corner.y * cosR;
 
+    float2 halfSize = In.Size * 0.5f;
     float3 worldPos =
         In.Position
         + Right * rotatedCorner.x * halfSize.x

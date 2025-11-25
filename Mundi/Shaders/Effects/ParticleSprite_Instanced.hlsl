@@ -48,40 +48,43 @@ struct VSOutput
 static const uint CornerIndexLUT[6] =
 {
     0, 1, 2,
-	2, 3, 0
+	0, 3, 2
 };
 
 static const float2 CornerOffsets[4] = {
-	float2(-1.0f, -1.0f), float2(1.0f, -1.0f),
-	float2(1.0f,  1.0f),  float2(-1.0f,  1.0f)
+    float2(-1.0f, -1.0f), float2(1.0f, -1.0f),
+	 float2(1.0f, 1.0f), float2(-1.0f, 1.0f)
 };
 
 VSOutput mainVS(VSInput In)
 {
 	VSOutput Out;
-	FParticleInstanceData Instance = ParticleInstances[In.InstanceID];
 
+    float3 Right = InverseViewMatrix[0].xyz;
+    float3 Up = InverseViewMatrix[1].xyz;
+	
     uint cornerIndex = CornerIndexLUT[In.VertexID];
     float2 corner = CornerOffsets[cornerIndex];
-	float2 halfSize = Instance.Size * 0.5f;
 
+    FParticleInstanceData Instance = ParticleInstances[In.InstanceID];
+	
 	float cosR = cos(Instance.Rotation);
-	float sinR = sin(Instance.Rotation);
-	float2 rotatedCorner;
-	rotatedCorner.x = corner.x * cosR - corner.y * sinR;
-	rotatedCorner.y = corner.x * sinR + corner.y * cosR;
-
-	float3 Right = normalize(float3(ViewMatrix._11, ViewMatrix._21, ViewMatrix._31));
-	float3 Up = normalize(float3(ViewMatrix._12, ViewMatrix._22, ViewMatrix._32));
-
-	float3 worldPos = Instance.Position
+    float sinR = sin(Instance.Rotation);
+    float2 rotatedCorner;
+    rotatedCorner.x = corner.x * cosR - corner.y * sinR;
+    rotatedCorner.y = corner.x * sinR + corner.y * cosR;
+    
+	float2 halfSize = Instance.Size * 0.5f;
+	float3 worldPos = 
+		Instance.Position
 		+ Right * rotatedCorner.x * halfSize.x
 		+ Up * rotatedCorner.y * halfSize.y;
 
 	float4 viewPos = mul(float4(worldPos, 1.0f), ViewMatrix);
 	Out.Position = mul(viewPos, ProjectionMatrix);
-	Out.UV = corner * 0.5f + 0.5f;
+    Out.UV = float2(corner.x * 0.5f + 0.5f, -corner.y * 0.5f + 0.5f);
 	Out.Color = Instance.Color;
+	
 	return Out;
 }
 
