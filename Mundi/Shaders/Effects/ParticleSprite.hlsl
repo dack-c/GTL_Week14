@@ -1,3 +1,5 @@
+
+
 // b0: ModelBuffer (VS) - Matches ModelBufferType exactly (128 bytes)
 cbuffer ModelBuffer : register(b0)
 {

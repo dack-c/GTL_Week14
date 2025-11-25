@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "pch.h"
 
 // 전방 선언
@@ -71,9 +71,17 @@ struct FMeshBatchElement
 	int32 SubImages_Vertical = 1;
 	int32 SubUV_InterpMethod = 0;  // 0=None, 1=LinearBlend
 
+	// Sort Priority 용 Int : emitter별 Sort
+	int SortPriority = -1;
+	
+	// --- 4. GPU Instancing 여부 ---
+	bool bInstancedDraw = false;
+	uint32 InstanceCount = 0;
+	uint32 InstanceStart = 0;
+	ID3D11ShaderResourceView* InstancingShaderResourceView = nullptr;
+
 	// --- 기본 생성자 ---
 	FMeshBatchElement() = default;
-
 
 	/**
 	 * @brief FMeshBatchElement 정렬을 위한 'less than' 연산자입니다.
@@ -83,6 +91,9 @@ struct FMeshBatchElement
 	bool operator<(const FMeshBatchElement& B) const
 	{
 		const FMeshBatchElement& A = *this; // A는 'this' (자신), B는 비교 대상
+
+		// 0순위: 수동 지정한 우선순위
+		if (A.SortPriority >= 0 && B.SortPriority >= 0 && A.SortPriority != B.SortPriority) return A.SortPriority < B.SortPriority;
 
 		// 1순위: 셰이더 프로그램 (VS, PS)
 		if (A.VertexShader != B.VertexShader) return A.VertexShader < B.VertexShader;

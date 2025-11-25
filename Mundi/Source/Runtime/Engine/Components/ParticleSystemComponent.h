@@ -18,6 +18,8 @@ public:
 	UParticleSystemComponent();
 	~UParticleSystemComponent() override;
 
+	UPROPERTY(EditAnywhere, Category = "렌더링")
+	bool bUseGpuInstancing = false;
 public:
 	// 컴포넌트 초기화 & LifeCycle
 	virtual void InitParticles();
@@ -52,6 +54,7 @@ private:
 
 	// Resource 관리
 	bool EnsureParticleBuffers(uint32 ParticleCapacity);
+	bool EnsureInstanceBuffer(uint32 InstanceCount);
 	void ReleaseParticleBuffers();
 	
 private:	
@@ -67,6 +70,12 @@ private:
 	uint32 ParticleVertexCapacity = 0;
 	uint32 ParticleIndexCount = 0;
 	UMaterialInterface* FallbackMaterial = nullptr;
+	UMaterialInterface* InstanceFallbackMaterial = nullptr;
+
+	// GPU Instancing
+	ID3D11Buffer* ParticleInstanceBuffer = nullptr;
+	ID3D11ShaderResourceView* ParticleInstanceSRV = nullptr;
+	uint32               InstanceCapacity = 0;
 
 	//Async
 	FParticleAsyncUpdater AsyncUpdater;
@@ -82,20 +91,4 @@ private:
 	bool bUseAsyncSimulation = false; // 비동기 시뮬레이션 활성화
 
 	int MaxDebugParticles = 10000;
-
-	// Debug
-	struct FDebugMeshParticleState
-	{
-		bool bEnabled = true;
-		bool bInitialized = false;
-
-		float  TimeSeconds = 0.f;
-
-		FVector BaseLocation = FVector(0.f, 0.f, 5.f);
-		FVector Velocity = FVector(0.f, 0.f, 5.f);
-		FVector CurrentLocation = FVector::Zero();
-
-		UStaticMesh* Mesh = nullptr;
-		UMaterialInterface* Material = nullptr;
-	};
 };
