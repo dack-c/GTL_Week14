@@ -289,6 +289,9 @@ void USlateManager::OpenParticleViewer()
     const float y = Rect.Top + toolbarHeight + (availableHeight - h) * 0.5f;
 
     ParticleViewerWindow->Initialize(x, y, w, h, World, Device);
+
+    // 빈 ParticleSystem 자동 생성
+    ParticleViewerWindow->CreateParticleSystem();
 }
 
 void USlateManager::OpenParticleViewerWithSystem(UParticleSystem* ParticleSystem, const FString& SavePath)
