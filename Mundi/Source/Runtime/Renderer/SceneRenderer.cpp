@@ -951,8 +951,6 @@ void FSceneRenderer::RenderParticlePass()
 	ID3D11ShaderResourceView* SceneDepthSRV = RHIDevice->GetSRV(RHI_SRV_Index::SceneDepth);
 	if (SceneDepthSRV)
 	{
-		RHIDevice->GetDeviceContext()->PSSetShaderResources(2, 1, &SceneDepthSRV);
-
 		ID3D11SamplerState* DepthSampler = RHIDevice->GetSamplerState(RHI_Sampler_Index::LinearClamp);
 		if (DepthSampler)
 		{
