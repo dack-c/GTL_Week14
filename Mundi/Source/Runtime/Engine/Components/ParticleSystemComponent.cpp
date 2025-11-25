@@ -232,7 +232,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
         const FVector ViewDir = View
             ? View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal()
             : FVector(1, 0, 0);
-
+        
         uint32 WrittenInstances = 0;
 
         // Emitters 쭉 돌면서 정렬 + 인스턴스 채우기
@@ -375,7 +375,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
         const FVector ViewDir = View
             ? View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal()
             : FVector(1, 0, 0);
-
+       
         uint32 VertexCursor = 0;
         uint32 WrittenParticles = 0;
 
@@ -512,13 +512,6 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
     if (EmitterRenderData.IsEmpty())
         return;
 
-    const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
-    FVector ViewDir = FVector(1, 0, 0);
-    if (View)
-    {
-        ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
-    }
-    
     for (FDynamicEmitterDataBase* Base : EmitterRenderData)
     {
         if (!Base || Base->EmitterType != EParticleType::Mesh)
@@ -559,6 +552,13 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
 
         // 파티클 정렬
         const FMatrix ComponentWorld = GetWorldMatrix();
+
+        const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
+        FVector ViewDir = FVector(1, 0, 0);
+        if (View)
+        {
+            ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
+        }
 
         TArray<int32> SortIndices;
         MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
