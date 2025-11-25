@@ -450,3 +450,10 @@ struct FParticleInstanceData
     FLinearColor Color;
     float Rotation;
 };
+
+struct FMeshParticleInstanceData
+{
+    FMatrix      WorldMatrix;
+    FMatrix      WorldInverseTranspose;
+    FLinearColor Color;
+};

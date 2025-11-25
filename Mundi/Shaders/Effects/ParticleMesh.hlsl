@@ -14,6 +14,8 @@
 #endif
 
 // Material 구조체
+#define PARTICLE_MESH_INSTANCING 0
+
 struct FMaterial
 {
     float3 DiffuseColor;
@@ -71,6 +73,17 @@ SamplerState g_Sample2 : register(s1);
 SamplerComparisonState g_ShadowSample : register(s2);
 SamplerState g_VSMSampler : register(s3);
 
+#if PARTICLE_MESH_INSTANCING
+struct FMeshParticleInstanceData
+{
+    row_major float4x4 WorldMatrix;
+    row_major float4x4 WorldInverseTranspose;
+    float4 Color;
+};
+
+StructuredBuffer<FMeshParticleInstanceData> g_MeshParticleInstanceData : register(t14);
+#endif
+
 #if PARTICLE_LIGHTING
 // 조명 시스템 include
 #include "../Common/LightStructures.hlsl"
@@ -86,6 +99,7 @@ struct VS_INPUT
     float2 TexCoord : TEXCOORD0;
     float4 Tangent : TANGENT0;
     float4 Color : COLOR;
+    uint   InstanceID : SV_InstanceID;
 };
 
 struct PS_INPUT
@@ -111,16 +125,27 @@ PS_INPUT mainVS(VS_INPUT Input)
 {
     PS_INPUT Out;
 
-    float4 WorldPos = mul(float4(Input.Position, 1.0f), WorldMatrix);
+    float4x4 LocalWorldMatrix = WorldMatrix;
+    float3x3 LocalWorldInverseTranspose = (float3x3)WorldInverseTranspose;
+    float4 CombinedColor = Input.Color;
+#if PARTICLE_MESH_INSTANCING
+    FMeshParticleInstanceData InstanceData = g_MeshParticleInstanceData[Input.InstanceID];
+    LocalWorldMatrix = InstanceData.WorldMatrix;
+    LocalWorldInverseTranspose = (float3x3)InstanceData.WorldInverseTranspose;
+    CombinedColor *= InstanceData.Color;
+#endif
+
+    float4 WorldPos = mul(float4(Input.Position, 1.0f), LocalWorldMatrix);
     Out.WorldPos = WorldPos.xyz;
 
     float4 ViewPos = mul(WorldPos, ViewMatrix);
     Out.Position = mul(ViewPos, ProjectionMatrix);
 
-    float3 WorldNormal = normalize(mul(Input.Normal, (float3x3) WorldInverseTranspose));
+    float3 WorldNormal = normalize(mul(Input.Normal, LocalWorldInverseTranspose));
     Out.Normal = WorldNormal;
 
-    float3 Tangent = normalize(mul(Input.Tangent.xyz, (float3x3) WorldMatrix));
+    float3x3 WorldRotation = (float3x3)LocalWorldMatrix;
+    float3 Tangent = normalize(mul(Input.Tangent.xyz, WorldRotation));
     float3 BiTangent = normalize(cross(WorldNormal, Tangent) * Input.Tangent.w);
     
     row_major float3x3 TBN;
@@ -130,7 +155,7 @@ PS_INPUT mainVS(VS_INPUT Input)
     Out.TBN = TBN;
 
     Out.TexCoord = Input.TexCoord;
-    Out.Color = Input.Color;
+    Out.Color = CombinedColor;
 
     return Out;
 }
