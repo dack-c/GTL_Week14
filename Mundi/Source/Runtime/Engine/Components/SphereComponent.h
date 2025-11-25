@@ -23,6 +23,6 @@ private:
     void GetShape(FShape& Out) const override;
 
 public:
-
+    FAABB GetWorldAABB() const override;
     void RenderDebugVolume(class URenderer* Renderer) const override;
 };
