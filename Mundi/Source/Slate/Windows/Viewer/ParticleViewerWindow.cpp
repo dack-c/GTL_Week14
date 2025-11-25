@@ -194,12 +194,15 @@ void SParticleViewerWindow::OnRender()
     }
     ImGui::EndChild();
 
-    // 3. 메인 컨텐츠 영역
+    // 3. 메인 컨텐츠 영역 + 스플리터
     ImVec2 contentSize = ImGui::GetContentRegionAvail();
-    const float curveEditorHeight = contentSize.y * 0.3f;
-    const float mainContentHeight = contentSize.y - curveEditorHeight;
-    const float leftPanelWidth = contentSize.x * 0.4f;
-    const float rightPanelWidth = contentSize.x - leftPanelWidth;
+    const float splitterSize = 4.0f;
+
+    // 스플리터 비율 기반 크기 계산
+    const float curveEditorHeight = contentSize.y * BottomPanelRatio;
+    const float mainContentHeight = contentSize.y - curveEditorHeight - splitterSize;
+    const float leftPanelWidth = contentSize.x * LeftPanelRatio;
+    const float rightPanelWidth = contentSize.x - leftPanelWidth - splitterSize;
 
     // 좌측: 뷰포트 + Properties
     ImGui::BeginChild("LeftMain", ImVec2(leftPanelWidth, mainContentHeight), false);
@@ -1605,6 +1608,22 @@ void SParticleViewerWindow::OnRender()
     }
     ImGui::EndChild();
 
+    // 수직 스플리터 (좌우 분할)
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+    ImGui::Button("##VSplitter", ImVec2(splitterSize, mainContentHeight));
+    if (ImGui::IsItemActive())
+    {
+        float delta = ImGui::GetIO().MouseDelta.x;
+        LeftPanelRatio += delta / contentSize.x;
+        LeftPanelRatio = FMath::Clamp(LeftPanelRatio, 0.15f, 0.5f);
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+    ImGui::PopStyleColor(3);
+
     ImGui::SameLine();
 
     // 우측: Emitter/모듈 패널
@@ -2143,8 +2162,24 @@ void SParticleViewerWindow::OnRender()
     }
     ImGui::EndChild();
 
-    // 4. 하단: Curve Editor
-    ImGui::BeginChild("CurveEditor", ImVec2(0, curveEditorHeight), true);
+    // 수평 스플리터 (상하 분할)
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+    ImGui::Button("##HSplitter", ImVec2(-1, splitterSize));
+    if (ImGui::IsItemActive())
+    {
+        float delta = ImGui::GetIO().MouseDelta.y;
+        BottomPanelRatio -= delta / contentSize.y;
+        BottomPanelRatio = FMath::Clamp(BottomPanelRatio, 0.15f, 0.5f);
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+    ImGui::PopStyleColor(3);
+
+    // 4. 하단: Curve Editor (이미터 패널 너비만큼)
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + leftPanelWidth + splitterSize);
+    ImGui::BeginChild("CurveEditor", ImVec2(rightPanelWidth, curveEditorHeight), true);
     {
         // Curve Editor 클릭 시 이미터 선택 해제
         if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
