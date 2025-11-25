@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleSystemComponent.h"
 
 #include "CameraActor.h"
@@ -208,266 +208,233 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
     }
     if (TotalParticles == 0) return;
 
-    // === Instancing 경로 ===
+    const uint32 ClampedCount = MaxDebugParticles > 0
+        ? std::min<uint32>(TotalParticles, (uint32)MaxDebugParticles)
+        : TotalParticles;
+
+    const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
+    const FVector ViewDir = View
+        ? View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal()
+        : FVector(1, 0, 0);
+
     if (bUseGpuInstancing)
     {
-        const uint32 ClampedCount = MaxDebugParticles > 0
-            ? std::min<uint32>(TotalParticles, (uint32)MaxDebugParticles)
-            : TotalParticles;
-
-        if (!EnsureInstanceBuffer(ClampedCount))
-            return;
-
-        D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
-        ID3D11DeviceContext* Context = RHIDevice ? RHIDevice->GetDeviceContext() : nullptr;
-        if (!Context) return;
-
-        D3D11_MAPPED_SUBRESOURCE Mapped = {};
-        if (FAILED(Context->Map(ParticleInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
-            return;
-
-		FParticleInstanceData* Instances = reinterpret_cast<FParticleInstanceData*>(Mapped.pData);
-
-		struct FInstancedSpriteCommand
-		{
-			FDynamicSpriteEmitterData* SpriteData = nullptr;
-			uint32 StartInstance = 0;
-			uint32 InstanceCount = 0;
-			int SortPriority = -1;
-		};
-		TArray<FInstancedSpriteCommand> InstancedCommands;
-
-        const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
-        const FVector ViewDir = View
-            ? View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal()
-            : FVector(1, 0, 0);
-        
-        uint32 WrittenInstances = 0;
-
-        // Emitters 쭉 돌면서 정렬 + 인스턴스 채우기
-		for (FDynamicEmitterDataBase* Base : EmitterRenderData)
-		{
-			if (!Base || Base->EmitterType != EParticleType::Sprite) continue;
-
-			auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(Base);
-			const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(SpriteData->GetSource());
-			if (!Src || Src->ActiveParticleCount <= 0) continue;
-
-			const uint32 StartInstance = WrittenInstances;
-
-            // 정렬
-            TArray<int32> SortIndices;
-            SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
-            const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
-			for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
-			{
-				if (WrittenInstances >= ClampedCount) break;
-
-                const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
-                const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
-                if (!Particle) continue;
-
-                FVector WorldPos = Particle->Location;
-                if (SpriteData->bUseLocalSpace)
-                    WorldPos = GetWorldMatrix().TransformPosition(WorldPos);
-
-                FParticleInstanceData& Inst = Instances[WrittenInstances++];
-                Inst.Position = WorldPos;
-                Inst.Size = FVector2D(Particle->Size.X, Particle->Size.Y);
-                Inst.Color = Particle->Color;
-                Inst.Rotation = Particle->Rotation;
-            }
-
-			const uint32 InstancesWritten = WrittenInstances - StartInstance;
-			if (InstancesWritten > 0)
-			{
-				FInstancedSpriteCommand Cmd;
-				Cmd.SpriteData = SpriteData;
-				Cmd.StartInstance = StartInstance;
-				Cmd.InstanceCount = InstancesWritten;
-				Cmd.SortPriority = Src->RequiredModule ? Src->RequiredModule->SortPriority : -1;
-				InstancedCommands.Add(Cmd);
-			}
-
-			if (WrittenInstances >= ClampedCount) break;
-		}
-
-		Context->Unmap(ParticleInstanceBuffer, 0);
-
-		if (InstancedCommands.IsEmpty())
-			return;
-
-        // === MeshBatchElement 하나 생성해서 Instanced Draw 준비 ===
-
-        if (!InstanceFallbackMaterial)
-            InstanceFallbackMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite_Instanced.hlsl");
-
-        if (!InstanceFallbackMaterial || !InstanceFallbackMaterial->GetShader())
-            return;
-
-        TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
-        ShaderMacros.Append(InstanceFallbackMaterial->GetShaderMacros());
-
-        FShaderVariant* ShaderVariant = InstanceFallbackMaterial->GetShader()
-            ->GetOrCompileShaderVariant(ShaderMacros);
-        if (!ShaderVariant) return;
-
-		for (const FInstancedSpriteCommand& Cmd : InstancedCommands)
-		{
-			if (Cmd.InstanceCount == 0)
-			{
-				continue;
-			}
-
-			FMeshBatchElement& Batch = OutMeshBatchElements[OutMeshBatchElements.Add(FMeshBatchElement())];
-
-			Batch.VertexShader = ShaderVariant->VertexShader;
-			Batch.PixelShader = ShaderVariant->PixelShader;
-			Batch.InputLayout = ShaderVariant->InputLayout;
-			Batch.Material = ResolveEmitterMaterial(*Cmd.SpriteData);
-
-			// 여기서는 "버텍스 버퍼 없음" 또는 "Quad VB"를 쓰는 구조에 따라 달라짐.
-			// SV_VertexID 기반이면 VB는 안 써도 됨.
-			Batch.VertexBuffer = nullptr;
-			Batch.IndexBuffer = nullptr;
-
-			Batch.VertexStride = 0;
-			Batch.IndexCount = 6;
-			Batch.StartIndex = 0;
-			Batch.BaseVertexIndex = 0;
-			Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-			Batch.WorldMatrix = GetWorldMatrix();
-			Batch.ObjectID = InternalIndex;
-			Batch.SortPriority = Cmd.SortPriority;
-
-			Batch.InstanceCount = Cmd.InstanceCount;
-			Batch.InstanceStart = Cmd.StartInstance;
-			Batch.bInstancedDraw = true;
-			Batch.InstancingShaderResourceView = ParticleInstanceSRV;
-		}
+        BuildSpriteParticleBatch_Instanced(EmitterRenderData, OutMeshBatchElements, ClampedCount, ViewOrigin, ViewDir);
     }
     else
     {
-        // 2) 버퍼 확보
-        const uint32 ClampedCount = MaxDebugParticles > 0
-            ? std::min<uint32>(TotalParticles, static_cast<uint32>(MaxDebugParticles))
-            : TotalParticles;
-        if (!EnsureParticleBuffers(ClampedCount)) return;
+        BuildSpriteParticleBatch_Immediate(EmitterRenderData, OutMeshBatchElements, ClampedCount, ViewOrigin, ViewDir);
+    }
+}
 
-        // 3) 버퍼에 버텍스 데이터 쓰기
-        D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
-        ID3D11DeviceContext* Context = RHIDevice ? RHIDevice->GetDeviceContext() : nullptr;
-        if (!Context) return;
+void UParticleSystemComponent::BuildSpriteParticleBatch_Instanced(
+    TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
+    TArray<FMeshBatchElement>& OutMeshBatchElements,
+    uint32 ClampedCount,
+    const FVector& ViewOrigin,
+    const FVector& ViewDir,
+    const FSceneView* View)
+{
+    if (!EnsureInstanceBuffer(ClampedCount))
+        return;
 
-        D3D11_MAPPED_SUBRESOURCE Mapped = {};
-        if (FAILED(Context->Map(ParticleVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
-            return;
+    D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+    ID3D11DeviceContext* Context = RHIDevice ? RHIDevice->GetDeviceContext() : nullptr;
+    if (!Context) return;
 
-        struct FSpriteBatchCommand
+    D3D11_MAPPED_SUBRESOURCE Mapped = {};
+    if (FAILED(Context->Map(ParticleInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
+        return;
+
+    FParticleInstanceData* Instances = reinterpret_cast<FParticleInstanceData*>(Mapped.pData);
+
+    struct FInstancedSpriteCommand
+    {
+        FDynamicSpriteEmitterData* SpriteData = nullptr;
+        uint32 StartInstance = 0;
+        uint32 InstanceCount = 0;
+        int SortPriority = -1;
+    };
+    TArray<FInstancedSpriteCommand> InstancedCommands;
+
+    uint32 WrittenInstances = 0;
+
+    for (FDynamicEmitterDataBase* Base : EmitterRenderData)
+    {
+        if (!Base || Base->EmitterType != EParticleType::Sprite) continue;
+
+        auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(Base);
+        const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(SpriteData->GetSource());
+        if (!Src || Src->ActiveParticleCount <= 0) continue;
+
+        const uint32 StartInstance = WrittenInstances;
+
+        TArray<int32> SortIndices;
+        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
+        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
+
+        for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
-            FDynamicSpriteEmitterData* SpriteData = nullptr;
-            uint32 StartParticle = 0;
-            uint32 ParticleCount = 0;
-            int SortPriority = -1;
-        };
+            if (WrittenInstances >= ClampedCount) break;
 
-        TArray<FSpriteBatchCommand> SpriteBatchCommands;
+            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
+            if (!Particle) continue;
 
-        FParticleSpriteVertex* Vertices = reinterpret_cast<FParticleSpriteVertex*>(Mapped.pData);
-        static const FVector2D CornerOffsets[4] = {
-            FVector2D(-1.0f, -1.0f), FVector2D(1.0f, -1.0f),
-            FVector2D(1.0f,  1.0f),  FVector2D(-1.0f,  1.0f)
-        };
+            FVector WorldPos = Particle->Location;
+            if (SpriteData->bUseLocalSpace)
+                WorldPos = GetWorldMatrix().TransformPosition(WorldPos);
 
-        const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
-        const FVector ViewDir = View
-            ? View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal()
-            : FVector(1, 0, 0);
-       
-        uint32 VertexCursor = 0;
-        uint32 WrittenParticles = 0;
+            FParticleInstanceData& Inst = Instances[WrittenInstances++];
+            Inst.Position = WorldPos;
+            Inst.Size = FVector2D(Particle->Size.X, Particle->Size.Y);
+            Inst.Color = Particle->Color;
+            Inst.Rotation = Particle->Rotation;
+        }
 
-        // 4) 각 Emitter의 Particle을 Vertex Buffer에 기록
-        for (FDynamicEmitterDataBase* Base : EmitterRenderData)
+        const uint32 InstancesWritten = WrittenInstances - StartInstance;
+        if (InstancesWritten > 0)
         {
-            if (!Base || Base->EmitterType != EParticleType::Sprite) continue;
+            FInstancedSpriteCommand Cmd;
+            Cmd.SpriteData = SpriteData;
+            Cmd.StartInstance = StartInstance;
+            Cmd.InstanceCount = InstancesWritten;
+            Cmd.SortPriority = Src->RequiredModule ? Src->RequiredModule->SortPriority : -1;
+            InstancedCommands.Add(Cmd);
+        }
 
-            auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(Base);
-            const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(SpriteData->GetSource());
-            if (!Src || Src->ActiveParticleCount <= 0) continue;
+        if (WrittenInstances >= ClampedCount) break;
+    }
 
-            const uint32 StartParticle = WrittenParticles;
+    Context->Unmap(ParticleInstanceBuffer, 0);
 
-            // 파티클 정렬
-            TArray<int32> SortIndices;
-            SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
-            const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
+    if (InstancedCommands.IsEmpty())
+        return;
 
-            // 파티클 순회하며 버텍스 생성
-            for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
-            {
-                if (WrittenParticles >= ClampedCount) break;
+    // 쉐이더 준비
+    if (!InstanceFallbackMaterial)
+        InstanceFallbackMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite_Instanced.hlsl");
 
-                const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
-                const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
-                if (!Particle) continue;
+    if (!InstanceFallbackMaterial || !InstanceFallbackMaterial->GetShader())
+        return;
 
-            // SubImageIndex 가져오기 (SubUV 모듈이 있으면 payload에서 읽기)
+    TArray<FShaderMacro> ShaderMacros;
+    if (View)
+        ShaderMacros = View->ViewShaderMacros;
+    ShaderMacros.Append(InstanceFallbackMaterial->GetShaderMacros());
+
+    FShaderVariant* ShaderVariant = InstanceFallbackMaterial->GetShader()
+        ->GetOrCompileShaderVariant(ShaderMacros);
+    if (!ShaderVariant) return;
+
+    // 배치 생성
+    for (const FInstancedSpriteCommand& Cmd : InstancedCommands)
+    {
+        if (Cmd.InstanceCount == 0) continue;
+
+        FMeshBatchElement& Batch = OutMeshBatchElements[OutMeshBatchElements.Add(FMeshBatchElement())];
+
+        Batch.VertexShader = ShaderVariant->VertexShader;
+        Batch.PixelShader = ShaderVariant->PixelShader;
+        Batch.InputLayout = ShaderVariant->InputLayout;
+        Batch.Material = ResolveEmitterMaterial(*Cmd.SpriteData);
+
+        Batch.VertexBuffer = nullptr;
+        Batch.IndexBuffer = nullptr;
+        Batch.VertexStride = 0;
+        Batch.IndexCount = 6;
+        Batch.StartIndex = 0;
+        Batch.BaseVertexIndex = 0;
+        Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+        Batch.WorldMatrix = GetWorldMatrix();
+        Batch.ObjectID = InternalIndex;
+        Batch.SortPriority = Cmd.SortPriority;
+
+        Batch.InstanceCount = Cmd.InstanceCount;
+        Batch.InstanceStart = Cmd.StartInstance;
+        Batch.bInstancedDraw = true;
+        Batch.InstancingShaderResourceView = ParticleInstanceSRV;
+    }
+}
+
+
+void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
+    TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
+    TArray<FMeshBatchElement>& OutMeshBatchElements,
+    uint32 ClampedCount,
+    const FVector& ViewOrigin,
+    const FVector& ViewDir,
+    const FSceneView* View)
+{
+    if (!EnsureParticleBuffers(ClampedCount)) return;
+
+    D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+    ID3D11DeviceContext* Context = RHIDevice ? RHIDevice->GetDeviceContext() : nullptr;
+    if (!Context) return;
+
+    D3D11_MAPPED_SUBRESOURCE Mapped = {};
+    if (FAILED(Context->Map(ParticleVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
+        return;
+
+    struct FSpriteBatchCommand
+    {
+        FDynamicSpriteEmitterData* SpriteData = nullptr;
+        uint32 StartParticle = 0;
+        uint32 ParticleCount = 0;
+        int SortPriority = -1;
+    };
+
+    TArray<FSpriteBatchCommand> SpriteBatchCommands;
+    FParticleSpriteVertex* Vertices = reinterpret_cast<FParticleSpriteVertex*>(Mapped.pData);
+
+    static const FVector2D CornerOffsets[4] = {
+        FVector2D(-1.0f, -1.0f), FVector2D(1.0f, -1.0f),
+        FVector2D(1.0f,  1.0f),  FVector2D(-1.0f,  1.0f)
+    };
+
+    uint32 VertexCursor = 0;
+    uint32 WrittenParticles = 0;
+
+    for (FDynamicEmitterDataBase* Base : EmitterRenderData)
+    {
+        if (!Base || Base->EmitterType != EParticleType::Sprite) continue;
+
+        auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(Base);
+        const auto* Src = static_cast<const FDynamicSpriteEmitterReplayData*>(SpriteData->GetSource());
+        if (!Src || Src->ActiveParticleCount <= 0) continue;
+
+        const uint32 StartParticle = WrittenParticles;
+
+        TArray<int32> SortIndices;
+        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
+        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
+
+        for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
+        {
+            if (WrittenParticles >= ClampedCount) break;
+
+            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
+            if (!Particle) continue;
+
+            FVector WorldPos = Particle->Location;
+            if (SpriteData->bUseLocalSpace)
+                WorldPos = GetWorldMatrix().TransformPosition(WorldPos);
+
+            // SubImageIndex 추출 (SubUV 모듈이 있을 때)
             float SubImageIndex = 0.0f;
             if (Src->SubUVModule && Src->SubUVPayloadOffset >= 0)
             {
                 const uint8* ParticleBase = reinterpret_cast<const uint8*>(Particle);
                 SubImageIndex = *reinterpret_cast<const float*>(ParticleBase + Src->SubUVPayloadOffset);
-                FVector WorldPos = Particle->Location;
-                if (SpriteData->bUseLocalSpace)
-                {
-                    WorldPos = GetWorldMatrix().TransformPosition(WorldPos);
-                }
-
-                // 첫 번째 파티클만 디버그 출력
-                static int32 DebugCounter = 0;
-                if (DebugCounter++ % 60 == 0)
-                {
-                    UE_LOG("Vertex Build: SubImageIndex=%f", SubImageIndex);
-                }
             }
+
+            const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
+            const FLinearColor Color = Particle->Color;
+            const float Rotation = Particle->Rotation;
 
             // 4개 코너 버텍스 생성
             for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
-                const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
-                FLinearColor Color = Particle->Color;
-                const float Rotation = Particle->Rotation;
-
-                // Sorting 시각화, 50개까지만 높을수록 빨강 낮을수록 파랑
-                // 빨강이 먼저 그려지고 파랑이 맨 나중에 -> 뒤 색깔 반영하는 건 파랑
-                //if (LocalIdx < 10)
-                //    Color = FLinearColor(1, 0, 0, 0.5);
-                //else if (LocalIdx < 20)
-                //    Color = FLinearColor(1, 1, 0, 0.5);
-                //else if(LocalIdx < 30)
-                //    Color = FLinearColor(0, 1, 0, 0.5);
-                //else if (LocalIdx < 40)
-                //    Color = FLinearColor(0, 1, 1, 0.5);
-                //else if (LocalIdx < 50)
-                //    Color = FLinearColor(0, 0, 1, 0.5);
-
-                // 4개 코너 버텍스 생성
-                for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
-                {
-                    FParticleSpriteVertex& Vertex = Vertices[VertexCursor++];
-                    Vertex.Position = WorldPos;
-                    Vertex.Corner = CornerOffsets[CornerIndex];
-                    Vertex.Size = Size;
-                    Vertex.Color = Color;
-                    Vertex.Rotation = Rotation;
-                }
-
-                ++WrittenParticles;
-            }
-
-            // 배치 커맨드 생성
-            if (WrittenParticles > StartParticle)
             {
                 FParticleSpriteVertex& Vertex = Vertices[VertexCursor++];
                 Vertex.Position = WorldPos;
@@ -476,69 +443,45 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
                 Vertex.Color = Color;
                 Vertex.Rotation = Rotation;
                 Vertex.SubImageIndex = SubImageIndex;
-                FSpriteBatchCommand Cmd;
-                Cmd.SpriteData = SpriteData;
-                Cmd.StartParticle = StartParticle;
-                Cmd.ParticleCount = WrittenParticles - StartParticle;
-                Cmd.SortPriority = Src->RequiredModule->SortPriority;
-                SpriteBatchCommands.Add(Cmd);
             }
 
-            if (WrittenParticles >= ClampedCount) break;
+            ++WrittenParticles;
         }
 
-        Context->Unmap(ParticleVertexBuffer, 0);
-
-        if (SpriteBatchCommands.IsEmpty()) return;
-
-        // 5) 파티클 전용 쉐이더 준비
-        if (!FallbackMaterial)
+        if (WrittenParticles > StartParticle)
         {
-            FallbackMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
-        }
-        if (!FallbackMaterial || !FallbackMaterial->GetShader())
-        {
-            UE_LOG("[BuildSpriteParticleBatch] ERROR: Failed to load particle shader!");
-            return;
-        }
-
-        TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
-        ShaderMacros.Append(FallbackMaterial->GetShaderMacros());
-
-        FShaderVariant* ShaderVariant = FallbackMaterial->GetShader()
-            ->GetOrCompileShaderVariant(ShaderMacros);
-        if (!ShaderVariant)
-        {
-            UE_LOG("[BuildSpriteParticleBatch] ERROR: Failed to compile shader variant!");
-            return;
+            FSpriteBatchCommand Cmd;
+            Cmd.SpriteData = SpriteData;
+            Cmd.StartParticle = StartParticle;
+            Cmd.ParticleCount = WrittenParticles - StartParticle;
+            Cmd.SortPriority = Src->RequiredModule ? Src->RequiredModule->SortPriority : -1;
+            SpriteBatchCommands.Add(Cmd);
         }
 
-        // 6) MeshBatch 생성
-        for (const FSpriteBatchCommand& Cmd : SpriteBatchCommands)
-        {
-            if (Cmd.ParticleCount == 0) continue;
-
-            FMeshBatchElement& Batch = OutMeshBatchElements[OutMeshBatchElements.Add(FMeshBatchElement())];
-
-            Batch.VertexShader = ShaderVariant->VertexShader;
-            Batch.PixelShader = ShaderVariant->PixelShader;
-            Batch.InputLayout = ShaderVariant->InputLayout;
-            Batch.Material = ResolveEmitterMaterial(*Cmd.SpriteData);
-
-            Batch.VertexBuffer = ParticleVertexBuffer;
-            Batch.IndexBuffer = ParticleIndexBuffer;
-            Batch.VertexStride = sizeof(FParticleSpriteVertex);
-            Batch.IndexCount = Cmd.ParticleCount * 6;
-            Batch.StartIndex = Cmd.StartParticle * 6;
-            Batch.BaseVertexIndex = 0;
-            Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            Batch.WorldMatrix = GetWorldMatrix();
-            Batch.ObjectID = InternalIndex;
-            Batch.SortPriority = Cmd.SortPriority;
-        }
+        if (WrittenParticles >= ClampedCount) break;
     }
 
-    // 6) MeshBatch 생성
+    Context->Unmap(ParticleVertexBuffer, 0);
+
+    if (SpriteBatchCommands.IsEmpty()) return;
+
+    // 쉐이더 준비
+    if (!FallbackMaterial)
+        FallbackMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleSprite.hlsl");
+
+    if (!FallbackMaterial || !FallbackMaterial->GetShader())
+        return;
+
+    TArray<FShaderMacro> ShaderMacros;
+    if (View)
+        ShaderMacros = View->ViewShaderMacros;
+    ShaderMacros.Append(FallbackMaterial->GetShaderMacros());
+
+    FShaderVariant* ShaderVariant = FallbackMaterial->GetShader()
+        ->GetOrCompileShaderVariant(ShaderMacros);
+    if (!ShaderVariant) return;
+
+    // 배치 생성
     for (const FSpriteBatchCommand& Cmd : SpriteBatchCommands)
     {
         if (Cmd.ParticleCount == 0) continue;
@@ -559,9 +502,11 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
         Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         Batch.WorldMatrix = GetWorldMatrix();
         Batch.ObjectID = InternalIndex;
+        Batch.SortPriority = Cmd.SortPriority;
 
         // SubUV 파라미터 설정
-        const FDynamicSpriteEmitterReplayData* SrcData = static_cast<const FDynamicSpriteEmitterReplayData*>(Cmd.SpriteData->GetSource());
+        const FDynamicSpriteEmitterReplayData* SrcData =
+            static_cast<const FDynamicSpriteEmitterReplayData*>(Cmd.SpriteData->GetSource());
         if (SrcData && SrcData->RequiredModule)
         {
             Batch.SubImages_Horizontal = SrcData->RequiredModule->SubImages_Horizontal;

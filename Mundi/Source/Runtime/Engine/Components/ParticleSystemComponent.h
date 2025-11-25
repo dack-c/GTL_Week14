@@ -50,6 +50,20 @@ private:
 	// sprite, mesh 나눠 BuildBatch
 	void BuildSpriteParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildMeshParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+	void BuildSpriteParticleBatch_Instanced(
+		TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
+		TArray<FMeshBatchElement>& OutMeshBatchElements,
+		uint32 ClampedCount,
+		const FVector& ViewOrigin,
+		const FVector& ViewDir,
+		const FSceneView* View = nullptr);
+	void BuildSpriteParticleBatch_Immediate(
+		TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
+		TArray<FMeshBatchElement>& OutMeshBatchElements,
+		uint32 ClampedCount,
+		const FVector& ViewOrigin,
+		const FVector& ViewDir,
+		const FSceneView* View = nullptr);
 	UMaterialInterface* ResolveEmitterMaterial(const FDynamicEmitterDataBase& DynData) const;
 
 	// Resource 관리
