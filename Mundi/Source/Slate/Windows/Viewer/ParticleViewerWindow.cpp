@@ -848,22 +848,43 @@ void SParticleViewerWindow::OnRender()
                 else if (auto* SpawnModule = Cast<UParticleModuleSpawn>(SelectedModule))
                 {
                     ImGui::Text("Spawn Settings");
-                    ImGui::DragFloat("Spawn Rate Min", &SpawnModule->SpawnRate.MinValue, 0.1f, 0.0f, 1000.0f);
-                    ImGui::DragFloat("Spawn Rate Max", &SpawnModule->SpawnRate.MaxValue, 0.1f, 0.0f, 1000.0f);
+                    if (SpawnModule->SpawnRate.bUseRange)
+                    {
+                        ImGui::DragFloat("Spawn Rate Min", &SpawnModule->SpawnRate.MinValue, 0.1f, 0.0f, 1000.0f);
+                        ImGui::DragFloat("Spawn Rate Max", &SpawnModule->SpawnRate.MaxValue, 0.1f, 0.0f, 1000.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Spawn Rate", &SpawnModule->SpawnRate.MinValue, 0.1f, 0.0f, 1000.0f);
+                    }
                     ImGui::Checkbox("Use Range", &SpawnModule->SpawnRate.bUseRange);
                 }
                 else if (auto* LifetimeModule = Cast<UParticleModuleLifetime>(SelectedModule))
                 {
                     ImGui::Text("Lifetime Settings");
-                    ImGui::DragFloat("Lifetime Min", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
-                    ImGui::DragFloat("Lifetime Max", &LifetimeModule->Lifetime.MaxValue, 0.01f, 0.0f, 100.0f);
+                    if (LifetimeModule->Lifetime.bUseRange)
+                    {
+                        ImGui::DragFloat("Lifetime Min", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
+                        ImGui::DragFloat("Lifetime Max", &LifetimeModule->Lifetime.MaxValue, 0.01f, 0.0f, 100.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Lifetime", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
+                    }
                     ImGui::Checkbox("Use Range", &LifetimeModule->Lifetime.bUseRange);
                 }
                 else if (auto* SizeModule = Cast<UParticleModuleSize>(SelectedModule))
                 {
                     ImGui::Text("Size Settings");
-                    ImGui::DragFloat3("Start Size Min", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
-                    ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
+                    if (SizeModule->StartSize.bUseRange)
+                    {
+                        ImGui::DragFloat3("Start Size Min", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
+                        ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat3("Start Size", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
+                    }
                     ImGui::Checkbox("Use Range", &SizeModule->StartSize.bUseRange);
                 }
                 else if (auto* LocationModule = Cast<UParticleModuleLocation>(SelectedModule))
@@ -906,19 +927,44 @@ void SParticleViewerWindow::OnRender()
                 else if (auto* VelocityModule = Cast<UParticleModuleVelocity>(SelectedModule))
                 {
                     ImGui::Text("Velocity Settings");
-                    ImGui::DragFloat3("Start Velocity Min", &VelocityModule->StartVelocity.MinValue.X, 1.0f, -1000.0f, 1000.0f);
-                    ImGui::DragFloat3("Start Velocity Max", &VelocityModule->StartVelocity.MaxValue.X, 1.0f, -1000.0f, 1000.0f);
+                    if (VelocityModule->StartVelocity.bUseRange)
+                    {
+                        ImGui::DragFloat3("Start Velocity Min", &VelocityModule->StartVelocity.MinValue.X, 1.0f,
+                                          -1000.0f, 1000.0f);
+                        ImGui::DragFloat3("Start Velocity Max", &VelocityModule->StartVelocity.MaxValue.X, 1.0f,
+                                          -1000.0f, 1000.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat3("Start Velocity", &VelocityModule->StartVelocity.MinValue.X, 1.0f, -1000.0f,
+                                          1000.0f);
+                    }
                     ImGui::Checkbox("Use Range", &VelocityModule->StartVelocity.bUseRange);
                     ImGui::DragFloat3("Gravity", &VelocityModule->Gravity.X, 1.0f, -10000.0f, 10000.0f);
                 }
                 else if (auto* ColorModule = Cast<UParticleModuleColor>(SelectedModule))
                 {
                     ImGui::Text("Color Settings");
-                    ImGui::ColorEdit3("Start Color Min", &ColorModule->StartColor.MinValue.R);
-                    ImGui::ColorEdit3("Start Color Max", &ColorModule->StartColor.MaxValue.R);
+                    if (ColorModule->StartColor.bUseRange)
+                    {
+                        ImGui::ColorEdit3("Start Color Min", &ColorModule->StartColor.MinValue.R);
+                        ImGui::ColorEdit3("Start Color Max", &ColorModule->StartColor.MaxValue.R);
+                    }
+                    else
+                    {
+                        ImGui::ColorEdit3("Start Color", &ColorModule->StartColor.MinValue.R);
+                    }
                     ImGui::Checkbox("Use Range", &ColorModule->StartColor.bUseRange);
-                    ImGui::DragFloat("Start Alpha Min", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Start Alpha Max", &ColorModule->StartAlpha.MaxValue, 0.01f, 0.0f, 1.0f);
+
+                    if (ColorModule->StartAlpha.bUseRange)
+                    {
+                        ImGui::DragFloat("Start Alpha Min", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
+                        ImGui::DragFloat("Start Alpha Max", &ColorModule->StartAlpha.MaxValue, 0.01f, 0.0f, 1.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Start Alpha", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
+                    }
                 }
                 else if (auto* ColorOverLifeModule = Cast<UParticleModuleColorOverLife>(SelectedModule))
                 {
@@ -928,8 +974,15 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Checkbox("Use Color Over Life", &ColorOverLifeModule->bUseColorOverLife);
                     if (ColorOverLifeModule->bUseColorOverLife)
                     {
-                        ImGui::ColorEdit3("Color Min", &ColorOverLifeModule->ColorOverLife.MinValue.R);
-                        ImGui::ColorEdit3("Color Max", &ColorOverLifeModule->ColorOverLife.MaxValue.R);
+                        if (ColorOverLifeModule->ColorOverLife.bUseRange)
+                        {
+                            ImGui::ColorEdit3("Color Min", &ColorOverLifeModule->ColorOverLife.MinValue.R);
+                            ImGui::ColorEdit3("Color Max", &ColorOverLifeModule->ColorOverLife.MaxValue.R);
+                        }
+                        else
+                        {
+                            ImGui::ColorEdit3("Color", &ColorOverLifeModule->ColorOverLife.MinValue.R);
+                        }
                         ImGui::Checkbox("Color Use Range", &ColorOverLifeModule->ColorOverLife.bUseRange);
                     }
 
@@ -937,8 +990,17 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Checkbox("Use Alpha Over Life", &ColorOverLifeModule->bUseAlphaOverLife);
                     if (ColorOverLifeModule->bUseAlphaOverLife)
                     {
-                        ImGui::DragFloat("Alpha Min", &ColorOverLifeModule->AlphaOverLife.MinValue, 0.01f, 0.0f, 1.0f);
-                        ImGui::DragFloat("Alpha Max", &ColorOverLifeModule->AlphaOverLife.MaxValue, 0.01f, 0.0f, 1.0f);
+                        if (ColorOverLifeModule->AlphaOverLife.bUseRange)
+                        {
+                            ImGui::DragFloat("Alpha Min", &ColorOverLifeModule->AlphaOverLife.MinValue, 0.01f, 0.0f,
+                                             1.0f);
+                            ImGui::DragFloat("Alpha Max", &ColorOverLifeModule->AlphaOverLife.MaxValue, 0.01f, 0.0f,
+                                             1.0f);
+                        }
+                        else
+                        {
+                            ImGui::DragFloat("Alpha", &ColorOverLifeModule->AlphaOverLife.MinValue, 0.01f, 0.0f, 1.0f);
+                        }
                         ImGui::Checkbox("Alpha Use Range", &ColorOverLifeModule->AlphaOverLife.bUseRange);
                     }
                 }
@@ -972,8 +1034,18 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Text("Rotation Settings");
                     ImGui::Separator();
 
-                    ImGui::DragFloat("Start Rotation Min (Radians)", &RotationModule->StartRotation.MinValue, 0.01f, -6.28f, 6.28f);
-                    ImGui::DragFloat("Start Rotation Max (Radians)", &RotationModule->StartRotation.MaxValue, 0.01f, -6.28f, 6.28f);
+                    if (RotationModule->StartRotation.bUseRange)
+                    {
+                        ImGui::DragFloat("Start Rotation Min (Radians)", &RotationModule->StartRotation.MinValue, 0.01f,
+                                         -6.28f, 6.28f);
+                        ImGui::DragFloat("Start Rotation Max (Radians)", &RotationModule->StartRotation.MaxValue, 0.01f,
+                                         -6.28f, 6.28f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Start Rotation (Radians)", &RotationModule->StartRotation.MinValue, 0.01f,
+                                         -6.28f, 6.28f);
+                    }
                     ImGui::Checkbox("Use Range", &RotationModule->StartRotation.bUseRange);
 
                     ImGui::Spacing();
@@ -985,14 +1057,34 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Separator();
 
                     ImGui::Text("Initial Rotation");
-                    ImGui::DragFloat("Initial Rotation Min (Rad)", &RotationRateModule->InitialRotation.MinValue, 0.01f, 0.0f, 6.28318f);
-                    ImGui::DragFloat("Initial Rotation Max (Rad)", &RotationRateModule->InitialRotation.MaxValue, 0.01f, 0.0f, 6.28318f);
+                    if (RotationRateModule->InitialRotation.bUseRange)
+                    {
+                        ImGui::DragFloat("Initial Rotation Min (Rad)", &RotationRateModule->InitialRotation.MinValue,
+                                         0.01f, 0.0f, 6.28318f);
+                        ImGui::DragFloat("Initial Rotation Max (Rad)", &RotationRateModule->InitialRotation.MaxValue,
+                                         0.01f, 0.0f, 6.28318f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Initial Rotation (Rad)", &RotationRateModule->InitialRotation.MinValue, 0.01f,
+                                         0.0f, 6.28318f);
+                    }
                     ImGui::Checkbox("Use Initial Rotation Range", &RotationRateModule->InitialRotation.bUseRange);
 
                     ImGui::Spacing();
                     ImGui::Text("Rotation Speed");
-                    ImGui::DragFloat("Start Rotation Rate Min (Rad/s)", &RotationRateModule->StartRotationRate.MinValue, 0.01f, -10.0f, 10.0f);
-                    ImGui::DragFloat("Start Rotation Rate Max (Rad/s)", &RotationRateModule->StartRotationRate.MaxValue, 0.01f, -10.0f, 10.0f);
+                    if (RotationRateModule->StartRotationRate.bUseRange)
+                    {
+                        ImGui::DragFloat("Start Rotation Rate Min (Rad/s)",
+                                         &RotationRateModule->StartRotationRate.MinValue, 0.01f, -10.0f, 10.0f);
+                        ImGui::DragFloat("Start Rotation Rate Max (Rad/s)",
+                                         &RotationRateModule->StartRotationRate.MaxValue, 0.01f, -10.0f, 10.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Start Rotation Rate (Rad/s)", &RotationRateModule->StartRotationRate.MinValue,
+                                         0.01f, -10.0f, 10.0f);
+                    }
                     ImGui::Checkbox("Use Rotation Rate Range", &RotationRateModule->StartRotationRate.bUseRange);
 
                     ImGui::Spacing();
