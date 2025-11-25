@@ -2195,6 +2195,112 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                     ImGui::PopID();
                                 }
                             }
+
+                            // 빈 공간 우클릭 시 모듈 추가 메뉴
+                            if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+                            {
+                                ImGui::OpenPopup("AddModuleContextMenu");
+                            }
+
+                            // 모듈 추가 컨텍스트 메뉴
+                            if (ImGui::BeginPopup("AddModuleContextMenu"))
+                            {
+                                ImGui::TextDisabled("모듈 추가");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Lifetime"))
+                                {
+                                    LOD->AddModule(UParticleModuleLifetime::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Velocity"))
+                                {
+                                    LOD->AddModule(UParticleModuleVelocity::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Size"))
+                                {
+                                    LOD->AddModule(UParticleModuleSize::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Color"))
+                                {
+                                    LOD->AddModule(UParticleModuleColor::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Location"))
+                                {
+                                    LOD->AddModule(UParticleModuleLocation::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("라이프타임 기반");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Color Over Life"))
+                                {
+                                    LOD->AddModule(UParticleModuleColorOverLife::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Size Multiply Life"))
+                                {
+                                    LOD->AddModule(UParticleModuleSizeMultiplyLife::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("회전");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Rotation"))
+                                {
+                                    LOD->AddModule(UParticleModuleRotation::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Rotation Rate"))
+                                {
+                                    LOD->AddModule(UParticleModuleRotationRate::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("렌더링 타입");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Mesh"))
+                                {
+                                    UParticleModuleMesh* MeshModule = Cast<UParticleModuleMesh>(LOD->AddModule(UParticleModuleMesh::StaticClass()));
+                                    if (MeshModule && SelectedEmitter)
+                                    {
+                                        MeshModule->ApplyToEmitter(SelectedEmitter);
+                                        CurrentParticleSystem->BuildRuntimeCache();
+                                        PreviewComponent->ResetAndActivate();
+                                    }
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("텍스처 애니메이션");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("SubUV"))
+                                {
+                                    LOD->AddModule(UParticleModuleSubUV::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+
+                                ImGui::EndPopup();
+                            }
                         }
                     }
                 }
