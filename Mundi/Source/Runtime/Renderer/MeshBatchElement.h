@@ -68,10 +68,15 @@ struct FMeshBatchElement
 
 	// Sort Priority 용 Int : emitter별 Sort
 	int SortPriority = -1;
+	
+	// --- 4. GPU Instancing 여부 ---
+	bool bInstancedDraw = false;
+	uint32 InstanceCount = 0;
+	uint32 InstanceStart = 0;
+	ID3D11ShaderResourceView* InstancingShaderResourceView = nullptr;
 
 	// --- 기본 생성자 ---
 	FMeshBatchElement() = default;
-
 
 	/**
 	 * @brief FMeshBatchElement 정렬을 위한 'less than' 연산자입니다.

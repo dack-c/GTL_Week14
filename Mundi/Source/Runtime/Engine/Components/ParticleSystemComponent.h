@@ -49,6 +49,7 @@ private:
 
 	// Resource 관리
 	bool EnsureParticleBuffers(uint32 ParticleCapacity);
+	bool EnsureInstanceBuffer(uint32 InstanceCount);
 	void ReleaseParticleBuffers();
 	void ClearEmitterRenderData();
 	
@@ -67,24 +68,15 @@ private:
 	uint32 ParticleIndexCount = 0;
 	UMaterialInterface* FallbackMaterial = nullptr;
 
+	// GPU Instancing
+	ID3D11Buffer* ParticleInstanceBuffer = nullptr;
+	ID3D11ShaderResourceView* ParticleInstanceSRV = nullptr;
+	uint32               InstanceCapacity = 0;
+
+	bool bUseGpuInstancing = true;
+
 	// Settings
 	bool bAutoActivate = true;
 	bool bAutoDestroy = false;
 	int MaxDebugParticles = 10000;
-
-	// Debug
-	struct FDebugMeshParticleState
-	{
-		bool bEnabled = true;
-		bool bInitialized = false;
-
-		float  TimeSeconds = 0.f;
-
-		FVector BaseLocation = FVector(0.f, 0.f, 5.f);
-		FVector Velocity = FVector(0.f, 0.f, 5.f);
-		FVector CurrentLocation = FVector::Zero();
-
-		UStaticMesh* Mesh = nullptr;
-		UMaterialInterface* Material = nullptr;
-	};
 };

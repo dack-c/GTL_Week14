@@ -440,3 +440,11 @@ struct FParticleSpriteVertex
     FLinearColor Color;    // 16 bytes (offset 28)
     float Rotation;        // 4 bytes (offset 44)
 };
+
+struct FParticleInstanceData
+{
+    FVector Position;  
+    FVector2D Size;    
+    FLinearColor Color;
+    float Rotation;
+};
