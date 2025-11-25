@@ -1615,6 +1615,8 @@ void SParticleViewerWindow::OnRender()
 
         // 빈 영역 클릭 감지
         bool bShowContextMenu = false;
+        bool bClickedOnEmitterBlock = false;  // 이미터 블럭 클릭 여부 추적
+        bool bEmitterPanelClicked = false;    // EmitterPanel 좌클릭 여부
         if (ImGui::IsWindowHovered())
         {
             // 우클릭 - 컨텍스트 메뉴
@@ -1622,12 +1624,10 @@ void SParticleViewerWindow::OnRender()
             {
                 bShowContextMenu = true;
             }
-            // 좌클릭 - 선택 해제
+            // 좌클릭 - 나중에 이미터 블럭 외부인지 확인 후 선택 해제
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
             {
-                // 이 플래그는 이미터 블럭을 클릭했는지 추적
-                // 아래에서 이미터 블럭 클릭 시 false로 설정됨
-                SelectedEmitter = nullptr;
+                bEmitterPanelClicked = true;
             }
         }
 
@@ -1717,6 +1717,12 @@ void SParticleViewerWindow::OnRender()
                 const float emitterBlockWidth = 200.0f;
                 ImGui::BeginChild("EmitterBlock", ImVec2(emitterBlockWidth, 0), true);
                 {
+                    // 이미터 블럭 영역 내 클릭 감지
+                    if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                    {
+                        bClickedOnEmitterBlock = true;
+                    }
+
                     // 선택된 이미터인지 확인
                     bool bIsSelected = (SelectedEmitter == Emitter);
 
@@ -1736,6 +1742,12 @@ void SParticleViewerWindow::OnRender()
                     {
                         // 이미터 헤더 클릭 시 선택
                         SelectedEmitter = Emitter;
+                        bClickedOnEmitterBlock = true;
+                    }
+                    // 이미터 블럭 영역 내 클릭 감지 (Selectable 클릭 안해도 블럭 내부면 true)
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                    {
+                        bClickedOnEmitterBlock = true;
                     }
                     ImGui::PopID();
 
@@ -2081,6 +2093,12 @@ void SParticleViewerWindow::OnRender()
         else
         {
             ImGui::TextDisabled("No emitters");
+        }
+
+        // EmitterPanel 빈 영역 클릭 시에만 선택 해제
+        if (bEmitterPanelClicked && !bClickedOnEmitterBlock)
+        {
+            SelectedEmitter = nullptr;
         }
 
         // 컨텍스트 메뉴 (빈 영역 우클릭 시)
