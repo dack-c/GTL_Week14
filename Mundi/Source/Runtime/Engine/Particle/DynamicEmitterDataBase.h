@@ -149,7 +149,12 @@ struct FDynamicSpriteEmitterData : public FDynamicTranslucentEmitterDataBase
         EmitterType = EParticleType::Sprite;
     }
 
-    virtual const FDynamicEmitterReplayDataBase* GetSource() const override
+    ~FDynamicSpriteEmitterData() override
+    {
+        Source.DataContainer.Free();
+    }
+
+    const FDynamicEmitterReplayDataBase* GetSource() const override
     {
         return &Source;
     }
@@ -164,7 +169,12 @@ struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
         EmitterType = EParticleType::Mesh;
     }
 
-    virtual const FDynamicEmitterReplayDataBase* GetSource() const override
+    ~FDynamicMeshEmitterData() override
+    {
+        Source.DataContainer.Free();
+    }
+    
+    const FDynamicEmitterReplayDataBase* GetSource() const override
     {
         return &Source;
     }

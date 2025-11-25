@@ -146,15 +146,6 @@ void FParticleAsyncUpdater::InternalClearRenderData()
     {
         if (Data)
         {
-            if (auto* Sprite = dynamic_cast<FDynamicSpriteEmitterData*>(Data))
-            {
-                Sprite->Source.DataContainer.Free();
-            }
-            else if (auto* Mesh = dynamic_cast<FDynamicMeshEmitterData*>(Data))
-            {
-                Mesh->Source.DataContainer.Free();
-            }
-
             delete Data;
         }
     }
