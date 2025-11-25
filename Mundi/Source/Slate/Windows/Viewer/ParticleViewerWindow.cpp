@@ -18,6 +18,7 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSizeMultiplyLife.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRotation.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRotationRate.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSubUV.h"
 #include "Source/Runtime/Core/Object/ObjectFactory.h"
 #include "Source/Runtime/AssetManagement/ResourceManager.h"
 #include "Source/Runtime/Engine/Components/ParticleSystemComponent.h"
@@ -539,6 +540,31 @@ void SParticleViewerWindow::OnRender()
                         ImGui::NextColumn();
                     }
 
+                    ImGui::Spacing();
+
+                    // SubUV Settings (스프라이트 시트 애니메이션)
+                    {
+                        ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "SubUV (Sprite Sheet)");
+                        ImGui::NextColumn();
+                        ImGui::NextColumn();
+                    }
+
+                    ImGui::Spacing();
+
+                    {
+                        ImGui::Text("SubImages Horizontal");
+                        ImGui::NextColumn();
+                        ImGui::DragInt("##SubImagesH", &RequiredModule->SubImages_Horizontal, 1.0f, 1, 16);
+                        ImGui::NextColumn();
+                    }
+
+                    {
+                        ImGui::Text("SubImages Vertical");
+                        ImGui::NextColumn();
+                        ImGui::DragInt("##SubImagesV", &RequiredModule->SubImages_Vertical, 1.0f, 1, 16);
+                        ImGui::NextColumn();
+                    }
+
                     // 2열 레이아웃 종료
                     ImGui::Columns(1);
                 }
@@ -695,6 +721,33 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Spacing();
                     ImGui::TextDisabled("Tip: PI = 3.14159, 2*PI = 6.28318");
                     ImGui::TextDisabled("Tip: 1 rad/s = ~57 degrees/s");
+                }
+                else if (auto* SubUVModule = Cast<UParticleModuleSubUV>(SelectedModule))
+                {
+                    ImGui::Text("SubUV Animation Settings");
+                    ImGui::Separator();
+
+                    // SubImageIndex 커브 (0~1 범위, 실제로는 곱하기 TotalFrames-1)
+                    ImGui::Text("SubImage Index (0~1)");
+                    ImGui::DragFloat("Index Min", &SubUVModule->SubImageIndex.MinValue, 0.01f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Index Max", &SubUVModule->SubImageIndex.MaxValue, 0.01f, 0.0f, 1.0f);
+                    ImGui::Checkbox("Use Range##SubUV", &SubUVModule->SubImageIndex.bUseRange);
+
+                    ImGui::Spacing();
+
+                    // 보간 방식
+                    const char* InterpMethods[] = { "None", "Linear Blend", "Random", "Random Blend" };
+                    int CurrentMethod = (int)SubUVModule->InterpMethod;
+                    if (ImGui::Combo("Interpolation Method", &CurrentMethod, InterpMethods, IM_ARRAYSIZE(InterpMethods)))
+                    {
+                        SubUVModule->InterpMethod = (ESubUVInterpMethod)CurrentMethod;
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::Checkbox("Use Real Time", &SubUVModule->bUseRealTime);
+
+                    ImGui::Spacing();
+                    ImGui::TextDisabled("Tip: Required 모듈에서 SubImages_Horizontal/Vertical 설정 필요");
                 }
                 else if (auto* MeshModule = Cast<UParticleModuleMesh>(SelectedModule))
                 {
@@ -1356,6 +1409,15 @@ void SParticleViewerWindow::OnRender()
                                             PreviewComponent->ResetAndActivate();
                                         }
                                     }
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("텍스처 애니메이션");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("SubUV"))
+                                {
+                                    LOD->AddModule(UParticleModuleSubUV::StaticClass());
                                 }
 
                                 ImGui::EndPopup();

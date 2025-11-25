@@ -1541,6 +1541,13 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 			SubUVBuffer.InterpMethod = Batch.SubUV_InterpMethod;
 			SubUVBuffer.Padding0 = 0.0f;
 			RHIDevice->SetAndUpdateConstantBuffer(SubUVBuffer);
+
+			static int32 DebugCounter = 0;
+			if (DebugCounter++ % 60 == 0)
+			{
+				UE_LOG("SubUV Constant Buffer: H=%d, V=%d, InterpMethod=%d",
+					SubUVBuffer.SubImages_Horizontal, SubUVBuffer.SubImages_Vertical, SubUVBuffer.InterpMethod);
+			}
 		}
 
 		// 5. 드로우 콜 실행

@@ -525,6 +525,8 @@ void UResourceManager::InitShaderILMap()
                  D3D11_INPUT_PER_VERTEX_DATA, 0 });  // Color : 기존 24는 버그 28이 맞음
     layout.Add({ "TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT,          0, 44,
                  D3D11_INPUT_PER_VERTEX_DATA, 0 });  // Rotation
+    layout.Add({ "TEXCOORD", 3, DXGI_FORMAT_R32_FLOAT,          0, 48,
+                 D3D11_INPUT_PER_VERTEX_DATA, 0 });  // SubImageIndex (SubUV)
     ShaderToInputLayoutMap["Shaders/Effects/ParticleSprite.hlsl"] = layout;
     layout.clear();
 

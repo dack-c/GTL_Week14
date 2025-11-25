@@ -9,7 +9,7 @@
 #include "Source/Runtime/Engine/Particle/ParticleStats.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLocation.h"
-
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSubUV.h"
 // ============================================================================
 // Constructor & Destructor
 // ============================================================================
@@ -279,6 +279,13 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
             {
                 const uint8* ParticleBase = reinterpret_cast<const uint8*>(Particle);
                 SubImageIndex = *reinterpret_cast<const float*>(ParticleBase + Src->SubUVPayloadOffset);
+
+                // 첫 번째 파티클만 디버그 출력
+                static int32 DebugCounter = 0;
+                if (DebugCounter++ % 60 == 0)
+                {
+                    UE_LOG("Vertex Build: SubImageIndex=%f", SubImageIndex);
+                }
             }
 
             // 4개 코너 버텍스 생성

@@ -448,7 +448,7 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             // SubUV 모듈 찾기
             if (CurrentLODLevel)
             {
-                for (auto* Module : CurrentLODLevel->Modules)
+                for (UParticleModule* Module : CurrentLODLevel->UpdateModules)
                 {
                     if (auto* SubUV = Cast<UParticleModuleSubUV>(Module))
                     {
