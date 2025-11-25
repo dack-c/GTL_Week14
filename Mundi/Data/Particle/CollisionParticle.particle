@@ -10,7 +10,7 @@
                     "bEnabled" : true
                   }, {
                     "StartSize_Max" : [10.000000, 10.000000, 10.000000],
-                    "StartSize_Min" : [10.000000, 10.000000, 10.000000],
+                    "StartSize_Min" : [3.000000, 3.000000, 3.000000],
                     "StartSize_bUseRange" : false,
                     "Type" : "Size",
                     "bEnabled" : true

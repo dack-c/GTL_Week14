@@ -16,15 +16,12 @@ void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     if (!ParticleBase)
         return;
 
-    // 랜덤 시드 생성
-    float RandomValue = Owner->GetRandomFloat();
-
     FVector SpawnLocation = FVector(0.0f,0.0f,0.0f);
 
     switch (DistributionType)
     {
     case ELocationDistributionType::Point:
-        SpawnLocation = StartLocation.GetValue(RandomValue);
+        SpawnLocation = StartLocation.GetValue({Owner->GetRandomFloat(), Owner->GetRandomFloat(), Owner->GetRandomFloat()});
         break;
 
     case ELocationDistributionType::Box:
