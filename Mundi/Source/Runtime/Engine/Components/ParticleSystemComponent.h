@@ -50,6 +50,7 @@ private:
 	// sprite, mesh 나눠 BuildBatch
 	void BuildSpriteParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildMeshParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
+	void BuildRibbonParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View);
 	void BuildMeshParticleBatch_Instanced(
 		TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
 		TArray<FMeshBatchElement>& OutMeshBatchElements,
@@ -76,10 +77,12 @@ private:
 
 	// Resource 관리
 	bool EnsureParticleBuffers(uint32 ParticleCapacity);
+	bool EnsureRibbonBuffers(uint32 MaxSpinePoints);
 	bool EnsureInstanceBuffer(uint32 InstanceCount);
-	bool EnsureMeshInstanceBuffer(uint32 InstanceCount);
+	bool EnsureMeshInstanceBuffer(uint32 InstanceCount);	
 	void ReleaseParticleBuffers();
 	void ReleaseInstanceBuffers();
+	void ReleaseRibbonBuffers();
 	
 private:	
 	UPROPERTY(EditAnywhere, Category = "Particle", DisplayName = "파티클 시스템")
@@ -103,6 +106,12 @@ private:
 	ID3D11Buffer* MeshInstanceBuffer = nullptr;
 	ID3D11ShaderResourceView* MeshInstanceSRV = nullptr;
 	uint32               MeshInstanceCapacity = 0;
+
+	// Ribbon Resources
+	ID3D11Buffer* RibbonVertexBuffer = nullptr;
+	ID3D11Buffer* RibbonIndexBuffer = nullptr;
+	uint32 RibbonVertexCapacity = 0;
+	uint32 RibbonIndexCapacity = 0; // 인덱스 개수 용량
 
 	//Async
 	FParticleAsyncUpdater AsyncUpdater;

@@ -1,13 +1,11 @@
+// ParticleRibbon.hlsl
 
-
-// b0: ModelBuffer (VS) - Matches ModelBufferType exactly (128 bytes)
 cbuffer ModelBuffer : register(b0)
 {
-    row_major float4x4 WorldMatrix; // 64 bytes
-    row_major float4x4 WorldInverseTranspose; // 64 bytes - For correct normal transformation
+    row_major float4x4 WorldMatrix;
+    row_major float4x4 WorldInverseTranspose;
 };
 
-// b1: ViewProjBuffer (VS) - Matches ViewProjBufferType
 cbuffer ViewProjBuffer : register(b1)
 {
     row_major float4x4 ViewMatrix;
@@ -16,26 +14,25 @@ cbuffer ViewProjBuffer : register(b1)
     row_major float4x4 InverseProjectionMatrix;
 };
 
-// b2: SubUV Parameters
 cbuffer SubUVBuffer : register(b2)
 {
-    int SubImages_Horizontal;  // NX
-    int SubImages_Vertical;    // NY
-    int InterpMethod;          // 0=None, 1=LinearBlend
-    float Padding0;            // 16바이트 정렬
+    int SubImages_Horizontal; // NX
+    int SubImages_Vertical; // NY
+    int InterpMethod; // 0 = None, 1 = Linear
+    float Padding0;
 };
 
-Texture2D ParticleTex : register(t0);
-SamplerState ParticleSampler : register(s0);
+Texture2D RibbonTex : register(t0);
+SamplerState RibbonSampler : register(s0);
 
 struct VSInput
 {
-    float3 Position : POSITION;
-    float2 Corner : TEXCOORD0;
-    float2 Size : TEXCOORD1;
+    float3 Position : POSITION; // world space position
+    float2 UV : TEXCOORD0; // Corner에 써둔 (U,V)
+    float2 Size : TEXCOORD1; // 사용 안 함
     float4 Color : COLOR0;
-    float Rotation : TEXCOORD2;
-    float SubImageIndex : TEXCOORD3;  // SubUV 애니메이션용 float 프레임 인덱스
+    float Rotation : TEXCOORD2; // 사용 안 함
+    float SubImageIndex : TEXCOORD3;
 };
 
 struct PSInput
@@ -43,54 +40,32 @@ struct PSInput
     float4 Position : SV_POSITION;
     float2 UV : TEXCOORD0;
     float4 Color : COLOR0;
-    float SubImageIndex : TEXCOORD1;  // VS에서 PS로 전달
+    float SubImageIndex : TEXCOORD1;
 };
 
 PSInput mainVS(VSInput In)
 {
     PSInput Out;
 
-    // 카메라 오른쪽/위 벡터를 ViewMatrix에서 추출
-    float3 Right = InverseViewMatrix[0].xyz;
-    float3 Up = InverseViewMatrix[1].xyz;
-    
-    // Rotation 적용: Corner를 회전시킴
-    float cosR = cos(In.Rotation);
-    float sinR = sin(In.Rotation);
-    float2 rotatedCorner;
-    rotatedCorner.x = In.Corner.x * cosR - In.Corner.y * sinR;
-    rotatedCorner.y = In.Corner.x * sinR + In.Corner.y * cosR;
+    float4 WorldPos = float4(In.Position, 1.0f);
+    float4 ViewPos = mul(WorldPos, ViewMatrix);
+    Out.Position = mul(ViewPos, ProjectionMatrix);
 
-    float2 halfSize = In.Size * 0.5f;
-    float3 worldPos =
-        In.Position
-        + Right * rotatedCorner.x * halfSize.x
-        + Up * rotatedCorner.y * halfSize.y;
-
-    float4 viewPos = mul(float4(worldPos, 1.0f), ViewMatrix);
-    float4 projPos = mul(viewPos, ProjectionMatrix);
-
-    Out.Position = projPos;
-    // DirectX는 V가 위에서 아래로 증가하므로 Y(V)를 반전
-    Out.UV = float2(In.Corner.x * 0.5f + 0.5f, -In.Corner.y * 0.5f + 0.5f);
+    Out.UV = In.UV;
     Out.Color = In.Color;
-    Out.SubImageIndex = In.SubImageIndex;  // PS로 전달
-
+    Out.SubImageIndex = In.SubImageIndex;
     return Out;
 }
 
 float4 mainPS(PSInput In) : SV_TARGET
 {
     float2 uv = In.UV;
-
-    // SubUV 활성화 체크 (NX * NY > 1이면 SubUV 사용)
     int TotalFrames = SubImages_Horizontal * SubImages_Vertical;
+
     if (TotalFrames > 1)
     {
-        // float Index를 클램프
         float I = clamp(In.SubImageIndex, 0.0, float(TotalFrames - 1));
 
-        // 보간 없음 (None)
         if (InterpMethod == 0)
         {
             int frame = int(floor(I));
@@ -100,9 +75,8 @@ float4 mainPS(PSInput In) : SV_TARGET
             float2 scale = float2(1.0 / SubImages_Horizontal, 1.0 / SubImages_Vertical);
             float2 offset = float2(tileX, tileY) * scale;
 
-            uv = In.UV * scale + offset;
+            uv = uv * scale + offset;
         }
-        // LinearBlend (두 프레임 보간)
         else if (InterpMethod == 1)
         {
             int frame0 = int(floor(I));
@@ -139,15 +113,11 @@ float4 mainPS(PSInput In) : SV_TARGET
         }
     }
 
-    // 일반 샘플링 (SubUV 없거나 None 방식)
-    float4 tex = ParticleTex.Sample(ParticleSampler, uv);
-    float4 color = tex * In.Color;
+    float4 tex = RibbonTex.Sample(RibbonSampler, uv);
+    float4 col = tex * In.Color;
 
-    // 알파 또는 검은색에 가까우면 discard
-    if (color.a < 0.01 || (color.r < 0.005 && color.g < 0.005 && color.b < 0.005))
-    {
+    if (col.a < 0.01f)
         discard;
-    }
-    
-    return color;
+
+    return col;
 }
