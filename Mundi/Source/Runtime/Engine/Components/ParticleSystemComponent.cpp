@@ -32,6 +32,7 @@ UParticleSystemComponent::~UParticleSystemComponent()
 {
     DestroyParticles();
     ReleaseParticleBuffers();
+    ReleaseInstanceBuffers();
 }
 
 // ============================================================================
@@ -521,6 +522,21 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
 
 void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
 {
+	if (EmitterRenderData.IsEmpty())
+		return;
+
+	if (bUseGpuInstancing)
+	{
+		BuildMeshParticleBatch_Instanced(EmitterRenderData, OutMeshBatchElements, View);
+	}
+	else
+	{
+		BuildMeshParticleBatch_Immediate(EmitterRenderData, OutMeshBatchElements, View);
+	}
+}
+
+void UParticleSystemComponent::BuildMeshParticleBatch_Immediate(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
+{
     if (EmitterRenderData.IsEmpty())
         return;
 
@@ -591,11 +607,11 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
 
         TArray<int32> SortIndices;
         MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
+		const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
 
-        for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
-        {
-            const int32 ParticleIdx = bUseSortIndices ? MeshData->AsyncSortedIndices[LocalIdx] : LocalIdx;
+		for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
+		{
+			const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
             const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
             if (!Particle)
                 continue;
@@ -627,9 +643,217 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
             Batch.BaseVertexIndex = 0;
             Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
             Batch.WorldMatrix = ParticleWorld;
-            Batch.ObjectID = InternalIndex;
-        }
-    }
+			Batch.ObjectID = InternalIndex;
+		}
+	}
+}
+
+void UParticleSystemComponent::BuildMeshParticleBatch_Instanced(
+	TArray<FDynamicEmitterDataBase*>& EmitterRenderData,
+	TArray<FMeshBatchElement>& OutMeshBatchElements,
+	const FSceneView* View)
+{
+	uint32 TotalParticles = 0;
+	for (FDynamicEmitterDataBase* Base : EmitterRenderData)
+	{
+		if (!Base || Base->EmitterType != EParticleType::Mesh)
+			continue;
+
+		const auto* Src = static_cast<const FDynamicMeshEmitterReplayData*>(Base->GetSource());
+		if (Src)
+		{
+			TotalParticles += static_cast<uint32>(Src->ActiveParticleCount);
+		}
+	}
+
+	if (TotalParticles == 0)
+	{
+		return;
+	}
+
+	const uint32 ClampedCount = MaxDebugParticles > 0
+		? std::min<uint32>(TotalParticles, static_cast<uint32>(MaxDebugParticles))
+		: TotalParticles;
+
+	if (!EnsureMeshInstanceBuffer(ClampedCount))
+	{
+		return;
+	}
+
+	D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+	ID3D11DeviceContext* Context = RHIDevice ? RHIDevice->GetDeviceContext() : nullptr;
+	if (!Context)
+	{
+		return;
+	}
+
+	D3D11_MAPPED_SUBRESOURCE Mapped = {};
+	if (FAILED(Context->Map(MeshInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
+	{
+		return;
+	}
+
+	FMeshParticleInstanceData* Instances = reinterpret_cast<FMeshParticleInstanceData*>(Mapped.pData);
+
+	struct FMeshInstancedCommand
+	{
+		FDynamicMeshEmitterData* MeshData = nullptr;
+		UStaticMesh* StaticMesh = nullptr;
+		FShaderVariant* ShaderVariant = nullptr;
+		UMaterialInterface* Material = nullptr;
+		uint32 StartInstance = 0;
+		uint32 InstanceCount = 0;
+		int SortPriority = -1;
+	};
+
+	TArray<FMeshInstancedCommand> Commands;
+	uint32 WrittenInstances = 0;
+	const FMatrix ComponentWorld = GetWorldMatrix();
+	const FVector ViewOrigin = View ? View->ViewLocation : FVector::Zero();
+	FVector ViewDir = FVector(1, 0, 0);
+	if (View)
+	{
+		ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
+	}
+
+	for (FDynamicEmitterDataBase* Base : EmitterRenderData)
+	{
+		if (!Base || Base->EmitterType != EParticleType::Mesh)
+			continue;
+
+		auto* MeshData = static_cast<FDynamicMeshEmitterData*>(Base);
+		const auto* Src = static_cast<const FDynamicMeshEmitterReplayData*>(MeshData->GetSource());
+		if (!Src || !Src->Mesh || Src->ActiveParticleCount <= 0)
+			continue;
+
+		UStaticMesh* StaticMesh = Src->Mesh;
+		ID3D11Buffer* MeshVB = StaticMesh->GetVertexBuffer();
+		ID3D11Buffer* MeshIB = StaticMesh->GetIndexBuffer();
+		const uint32 MeshIndexCount = StaticMesh->GetIndexCount();
+		const uint32 MeshVertexStride = StaticMesh->GetVertexStride();
+		if (!MeshVB || !MeshIB || MeshIndexCount == 0)
+		{
+			UE_LOG("[BuildMeshParticleBatch] Mesh %s has invalid buffers",
+				StaticMesh->GetName().c_str());
+			continue;
+		}
+
+		TArray<FShaderMacro> ShaderMacros = View ? View->ViewShaderMacros : TArray<FShaderMacro>();
+		ShaderMacros.Add(FShaderMacro("PARTICLE_LIGHTING", Src->bLighting ? "1" : "0"));
+		ShaderMacros.Add(FShaderMacro("PARTICLE_MESH_INSTANCING", "1"));
+
+		UMaterial* ParticleMeshMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleMesh.hlsl");
+		if (!ParticleMeshMaterial || !ParticleMeshMaterial->GetShader())
+		{
+			UE_LOG("[BuildMeshParticleBatch] Failed to load ParticleMesh shader");
+			continue;
+		}
+		ShaderMacros.Append(ParticleMeshMaterial->GetShaderMacros());
+		FShaderVariant* ShaderVariant = ParticleMeshMaterial->GetShader()->GetOrCompileShaderVariant(ShaderMacros);
+		if (!ShaderVariant)
+		{
+			UE_LOG("[BuildMeshParticleBatch] Failed to compile ParticleMesh shader variant");
+			continue;
+		}
+
+		UMaterialInterface* Material = ResolveEmitterMaterial(*MeshData);
+		const uint32 StartInstance = WrittenInstances;
+
+		TArray<int32> SortIndices;
+		MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
+		const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
+
+		for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
+		{
+			if (WrittenInstances >= ClampedCount)
+			{
+				break;
+			}
+
+			const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+			const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
+			if (!Particle)
+			{
+				continue;
+			}
+
+			FMeshParticleInstanceData& Instance = Instances[WrittenInstances++];
+			FQuat RotationQuat = FQuat::FromAxisAngle(FVector(0.0f, 0.0f, 1.0f), Particle->Rotation);
+			FTransform ParticleTransform(Particle->Location, RotationQuat, Particle->Size);
+			FMatrix ParticleWorld = ParticleTransform.ToMatrix();
+			if (MeshData->bUseLocalSpace)
+			{
+				ParticleWorld = ParticleWorld * ComponentWorld;
+			}
+
+			Instance.WorldMatrix = ParticleWorld;
+			Instance.WorldInverseTranspose = ParticleWorld.InverseAffine().Transpose();
+			Instance.Color = Particle->Color;
+		}
+
+		const uint32 InstancesWritten = WrittenInstances - StartInstance;
+		if (InstancesWritten > 0)
+		{
+			FMeshInstancedCommand Cmd;
+			Cmd.MeshData = MeshData;
+			Cmd.StaticMesh = StaticMesh;
+			Cmd.ShaderVariant = ShaderVariant;
+			Cmd.Material = Material;
+			Cmd.StartInstance = StartInstance;
+			Cmd.InstanceCount = InstancesWritten;
+			Cmd.SortPriority = MeshData->SortPriority;
+			Commands.Add(Cmd);
+		}
+
+		if (WrittenInstances >= ClampedCount)
+		{
+			break;
+		}
+	}
+
+	Context->Unmap(MeshInstanceBuffer, 0);
+
+	if (Commands.IsEmpty())
+	{
+		return;
+	}
+
+	for (const FMeshInstancedCommand& Cmd : Commands)
+	{
+		if (!Cmd.ShaderVariant || !Cmd.StaticMesh)
+		{
+			continue;
+		}
+
+		ID3D11Buffer* MeshVB = Cmd.StaticMesh->GetVertexBuffer();
+		ID3D11Buffer* MeshIB = Cmd.StaticMesh->GetIndexBuffer();
+		const uint32 MeshIndexCount = Cmd.StaticMesh->GetIndexCount();
+		const uint32 MeshVertexStride = Cmd.StaticMesh->GetVertexStride();
+		if (!MeshVB || !MeshIB || MeshIndexCount == 0)
+		{
+			continue;
+		}
+
+		FMeshBatchElement& Batch = OutMeshBatchElements[OutMeshBatchElements.Add(FMeshBatchElement())];
+		Batch.VertexShader = Cmd.ShaderVariant->VertexShader;
+		Batch.PixelShader = Cmd.ShaderVariant->PixelShader;
+		Batch.InputLayout = Cmd.ShaderVariant->InputLayout;
+		Batch.Material = Cmd.Material;
+		Batch.VertexBuffer = MeshVB;
+		Batch.IndexBuffer = MeshIB;
+		Batch.VertexStride = MeshVertexStride;
+		Batch.IndexCount = MeshIndexCount;
+		Batch.StartIndex = 0;
+		Batch.BaseVertexIndex = 0;
+		Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		Batch.WorldMatrix = FMatrix::Identity();
+		Batch.ObjectID = InternalIndex;
+		Batch.SortPriority = Cmd.SortPriority;
+		Batch.InstanceCount = Cmd.InstanceCount;
+		Batch.InstanceStart = Cmd.StartInstance;
+		Batch.bInstancedDraw = true;
+		Batch.InstancingShaderResourceView = MeshInstanceSRV;
+	}
 }
 
 // ============================================================================
@@ -804,6 +1028,79 @@ bool UParticleSystemComponent::EnsureInstanceBuffer(uint32 InstanceCount)
 
     InstanceCapacity = InstanceCount;
     return true;
+}
+
+bool UParticleSystemComponent::EnsureMeshInstanceBuffer(uint32 InstanceCount)
+{
+    if (InstanceCount == 0)
+        return false;
+
+    if (MeshInstanceBuffer && InstanceCount <= MeshInstanceCapacity)
+        return true;
+
+    if (MeshInstanceSRV) { MeshInstanceSRV->Release(); MeshInstanceSRV = nullptr; }
+    if (MeshInstanceBuffer) { MeshInstanceBuffer->Release(); MeshInstanceBuffer = nullptr; }
+    MeshInstanceCapacity = 0;
+
+    D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+    ID3D11Device* Device = RHIDevice ? RHIDevice->GetDevice() : nullptr;
+    if (!Device) return false;
+
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = sizeof(FMeshParticleInstanceData) * InstanceCount;
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    desc.StructureByteStride = sizeof(FMeshParticleInstanceData);
+
+    if (FAILED(Device->CreateBuffer(&desc, nullptr, &MeshInstanceBuffer)))
+        return false;
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = InstanceCount;
+
+    if (FAILED(Device->CreateShaderResourceView(MeshInstanceBuffer, &srvDesc, &MeshInstanceSRV)))
+    {
+        MeshInstanceBuffer->Release();
+        MeshInstanceBuffer = nullptr;
+        return false;
+    }
+
+    MeshInstanceCapacity = InstanceCount;
+    return true;
+}
+
+void UParticleSystemComponent::ReleaseInstanceBuffers()
+{
+    if (ParticleInstanceSRV)
+    {
+        ParticleInstanceSRV->Release();
+        ParticleInstanceSRV = nullptr;
+    }
+
+    if (ParticleInstanceBuffer)
+    {
+        ParticleInstanceBuffer->Release();
+        ParticleInstanceBuffer = nullptr;
+    }
+    InstanceCapacity = 0;
+
+    if (MeshInstanceSRV)
+    {
+        MeshInstanceSRV->Release();
+        MeshInstanceSRV = nullptr;
+    }
+
+    if (MeshInstanceBuffer)
+    {
+        MeshInstanceBuffer->Release();
+        MeshInstanceBuffer = nullptr;
+    }
+    MeshInstanceCapacity = 0;
 }
 
 void UParticleSystemComponent::ReleaseParticleBuffers()
