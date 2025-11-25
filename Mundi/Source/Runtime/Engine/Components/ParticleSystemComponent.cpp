@@ -1,7 +1,11 @@
 ﻿#include "pch.h"
 #include "ParticleSystemComponent.h"
+
+#include "CameraActor.h"
 #include "MeshBatchElement.h"
 #include "PlatformTime.h"
+#include "PlayerCameraManager.h"
+#include "RenderManager.h"
 #include "SceneView.h"
 #include "Source/Runtime/Engine/Particle/DynamicEmitterDataBase.h"
 #include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
@@ -114,6 +118,11 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     Context.ComponentRotation = GetWorldRotation();
     Context.bIsActive = bIsActive;
     Context.bSuppressSpawning = bSuppressSpawning;
+    Context.ComponentWorldMatrix = GetWorldMatrix();
+    
+    UCameraComponent* Camera = GWorld->GetWorldCamera();
+    Context.CameraLocation = Camera ? Camera->GetWorldLocation() : FVector();
+    Context.CameraRotation = Camera ? Camera->GetWorldRotation() : FQuat();
 
     if (bUseAsyncSimulation)
     {
@@ -248,17 +257,12 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
 
         const uint32 StartParticle = WrittenParticles;
 
-        // 파티클 정렬
-        TArray<int32> SortIndices;
-        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
         // 파티클 순회하며 버텍스 생성
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
             if (WrittenParticles >= ClampedCount) break;
 
-            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const int32 ParticleIdx = SpriteData->AsyncSortedIndices[LocalIdx];;
             const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
             if (!Particle) continue;
 
@@ -430,14 +434,10 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
 
         // 파티클 정렬
         const FMatrix ComponentWorld = GetWorldMatrix();
-
-        TArray<int32> SortIndices;
-        MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
+        
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
-            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const int32 ParticleIdx = MeshData->AsyncSortedIndices[LocalIdx];
             const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
             if (!Particle)
                 continue;

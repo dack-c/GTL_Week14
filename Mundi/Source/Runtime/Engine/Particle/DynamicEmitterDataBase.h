@@ -43,7 +43,8 @@ struct FDynamicEmitterDataBase {
     float SoftFadeDistance = 50.0f; // 투명 파티클 정렬 기준 
     
     EParticleSortMode SortMode = EParticleSortMode::None; 
-    int32 SortPriority = 0; // Emitter 우선순위 
+    int32 SortPriority = 0; // Emitter 우선순위
+    TArray<int32> AsyncSortedIndices;
     
     virtual ~FDynamicEmitterDataBase() = default; 
     
@@ -66,6 +67,7 @@ struct FDynamicTranslucentEmitterDataBase : public FDynamicEmitterDataBase
             return;
 
         // 인덱스 초기화
+        OutIndices.Empty();
         OutIndices.SetNum(Num);
         for (int32 i = 0; i < Num; ++i)
             OutIndices[i] = i;

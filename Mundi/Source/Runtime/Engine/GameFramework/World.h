@@ -98,6 +98,7 @@ public:
     FLightManager* GetLightManager() const { return LightManager.get(); }
     FLuaManager* GetLuaManager() const { return LuaManager.get(); }
 
+    class UCameraComponent* GetWorldCamera(); 
     ACameraActor* GetEditorCameraActor() { return MainEditorCameraActor; }
     void SetEditorCameraActor(ACameraActor* InCamera);
 

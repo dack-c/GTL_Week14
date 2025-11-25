@@ -54,7 +54,7 @@
                   "Material" : "Ch06_body1",
                   "MaxParticles" : 1000,
                   "ScreenAlignment" : 0,
-                  "SortMode" : 3,
+                  "SortMode" : 2,
                   "SpawnRateBase" : 10.000000,
                   "bKillOnCompleted" : false,
                   "bKillOnDeactivate" : true,

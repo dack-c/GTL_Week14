@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "ParticleAsyncUpdater.h"
 
+#include "PlatformTime.h"
+
 FParticleAsyncUpdater::~FParticleAsyncUpdater()
 {
     if (TaskHandle.valid()) TaskHandle.wait();
@@ -83,12 +85,16 @@ bool FParticleAsyncUpdater::IsBusy() const
 
 FAsyncSimulationResult FParticleAsyncUpdater::DoSimulationWork(const TArray<FParticleEmitterInstance*>& Instances, const FParticleSimulationContext& Context)
 {
+    TIME_PROFILE(Particle_Simulation)
     FAsyncSimulationResult Result;
         
     // 통계 초기화
     Result.Stats.bAllEmittersComplete = true;
     Result.Stats.TotalActiveParticles = 0;
     Result.Stats.bHasActiveParticles = false;
+
+    const FVector ViewOrigin = Context.CameraLocation; // 혹은 Context.CameraLocation (별도 추가 권장)
+    const FVector ViewDir = Context.CameraRotation.ToEulerZYXDeg(); // 혹은 Context.CameraForward
 
     for (int32 Idx = 0; Idx < Instances.Num(); ++Idx)
     {
@@ -117,6 +123,16 @@ FAsyncSimulationResult FParticleAsyncUpdater::DoSimulationWork(const TArray<FPar
         if (EmitterData)
         {
             EmitterData->EmitterIndex = Idx;
+            if (EmitterData->EmitterType == EParticleType::Sprite)
+            {
+                auto* SpriteData = static_cast<FDynamicSpriteEmitterData*>(EmitterData);
+                SpriteData->SortParticles(ViewOrigin, ViewDir, Context.ComponentWorldMatrix, SpriteData->AsyncSortedIndices);
+            }
+            else if (EmitterData->EmitterType == EParticleType::Mesh)
+            {
+                auto* MeshData = static_cast<FDynamicMeshEmitterData*>(EmitterData);
+                MeshData->SortParticles(ViewOrigin, ViewDir, Context.ComponentWorldMatrix, MeshData->AsyncSortedIndices);
+            }
             Result.RenderData.Add(EmitterData);
         }
     }
