@@ -7,15 +7,14 @@
 
 // 조명 모델 선택
 // #define LIGHTING_MODEL_PHONG 1
-// #define PARTICLE_LIGHTING 1  // 0이면 Unlit, 1이면 조명 적용
 
 #ifndef PARTICLE_LIGHTING
-#define PARTICLE_LIGHTING 1  // 기본값: 조명 적용
+#define PARTICLE_LIGHTING 0  // 기본값: 조명 비적용
 #endif
 
-// Material 구조체
 #define PARTICLE_MESH_INSTANCING 0
 
+// Material 구조체
 struct FMaterial
 {
     float3 DiffuseColor;
@@ -175,11 +174,11 @@ PS_OUTPUT mainPS(PS_INPUT Input)
     float4 baseColor = Input.Color;
     if (bHasTexture)
     {
-        baseColor.rgb = texColor.rgb;
+        baseColor*= texColor;
     }
     else if (bHasMaterial)
     {
-        baseColor.rgb = Material.DiffuseColor;
+        baseColor.rgb *= Material.DiffuseColor;
     }
 
 #if PARTICLE_LIGHTING
@@ -284,7 +283,6 @@ PS_OUTPUT mainPS(PS_INPUT Input)
     // ========================================================================
     // Unlit 경로 (조명 없음)
     // ========================================================================
-    
     float4 finalPixel = baseColor;
 
     // 자체발광 추가
