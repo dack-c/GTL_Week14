@@ -108,12 +108,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);ThirdParty\Lua\lib\$(Configuration)\;ThirdParty\DirectXTex\lib\$(Configuration)\;ThirdParty\FBXSDK\lib\$(Configuration)\;ThirdParty\DirectXTK\lib\$(Configuration)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>DirectXTK.lib;DirectXTex.lib;%(AdditionalDependencies);Lua.lib;libfbxsdk-md.lib;alembic-md.lib;libxml2-md.lib;zlib-md.lib</AdditionalDependencies>
-      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/IGNORE:4099 /SOURCELINK:"$(IntDir)sourcelink.json" %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PreBuildEvent>
-      <Command>"$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"</Command>
-      <Message>[CodeGen] Generating Lua binding code...</Message>
-    </PreBuildEvent>
+      <PreBuildEvent>
+          <Command>
+              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+
+              powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
+          </Command>
+          <Message>[CodeGen &amp; SourceLink] Generating code and source link json...</Message>
+      </PreBuildEvent>
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
           xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\$(Configuration)\lua.dll" "$(OutDir)"
@@ -139,12 +143,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);ThirdParty\Lua\lib\Debug\;ThirdParty\DirectXTex\lib\Debug\;ThirdParty\DirectXTK\lib\Debug\;ThirdParty\FBXSDK\lib\Debug\</AdditionalLibraryDirectories>
       <AdditionalDependencies>DirectXTK.lib;DirectXTex.lib;%(AdditionalDependencies);Lua.lib;libfbxsdk-md.lib;alembic-md.lib;libxml2-md.lib;zlib-md.lib</AdditionalDependencies>
-      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/IGNORE:4099 /SOURCELINK:"$(IntDir)sourcelink.json" %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PreBuildEvent>
-      <Command>"$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"</Command>
-      <Message>[CodeGen] Generating Lua binding code...</Message>
-    </PreBuildEvent>
+      <PreBuildEvent>
+          <Command>
+              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+
+              powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
+          </Command>
+          <Message>[CodeGen &amp; SourceLink] Generating code and source link json...</Message>
+      </PreBuildEvent>
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Debug\libfbxsdk.dll" "$(OutDir)"
             xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\Debug\lua.dll" "$(OutDir)"
@@ -174,12 +182,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);ThirdParty\Lua\lib\$(Configuration)\;ThirdParty\DirectXTex\lib\$(Configuration)\;ThirdParty\FBXSDK\lib\$(Configuration)\;ThirdParty\DirectXTK\lib\$(Configuration)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>DirectXTK.lib;DirectXTex.lib;%(AdditionalDependencies);Lua.lib;libfbxsdk-md.lib;alembic-md.lib;libxml2-md.lib;zlib-md.lib</AdditionalDependencies>
-      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/IGNORE:4099 /SOURCELINK:"$(IntDir)sourcelink.json" %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PreBuildEvent>
-      <Command>"$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"</Command>
-      <Message>[CodeGen] Generating Lua binding code...</Message>
-    </PreBuildEvent>
+      <PreBuildEvent>
+          <Command>
+              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+
+              powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
+          </Command>
+          <Message>[CodeGen &amp; SourceLink] Generating code and source link json...</Message>
+      </PreBuildEvent>
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
                 xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\$(Configuration)\lua.dll" "$(OutDir)"
@@ -209,12 +221,15 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);ThirdParty\Lua\lib\Release\;ThirdParty\DirectXTex\lib\Release\;ThirdParty\FBXSDK\lib\Release\;ThirdParty\DirectXTK\lib\Release\</AdditionalLibraryDirectories>
       <AdditionalDependencies>DirectXTK.lib;DirectXTex.lib;%(AdditionalDependencies);Lua.lib;libfbxsdk-md.lib;alembic-md.lib;libxml2-md.lib;zlib-md.lib</AdditionalDependencies>
-      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
-    </Link>
-    <PreBuildEvent>
-      <Command>"$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"</Command>
-      <Message>[CodeGen] Generating Lua binding code...</Message>
-    </PreBuildEvent>
+      <AdditionalOptions>/IGNORE:4099 /SOURCELINK:"$(IntDir)sourcelink.json" %(AdditionalOptions)</AdditionalOptions>
+    </Link><PreBuildEvent>
+      <Command>
+          call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+
+          powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
+      </Command>
+      <Message>[CodeGen &amp; SourceLink] Generating code and source link json...</Message>
+  </PreBuildEvent>
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Release\libfbxsdk.dll" "$(OutDir)"
             xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\Release\lua.dll" "$(OutDir)"
