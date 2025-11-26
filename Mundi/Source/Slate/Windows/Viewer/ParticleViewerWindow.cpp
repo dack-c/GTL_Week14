@@ -582,6 +582,10 @@ void SParticleViewerWindow::OnRender()
                     // Blend Mode
                     {
                         ImGui::Text("Blend Mode");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("파티클 블렌딩 모드\n- Opaque: 불투명\n- Masked: 알파 마스크\n- Translucent: 반투명\n- Additive: 가산 혼합 (빛나는 효과)\n- Modulate: 곱하기 혼합\n- Alpha: 알파 블렌딩");
+                        }
                         ImGui::NextColumn();
 
                         const char* blendModes[] = { "Opaque", "Masked", "Translucent", "Additive", "Modulate", "Alpha" };
@@ -609,6 +613,10 @@ void SParticleViewerWindow::OnRender()
                     // Screen Alignment
                     {
                         ImGui::Text("Screen Alignment");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("파티클의 화면 정렬 방식\n- Camera Facing: 항상 카메라를 향함 (빌보드)\n- Velocity: 이동 방향으로 정렬 (연기 꼬리 등)");
+                        }
                         ImGui::NextColumn();
 
                         const char* screenAlignments[] = { "Camera Facing", "Velocity" };
@@ -636,6 +644,10 @@ void SParticleViewerWindow::OnRender()
                     // Sort Mode
                     {
                         ImGui::Text("Sort Mode");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("파티클 정렬 방식 (반투명 렌더링 순서)\n- None: 정렬 안함 (빠름)\n- By Distance: 카메라와의 거리순\n- By Age: 생성 순서 (오래된 순)\n- By View Depth: 뷰 깊이 순");
+                        }
                         ImGui::NextColumn();
 
                         // EParticleSortMode 순서와 맞출 것!
@@ -661,9 +673,13 @@ void SParticleViewerWindow::OnRender()
 
                     ImGui::Spacing();
 
-                    // Emitter 별 Priority 
+                    // Emitter 별 Priority
                     {
                         ImGui::Text("Emitter Sort Priority");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("에미터 렌더링 우선순위\n낮은 값이 먼저 렌더링됩니다.\n여러 에미터 간의 렌더링 순서 조절에 사용.");
+                        }
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
                         ImGui::DragInt("##SortPriority", &RequiredModule->SortPriority, 1, 1, 10000);
@@ -675,6 +691,10 @@ void SParticleViewerWindow::OnRender()
                     // Max Particles
                     {
                         ImGui::Text("Max Particles");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("동시에 존재할 수 있는 최대 파티클 수\n성능과 메모리 사용량에 직접적인 영향.\n너무 높으면 성능 저하, 너무 낮으면 파티클이 잘림.");
+                        }
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
                         ImGui::DragInt("##MaxParticles", &RequiredModule->MaxParticles, 1, 1, 10000);
@@ -686,6 +706,10 @@ void SParticleViewerWindow::OnRender()
                     // Emitter Duration
                     {
                         ImGui::Text("Emitter Duration");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("에미터의 총 재생 시간 (초)\n이 시간 동안 파티클을 생성합니다.\n0 = 무한 재생 (수동으로 정지할 때까지)");
+                        }
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
                         ImGui::DragFloat("##EmitterDuration", &RequiredModule->EmitterDuration, 0.01f, 0.0f, 100.0f);
@@ -697,6 +721,10 @@ void SParticleViewerWindow::OnRender()
                     // Emitter Delay
                     {
                         ImGui::Text("Emitter Delay");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("에미터 시작 지연 시간 (초)\n파티클 시스템 활성화 후\n이 시간이 지나야 파티클 생성 시작.");
+                        }
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
                         ImGui::DragFloat("##EmitterDelay", &RequiredModule->EmitterDelay, 0.01f, 0.0f, 10.0f);
@@ -708,6 +736,10 @@ void SParticleViewerWindow::OnRender()
                     // Emitter Loops
                     {
                         ImGui::Text("Emitter Loops");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("에미터 반복 횟수\n0 = 무한 반복\n1 = 한 번만 재생 (One-Shot 효과)\nN = N번 반복 후 정지");
+                        }
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
                         ImGui::DragInt("##EmitterLoops", &RequiredModule->EmitterLoops, 1.0f, 0, 100);
@@ -719,6 +751,10 @@ void SParticleViewerWindow::OnRender()
                     // Spawn Rate Base
                     {
                         ImGui::Text("Spawn Rate Base");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("기본 스폰 비율 (초당 파티클 수)\nSpawn 모듈의 Rate와 곱해져서 최종 스폰률 결정.\n기본 베이스 라인으로 사용됩니다.");
+                        }
                         ImGui::NextColumn();
                         ImGui::SetNextItemWidth(-1);
                         ImGui::DragFloat("##SpawnRateBase", &RequiredModule->SpawnRateBase, 0.1f, 0.0f, 1000.0f);
@@ -730,6 +766,10 @@ void SParticleViewerWindow::OnRender()
                     // Use Local Space
                     {
                         ImGui::Text("Use Local Space");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("파티클 좌표계 설정\n- Local: 액터를 따라다님 (로켓 엔진, 꼬리 효과)\n- World: 생성 위치에 고정 (폭발, 연기)");
+                        }
                         ImGui::NextColumn();
 
                         if (ImGui::Checkbox("##UseLocalSpace", &RequiredModule->bUseLocalSpace))
@@ -745,8 +785,8 @@ void SParticleViewerWindow::OnRender()
                         if (ImGui::IsItemHovered())
                         {
                             ImGui::SetTooltip(RequiredModule->bUseLocalSpace
-                                ? "Local Space: Particles follow the actor (e.g., rocket engine)"
-                                : "World Space: Particles stay in place after spawn (e.g., explosion)");
+                                ? "Local Space: 파티클이 액터를 따라다닙니다 (예: 로켓 엔진)"
+                                : "World Space: 파티클이 생성 위치에 고정됩니다 (예: 폭발)");
                         }
 
                         ImGui::NextColumn();
@@ -757,6 +797,10 @@ void SParticleViewerWindow::OnRender()
                     // Kill On Deactivate
                     {
                         ImGui::Text("Kill On Deactivate");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("에미터 비활성화 시 기존 파티클 즉시 제거\n체크: 즉시 사라짐\n해제: 남은 수명까지 유지");
+                        }
                         ImGui::NextColumn();
                         ImGui::Checkbox("##KillOnDeactivate", &RequiredModule->bKillOnDeactivate);
                         ImGui::NextColumn();
@@ -767,6 +811,10 @@ void SParticleViewerWindow::OnRender()
                     // Kill On Completed
                     {
                         ImGui::Text("Kill On Completed");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("에미터 Duration 완료 시 파티클 즉시 제거\n체크: Duration 끝나면 모든 파티클 즉시 제거\n해제: 이미 생성된 파티클은 수명 다할 때까지 유지");
+                        }
                         ImGui::NextColumn();
                         ImGui::Checkbox("##KillOnCompleted", &RequiredModule->bKillOnCompleted);
                         ImGui::NextColumn();
@@ -777,6 +825,10 @@ void SParticleViewerWindow::OnRender()
                     // SubUV Settings (스프라이트 시트 애니메이션)
                     {
                         ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "SubUV (Sprite Sheet)");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("스프라이트 시트 애니메이션 설정\n하나의 텍스처에 여러 프레임을 배치하여\n애니메이션 효과를 만듭니다.\nSubUV 모듈과 함께 사용됩니다.");
+                        }
                         ImGui::NextColumn();
                         ImGui::NextColumn();
                     }
@@ -785,6 +837,10 @@ void SParticleViewerWindow::OnRender()
 
                     {
                         ImGui::Text("SubImages Horizontal");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("스프라이트 시트의 가로 분할 수\n텍스처가 가로로 몇 개의 프레임으로 나뉘는지 설정.");
+                        }
                         ImGui::NextColumn();
                         ImGui::DragInt("##SubImagesH", &RequiredModule->SubImages_Horizontal, 1.0f, 1, 16);
                         ImGui::NextColumn();
@@ -792,6 +848,10 @@ void SParticleViewerWindow::OnRender()
 
                     {
                         ImGui::Text("SubImages Vertical");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("스프라이트 시트의 세로 분할 수\n텍스처가 세로로 몇 개의 프레임으로 나뉘는지 설정.\n총 프레임 수 = Horizontal x Vertical");
+                        }
                         ImGui::NextColumn();
                         ImGui::DragInt("##SubImagesV", &RequiredModule->SubImages_Vertical, 1.0f, 1, 16);
                         ImGui::NextColumn();
@@ -806,9 +866,15 @@ void SParticleViewerWindow::OnRender()
                     ImGui::Separator();
 
                     // --- 1. Spawn Mode Selection ---
+                    ImGui::Text("Rate Type");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클 생성 방식\n- Constant: 초당 일정 수 연속 생성\n- Curve (Over Time): 시간에 따라 생성률 변화\n- Burst: 특정 시점에 한꺼번에 생성");
+                    }
+                    ImGui::SameLine();
                     const char* SpawnTypes[] = {"Constant (Continuous)", "Curve (Over Time)", "Burst"};
                     int CurrentType = static_cast<int>(SpawnModule->SpawnRateType);
-                    if (ImGui::Combo("Rate Type", &CurrentType, SpawnTypes, IM_ARRAYSIZE(SpawnTypes)))
+                    if (ImGui::Combo("##RateType", &CurrentType, SpawnTypes, IM_ARRAYSIZE(SpawnTypes)))
                     {
                         SpawnModule->SpawnRateType = static_cast<ESpawnRateType>(CurrentType);
                     }
@@ -853,10 +919,20 @@ void SParticleViewerWindow::OnRender()
                     // --- 2. Rate Configuration (타입에 따라 다른 변수 노출) ---
                     if (SpawnModule->SpawnRateType == ESpawnRateType::Constant)
                     {
+                        ImGui::Text("Spawn Rate (Per Second)");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("초당 생성할 파티클 수\n예: 10 = 초당 10개 파티클 생성\nRange 체크 시 Min~Max 사이 랜덤 값 사용");
+                        }
                         DrawFloatDist("Spawn Rate (Per Second)", SpawnModule->SpawnRate);
                     }
                     else if (SpawnModule->SpawnRateType == ESpawnRateType::OverTime) // OverTime
                     {
+                        ImGui::Text("Spawn Rate (Scale Over Life)");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("시간에 따른 스폰 비율 스케일\n에미터 Duration 동안 생성률 변화\n기본 SpawnRateBase에 곱해짐");
+                        }
                         DrawFloatDist("Spawn Rate (Scale Over Life)", SpawnModule->SpawnRateOverTime);
                         ImGui::TextDisabled("Note: Multiplies base rate by curve over emitter duration.");
                     }
@@ -864,6 +940,10 @@ void SParticleViewerWindow::OnRender()
                     {
                         // --- 3. Burst List (배열 관리) ---
                         ImGui::Text("Burst List");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::SetTooltip("버스트 스폰 목록\n특정 시점에 한꺼번에 파티클 생성\n폭발, 총 발사, 충돌 효과 등에 적합");
+                        }
                         ImGui::SameLine();
                         // (+) 버튼으로 항목 추가
                         if (ImGui::Button("Add##Burst"))
@@ -886,10 +966,13 @@ void SParticleViewerWindow::OnRender()
                             ImGui::SetColumnWidth(2, 80); // Range
 
                             ImGui::Text("Time");
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("버스트 발생 시점 (0~1)\n0.0 = 시작, 0.5 = 중간, 1.0 = 끝");
                             ImGui::NextColumn();
                             ImGui::Text("Count");
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("기본 생성 파티클 수");
                             ImGui::NextColumn();
                             ImGui::Text("Range");
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 수 랜덤 범위\n실제 생성 수 = Count ± Range");
                             ImGui::NextColumn();
                             ImGui::Text("Del");
                             ImGui::NextColumn();
@@ -905,15 +988,17 @@ void SParticleViewerWindow::OnRender()
 
                                 // 1. Time
                                 ImGui::DragFloat("##Time", &Entry.Time, 0.01f, 0.0f, 1.0f, "%.2f");
-                                if (ImGui::IsItemHovered()) ImGui::SetTooltip("0.0 = Start, 1.0 = End");
+                                if (ImGui::IsItemHovered()) ImGui::SetTooltip("버스트 발생 시점\n0.0 = Duration 시작\n1.0 = Duration 끝");
                                 ImGui::NextColumn();
 
                                 // 2. Count
                                 ImGui::DragInt("##Count", &Entry.Count, 1, 0, 1000);
+                                if (ImGui::IsItemHovered()) ImGui::SetTooltip("이 버스트에서 생성할 파티클 수");
                                 ImGui::NextColumn();
 
                                 // 3. Range (Variance)
                                 ImGui::DragInt("##Range", &Entry.CountRange, 1, 0, 1000);
+                                if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 수 랜덤 변동 범위\n최종 생성 수 = Count ± Range");
                                 ImGui::NextColumn();
 
                                 // 4. Delete Button
@@ -942,39 +1027,68 @@ void SParticleViewerWindow::OnRender()
                 else if (auto* LifetimeModule = Cast<UParticleModuleLifetime>(SelectedModule))
                 {
                     ImGui::Text("Lifetime Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("개별 파티클의 수명 설정\n파티클이 생성된 후 소멸될 때까지의 시간(초)");
+                    }
+                    ImGui::Separator();
                     if (LifetimeModule->Lifetime.bUseRange)
                     {
                         ImGui::DragFloat("Lifetime Min", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 최소 수명 (초)");
                         ImGui::DragFloat("Lifetime Max", &LifetimeModule->Lifetime.MaxValue, 0.01f, 0.0f, 100.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 최대 수명 (초)\n실제 수명은 Min~Max 사이 랜덤");
                     }
                     else
                     {
                         ImGui::DragFloat("Lifetime", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 수명 (초)\n이 시간이 지나면 파티클 소멸");
                     }
                     ImGui::Checkbox("Use Range", &LifetimeModule->Lifetime.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 수명 범위 사용\n체크 시 Min~Max 범위 내 랜덤 수명");
                 }
                 else if (auto* SizeModule = Cast<UParticleModuleSize>(SelectedModule))
                 {
                     ImGui::Text("Size Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클의 초기 크기 설정\nX, Y, Z 축 개별 스케일 가능");
+                    }
+                    ImGui::Separator();
                     if (SizeModule->StartSize.bUseRange)
                     {
                         ImGui::DragFloat3("Start Size Min", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 최소 크기 (X, Y, Z)\n빌보드는 X, Y만 사용, 메시는 XYZ 모두 사용");
                         ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 최대 크기 (X, Y, Z)\n실제 크기는 Min~Max 사이 랜덤");
                     }
                     else
                     {
                         ImGui::DragFloat3("Start Size", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 크기 (X, Y, Z)\n빌보드는 X=가로, Y=세로\n메시는 3D 스케일");
                     }
                     ImGui::Checkbox("Use Range", &SizeModule->StartSize.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 크기 범위 사용\n다양한 크기의 파티클 생성");
                 }
                 else if (auto* LocationModule = Cast<UParticleModuleLocation>(SelectedModule))
                 {
                     ImGui::Text("Location Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클 생성 위치 설정\n에미터 원점 기준 상대 위치");
+                    }
+                    ImGui::Separator();
 
                     // Distribution Type
+                    ImGui::Text("Distribution Type");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("위치 분포 방식\n- Point: 특정 점/범위\n- Box: 박스 영역 내 랜덤\n- Sphere: 구 영역 내 랜덤\n- Cylinder: 원기둥 영역 내 랜덤");
+                    }
+                    ImGui::SameLine();
                     const char* DistTypes[] = { "Point", "Box", "Sphere", "Cylinder" };
                     int CurrentDistType = (int)LocationModule->DistributionType;
-                    if (ImGui::Combo("Distribution Type", &CurrentDistType, DistTypes, IM_ARRAYSIZE(DistTypes)))
+                    if (ImGui::Combo("##DistributionType", &CurrentDistType, DistTypes, IM_ARRAYSIZE(DistTypes)))
                     {
                         LocationModule->DistributionType = (ELocationDistributionType)CurrentDistType;
                     }
@@ -986,252 +1100,366 @@ void SParticleViewerWindow::OnRender()
                     {
                     case ELocationDistributionType::Point:
                         ImGui::DragFloat3("Start Location Min", &LocationModule->StartLocation.MinValue.X, 1.0f, -1000.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 생성 최소 위치 (X, Y, Z)");
                         ImGui::DragFloat3("Start Location Max", &LocationModule->StartLocation.MaxValue.X, 1.0f, -1000.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 생성 최대 위치 (X, Y, Z)\n실제 위치는 Min~Max 사이 랜덤");
                         ImGui::Checkbox("Use Range", &LocationModule->StartLocation.bUseRange);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 위치 범위 사용");
                         break;
 
                     case ELocationDistributionType::Box:
                         ImGui::DragFloat3("Box Extent", &LocationModule->BoxExtent.X, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("박스 반경 (X, Y, Z)\n원점 중심 ±Extent 범위 내 랜덤 생성");
                         break;
 
                     case ELocationDistributionType::Sphere:
                         ImGui::DragFloat("Sphere Radius", &LocationModule->SphereRadius, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("구 반지름\n원점 중심 구 영역 내 랜덤 생성\n폭발 효과 등에 적합");
                         break;
 
                     case ELocationDistributionType::Cylinder:
                         ImGui::DragFloat("Cylinder Radius", &LocationModule->CylinderRadius, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("원기둥 반지름\nXY 평면의 원형 영역");
                         ImGui::DragFloat("Cylinder Height", &LocationModule->CylinderHeight, 1.0f, 0.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("원기둥 높이\nZ축 방향 범위");
                         break;
                     }
                 }
                 else if (auto* VelocityModule = Cast<UParticleModuleVelocity>(SelectedModule))
                 {
                     ImGui::Text("Velocity Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클의 초기 속도와 중력 설정\n방향 + 속력으로 이동 방향 결정");
+                    }
+                    ImGui::Separator();
                     if (VelocityModule->StartVelocity.bUseRange)
                     {
                         ImGui::DragFloat3("Start Velocity Min", &VelocityModule->StartVelocity.MinValue.X, 1.0f,
                                           -1000.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 속도 최소값 (X, Y, Z)\n단위: 유닛/초");
                         ImGui::DragFloat3("Start Velocity Max", &VelocityModule->StartVelocity.MaxValue.X, 1.0f,
                                           -1000.0f, 1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 속도 최대값 (X, Y, Z)\n실제 속도는 Min~Max 사이 랜덤");
                     }
                     else
                     {
                         ImGui::DragFloat3("Start Velocity", &VelocityModule->StartVelocity.MinValue.X, 1.0f, -1000.0f,
                                           1000.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 속도 (X, Y, Z)\n예: (0, 0, 100) = 위로 상승");
                     }
                     ImGui::Checkbox("Use Range", &VelocityModule->StartVelocity.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 속도 범위 사용\n퍼지는 효과 생성에 유용");
                     ImGui::DragFloat3("Gravity", &VelocityModule->Gravity.X, 1.0f, -10000.0f, 10000.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("중력 가속도 (X, Y, Z)\n예: (0, 0, -980) = 지구 중력\n파티클이 포물선 운동");
                 }
                 else if (auto* ConeModule = Cast<UParticleModuleVelocityCone>(SelectedModule))
                 {
                     ImGui::Text("Velocity Cone Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("원뿔 형태로 퍼지는 속도 설정\n분사, 폭발, 스프레이 효과에 적합");
+                    }
                     ImGui::Separator();
 
                     // 1. 속도 (세기)
                     ImGui::Text("Velocity (Speed)");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 이동 속력 (유닛/초)");
                     ImGui::DragFloat("Min##Vel", &ConeModule->Velocity.MinValue, 1.0f, 0.0f, 10000.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("최소 속력");
                     ImGui::DragFloat("Max##Vel", &ConeModule->Velocity.MaxValue, 1.0f, 0.0f, 10000.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("최대 속력\n실제 속력은 Min~Max 사이 랜덤");
                     ImGui::Checkbox("Range##Vel", &ConeModule->Velocity.bUseRange);
-    
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 속력 범위 사용");
+
                     ImGui::Spacing();
 
                     // 2. 각도 (퍼짐 정도)
                     ImGui::Text("Cone Angle (Degrees)");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("원뿔 퍼짐 각도 (도)\n0 = 직선, 90 = 반구, 180 = 구");
                     ImGui::DragFloat("Angle##Cone", &ConeModule->Angle.MinValue, 0.5f, 0.0f, 180.0f);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("0 = Straight, 90 = Hemisphere, 180 = Sphere");
-    
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("0° = 직선 발사\n45° = 좁은 원뿔\n90° = 반구형 퍼짐\n180° = 모든 방향 (구형)");
+
                     ImGui::Spacing();
 
                     // 3. 방향 (Direction)
                     ImGui::Text("Cone Direction");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("원뿔 중심 방향 벡터\n(0,0,1) = 위로, (1,0,0) = X+ 방향");
                     float Dir[3] = { ConeModule->Direction.X, ConeModule->Direction.Y, ConeModule->Direction.Z };
                     if (ImGui::DragFloat3("Dir", Dir, 0.01f, -1.0f, 1.0f))
                     {
                         ConeModule->Direction = FVector(Dir[0], Dir[1], Dir[2]);
                     }
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("방향 벡터 (X, Y, Z)\n정규화 버튼으로 단위 벡터 변환 권장");
                     if (ImGui::Button("Normalize Direction"))
                     {
                         ConeModule->Direction.Normalize();
                     }
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("방향 벡터를 단위 벡터로 정규화\n길이 1로 만들어 일관된 동작 보장");
                 }
                 else if (auto* ColorModule = Cast<UParticleModuleColor>(SelectedModule))
                 {
                     ImGui::Text("Color Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클의 초기 색상과 투명도 설정\n머터리얼 색상에 곱해집니다");
+                    }
+                    ImGui::Separator();
                     if (ColorModule->StartColor.bUseRange)
                     {
                         ImGui::ColorEdit3("Start Color Min", &ColorModule->StartColor.MinValue.R);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("시작 색상 최소값 (RGB)");
                         ImGui::ColorEdit3("Start Color Max", &ColorModule->StartColor.MaxValue.R);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("시작 색상 최대값 (RGB)\n실제 색상은 Min~Max 사이 랜덤");
                     }
                     else
                     {
                         ImGui::ColorEdit3("Start Color", &ColorModule->StartColor.MinValue.R);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 시작 색상 (RGB)\n머터리얼 텍스처 색상에 곱해짐");
                     }
                     ImGui::Checkbox("Use Range", &ColorModule->StartColor.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 색상 범위 사용\n다양한 색상의 파티클 생성");
 
+                    ImGui::Spacing();
                     if (ColorModule->StartAlpha.bUseRange)
                     {
                         ImGui::DragFloat("Start Alpha Min", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("시작 투명도 최소값 (0=투명, 1=불투명)");
                         ImGui::DragFloat("Start Alpha Max", &ColorModule->StartAlpha.MaxValue, 0.01f, 0.0f, 1.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("시작 투명도 최대값\n실제 투명도는 Min~Max 사이 랜덤");
                     }
                     else
                     {
                         ImGui::DragFloat("Start Alpha", &ColorModule->StartAlpha.MinValue, 0.01f, 0.0f, 1.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 시작 투명도\n0.0 = 완전 투명\n1.0 = 완전 불투명");
                     }
                 }
                 else if (auto* ColorOverLifeModule = Cast<UParticleModuleColorOverLife>(SelectedModule))
                 {
                     ImGui::Text("Color Over Life Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클 수명에 따른 색상/투명도 변화\n페이드 인/아웃, 색상 전환 효과");
+                    }
                     ImGui::Separator();
 
                     ImGui::Checkbox("Use Color Over Life", &ColorOverLifeModule->bUseColorOverLife);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명에 따른 색상 변화 활성화\n시작 색상에서 이 색상으로 변화");
                     if (ColorOverLifeModule->bUseColorOverLife)
                     {
                         if (ColorOverLifeModule->ColorOverLife.bUseRange)
                         {
                             ImGui::ColorEdit3("Color Min", &ColorOverLifeModule->ColorOverLife.MinValue.R);
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명 끝 색상 최소값");
                             ImGui::ColorEdit3("Color Max", &ColorOverLifeModule->ColorOverLife.MaxValue.R);
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명 끝 색상 최대값");
                         }
                         else
                         {
                             ImGui::ColorEdit3("Color", &ColorOverLifeModule->ColorOverLife.MinValue.R);
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명 끝의 목표 색상\n시작 색상에서 이 색상으로 서서히 변화");
                         }
                         ImGui::Checkbox("Color Use Range", &ColorOverLifeModule->ColorOverLife.bUseRange);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("색상 랜덤 범위 사용");
                     }
 
                     ImGui::Spacing();
                     ImGui::Checkbox("Use Alpha Over Life", &ColorOverLifeModule->bUseAlphaOverLife);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명에 따른 투명도 변화 활성화\n페이드 아웃 효과에 필수");
                     if (ColorOverLifeModule->bUseAlphaOverLife)
                     {
                         if (ColorOverLifeModule->AlphaOverLife.bUseRange)
                         {
                             ImGui::DragFloat("Alpha Min", &ColorOverLifeModule->AlphaOverLife.MinValue, 0.01f, 0.0f,
                                              1.0f);
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명 끝 투명도 최소값");
                             ImGui::DragFloat("Alpha Max", &ColorOverLifeModule->AlphaOverLife.MaxValue, 0.01f, 0.0f,
                                              1.0f);
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명 끝 투명도 최대값");
                         }
                         else
                         {
                             ImGui::DragFloat("Alpha", &ColorOverLifeModule->AlphaOverLife.MinValue, 0.01f, 0.0f, 1.0f);
+                            if (ImGui::IsItemHovered()) ImGui::SetTooltip("수명 끝의 목표 투명도\n0.0으로 설정하면 페이드 아웃 효과");
                         }
                         ImGui::Checkbox("Alpha Use Range", &ColorOverLifeModule->AlphaOverLife.bUseRange);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("투명도 랜덤 범위 사용");
                     }
                 }
                 else if (auto* SizeMultiplyLifeModule = Cast<UParticleModuleSizeMultiplyLife>(SelectedModule))
                 {
                     ImGui::Text("Size Multiply Life Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클 수명에 따른 크기 변화\n커브로 시간별 크기 비율 설정\n폭발(커졌다 작아짐), 성장 효과 등");
+                    }
                     ImGui::Separator();
 
                     ImGui::Text("Curve Control Points");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("시간에 따른 크기 곱셈 값\n시작(0) -> Point1 -> Point2 -> 끝으로 보간");
 
                     ImGui::Text("Point 1:");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("첫 번째 제어점\n수명 초기 구간의 크기 비율");
                     ImGui::DragFloat("Time##P1", &SizeMultiplyLifeModule->Point1Time, 0.1f, 0.0f, 100.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Point1이 적용되는 시간 (초)\n이 시간에 Point1 Value 크기가 됨");
                     ImGui::DragFloat3("Value##P1", &SizeMultiplyLifeModule->Point1Value.X, 0.1f, 0.0f, 100.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Point1의 크기 곱셈 값 (X, Y, Z)\n1.0 = 원래 크기, 2.0 = 2배, 0.5 = 절반");
 
                     ImGui::Spacing();
                     ImGui::Text("Point 2:");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("두 번째 제어점\n수명 후기 구간의 크기 비율");
                     ImGui::DragFloat("Time##P2", &SizeMultiplyLifeModule->Point2Time, 0.1f, 0.0f, 100.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Point2가 적용되는 시간 (초)\nPoint1 이후에 이 값으로 변화");
                     ImGui::DragFloat3("Value##P2", &SizeMultiplyLifeModule->Point2Value.X, 0.1f, 0.0f, 100.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Point2의 크기 곱셈 값 (X, Y, Z)\n예: 폭발=2.0->0.1, 성장=0.5->1.5");
 
                     ImGui::Spacing();
                     ImGui::Text("Multiply Axes:");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("크기 변화를 적용할 축 선택\n선택하지 않은 축은 변화 없음");
                     ImGui::Checkbox("Multiply X", &SizeMultiplyLifeModule->bMultiplyX);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("X축 크기 변화 활성화");
                     ImGui::Checkbox("Multiply Y", &SizeMultiplyLifeModule->bMultiplyY);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Y축 크기 변화 활성화");
                     ImGui::Checkbox("Multiply Z", &SizeMultiplyLifeModule->bMultiplyZ);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Z축 크기 변화 활성화");
 
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Tip: Use curve editor to adjust visually");
+                    ImGui::TextDisabled("Tip: 커브 에디터에서 시각적으로 조절 가능");
                 }
                 else if (auto* RotationModule = Cast<UParticleModuleRotation>(SelectedModule))
                 {
                     ImGui::Text("Rotation Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클의 초기 회전 각도 설정\n빌보드 스프라이트의 2D 회전");
+                    }
                     ImGui::Separator();
 
                     if (RotationModule->StartRotation.bUseRange)
                     {
                         ImGui::DragFloat("Start Rotation Min (Radians)", &RotationModule->StartRotation.MinValue, 0.01f,
                                          -6.28f, 6.28f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)\n0 = 회전 없음, PI = 180도");
                         ImGui::DragFloat("Start Rotation Max (Radians)", &RotationModule->StartRotation.MaxValue, 0.01f,
                                          -6.28f, 6.28f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)\n0~2PI 범위로 완전 랜덤 회전");
                     }
                     else
                     {
                         ImGui::DragFloat("Start Rotation (Radians)", &RotationModule->StartRotation.MinValue, 0.01f,
                                          -6.28f, 6.28f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)\n모든 파티클이 동일한 각도로 시작");
                     }
                     ImGui::Checkbox("Use Range", &RotationModule->StartRotation.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 회전 범위 사용\n자연스러운 랜덤 회전 효과");
 
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Tip: PI = 3.14159, 2*PI = 6.28318");
+                    ImGui::TextDisabled("Tip: PI = 3.14159 (180도), 2*PI = 6.28318 (360도)");
                 }
                 else if (auto* RotationRateModule = Cast<UParticleModuleRotationRate>(SelectedModule))
                 {
                     ImGui::Text("Rotation Rate Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클의 회전 속도 설정\n시간에 따라 계속 회전하는 효과");
+                    }
                     ImGui::Separator();
 
                     ImGui::Text("Initial Rotation");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 생성 시 초기 회전 각도");
                     if (RotationRateModule->InitialRotation.bUseRange)
                     {
                         ImGui::DragFloat("Initial Rotation Min (Rad)", &RotationRateModule->InitialRotation.MinValue,
                                          0.01f, 0.0f, 6.28318f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)");
                         ImGui::DragFloat("Initial Rotation Max (Rad)", &RotationRateModule->InitialRotation.MaxValue,
                                          0.01f, 0.0f, 6.28318f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)");
                     }
                     else
                     {
                         ImGui::DragFloat("Initial Rotation (Rad)", &RotationRateModule->InitialRotation.MinValue, 0.01f,
                                          0.0f, 6.28318f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)");
                     }
                     ImGui::Checkbox("Use Initial Rotation Range", &RotationRateModule->InitialRotation.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 랜덤 범위 사용");
 
                     ImGui::Spacing();
                     ImGui::Text("Rotation Speed");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("초당 회전 속도 (라디안/초)\n양수=시계방향, 음수=반시계방향");
                     if (RotationRateModule->StartRotationRate.bUseRange)
                     {
                         ImGui::DragFloat("Start Rotation Rate Min (Rad/s)",
                                          &RotationRateModule->StartRotationRate.MinValue, 0.01f, -10.0f, 10.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최소값 (rad/s)");
                         ImGui::DragFloat("Start Rotation Rate Max (Rad/s)",
                                          &RotationRateModule->StartRotationRate.MaxValue, 0.01f, -10.0f, 10.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최대값 (rad/s)\n다양한 속도로 회전하는 효과");
                     }
                     else
                     {
                         ImGui::DragFloat("Start Rotation Rate (Rad/s)", &RotationRateModule->StartRotationRate.MinValue,
                                          0.01f, -10.0f, 10.0f);
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 (rad/s)\n1.0 ≈ 초당 57도 회전");
                     }
                     ImGui::Checkbox("Use Rotation Rate Range", &RotationRateModule->StartRotationRate.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 랜덤 범위 사용\n음수~양수 범위로 양방향 회전");
 
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Tip: PI = 3.14159, 2*PI = 6.28318");
-                    ImGui::TextDisabled("Tip: 1 rad/s = ~57 degrees/s");
+                    ImGui::TextDisabled("Tip: PI = 3.14159 (180도), 2*PI = 6.28318 (360도)");
+                    ImGui::TextDisabled("Tip: 1 rad/s ≈ 57 degrees/s");
                 }
                 else if (auto* SubUVModule = Cast<UParticleModuleSubUV>(SelectedModule))
                 {
                     ImGui::Text("SubUV Animation Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("스프라이트 시트 애니메이션 제어\n텍스처를 격자로 나눠 프레임 애니메이션 재생\n폭발, 불꽃, 연기 애니메이션에 사용");
+                    }
                     ImGui::Separator();
 
                     // SubImageIndex 커브 (0~1 범위, 실제로는 곱하기 TotalFrames-1)
                     ImGui::Text("SubImage Index (0~1)");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("애니메이션 진행 범위\n0.0 = 첫 프레임, 1.0 = 마지막 프레임\n수명에 따라 0->1로 진행");
                     ImGui::DragFloat("Index Min", &SubUVModule->SubImageIndex.MinValue, 0.01f, 0.0f, 1.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("시작 인덱스 (0~1)\n파티클 생성 시 시작 프레임");
                     ImGui::DragFloat("Index Max", &SubUVModule->SubImageIndex.MaxValue, 0.01f, 0.0f, 1.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("끝 인덱스 (0~1)\n파티클 소멸 시 도달할 프레임");
                     ImGui::Checkbox("Use Range##SubUV", &SubUVModule->SubImageIndex.bUseRange);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 인덱스 범위 사용");
 
                     ImGui::Spacing();
 
                     // 보간 방식
+                    ImGui::Text("Interpolation Method");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("프레임 전환 보간 방식");
                     const char* InterpMethods[] = { "None", "Linear Blend", "Random", "Random Blend" };
                     int CurrentMethod = (int)SubUVModule->InterpMethod;
-                    if (ImGui::Combo("Interpolation Method", &CurrentMethod, InterpMethods, IM_ARRAYSIZE(InterpMethods)))
+                    if (ImGui::Combo("##InterpMethod", &CurrentMethod, InterpMethods, IM_ARRAYSIZE(InterpMethods)))
                     {
                         SubUVModule->InterpMethod = (ESubUVInterpMethod)CurrentMethod;
+                    }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("- None: 프레임 즉시 전환 (픽셀 느낌)\n- Linear Blend: 부드러운 프레임 블렌딩\n- Random: 랜덤 프레임 선택\n- Random Blend: 랜덤 + 블렌딩");
                     }
 
                     ImGui::Spacing();
                     ImGui::Checkbox("Use Real Time", &SubUVModule->bUseRealTime);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("실제 시간 기반 애니메이션\n체크: 게임 시간 무관하게 실시간 재생\n해제: 파티클 수명 기반 재생");
 
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Tip: Required 모듈에서 SubImages_Horizontal/Vertical 설정 필요");
+                    ImGui::TextDisabled("Tip: Required 모듈에서 SubImages 설정 필요");
                 }
                 else if (auto* MeshModule = Cast<UParticleModuleMesh>(SelectedModule))
                 {
+                    ImGui::Text("Mesh TypeData Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("메시 타입 파티클 설정\n스프라이트 대신 3D 메시로 파티클 렌더링\n파편, 돌, 나뭇잎 등 3D 오브젝트에 사용");
+                    }
+                    ImGui::Separator();
                     ImGui::Spacing();
                     ImGui::Columns(2, "MeshModuleColumns", false);
                     ImGui::SetColumnWidth(0, 150.0f);
@@ -1239,6 +1467,7 @@ void SParticleViewerWindow::OnRender()
                     // Mesh
                     {
                         ImGui::Text("Mesh");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클로 사용할 3D 메시\nStaticMesh 에셋 선택");
                         ImGui::NextColumn();
 
                         // 현재 선택된 메쉬의 파일명만 추출
@@ -1319,6 +1548,7 @@ void SParticleViewerWindow::OnRender()
                     // Mesh material 연동 여부
                     {
                         ImGui::Text("Use Mesh Materials");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("메시 원본 머터리얼 사용\n체크: 메시 자체 머터리얼 사용\n해제: Override Material 사용 가능");
                         ImGui::NextColumn();
 
                         bool bUseMeshMat = MeshModule->bUseMeshMaterials;
@@ -1723,6 +1953,12 @@ void SParticleViewerWindow::OnRender()
                     }
                 else if (auto* BeamModule = Cast<UParticleModuleBeam>(SelectedModule))
                 {
+                    ImGui::Text("Beam TypeData Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("빔 타입 파티클 설정\n두 점 사이를 연결하는 선형 렌더링\n번개, 레이저, 전기 효과에 사용");
+                    }
+                    ImGui::Separator();
                     ImGui::Spacing();
                     ImGui::Columns(2, "BeamModuleColumns", false);
                     ImGui::SetColumnWidth(0, 150.0f);
@@ -1730,6 +1966,7 @@ void SParticleViewerWindow::OnRender()
                     // Source Point
                     {
                         ImGui::Text("Source Point");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔 시작점 위치 (로컬 좌표)");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1741,12 +1978,14 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔이 시작되는 위치 (X, Y, Z)");
                         ImGui::NextColumn();
                     }
 
                     // Target Point
                     {
                         ImGui::Text("Target Point");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔 끝점 위치 (로컬 좌표)");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1758,12 +1997,14 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔이 끝나는 위치 (X, Y, Z)");
                         ImGui::NextColumn();
                     }
 
                     // Tessellation Factor
                     {
                         ImGui::Text("Tessellation Factor");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔 세분화 수준\n값이 클수록 부드러운 곡선");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1775,12 +2016,14 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("빔을 구성하는 세그먼트 수\n높을수록 노이즈가 더 세밀하게 표현됨");
                         ImGui::NextColumn();
                     }
 
                     // Noise Frequency
                     {
                         ImGui::Text("Noise Frequency");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("노이즈 주파수\n번개의 지글지글 정도");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1792,12 +2035,14 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("노이즈 변화 속도\n높을수록 빠르게 지글거림");
                         ImGui::NextColumn();
                     }
 
                     // Noise Amplitude
                     {
                         ImGui::Text("Noise Amplitude");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("노이즈 진폭\n빔이 흔들리는 범위");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1809,12 +2054,14 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("노이즈 크기 (유닛)\n높을수록 크게 흔들림");
                         ImGui::NextColumn();
                     }
 
                     // Use Random Offset (번개 효과)
                     {
                         ImGui::Text("Use Random Offset");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 시작/끝점 오프셋\n번개처럼 매번 다른 위치에서 발사");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1826,6 +2073,7 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("체크: 랜덤 오프셋 적용\n해제: 고정 위치 사용");
                         ImGui::NextColumn();
                     }
 
@@ -1833,6 +2081,7 @@ void SParticleViewerWindow::OnRender()
                     if (BeamModule->bUseRandomOffset)
                     {
                         ImGui::Text("Source Offset");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("시작점 랜덤 오프셋 범위");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1844,10 +2093,12 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("시작점 ± 오프셋 범위 (X, Y, Z)");
                         ImGui::NextColumn();
 
                         // Target Offset (랜덤 범위)
                         ImGui::Text("Target Offset");
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("끝점 랜덤 오프셋 범위");
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -1859,6 +2110,7 @@ void SParticleViewerWindow::OnRender()
                                 PreviewComponent->ResetAndActivate();
                             }
                         }
+                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("끝점 ± 오프셋 범위 (X, Y, Z)");
                         ImGui::NextColumn();
                     }
 
@@ -1867,27 +2119,40 @@ void SParticleViewerWindow::OnRender()
                 else if (auto* CollisionModule = Cast<UParticleModuleCollision>(SelectedModule))
                 {
                     ImGui::Text("Collision Settings");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("파티클 충돌 처리 설정\n지면, 벽 등과의 충돌 반응 정의\n물리 기반 파티클 효과에 사용");
+                    }
                     ImGui::Separator();
 
-                    const char* ResponseItems[] = { "Bounce", "Stop", "Kill" }; 
+                    ImGui::Text("Response");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 시 파티클 반응 방식");
+                    ImGui::SameLine();
+                    const char* ResponseItems[] = { "Bounce", "Stop", "Kill" };
                     int CurrentResponse = (int)CollisionModule->CollisionResponse;
-    
-                    if (ImGui::Combo("Response", &CurrentResponse, ResponseItems, IM_ARRAYSIZE(ResponseItems)))
+
+                    if (ImGui::Combo("##Response", &CurrentResponse, ResponseItems, IM_ARRAYSIZE(ResponseItems)))
                     {
                         CollisionModule->CollisionResponse = (EParticleCollisionResponse)CurrentResponse;
+                    }
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("- Bounce: 튕김 (반사)\n- Stop: 충돌 지점에서 정지\n- Kill: 충돌 시 즉시 소멸");
                     }
                     ImGui::Spacing();
 
                     ImGui::Text("Physics Properties");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 물리 속성");
                     // Restitution은 Bounce 모드일 때만 유효
                     if (CollisionModule->CollisionResponse != EParticleCollisionResponse::Bounce)
                     {
                         ImGui::BeginDisabled(); // UI 비활성화 시작
                     }
-    
+
                     // 1.0을 넘으면 에너지가 증폭
                     ImGui::DragFloat("Restitution (Bounciness)", &CollisionModule->Restitution, 0.01f, 0.0f, 2.0f, "%.2f");
-    
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("반발 계수 (탄성)\n0.0 = 튕기지 않음\n1.0 = 완전 탄성 충돌\n>1.0 = 에너지 증폭 (비현실적)");
+
                     if (CollisionModule->CollisionResponse != EParticleCollisionResponse::Bounce)
                     {
                         ImGui::EndDisabled(); // UI 비활성화 끝
@@ -1895,16 +2160,20 @@ void SParticleViewerWindow::OnRender()
 
                     // 마찰 계수 (0.0 ~ 1.0)
                     ImGui::DragFloat("Friction", &CollisionModule->Friction, 0.01f, 0.0f, 1.0f, "%.2f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("마찰 계수\n0.0 = 미끄러움 (얼음)\n1.0 = 거친 표면");
 
                     // 파티클 반지름 스케일 (충돌체 크기 보정)
                     ImGui::DragFloat("Radius Scale", &CollisionModule->RadiusScale, 0.05f, 0.01f, 10.0f, "%.2f");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 충돌 반지름 스케일\n파티클 크기 대비 충돌 영역 크기\n1.0 = 파티클 크기와 동일");
 
                     ImGui::Spacing();
 
                     // 3. Events
                     ImGui::Text("Events");
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 이벤트 설정");
                     ImGui::Checkbox("Write Collision Events", &CollisionModule->bWriteEvent);
-    
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 이벤트 발생 시 델리게이트 브로드캐스트\n게임 로직과 연동 시 활성화");
+
                     if (CollisionModule->bWriteEvent)
                     {
                         ImGui::SameLine();
@@ -1912,7 +2181,7 @@ void SParticleViewerWindow::OnRender()
                     }
 
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Note: Requires valid depth buffer or scene geometry.");
+                    ImGui::TextDisabled("Note: 충돌 감지를 위해 유효한 깊이 버퍼 또는 씬 지오메트리 필요");
                 }
             }
             else if (CurrentParticleSystem)
@@ -2484,12 +2753,25 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
 
                                 const char* typeName = "TypeData";
-                                if (Cast<UParticleModuleMesh>(TypeDataModule)) typeName = "Mesh";
-                                else if (Cast<UParticleModuleBeam>(TypeDataModule)) typeName = "Beam";
+                                const char* typeTooltip = "파티클 렌더링 타입을 결정하는 모듈";
+                                if (Cast<UParticleModuleMesh>(TypeDataModule))
+                                {
+                                    typeName = "Mesh";
+                                    typeTooltip = "[Mesh TypeData]\n스프라이트 대신 3D 메시를 파티클로 렌더링합니다.\n각 파티클이 지정된 StaticMesh 형태로 표시됩니다.";
+                                }
+                                else if (Cast<UParticleModuleBeam>(TypeDataModule))
+                                {
+                                    typeName = "Beam";
+                                    typeTooltip = "[Beam TypeData]\n두 점 사이를 연결하는 빔(레이저) 형태로 렌더링합니다.\n번개, 레이저 빔, 전기 효과 등에 사용됩니다.";
+                                }
 
                                 if (ImGui::Selectable(typeName, isSelected, 0, ImVec2(nameWidth, 20)))
                                 {
                                     SelectedModule = TypeDataModule;
+                                }
+                                if (ImGui::IsItemHovered())
+                                {
+                                    ImGui::SetTooltip("%s", typeTooltip);
                                 }
                                 ImGui::PopStyleColor(3);
                                 ImGui::SameLine();
@@ -2550,6 +2832,10 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 {
                                     SelectedModule = LOD->RequiredModule;
                                 }
+                                if (ImGui::IsItemHovered())
+                                {
+                                    ImGui::SetTooltip("[Required Module]\n에미터의 필수 기본 설정을 담당합니다.\n- Material: 파티클 텍스처/셰이더\n- Duration: 에미터 지속 시간\n- Max Particles: 최대 파티클 수\n- Local/World Space 설정\n- SubUV (스프라이트 시트) 설정");
+                                }
                                 ImGui::PopStyleColor(3);
                                 ImGui::SameLine();
                                 ImGui::Dummy(ImVec2(buttonWidth, 20));
@@ -2596,6 +2882,42 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                     if (ImGui::Selectable(displayName, showAsSelected, 0, ImVec2(nameWidth, 20)))
                                     {
                                         SelectedModule = Module;
+                                    }
+
+                                    // 모듈별 호버링 툴팁
+                                    if (ImGui::IsItemHovered())
+                                    {
+                                        const char* moduleTooltip = "";
+                                        if (strcmp(displayName, "Spawn") == 0)
+                                            moduleTooltip = "[Spawn Module]\n파티클 생성 방식을 제어합니다.\n- Constant: 초당 일정 수 생성\n- OverTime: 시간에 따라 생성률 변화\n- Burst: 특정 시점에 한꺼번에 생성";
+                                        else if (strcmp(displayName, "Lifetime") == 0)
+                                            moduleTooltip = "[Lifetime Module]\n개별 파티클의 수명을 설정합니다.\n수명이 다한 파티클은 자동으로 소멸됩니다.\nRange 옵션으로 랜덤 수명 범위 지정 가능.";
+                                        else if (strcmp(displayName, "Size") == 0)
+                                            moduleTooltip = "[Size Module]\n파티클의 초기 크기를 설정합니다.\nX, Y, Z 축별로 개별 설정 가능.\nRange 옵션으로 랜덤 크기 범위 지정 가능.";
+                                        else if (strcmp(displayName, "SizeMultiplyLife") == 0)
+                                            moduleTooltip = "[Size Multiply Life Module]\n파티클 수명에 따라 크기를 변화시킵니다.\n커브로 시작->중간->끝 크기 비율 설정.\n폭발 효과(커졌다 작아짐) 등에 활용.";
+                                        else if (strcmp(displayName, "Location") == 0)
+                                            moduleTooltip = "[Location Module]\n파티클 생성 위치를 설정합니다.\n- Point: 특정 점/범위\n- Box: 박스 영역 내 랜덤\n- Sphere: 구 영역 내 랜덤\n- Cylinder: 원기둥 영역 내 랜덤";
+                                        else if (strcmp(displayName, "Velocity") == 0)
+                                            moduleTooltip = "[Velocity Module]\n파티클의 초기 속도와 중력을 설정합니다.\nX, Y, Z 방향별 속도 지정.\nGravity로 중력 효과 적용 가능.";
+                                        else if (strcmp(displayName, "VelocityCone") == 0)
+                                            moduleTooltip = "[Velocity Cone Module]\n원뿔 형태로 퍼지는 속도를 설정합니다.\n- Direction: 중심 방향\n- Angle: 퍼짐 각도 (0=직선, 180=구형)\n분사, 폭발 효과에 적합.";
+                                        else if (strcmp(displayName, "Color") == 0)
+                                            moduleTooltip = "[Color Module]\n파티클의 초기 색상과 투명도를 설정합니다.\nRGB 색상 + Alpha(투명도) 설정.\nRange 옵션으로 랜덤 색상 범위 지정 가능.";
+                                        else if (strcmp(displayName, "ColorOverLife") == 0)
+                                            moduleTooltip = "[Color Over Life Module]\n파티클 수명에 따라 색상/투명도를 변화시킵니다.\n페이드 인/아웃 효과에 적합.\n시작 색상 -> 끝 색상 자동 보간.";
+                                        else if (strcmp(displayName, "Rotation") == 0)
+                                            moduleTooltip = "[Rotation Module]\n파티클의 초기 회전 각도를 설정합니다.\n라디안 단위 (PI = 180도).\nRange 옵션으로 랜덤 회전 범위 지정 가능.";
+                                        else if (strcmp(displayName, "RotationRate") == 0)
+                                            moduleTooltip = "[Rotation Rate Module]\n파티클의 회전 속도를 설정합니다.\n- Initial Rotation: 초기 회전 각도\n- Rotation Rate: 초당 회전 속도 (rad/s)\n회전하는 파편, 눈송이 등에 활용.";
+                                        else if (strcmp(displayName, "SubUV") == 0)
+                                            moduleTooltip = "[SubUV Module]\n스프라이트 시트 애니메이션을 제어합니다.\nRequired에서 설정한 SubImages를 사용.\n- Index: 현재 프레임 (0~1 범위)\n- Interp: 보간 방식 (None/Linear/Random)";
+                                        else if (strcmp(displayName, "Collision") == 0)
+                                            moduleTooltip = "[Collision Module]\n파티클의 충돌 처리를 담당합니다.\n- Bounce: 튕김 (반사)\n- Stop: 정지\n- Kill: 소멸\nRestitution/Friction으로 물리 특성 조절.";
+                                        else
+                                            moduleTooltip = "파티클 모듈";
+
+                                        ImGui::SetTooltip("%s", moduleTooltip);
                                     }
 
                                     if (isSpawn)
