@@ -102,7 +102,8 @@ private:
 	//Async
 	FParticleAsyncUpdater AsyncUpdater;
 	float AccumulatedDeltaTime = 0.0f;
-	
+
+public:
 	// Settings
 	UPROPERTY(EditAnywhere, Category = "Particle", Tooltip="시작 시 자동으로 활성화")
 	bool bAutoActivate = true;

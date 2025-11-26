@@ -2528,6 +2528,7 @@ void SParticleViewerWindow::CreateParticleSystem()
 
 	// ParticleSystemComponent 생성 및 추가
 	PreviewComponent = Cast<UParticleSystemComponent>(PreviewActor->AddNewComponent(UParticleSystemComponent::StaticClass()));
+	PreviewComponent->bUseAsyncSimulation = false;
 	PreviewComponent->SetTemplate(NewSystem);
 
 	// Actor의 BeginPlay 호출
@@ -2594,6 +2595,7 @@ void SParticleViewerWindow::LoadParticleSystem(UParticleSystem* ParticleSystem)
 	// ParticleSystemComponent 생성 및 추가
 	PreviewComponent = Cast<UParticleSystemComponent>(PreviewActor->AddNewComponent(UParticleSystemComponent::StaticClass()));
 	PreviewComponent->SetTemplate(ParticleSystem);
+	PreviewComponent->bUseAsyncSimulation = false;
 
 	// Actor의 BeginPlay 호출 (InitializeComponent 호출)
 	PreviewActor->BeginPlay();
