@@ -31,8 +31,6 @@ UParticleSystemComponent::UParticleSystemComponent()
     bTickInEditor = true;
     bCanEverTick = true;  // 파티클 시스템은 매 프레임 Tick 필요
     bAutoActivate = true;
-
-    MaxDebugParticles = 10000; 
 }
 
 UParticleSystemComponent::~UParticleSystemComponent()

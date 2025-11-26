@@ -193,9 +193,10 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
 
         if (CurrentLODLevel)
         {
-            for (int32 i = 0; i < CurrentLODLevel->SpawnModules.Num(); i++)
+            TArray<UParticleModule*> SpawnModules = CurrentLODLevel->SpawnModules;
+            for (int32 i = 0; i < SpawnModules.Num(); i++)
             {
-                UParticleModule* Module = CurrentLODLevel->SpawnModules[i];
+                UParticleModule* Module = SpawnModules[i];
                 if (!Module || !Module->bEnabled) { continue; }
                 Module->SpawnAsync(this, PayloadOffset, CurrentSpawnTime, Particle, InContext);   
             }
@@ -607,7 +608,8 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             // SubUV 모듈 찾기
             if (CurrentLODLevel)
             {
-                for (UParticleModule* Module : CurrentLODLevel->UpdateModules)
+                TArray<UParticleModule*> UpdateModules = CurrentLODLevel->UpdateModules;
+                for (UParticleModule* Module : UpdateModules)
                 {
                     if (auto* SubUV = Cast<UParticleModuleSubUV>(Module))
                     {
