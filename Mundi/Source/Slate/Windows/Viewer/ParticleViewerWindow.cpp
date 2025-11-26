@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ParticleViewerWindow.h"
 #include "Source/Runtime/Renderer/FViewport.h"
 #include "Source/Runtime/Renderer/FViewportClient.h"
@@ -15,6 +15,7 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocity.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColor.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleBeam.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleRibbon.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLocation.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColorOverLife.h"
@@ -31,6 +32,8 @@
 #include "CameraActor.h"
 #include "imgui.h"
 #include "PlatformProcess.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleCollision.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocityCone.h"
 
 SParticleViewerWindow::SParticleViewerWindow()
 {
@@ -609,22 +612,22 @@ void SParticleViewerWindow::OnRender()
 						ImGui::Text("Screen Alignment");
 						ImGui::NextColumn();
 
-						const char* screenAlignments[] = { "Camera Facing", "Velocity", "Local Space" };
-						int currentAlignment = (int)RequiredModule->ScreenAlignment;
+                        const char* screenAlignments[] = { "Camera Facing", "Velocity" };
+                        int currentAlignment = static_cast<int>(RequiredModule->ScreenAlignment);
 
-						ImGui::SetNextItemWidth(-1);
-						if (ImGui::BeginCombo("##ScreenAlignmentCombo", screenAlignments[currentAlignment]))
-						{
-							for (int i = 0; i < IM_ARRAYSIZE(screenAlignments); i++)
-							{
-								bool isSelected = (currentAlignment == i);
-								if (ImGui::Selectable(screenAlignments[i], isSelected))
-								{
-									RequiredModule->ScreenAlignment = (EScreenAlignment)i;
-								}
-							}
-							ImGui::EndCombo();
-						}
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::BeginCombo("##ScreenAlignmentCombo", screenAlignments[currentAlignment]))
+                        {
+                            for (int i = 0; i < IM_ARRAYSIZE(screenAlignments); i++)
+                            {
+                                bool isSelected = (currentAlignment == i);
+                                if (ImGui::Selectable(screenAlignments[i], isSelected))
+                                {
+                                    RequiredModule->ScreenAlignment = static_cast<EScreenAlignment>(i);
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
 
 						ImGui::NextColumn();
 					}
@@ -795,54 +798,179 @@ void SParticleViewerWindow::OnRender()
 						ImGui::NextColumn();
 					}
 
-					// 2열 레이아웃 종료
-					ImGui::Columns(1);
-				}
-				else if (auto* SpawnModule = Cast<UParticleModuleSpawn>(SelectedModule))
-				{
-					ImGui::Text("Spawn Settings");
-					if (SpawnModule->SpawnRate.bUseRange)
-					{
-						ImGui::DragFloat("Spawn Rate Min", &SpawnModule->SpawnRate.MinValue, 0.1f, 0.0f, 1000.0f);
-						ImGui::DragFloat("Spawn Rate Max", &SpawnModule->SpawnRate.MaxValue, 0.1f, 0.0f, 1000.0f);
-					}
-					else
-					{
-						ImGui::DragFloat("Spawn Rate", &SpawnModule->SpawnRate.MinValue, 0.1f, 0.0f, 1000.0f);
-					}
-					ImGui::Checkbox("Use Range", &SpawnModule->SpawnRate.bUseRange);
-				}
-				else if (auto* LifetimeModule = Cast<UParticleModuleLifetime>(SelectedModule))
-				{
-					ImGui::Text("Lifetime Settings");
-					if (LifetimeModule->Lifetime.bUseRange)
-					{
-						ImGui::DragFloat("Lifetime Min", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
-						ImGui::DragFloat("Lifetime Max", &LifetimeModule->Lifetime.MaxValue, 0.01f, 0.0f, 100.0f);
-					}
-					else
-					{
-						ImGui::DragFloat("Lifetime", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
-					}
-					ImGui::Checkbox("Use Range", &LifetimeModule->Lifetime.bUseRange);
-				}
-				else if (auto* SizeModule = Cast<UParticleModuleSize>(SelectedModule))
-				{
-					ImGui::Text("Size Settings");
-					if (SizeModule->StartSize.bUseRange)
-					{
-						ImGui::DragFloat3("Start Size Min", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
-						ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
-					}
-					else
-					{
-						ImGui::DragFloat3("Start Size", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
-					}
-					ImGui::Checkbox("Use Range", &SizeModule->StartSize.bUseRange);
-				}
-				else if (auto* LocationModule = Cast<UParticleModuleLocation>(SelectedModule))
-				{
-					ImGui::Text("Location Settings");
+                    // 2열 레이아웃 종료
+                    ImGui::Columns(1);
+                }
+                else if (auto* SpawnModule = Cast<UParticleModuleSpawn>(SelectedModule))
+                {
+                    ImGui::Text("Spawn Settings");
+                    ImGui::Separator();
+
+                    // --- 1. Spawn Mode Selection ---
+                    const char* SpawnTypes[] = {"Constant (Continuous)", "Curve (Over Time)", "Burst"};
+                    int CurrentType = static_cast<int>(SpawnModule->SpawnRateType);
+                    if (ImGui::Combo("Rate Type", &CurrentType, SpawnTypes, IM_ARRAYSIZE(SpawnTypes)))
+                    {
+                        SpawnModule->SpawnRateType = static_cast<ESpawnRateType>(CurrentType);
+                    }
+
+                    ImGui::Spacing();
+
+                    // --- Helper Lambda: Distribution 그리기 (중복 제거용) ---
+                    auto DrawFloatDist = [](const char* Label, FRawDistributionFloat& Dist)
+                    {
+                        ImGui::PushID(Label); // ID 충돌 방지
+                        ImGui::Text("%s", Label);
+
+                        if (Dist.bUseRange)
+                        {
+                            // Range 모드: Min ~ Max
+                            float MinVal = Dist.MinValue;
+                            float MaxVal = Dist.MaxValue;
+
+                            // 한 줄에 보기 좋게 배치
+                            ImGui::PushItemWidth(100);
+                            if (ImGui::DragFloat("Min", &MinVal, 0.1f)) Dist.MinValue = MinVal;
+                            ImGui::SameLine();
+                            if (ImGui::DragFloat("Max", &MaxVal, 0.1f)) Dist.MaxValue = MaxVal;
+                            ImGui::PopItemWidth();
+                        }
+                        else
+                        {
+                            // Constant 모드: Value 하나
+                            float Val = Dist.MinValue;
+                            if (ImGui::DragFloat("Value", &Val, 0.1f))
+                            {
+                                Dist.MinValue = Val;
+                                Dist.MaxValue = Val; // Range 안 쓸 땐 Max도 같이 맞춰줌 (안전빵)
+                            }
+                        }
+
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Range", &Dist.bUseRange);
+                        ImGui::PopID();
+                    };
+
+                    // --- 2. Rate Configuration (타입에 따라 다른 변수 노출) ---
+                    if (SpawnModule->SpawnRateType == ESpawnRateType::Constant)
+                    {
+                        DrawFloatDist("Spawn Rate (Per Second)", SpawnModule->SpawnRate);
+                    }
+                    else if (SpawnModule->SpawnRateType == ESpawnRateType::OverTime) // OverTime
+                    {
+                        DrawFloatDist("Spawn Rate (Scale Over Life)", SpawnModule->SpawnRateOverTime);
+                        ImGui::TextDisabled("Note: Multiplies base rate by curve over emitter duration.");
+                    }
+                    else
+                    {
+                        // --- 3. Burst List (배열 관리) ---
+                        ImGui::Text("Burst List");
+                        ImGui::SameLine();
+                        // (+) 버튼으로 항목 추가
+                        if (ImGui::Button("Add##Burst"))
+                        {
+                            SpawnModule->BurstList.Add(UParticleModuleSpawn::FBurstEntry(0.0f, 10, 0));
+                        }
+
+                        ImGui::Spacing();
+
+                        if (SpawnModule->BurstList.Num() == 0)
+                        {
+                            ImGui::TextDisabled("No burst entries.");
+                        }
+                        else
+                        {
+                            // 테이블 헤더 느낌
+                            ImGui::Columns(4, "BurstColumns", false);
+                            ImGui::SetColumnWidth(0, 60); // Time
+                            ImGui::SetColumnWidth(1, 80); // Count
+                            ImGui::SetColumnWidth(2, 80); // Range
+
+                            ImGui::Text("Time");
+                            ImGui::NextColumn();
+                            ImGui::Text("Count");
+                            ImGui::NextColumn();
+                            ImGui::Text("Range");
+                            ImGui::NextColumn();
+                            ImGui::Text("Del");
+                            ImGui::NextColumn();
+                            ImGui::Separator();
+
+                            int IndexToRemove = -1;
+
+                            for (int i = 0; i < SpawnModule->BurstList.Num(); ++i)
+                            {
+                                UParticleModuleSpawn::FBurstEntry& Entry = SpawnModule->BurstList[i];
+
+                                ImGui::PushID(i); // Loop 안에서는 ID 필수
+
+                                // 1. Time
+                                ImGui::DragFloat("##Time", &Entry.Time, 0.01f, 0.0f, 1.0f, "%.2f");
+                                if (ImGui::IsItemHovered()) ImGui::SetTooltip("0.0 = Start, 1.0 = End");
+                                ImGui::NextColumn();
+
+                                // 2. Count
+                                ImGui::DragInt("##Count", &Entry.Count, 1, 0, 1000);
+                                ImGui::NextColumn();
+
+                                // 3. Range (Variance)
+                                ImGui::DragInt("##Range", &Entry.CountRange, 1, 0, 1000);
+                                ImGui::NextColumn();
+
+                                // 4. Delete Button
+                                if (ImGui::Button("X"))
+                                {
+                                    IndexToRemove = i;
+                                }
+                                ImGui::NextColumn();
+
+                                ImGui::PopID();
+                            }
+
+                            ImGui::Columns(1); // 컬럼 복구
+
+                            // 삭제 처리 (Loop 밖에서 안전하게)
+                            if (IndexToRemove != -1)
+                            {
+                                SpawnModule->BurstList.RemoveAt(IndexToRemove);
+                            }
+                        }
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                }
+                else if (auto* LifetimeModule = Cast<UParticleModuleLifetime>(SelectedModule))
+                {
+                    ImGui::Text("Lifetime Settings");
+                    if (LifetimeModule->Lifetime.bUseRange)
+                    {
+                        ImGui::DragFloat("Lifetime Min", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
+                        ImGui::DragFloat("Lifetime Max", &LifetimeModule->Lifetime.MaxValue, 0.01f, 0.0f, 100.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat("Lifetime", &LifetimeModule->Lifetime.MinValue, 0.01f, 0.0f, 100.0f);
+                    }
+                    ImGui::Checkbox("Use Range", &LifetimeModule->Lifetime.bUseRange);
+                }
+                else if (auto* SizeModule = Cast<UParticleModuleSize>(SelectedModule))
+                {
+                    ImGui::Text("Size Settings");
+                    if (SizeModule->StartSize.bUseRange)
+                    {
+                        ImGui::DragFloat3("Start Size Min", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
+                        ImGui::DragFloat3("Start Size Max", &SizeModule->StartSize.MaxValue.X, 1.0f, 0.0f, 1000.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat3("Start Size", &SizeModule->StartSize.MinValue.X, 1.0f, 0.0f, 1000.0f);
+                    }
+                    ImGui::Checkbox("Use Range", &SizeModule->StartSize.bUseRange);
+                }
+                else if (auto* LocationModule = Cast<UParticleModuleLocation>(SelectedModule))
+                {
+                    ImGui::Text("Location Settings");
 
 					// Distribution Type
 					const char* DistTypes[] = { "Point", "Box", "Sphere", "Cylinder" };
@@ -871,43 +999,75 @@ void SParticleViewerWindow::OnRender()
 						ImGui::DragFloat("Sphere Radius", &LocationModule->SphereRadius, 1.0f, 0.0f, 1000.0f);
 						break;
 
-					case ELocationDistributionType::Cylinder:
-						ImGui::DragFloat("Cylinder Radius", &LocationModule->CylinderRadius, 1.0f, 0.0f, 1000.0f);
-						ImGui::DragFloat("Cylinder Height", &LocationModule->CylinderHeight, 1.0f, 0.0f, 1000.0f);
-						break;
-					}
-				}
-				else if (auto* VelocityModule = Cast<UParticleModuleVelocity>(SelectedModule))
-				{
-					ImGui::Text("Velocity Settings");
-					if (VelocityModule->StartVelocity.bUseRange)
-					{
-						ImGui::DragFloat3("Start Velocity Min", &VelocityModule->StartVelocity.MinValue.X, 1.0f,
-							-1000.0f, 1000.0f);
-						ImGui::DragFloat3("Start Velocity Max", &VelocityModule->StartVelocity.MaxValue.X, 1.0f,
-							-1000.0f, 1000.0f);
-					}
-					else
-					{
-						ImGui::DragFloat3("Start Velocity", &VelocityModule->StartVelocity.MinValue.X, 1.0f, -1000.0f,
-							1000.0f);
-					}
-					ImGui::Checkbox("Use Range", &VelocityModule->StartVelocity.bUseRange);
-					ImGui::DragFloat3("Gravity", &VelocityModule->Gravity.X, 1.0f, -10000.0f, 10000.0f);
-				}
-				else if (auto* ColorModule = Cast<UParticleModuleColor>(SelectedModule))
-				{
-					ImGui::Text("Color Settings");
-					if (ColorModule->StartColor.bUseRange)
-					{
-						ImGui::ColorEdit3("Start Color Min", &ColorModule->StartColor.MinValue.R);
-						ImGui::ColorEdit3("Start Color Max", &ColorModule->StartColor.MaxValue.R);
-					}
-					else
-					{
-						ImGui::ColorEdit3("Start Color", &ColorModule->StartColor.MinValue.R);
-					}
-					ImGui::Checkbox("Use Range", &ColorModule->StartColor.bUseRange);
+                    case ELocationDistributionType::Cylinder:
+                        ImGui::DragFloat("Cylinder Radius", &LocationModule->CylinderRadius, 1.0f, 0.0f, 1000.0f);
+                        ImGui::DragFloat("Cylinder Height", &LocationModule->CylinderHeight, 1.0f, 0.0f, 1000.0f);
+                        break;
+                    }
+                }
+                else if (auto* VelocityModule = Cast<UParticleModuleVelocity>(SelectedModule))
+                {
+                    ImGui::Text("Velocity Settings");
+                    if (VelocityModule->StartVelocity.bUseRange)
+                    {
+                        ImGui::DragFloat3("Start Velocity Min", &VelocityModule->StartVelocity.MinValue.X, 1.0f,
+                                          -1000.0f, 1000.0f);
+                        ImGui::DragFloat3("Start Velocity Max", &VelocityModule->StartVelocity.MaxValue.X, 1.0f,
+                                          -1000.0f, 1000.0f);
+                    }
+                    else
+                    {
+                        ImGui::DragFloat3("Start Velocity", &VelocityModule->StartVelocity.MinValue.X, 1.0f, -1000.0f,
+                                          1000.0f);
+                    }
+                    ImGui::Checkbox("Use Range", &VelocityModule->StartVelocity.bUseRange);
+                    ImGui::DragFloat3("Gravity", &VelocityModule->Gravity.X, 1.0f, -10000.0f, 10000.0f);
+                }
+                else if (auto* ConeModule = Cast<UParticleModuleVelocityCone>(SelectedModule))
+                {
+                    ImGui::Text("Velocity Cone Settings");
+                    ImGui::Separator();
+
+                    // 1. 속도 (세기)
+                    ImGui::Text("Velocity (Speed)");
+                    ImGui::DragFloat("Min##Vel", &ConeModule->Velocity.MinValue, 1.0f, 0.0f, 10000.0f);
+                    ImGui::DragFloat("Max##Vel", &ConeModule->Velocity.MaxValue, 1.0f, 0.0f, 10000.0f);
+                    ImGui::Checkbox("Range##Vel", &ConeModule->Velocity.bUseRange);
+    
+                    ImGui::Spacing();
+
+                    // 2. 각도 (퍼짐 정도)
+                    ImGui::Text("Cone Angle (Degrees)");
+                    ImGui::DragFloat("Angle##Cone", &ConeModule->Angle.MinValue, 0.5f, 0.0f, 180.0f);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("0 = Straight, 90 = Hemisphere, 180 = Sphere");
+    
+                    ImGui::Spacing();
+
+                    // 3. 방향 (Direction)
+                    ImGui::Text("Cone Direction");
+                    float Dir[3] = { ConeModule->Direction.X, ConeModule->Direction.Y, ConeModule->Direction.Z };
+                    if (ImGui::DragFloat3("Dir", Dir, 0.01f, -1.0f, 1.0f))
+                    {
+                        ConeModule->Direction = FVector(Dir[0], Dir[1], Dir[2]);
+                    }
+                    if (ImGui::Button("Normalize Direction"))
+                    {
+                        ConeModule->Direction.Normalize();
+                    }
+                }
+                else if (auto* ColorModule = Cast<UParticleModuleColor>(SelectedModule))
+                {
+                    ImGui::Text("Color Settings");
+                    if (ColorModule->StartColor.bUseRange)
+                    {
+                        ImGui::ColorEdit3("Start Color Min", &ColorModule->StartColor.MinValue.R);
+                        ImGui::ColorEdit3("Start Color Max", &ColorModule->StartColor.MaxValue.R);
+                    }
+                    else
+                    {
+                        ImGui::ColorEdit3("Start Color", &ColorModule->StartColor.MinValue.R);
+                    }
+                    ImGui::Checkbox("Use Range", &ColorModule->StartColor.bUseRange);
 
 					if (ColorModule->StartAlpha.bUseRange)
 					{
@@ -1550,18 +1710,224 @@ void SParticleViewerWindow::OnRender()
 										}
 									}
 
-									ImGui::Columns(1);
-								}
-								else
-								{
-									ImGui::TextDisabled("No Material Selected");
-								}
-								ImGui::TreePop();
-							}
-							ImGui::TreePop();
-						}
-					}
-				}
+                                    ImGui::Columns(1);
+                                }
+                                else
+                                {
+                                    ImGui::TextDisabled("No Material Selected");
+                                }
+                                ImGui::TreePop();
+                            }
+                            ImGui::TreePop();
+                        }
+                    }
+                    }
+                else if (auto* BeamModule = Cast<UParticleModuleBeam>(SelectedModule))
+                {
+                    ImGui::Spacing();
+                    ImGui::Columns(2, "BeamModuleColumns", false);
+                    ImGui::SetColumnWidth(0, 150.0f);
+
+                    // Source Point
+                    {
+                        ImGui::Text("Source Point");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamSourcePoint", &BeamModule->SourcePoint.X, 1.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Target Point
+                    {
+                        ImGui::Text("Target Point");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamTargetPoint", &BeamModule->TargetPoint.X, 1.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Tessellation Factor
+                    {
+                        ImGui::Text("Tessellation Factor");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragInt("##BeamTessellation", &BeamModule->TessellationFactor, 1, 1, 100))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Noise Frequency
+                    {
+                        ImGui::Text("Noise Frequency");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat("##BeamNoiseFreq", &BeamModule->NoiseFrequency, 0.01f, 0.0f, 10.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Noise Amplitude
+                    {
+                        ImGui::Text("Noise Amplitude");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat("##BeamNoiseAmp", &BeamModule->NoiseAmplitude, 0.1f, 0.0f, 100.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Use Random Offset (번개 효과)
+                    {
+                        ImGui::Text("Use Random Offset");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::Checkbox("##BeamUseRandomOffset", &BeamModule->bUseRandomOffset))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Source Offset (랜덤 범위)
+                    if (BeamModule->bUseRandomOffset)
+                    {
+                        ImGui::Text("Source Offset");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamSourceOffset", &BeamModule->SourceOffset.X, 1.0f, 0.0f, 1000.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+
+                        // Target Offset (랜덤 범위)
+                        ImGui::Text("Target Offset");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamTargetOffset", &BeamModule->TargetOffset.X, 1.0f, 0.0f, 1000.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    ImGui::Columns(1);
+                }
+                else if (auto* CollisionModule = Cast<UParticleModuleCollision>(SelectedModule))
+                {
+                    ImGui::Text("Collision Settings");
+                    ImGui::Separator();
+
+                    const char* ResponseItems[] = { "Bounce", "Stop", "Kill" }; 
+                    int CurrentResponse = (int)CollisionModule->CollisionResponse;
+    
+                    if (ImGui::Combo("Response", &CurrentResponse, ResponseItems, IM_ARRAYSIZE(ResponseItems)))
+                    {
+                        CollisionModule->CollisionResponse = (EParticleCollisionResponse)CurrentResponse;
+                    }
+                    ImGui::Spacing();
+
+                    ImGui::Text("Physics Properties");
+                    // Restitution은 Bounce 모드일 때만 유효
+                    if (CollisionModule->CollisionResponse != EParticleCollisionResponse::Bounce)
+                    {
+                        ImGui::BeginDisabled(); // UI 비활성화 시작
+                    }
+    
+                    // 1.0을 넘으면 에너지가 증폭
+                    ImGui::DragFloat("Restitution (Bounciness)", &CollisionModule->Restitution, 0.01f, 0.0f, 2.0f, "%.2f");
+    
+                    if (CollisionModule->CollisionResponse != EParticleCollisionResponse::Bounce)
+                    {
+                        ImGui::EndDisabled(); // UI 비활성화 끝
+                    }
+
+                    // 마찰 계수 (0.0 ~ 1.0)
+                    ImGui::DragFloat("Friction", &CollisionModule->Friction, 0.01f, 0.0f, 1.0f, "%.2f");
+
+                    // 파티클 반지름 스케일 (충돌체 크기 보정)
+                    ImGui::DragFloat("Radius Scale", &CollisionModule->RadiusScale, 0.05f, 0.01f, 10.0f, "%.2f");
+
+                    ImGui::Spacing();
+
+                    // 3. Events
+                    ImGui::Text("Events");
+                    ImGui::Checkbox("Write Collision Events", &CollisionModule->bWriteEvent);
+    
+                    if (CollisionModule->bWriteEvent)
+                    {
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("(Delegate Broadcast)");
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::TextDisabled("Note: Requires valid depth buffer or scene geometry.");
+                }
+            }
+            else if (CurrentParticleSystem)
+            {
+                ImGui::TextDisabled("No module selected");
+            }
+            else
+            {
+                ImGui::TextDisabled("No particle system loaded");
+            }
+        }
+        ImGui::EndChild();
+    }
+    ImGui::EndChild();
 				else if (auto* RibbonModule = Cast<UParticleModuleRibbon>(SelectedModule))
 				{
 					ImGui::Text("Ribbon Settings");
@@ -1876,20 +2242,20 @@ void SParticleViewerWindow::SaveParticleSystem()
 		return;
 	}
 
-	// Create 이후 처음 저장하는 경우
-	FWideString WideInitialPath = UTF8ToWide(ParticlePath.string());
-	std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"particle", L"Particle Files");
-	FString PathStr = WidePath.string();
-
-	if (!WidePath.empty())
-	{
-		if (CurrentParticleSystem->SaveToFile(PathStr))
-		{
-			RESOURCE.Add<UParticleSystem>(PathStr, CurrentParticleSystem);
-			SavePath = PathStr;
-			UE_LOG("Particle system saved to: %s", SavePath.c_str());
-		}
-	}
+    // Create 이후 처음 저장하는 경우
+    FWideString WideInitialPath = UTF8ToWide(ParticlePath.string());
+    std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"particle",L"Particle Files");
+    FString PathStr = ResolveAssetRelativePath(WidePath.string(), ParticlePath.string());
+    
+    if (!WidePath.empty())
+    {
+        if (CurrentParticleSystem->SaveToFile(PathStr))
+        {
+            RESOURCE.Add<UParticleSystem>(PathStr, CurrentParticleSystem);
+            SavePath = PathStr;
+            UE_LOG("Particle system saved to: %s", SavePath.c_str());
+        }
+    }
 }
 
 void SParticleViewerWindow::CreateNewEmitter()
@@ -2241,8 +2607,9 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
 								ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.3f, 0.5f, 0.9f, 0.9f));
 								ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
 
-								const char* typeName = "TypeData";
-								if (Cast<UParticleModuleMesh>(TypeDataModule)) typeName = "Mesh";
+                                const char* typeName = "TypeData";
+                                if (Cast<UParticleModuleMesh>(TypeDataModule)) typeName = "Mesh";
+                                else if (Cast<UParticleModuleBeam>(TypeDataModule)) typeName = "Beam";
 								if (Cast<UParticleModuleRibbon>(TypeDataModule)) typeName = "Ribbon";
 
 								if (ImGui::Selectable(typeName, isSelected, 0, ImVec2(nameWidth, 20)))
@@ -2416,36 +2783,42 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
 								ImGui::TextDisabled("모듈 추가");
 								ImGui::Separator();
 
-								if (ImGui::MenuItem("Lifetime"))
-								{
-									LOD->AddModule(UParticleModuleLifetime::StaticClass());
-									CurrentParticleSystem->BuildRuntimeCache();
-									PreviewComponent->ResetAndActivate();
-								}
-								if (ImGui::MenuItem("Velocity"))
-								{
-									LOD->AddModule(UParticleModuleVelocity::StaticClass());
-									CurrentParticleSystem->BuildRuntimeCache();
-									PreviewComponent->ResetAndActivate();
-								}
-								if (ImGui::MenuItem("Size"))
-								{
-									LOD->AddModule(UParticleModuleSize::StaticClass());
-									CurrentParticleSystem->BuildRuntimeCache();
-									PreviewComponent->ResetAndActivate();
-								}
-								if (ImGui::MenuItem("Color"))
-								{
-									LOD->AddModule(UParticleModuleColor::StaticClass());
-									CurrentParticleSystem->BuildRuntimeCache();
-									PreviewComponent->ResetAndActivate();
-								}
-								if (ImGui::MenuItem("Location"))
-								{
-									LOD->AddModule(UParticleModuleLocation::StaticClass());
-									CurrentParticleSystem->BuildRuntimeCache();
-									PreviewComponent->ResetAndActivate();
-								}
+                                if (ImGui::MenuItem("Lifetime"))
+                                {
+                                    LOD->AddModule(UParticleModuleLifetime::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Velocity"))
+                                {
+                                    LOD->AddModule(UParticleModuleVelocity::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("VelocityCone"))
+                                {
+                                    LOD->AddModule(UParticleModuleVelocityCone::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Size"))
+                                {
+                                    LOD->AddModule(UParticleModuleSize::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Color"))
+                                {
+                                    LOD->AddModule(UParticleModuleColor::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+                                if (ImGui::MenuItem("Location"))
+                                {
+                                    LOD->AddModule(UParticleModuleLocation::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
 
 								ImGui::Separator();
 								ImGui::TextDisabled("라이프타임 기반");
@@ -2504,9 +2877,20 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
 									}
 								}
 
-								ImGui::Separator();
-								ImGui::TextDisabled("텍스처 애니메이션");
-								ImGui::Separator();
+                                if (ImGui::MenuItem("Beam"))
+                                {
+                                    UParticleModuleBeam* BeamModule = Cast<UParticleModuleBeam>(LOD->AddModule(UParticleModuleBeam::StaticClass()));
+                                    if (BeamModule && Emitter)
+                                    {
+                                        BeamModule->ApplyToEmitter(Emitter);
+                                        CurrentParticleSystem->BuildRuntimeCache();
+                                        PreviewComponent->ResetAndActivate();
+                                    }
+                                }
+
+                                ImGui::Separator();
+                                ImGui::TextDisabled("텍스처 애니메이션");
+                                ImGui::Separator();
 
 								if (ImGui::MenuItem("SubUV"))
 								{
@@ -2515,23 +2899,34 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
 									PreviewComponent->ResetAndActivate();
 								}
 
-								ImGui::EndPopup();
-							}
-						}
-					}
-				}
-				ImGui::EndChild();
-				ImGui::PopID();
-				if (i + 1 < CurrentParticleSystem->Emitters.Num())
-				{
-					ImGui::SameLine();
-				}
-			}
-		}
-		else
-		{
-			ImGui::TextDisabled("No emitters");
-		}
+                                ImGui::Separator();
+                                ImGui::TextDisabled("충돌");
+                                ImGui::Separator();
+
+                                if (ImGui::MenuItem("Collision"))
+                                {
+                                    LOD->AddModule(UParticleModuleCollision::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+
+                                ImGui::EndPopup();
+                            }
+                        }
+                    }
+                }
+                ImGui::EndChild();
+                ImGui::PopID();
+                if (i + 1 < CurrentParticleSystem->Emitters.Num())
+                {
+                    ImGui::SameLine();
+                }
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("No emitters");
+        }
 
 		if (bEmitterPanelClicked && !bClickedOnEmitterBlock)
 		{

@@ -13,7 +13,7 @@ UQuad::~UQuad()
 	ReleaseResources();
 }
 
-void UQuad::Load(const FString& InFilePath, ID3D11Device* InDevice)
+bool UQuad::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {
 	assert(InDevice);
 
@@ -37,6 +37,7 @@ void UQuad::Load(const FString& InFilePath, ID3D11Device* InDevice)
 	CreateIndexBuffer(MeshDataCPU, InDevice);
 	VertexCount = MeshDataCPU->Vertices.size();
 	IndexCount = MeshDataCPU->Indices.size();*/
+	return true;
 }
 
 //

@@ -440,7 +440,7 @@ struct FParticleSpriteVertex
     FLinearColor Color;    // 16 bytes (offset 28)
     float Rotation;        // 4 bytes (offset 44)
     float SubImageIndex;   // 4 bytes (offset 48) - SubUV 애니메이션용 float 프레임 인덱스
-    float Padding[3];      // 12 bytes (offset 52) - 16바이트 정렬 맞추기
+    FVector Velocity;
 };
 
 struct FParticleInstanceData
@@ -449,6 +449,7 @@ struct FParticleInstanceData
     FVector2D Size;    
     FLinearColor Color;
     float Rotation;
+    FVector Velocity;
 };
 
 struct FMeshParticleInstanceData
@@ -456,4 +457,11 @@ struct FMeshParticleInstanceData
     FMatrix      WorldMatrix;
     FMatrix      WorldInverseTranspose;
     FLinearColor Color;
+};
+
+struct FParticleBeamVertex
+{
+    FVector Position;       // 월드 위치
+    FVector2D UV;          // 텍스처 좌표
+    FLinearColor Color;    // 파티클 색상
 };

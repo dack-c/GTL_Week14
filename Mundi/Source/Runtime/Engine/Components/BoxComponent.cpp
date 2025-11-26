@@ -55,13 +55,12 @@ void UBoxComponent::RenderDebugVolume(URenderer* Renderer) const
 {
 	// visible = 에디터용
 	// hiddeningame = 파이용
-	if (!GetOwner()) return;
-	if (!GetOwner()->GetWorld()->bPie)
+	if (!GWorld->bPie)
 	{
 		if (!bShapeIsVisible)
 			return;
 	}
-	if (GetOwner()->GetWorld()->bPie)
+	if (GWorld->bPie)
 	{
 		if (bShapeHiddenInGame)
 			return;
@@ -103,3 +102,22 @@ void UBoxComponent::RenderDebugVolume(URenderer* Renderer) const
 	Renderer->AddLines(StartPoints, EndPoints, Colors);
 }
 
+FAABB UBoxComponent::GetWorldAABB() const
+{
+	const FTransform T = GetWorldTransform();
+	const FVector Center = T.Translation;
+    
+	// 박스의 3개 축(로컬 X, Y, Z)을 월드 공간으로 변환 (Scale 포함)
+	FVector AxisX = T.TransformVector(FVector(BoxExtent.X, 0, 0));
+	FVector AxisY = T.TransformVector(FVector(0, BoxExtent.Y, 0));
+	FVector AxisZ = T.TransformVector(FVector(0, 0, BoxExtent.Z));
+
+	// 각 축을 절대값으로 더해서 새로운 AABB의 Extent를 구함
+	FVector WorldExtent(
+		std::abs(AxisX.X) + std::abs(AxisY.X) + std::abs(AxisZ.X),
+		std::abs(AxisX.Y) + std::abs(AxisY.Y) + std::abs(AxisZ.Y),
+		std::abs(AxisX.Z) + std::abs(AxisY.Z) + std::abs(AxisZ.Z)
+	);
+
+	return FAABB(Center - WorldExtent, Center + WorldExtent);
+}

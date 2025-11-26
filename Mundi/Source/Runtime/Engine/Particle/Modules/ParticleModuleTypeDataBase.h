@@ -21,6 +21,13 @@ public:
         return 0;
     }
 
+    // UParticleModule의 GetRequiredBytesPerParticle을 오버라이드하여
+    // GetRequiredParticleBytes를 호출하도록 함
+    virtual int32 GetRequiredBytesPerParticle() const override
+    {
+        return GetRequiredParticleBytes();
+    }
+
     // 렌더링을 위한 정점 데이터 크기
     virtual int32 GetDynamicVertexStride() const
     {

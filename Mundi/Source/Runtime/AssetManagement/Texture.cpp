@@ -19,7 +19,7 @@ UTexture::~UTexture()
 	ReleaseResources();
 }
 
-void UTexture::Load(const FString& InFilePath, ID3D11Device* InDevice, bool bSRGB)
+bool UTexture::Load(const FString& InFilePath, ID3D11Device* InDevice, bool bSRGB)
 {
 	assert(InDevice);
 
@@ -144,7 +144,10 @@ void UTexture::Load(const FString& InFilePath, ID3D11Device* InDevice, bool bSRG
 	else
 	{
 		UE_LOG("[UTexture] Failed to load texture: %s (HRESULT: 0x%08X)", ActualLoadPath.c_str(), hr);
+		return false;
 	}
+	
+	return true;
 }
 
 void UTexture::ReleaseResources()

@@ -1,10 +1,11 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ParticleEmitter.h"
 #include "ParticleHelper.h"
 #include "ParticleLODLevel.h"
 #include "Modules/ParticleModule.h"
 #include "Modules/ParticleModuleRequired.h"
 #include "Modules/ParticleModuleMesh.h"
+#include "Modules/ParticleModuleBeam.h"
 #include "Modules/ParticleModuleRibbon.h"
 
 IMPLEMENT_CLASS(UParticleEmitter)
@@ -65,10 +66,14 @@ void UParticleEmitter::CacheEmitterModuleInfo()
     // TypeData가 파티클 구조 확장 요구하면 반영
     if (LOD0->TypeDataModule)
     {
-        // TypeDataModule 적용 (Mesh 모듈 등)
+        // TypeDataModule 적용 (Mesh, Beam 모듈 등)
         if (UParticleModuleMesh* MeshModule = Cast<UParticleModuleMesh>(LOD0->TypeDataModule))
         {
             MeshModule->ApplyToEmitter(this);
+        }
+        else if (UParticleModuleBeam* BeamModule = Cast<UParticleModuleBeam>(LOD0->TypeDataModule))
+        {
+            BeamModule->ApplyToEmitter(this);
         }
         else if (UParticleModuleRibbon* RibbonModule = Cast<UParticleModuleRibbon>(LOD0->TypeDataModule))
         {
@@ -178,3 +183,9 @@ T* UParticleEmitter::GetModule(int32 LODIndex) const
 
     return nullptr;
 }
+
+// 명시적 인스턴스화 (사용되는 타입들)
+#include "Modules/ParticleModuleMesh.h"
+#include "Modules/ParticleModuleBeam.h"
+template class UParticleModuleMesh* UParticleEmitter::GetModule<class UParticleModuleMesh>(int32) const;
+template class UParticleModuleBeam* UParticleEmitter::GetModule<class UParticleModuleBeam>(int32) const;

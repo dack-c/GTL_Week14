@@ -17,8 +17,7 @@ public:
 
 	// Duplication
 	virtual void DuplicateSubObjects() override;
-
-private:
+	
 	UPROPERTY(EditAnywhere, Category="BoxExtent")
 	FVector BoxExtent; // Half Extent
 
@@ -27,4 +26,5 @@ private:
 public:
 	//GetReenderCollection 
 	void RenderDebugVolume(class URenderer* Renderer) const override;
+	FAABB GetWorldAABB() const override;
 };

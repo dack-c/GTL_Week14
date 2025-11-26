@@ -54,18 +54,44 @@ void USphereComponent::GetShape(FShape& Out) const
     Out.Sphere.SphereRadius = SphereRadius;	
 }
 
+FAABB USphereComponent::GetWorldAABB() const
+{
+    const FTransform WorldTransform = GetWorldTransform();
+    const FVector Center = WorldTransform.Translation;
+
+    // 2. 월드 스케일의 절대값 구하기 (음수 스케일 대응)
+    const float AbsScaleX = std::fabs(WorldTransform.Scale3D.X);
+    const float AbsScaleY = std::fabs(WorldTransform.Scale3D.Y);
+    const float AbsScaleZ = std::fabs(WorldTransform.Scale3D.Z);
+
+    // 3. 가장 큰 스케일 값을 찾음 (구의 형태를 유지하면서 감싸기 위해 Max 사용)
+    const float MaxScale = FMath::Max(AbsScaleX, FMath::Max(AbsScaleY, AbsScaleZ));
+
+    // 4. 월드 공간에서의 반지름 계산
+    const float WorldRadius = SphereRadius * MaxScale;
+
+    // 5. AABB 생성 (Center - Radius, Center + Radius)
+    // FAABB 생성자가 (Min, Max)를 받는다고 가정
+    return FAABB(Center - FVector(WorldRadius, WorldRadius, WorldRadius), Center + FVector(WorldRadius, WorldRadius, WorldRadius));}
+
 void USphereComponent::RenderDebugVolume(URenderer* Renderer) const
 {
     if (!bShapeIsVisible) return;
-    if (GetOwner() && (GetOwner()->GetWorld()->bPie))
+    if (GWorld->bPie)
     {
         if (bShapeHiddenInGame)
             return;
     }
-    // Draw three great circles to visualize the sphere (XY, XZ, YZ planes) 
+    // Draw three great circles to visualize the sphere (XY, XZ, YZ planes)
+    const FTransform WorldTransform = GetWorldTransform();
     const FVector Center = GetWorldLocation();
-    const float Radius = SphereRadius;
-    const int NumSegments = 16;
+    const float AbsScaleX = std::fabs(WorldTransform.Scale3D.X);
+    const float AbsScaleY = std::fabs(WorldTransform.Scale3D.Y);
+    const float AbsScaleZ = std::fabs(WorldTransform.Scale3D.Z);
+    const float MaxScale = FMath::Max(AbsScaleX, FMath::Max(AbsScaleY, AbsScaleZ));
+    
+    const float Radius = SphereRadius * MaxScale;
+    constexpr int NumSegments = 16;
 
     TArray<FVector> StartPoints;
     TArray<FVector> EndPoints;

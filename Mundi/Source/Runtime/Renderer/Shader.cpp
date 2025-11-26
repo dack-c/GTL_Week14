@@ -110,7 +110,7 @@ FString UShader::GenerateMacrosToString(const TArray<FShaderMacro>& InMacros)
 /**
  * @brief UResourceManager가 셰이더 리소스를 로드/가져오기 위해 호출하는 메인 함수.
  */
-void UShader::Load(const FString& InShaderPath, ID3D11Device* InDevice, const TArray<FShaderMacro>& InMacros)
+bool UShader::Load(const FString& InShaderPath, ID3D11Device* InDevice, const TArray<FShaderMacro>& InMacros)
 {
 	assert(InDevice);
 
@@ -134,6 +134,7 @@ void UShader::Load(const FString& InShaderPath, ID3D11Device* InDevice, const TA
 	// 2. 실제 컴파일/가져오기 로직은 GetOrCompileShaderVariant에 위임
 	// (이 함수는 InMacros에 대한 Variant가 맵에 없으면 컴파일하고 추가함)
 	GetOrCompileShaderVariant(InMacros);
+	return true;
 }
 
 /**

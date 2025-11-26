@@ -25,6 +25,13 @@ cbuffer SubUVBuffer : register(b2)
     float Padding0;            // 16바이트 정렬
 };
 
+// b3: Particle Required Parameters
+cbuffer ParticleBuffer : register(b3)
+{
+    uint ScreenAlignment;   // 0: PSA_Square, 1: PSA_Velocity
+    float3 Padding;         // 16바이트 정렬용 패딩
+};
+
 Texture2D ParticleTex : register(t0);
 SamplerState ParticleSampler : register(s0);
 
@@ -36,6 +43,7 @@ struct VSInput
     float4 Color : COLOR0;
     float Rotation : TEXCOORD2;
     float SubImageIndex : TEXCOORD3;  // SubUV 애니메이션용 float 프레임 인덱스
+    float3 Velocity : TEXCOORD4;
 };
 
 struct PSInput
@@ -50,31 +58,58 @@ PSInput mainVS(VSInput In)
 {
     PSInput Out;
 
-    // 카메라 오른쪽/위 벡터를 ViewMatrix에서 추출
-    float3 Right = InverseViewMatrix[0].xyz;
-    float3 Up = InverseViewMatrix[1].xyz;
+    // 카메라 정보를 ViewMatrix에서 추출
+    float3 CamRight = InverseViewMatrix[0].xyz;
+    float3 CamUp    = InverseViewMatrix[1].xyz;
+    float3 CamPos   = InverseViewMatrix[3].xyz;
     
-    // Rotation 적용: Corner를 회전시킴
-    float cosR = cos(In.Rotation);
-    float sinR = sin(In.Rotation);
-    float2 rotatedCorner;
-    rotatedCorner.x = In.Corner.x * cosR - In.Corner.y * sinR;
-    rotatedCorner.y = In.Corner.x * sinR + In.Corner.y * cosR;
+    float3 FinalRight;
+    float3 FinalUp;
+    float2 finalSize = In.Size;
+    
+    if (ScreenAlignment == 1) // [PSA_Velocity]
+    {
+        // 속도가 거의 0일 때는 깨짐 방지를 위해 카메라 정면 로직 사용
+        float SpeedSq = dot(In.Velocity, In.Velocity);
+        if (SpeedSq < 0.001f)
+        {
+            FinalRight = CamRight;
+            FinalUp    = CamUp;
+        }
+        else
+        {
+            float Speed = sqrt(SpeedSq);
+            // Y축을 속도 방향으로 강제 고정
+            FinalUp = normalize(In.Velocity);
 
-    float2 halfSize = In.Size * 0.5f;
-    float3 worldPos =
-        In.Position
-        + Right * rotatedCorner.x * halfSize.x
-        + Up * rotatedCorner.y * halfSize.y;
+            // X축은 속도와 카메라 방향의 외적으로 구함
+            float3 ToCam = normalize(CamPos - In.Position);
+            FinalRight = normalize(cross(ToCam, FinalUp));
+            finalSize.y += (Speed * 0.2f);
+        }
+        // Velocity 모드에서 회전 무시
+    }
+    else // [PSA_Square]
+    {
+        float cosR = cos(In.Rotation);
+        float sinR = sin(In.Rotation);
+
+        // 회전 행렬 적용
+        FinalRight = CamRight * cosR + CamUp * sinR;
+        FinalUp    = CamUp * cosR - CamRight * sinR; 
+    }
+    float2 halfSize = finalSize * 0.5f;
+    float3 worldPos = In.Position 
+                    + (FinalRight * In.Corner.x * halfSize.x) 
+                    + (FinalUp    * In.Corner.y * halfSize.y);
 
     float4 viewPos = mul(float4(worldPos, 1.0f), ViewMatrix);
-    float4 projPos = mul(viewPos, ProjectionMatrix);
+    Out.Position   = mul(viewPos, ProjectionMatrix);
 
-    Out.Position = projPos;
     // DirectX는 V가 위에서 아래로 증가하므로 Y(V)를 반전
     Out.UV = float2(In.Corner.x * 0.5f + 0.5f, -In.Corner.y * 0.5f + 0.5f);
     Out.Color = In.Color;
-    Out.SubImageIndex = In.SubImageIndex;  // PS로 전달
+    Out.SubImageIndex = In.SubImageIndex;
 
     return Out;
 }

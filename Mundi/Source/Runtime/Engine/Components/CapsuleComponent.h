@@ -15,8 +15,7 @@ public:
 
 	// Duplication
 	virtual void DuplicateSubObjects() override;
-
-protected:
+	
 	UPROPERTY(EditAnywhere, Category="CapsuleHalfHeight")
 	float CapsuleHalfHeight;
 
@@ -26,5 +25,6 @@ protected:
 	void GetShape(FShape& Out) const override; 
 
 public:
+	FAABB GetWorldAABB() const override;
 	void RenderDebugVolume(class URenderer* Renderer) const override;
 };

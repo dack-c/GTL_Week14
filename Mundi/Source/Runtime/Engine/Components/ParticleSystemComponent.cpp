@@ -1,12 +1,18 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ParticleSystemComponent.h"
 
+#include "BoxComponent.h"
+#include "BVHierarchy.h"
 #include "CameraActor.h"
+#include "CapsuleComponent.h"
+#include "Collision.h"
 #include "MeshBatchElement.h"
 #include "PlatformTime.h"
 #include "PlayerCameraManager.h"
 #include "RenderManager.h"
 #include "SceneView.h"
+#include "SphereComponent.h"
+#include "WorldPartitionManager.h"
 #include "Source/Runtime/Engine/Particle/DynamicEmitterDataBase.h"
 #include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleLODLevel.h"
@@ -125,6 +131,67 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     Context.CameraLocation = Camera ? Camera->GetWorldLocation() : FVector();
     Context.CameraRotation = Camera ? Camera->GetWorldRotation() : FQuat();
 
+    if (GetWorld() && GetWorld()->GetPartitionManager())
+    {
+        float SearchRadius = 1000.0f; // 이거 나중에 ParticleSystem Asset에 정보 추가!!!!!!! 
+        FVector Center = GetWorldLocation();
+        
+        FAABB QueryBox;
+        QueryBox.Min = Center - FVector(SearchRadius, SearchRadius, SearchRadius);
+        QueryBox.Max = Center + FVector(SearchRadius, SearchRadius, SearchRadius);
+
+        TArray<UPrimitiveComponent*> Candidates = GetWorld()->GetPartitionManager()->GetBVH()->QueryIntersectedComponents(QueryBox);
+        Context.WorldColliders.Reserve(Candidates.Num());
+
+        for (UPrimitiveComponent* Prim : Candidates)
+        {
+            UShapeComponent* ShapeComponent = Cast<UShapeComponent>(Prim);
+            if (!ShapeComponent) continue;
+
+            const FTransform& TF = ShapeComponent->GetWorldTransform();
+            FVector WorldLoc = TF.Translation;
+            FQuat WorldRot = TF.Rotation;
+            FVector Scale = TF.Scale3D;
+
+            FColliderProxy Proxy;
+            // [BOX]
+            if (UBoxComponent* BoxComp = Cast<UBoxComponent>(ShapeComponent))
+            {
+                Proxy.Type = EShapeKind::Box;
+                FShape Shape; BoxComp->GetShape(Shape);
+                FOBB OBB; Collision::BuildOBB(Shape, TF, OBB);
+                Proxy.Box = OBB;
+            }
+            // [SPHERE]
+            else if (USphereComponent* SphereComp = Cast<USphereComponent>(ShapeComponent))
+            {
+                Proxy.Type = EShapeKind::Sphere;
+                Proxy.Sphere.Center = WorldLoc;
+                // 가장 큰 축의 스케일을 적용
+                float MaxScale = Scale.GetMaxValue();
+                Proxy.Sphere.Radius = SphereComp->SphereRadius * MaxScale;
+            }
+            // [CAPSULE]
+            else if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(ShapeComponent))
+            {
+                Proxy.Type = EShapeKind::Capsule;
+                float UnscaledRadius = CapsuleComp->CapsuleRadius;
+                float ScaledRadius = UnscaledRadius * FMath::Max(FMath::Abs(Scale.X), FMath::Abs(Scale.Y));
+                float UnscaledHalfHeight = CapsuleComp->CapsuleHalfHeight;
+                float ScaledHalfHeight = UnscaledHalfHeight * FMath::Abs(Scale.Z);
+
+                float CylHalfHeight = FMath::Max(0.0f, ScaledHalfHeight - ScaledRadius);
+
+                FVector UpAxis = WorldRot.RotateVector(FVector{0, 0, 1});
+                Proxy.Capsule.Radius = ScaledRadius;
+                Proxy.Capsule.PosA = WorldLoc - (UpAxis * CylHalfHeight);
+                Proxy.Capsule.PosB = WorldLoc + (UpAxis * CylHalfHeight);
+            }
+
+            Context.WorldColliders.Add(Proxy);
+        }
+    }
+    
     if (bUseAsyncSimulation)
     {
         if (!AsyncUpdater.IsBusy())
@@ -179,6 +246,7 @@ void UParticleSystemComponent::CollectMeshBatches(TArray<FMeshBatchElement>& Out
     // DynamicEmitterReplayDatabase -> MeshBatchElement
     BuildSpriteParticleBatch(CurrentData, OutMeshBatchElements, View);
     BuildMeshParticleBatch(CurrentData, OutMeshBatchElements, View);
+    BuildBeamParticleBatch(CurrentData, OutMeshBatchElements, View);
     BuildRibbonParticleBatch(CurrentData, OutMeshBatchElements, View);
 }
 
@@ -273,15 +341,10 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Instanced(
 
         const uint32 StartInstance = WrittenInstances;
 
-        TArray<int32> SortIndices;
-        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
             if (WrittenInstances >= ClampedCount) break;
-
-            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
             const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
             if (!Particle) continue;
 
@@ -294,6 +357,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Instanced(
             Inst.Size = FVector2D(Particle->Size.X, Particle->Size.Y);
             Inst.Color = Particle->Color;
             Inst.Rotation = Particle->Rotation;
+            Inst.Velocity = Particle->Velocity;
         }
 
         const uint32 InstancesWritten = WrittenInstances - StartInstance;
@@ -353,7 +417,8 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Instanced(
         Batch.WorldMatrix = GetWorldMatrix();
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
-
+        
+        Batch.ScreenAlignment = Cmd.SpriteData->Alignment;
         Batch.InstanceCount = Cmd.InstanceCount;
         Batch.InstanceStart = Cmd.StartInstance;
         Batch.bInstancedDraw = true;
@@ -408,16 +473,11 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
         if (!Src || Src->ActiveParticleCount <= 0) continue;
 
         const uint32 StartParticle = WrittenParticles;
-
-        TArray<int32> SortIndices;
-        SpriteData->SortParticles(ViewOrigin, ViewDir, GetWorldMatrix(), SortIndices);
-        const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
         for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
         {
             if (WrittenParticles >= ClampedCount) break;
 
-            const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+            const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
             const FBaseParticle* Particle = SpriteData->GetParticle(ParticleIdx);
             if (!Particle) continue;
 
@@ -436,6 +496,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
             const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
             const FLinearColor Color = Particle->Color;
             const float Rotation = Particle->Rotation;
+            const FVector Velocity = Particle->Velocity;
 
             // 4개 코너 버텍스 생성
             for (int32 CornerIndex = 0; CornerIndex < 4; ++CornerIndex)
@@ -447,6 +508,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
                 Vertex.Color = Color;
                 Vertex.Rotation = Rotation;
                 Vertex.SubImageIndex = SubImageIndex;
+                Vertex.Velocity = Velocity;
             }
 
             ++WrittenParticles;
@@ -507,6 +569,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch_Immediate(
         Batch.WorldMatrix = GetWorldMatrix();
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
+        Batch.ScreenAlignment = Cmd.SpriteData->Alignment;
 
         // SubUV 파라미터 설정
         const FDynamicSpriteEmitterReplayData* SrcData =
@@ -845,13 +908,9 @@ void UParticleSystemComponent::BuildMeshParticleBatch_Immediate(TArray<FDynamicE
             ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
         }
 
-        TArray<int32> SortIndices;
-        MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
-		const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
 		for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
 		{
-			const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+		    const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
             const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
             if (!Particle)
                 continue;
@@ -999,18 +1058,13 @@ void UParticleSystemComponent::BuildMeshParticleBatch_Instanced(
 		UMaterialInterface* Material = ResolveEmitterMaterial(*MeshData);
 		const uint32 StartInstance = WrittenInstances;
 
-		TArray<int32> SortIndices;
-		MeshData->SortParticles(ViewOrigin, ViewDir, ComponentWorld, SortIndices);
-		const bool bUseSortIndices = (SortIndices.Num() == Src->ActiveParticleCount);
-
 		for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
 		{
 			if (WrittenInstances >= ClampedCount)
 			{
 				break;
 			}
-
-			const int32 ParticleIdx = bUseSortIndices ? SortIndices[LocalIdx] : LocalIdx;
+		    const int32 ParticleIdx = Base->AsyncSortedIndices[LocalIdx];
 			const FBaseParticle* Particle = MeshData->GetParticle(ParticleIdx);
 			if (!Particle)
 			{
@@ -1612,3 +1666,228 @@ void UParticleSystemComponent::RenderDebugVolume(URenderer* Renderer) const
     }
 }
 
+void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterDataBase*>& EmitterRenderData, TArray<FMeshBatchElement>& OutMeshBatchElements, const FSceneView* View)
+{
+    if (EmitterRenderData.IsEmpty() || !View)
+        return;
+
+    // 카메라 정보
+    const FVector ViewOrigin = View->ViewLocation;
+    const FVector ViewDir = View->ViewRotation.RotateVector(FVector(1, 0, 0)).GetSafeNormal();
+
+    for (FDynamicEmitterDataBase* Base : EmitterRenderData)
+    {
+        if (!Base || Base->EmitterType != EParticleType::Beam)
+            continue;
+
+        auto* BeamData = static_cast<FDynamicBeamEmitterData*>(Base);
+        const auto* Src = static_cast<const FDynamicBeamEmitterReplayData*>(BeamData->GetSource());
+        if (!Src || Src->ActiveParticleCount <= 0)
+            continue;
+
+        // 빔 전용 셰이더 로드 (파티클 루프 밖에서 한 번만)
+        
+        UMaterial* BeamShaderMaterial = UResourceManager::GetInstance().Load<UMaterial>("Shaders/Effects/ParticleBeam.hlsl");
+        if (!BeamShaderMaterial || !BeamShaderMaterial->GetShader())
+        {
+            UE_LOG("[BuildBeamParticleBatch] Failed to load ParticleBeam.hlsl");
+            continue;
+        }
+
+        // 빔 설정
+        const int32 TessellationFactor = Src->TessellationFactor;
+        const float BeamWidth = 1.0f; // TODO: 모듈에서 가져오기
+
+        UE_LOG("[BuildBeamParticleBatch] TessellationFactor=%d, NoiseFreq=%.2f, NoiseAmp=%.2f",
+            TessellationFactor, Src->NoiseFrequency, Src->NoiseAmplitude);
+
+        // 각 빔 파티클 처리
+        for (int32 LocalIdx = 0; LocalIdx < Src->ActiveParticleCount; ++LocalIdx)
+        {
+            const FBaseParticle* Particle = BeamData->GetParticle(LocalIdx);
+            if (!Particle)
+                continue;
+
+            // 빔 시작점/끝점/랜덤시드 가져오기 (Payload에서)
+            const uint8* ParticleBase = reinterpret_cast<const uint8*>(Particle);
+            const int32 PayloadOffset = sizeof(FBaseParticle); // 기본 파티클 데이터 뒤
+            const FVector* BeamSource = reinterpret_cast<const FVector*>(ParticleBase + PayloadOffset);
+            const FVector* BeamTarget = reinterpret_cast<const FVector*>(ParticleBase + PayloadOffset + sizeof(FVector));
+            const float* BeamRandomSeed = reinterpret_cast<const float*>(ParticleBase + PayloadOffset + sizeof(FVector) * 2);
+
+            FVector Start = *BeamSource;
+            FVector End = *BeamTarget;
+            const float RandomSeed = *BeamRandomSeed;
+
+            // 디버그 로그 (첫 번째 파티클만)
+            if (LocalIdx == 0)
+            {
+                UE_LOG("[BuildBeamParticleBatch] Particle[0] Start=(%.1f, %.1f, %.1f), End=(%.1f, %.1f, %.1f)",
+                    Start.X, Start.Y, Start.Z, End.X, End.Y, End.Z);
+            }
+
+            // Local Space 처리
+            if (BeamData->bUseLocalSpace)
+            {
+                const FMatrix& WorldMatrix = GetWorldMatrix();
+                Start = WorldMatrix.TransformPosition(Start);
+                End = WorldMatrix.TransformPosition(End);
+            }
+
+            // 빔 방향
+            FVector BeamDir = (End - Start).GetSafeNormal();
+            if (BeamDir.IsZero())
+                continue;
+
+            // 카메라를 향하는 수직 벡터 (빌보드)
+            FVector ToCam = (ViewOrigin - Start).GetSafeNormal();
+            FVector Right = FVector::Cross(BeamDir, ToCam).GetSafeNormal();
+            if (Right.IsZero())
+            {
+                // BeamDir과 ToCam이 평행한 경우, Up 벡터 사용
+                Right = FVector::Cross(BeamDir, FVector(0, 0, 1)).GetSafeNormal();
+                if (Right.IsZero())
+                    Right = FVector::Cross(BeamDir, FVector(0, 1, 0)).GetSafeNormal();
+            }
+
+            // 버퍼 준비
+            const uint32 SegmentCount = TessellationFactor;
+            const uint32 VertexCount = (SegmentCount + 1) * 2; // 각 세그먼트 끝점마다 2개 정점
+            const uint32 IndexCount = SegmentCount * 6; // 각 세그먼트는 2개 삼각형 (6개 인덱스)
+
+            // 동적 버퍼 생성
+            TArray<FParticleBeamVertex> Vertices;
+            TArray<uint32> Indices;
+            Vertices.SetNum(VertexCount);
+            Indices.SetNum(IndexCount);
+
+            // 빔 방향에 수직인 Up 벡터 계산 (노이즈 적용용)
+            FVector Up = FVector::Cross(Right, BeamDir).GetSafeNormal();
+
+            // 정점 생성
+            for (uint32 i = 0; i <= SegmentCount; ++i)
+            {
+                float t = (float)i / SegmentCount;
+                FVector Position = FVector::Lerp(Start, End, t);
+
+                // 노이즈 적용 (번개 효과)
+                // 시작점과 끝점은 노이즈 없이 고정
+                if (i > 0 && i < SegmentCount && Src->NoiseAmplitude > 0.0f)
+                {
+                    // Perlin-like noise 대신 간단한 sin 기반 노이즈 사용
+                    // RandomSeed를 사용하여 파티클마다 고유한 노이즈 패턴 생성
+                    float NoisePhase = t * Src->NoiseFrequency * 6.28318f + RandomSeed;
+                    float NoiseValue1 = sin(NoisePhase) * 0.5f + sin(NoisePhase * 2.3f) * 0.3f + sin(NoisePhase * 4.1f) * 0.2f;
+                    float NoiseValue2 = cos(NoisePhase * 1.3f) * 0.5f + cos(NoisePhase * 3.7f) * 0.3f;
+
+                    // 중간 지점에서 노이즈가 최대가 되도록 (끝점으로 갈수록 감소)
+                    float FallOff = sin(t * 3.14159f);
+
+                    Position += Right * NoiseValue1 * Src->NoiseAmplitude * FallOff;
+                    Position += Up * NoiseValue2 * Src->NoiseAmplitude * FallOff;
+                }
+
+                // 좌우 정점
+                FVector LeftPos = Position - Right * BeamWidth * 0.5f;
+                FVector RightPos = Position + Right * BeamWidth * 0.5f;
+
+                uint32 VertexIdx = i * 2;
+                Vertices[VertexIdx].Position = LeftPos;
+                Vertices[VertexIdx].UV = FVector2D(0.0f, t);
+                Vertices[VertexIdx].Color = Particle->Color;
+
+                Vertices[VertexIdx + 1].Position = RightPos;
+                Vertices[VertexIdx + 1].UV = FVector2D(1.0f, t);
+                Vertices[VertexIdx + 1].Color = Particle->Color;
+            }
+
+            // 인덱스 생성 (각 세그먼트는 Quad = 2개 삼각형)
+            for (uint32 i = 0; i < SegmentCount; ++i)
+            {
+                uint32 BaseVertex = i * 2;
+                uint32 BaseIndex = i * 6;
+
+                // 삼각형 1: (0, 2, 1)
+                Indices[BaseIndex + 0] = BaseVertex + 0;
+                Indices[BaseIndex + 1] = BaseVertex + 2;
+                Indices[BaseIndex + 2] = BaseVertex + 1;
+
+                // 삼각형 2: (1, 2, 3)
+                Indices[BaseIndex + 3] = BaseVertex + 1;
+                Indices[BaseIndex + 4] = BaseVertex + 2;
+                Indices[BaseIndex + 5] = BaseVertex + 3;
+            }
+
+            // GPU 버퍼 생성
+            D3D11RHI* RHIDevice = GEngine.GetRHIDevice();
+            ID3D11Device* Device = RHIDevice ? RHIDevice->GetDevice() : nullptr;
+            if (!Device)
+                continue;
+
+            ID3D11Buffer* BeamVertexBuffer = nullptr;
+            ID3D11Buffer* BeamIndexBuffer = nullptr;
+
+            // 정점 버퍼
+            D3D11_BUFFER_DESC VBDesc = {};
+            VBDesc.ByteWidth = sizeof(FParticleBeamVertex) * VertexCount;
+            VBDesc.Usage = D3D11_USAGE_IMMUTABLE;
+            VBDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+            D3D11_SUBRESOURCE_DATA VBData = {};
+            VBData.pSysMem = Vertices.GetData();
+
+            if (FAILED(Device->CreateBuffer(&VBDesc, &VBData, &BeamVertexBuffer)))
+                continue;
+
+            // 인덱스 버퍼
+            D3D11_BUFFER_DESC IBDesc = {};
+            IBDesc.ByteWidth = sizeof(uint32) * IndexCount;
+            IBDesc.Usage = D3D11_USAGE_IMMUTABLE;
+            IBDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+            D3D11_SUBRESOURCE_DATA IBData = {};
+            IBData.pSysMem = Indices.GetData();
+
+            if (FAILED(Device->CreateBuffer(&IBDesc, &IBData, &BeamIndexBuffer)))
+            {
+                BeamVertexBuffer->Release();
+                continue;
+            }
+
+            // 셰이더 컴파일
+            TArray<FShaderMacro> ShaderMacros;
+            if (View)
+                ShaderMacros = View->ViewShaderMacros;
+            ShaderMacros.Append(BeamShaderMaterial->GetShaderMacros());
+
+            FShaderVariant* ShaderVariant = BeamShaderMaterial->GetShader()->GetOrCompileShaderVariant(ShaderMacros);
+            if (!ShaderVariant)
+            {
+                BeamVertexBuffer->Release();
+                BeamIndexBuffer->Release();
+                continue;
+            }
+
+            // 배치 생성
+            FMeshBatchElement& Batch = OutMeshBatchElements[OutMeshBatchElements.Add(FMeshBatchElement())];
+
+            Batch.VertexShader = ShaderVariant->VertexShader;
+            Batch.PixelShader = ShaderVariant->PixelShader;
+            Batch.InputLayout = ShaderVariant->InputLayout;
+            Batch.Material = ResolveEmitterMaterial(*BeamData);
+
+            Batch.VertexBuffer = BeamVertexBuffer;
+            Batch.IndexBuffer = BeamIndexBuffer;
+            Batch.VertexStride = sizeof(FParticleBeamVertex);
+            Batch.IndexCount = IndexCount;
+            Batch.StartIndex = 0;
+            Batch.BaseVertexIndex = 0;
+            Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            Batch.WorldMatrix = FMatrix::Identity(); // 이미 월드 좌표
+            Batch.ObjectID = InternalIndex;
+            Batch.SortPriority = BeamData->SortPriority;
+
+            // TODO: 버퍼 해제 관리 필요 (현재는 프레임마다 생성)
+        }
+    }
+}

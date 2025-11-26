@@ -45,7 +45,7 @@ public:
 	static uint64 GenerateShaderKey(const TArray<FShaderMacro>& InMacros);
 	static FString GenerateMacrosToString(const TArray<FShaderMacro>& InMacros);	// UI 출력 or 디버깅용
 
-	void Load(const FString& ShaderPath, ID3D11Device* InDevice, const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
+	bool Load(const FString& ShaderPath, ID3D11Device* InDevice, const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
 
 	FShaderVariant* GetOrCompileShaderVariant(const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
 	bool CompileVariantInternal(ID3D11Device* InDevice, const FString& InShaderPath, const TArray<FShaderMacro>& InMacros, FShaderVariant& OutVariant);
@@ -129,16 +129,18 @@ struct FVertexParticleSprite
 	static const D3D11_INPUT_ELEMENT_DESC* GetLayout()
 	{
 		static const D3D11_INPUT_ELEMENT_DESC layout[] = {
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // Corner
-			{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT,       0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // Size
-			{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // Color (offset 28->44)
-			{ "TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT,          0, 44, D3D11_INPUT_PER_VERTEX_DATA, 0 }  // Rotation
+			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},// Corner
+			{"TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},// Size
+			{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA, 0}, // Color
+			{"TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}, // Rotation
+			{"TEXCOORD", 3, DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}, // SubImageIndex
+			{"TEXCOORD", 4, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}, // Velocity
 		};
 		return layout;
 	}
 
-	static uint32 GetLayoutCount() { return 5; }
+	static uint32 GetLayoutCount() { return 7; }
 };
 
 // ======================== 오클루전 관련 메소드들 ============================

@@ -1,0 +1,61 @@
+// Particle Beam Shader
+// 빔 이미터 전용 셰이더 (레이저, 번개 등)
+
+// b0: ModelBuffer (VS) - Not used for beams (already in world space)
+cbuffer ModelBuffer : register(b0)
+{
+    row_major float4x4 WorldMatrix;
+    row_major float4x4 WorldInverseTranspose;
+};
+
+// b1: ViewProjBuffer (VS)
+cbuffer ViewProjBuffer : register(b1)
+{
+    row_major float4x4 ViewMatrix;
+    row_major float4x4 ProjectionMatrix;
+    row_major float4x4 InverseViewMatrix;
+    row_major float4x4 InverseProjectionMatrix;
+};
+
+Texture2D BeamTexture : register(t0);
+SamplerState BeamSampler : register(s0);
+
+struct VSInput
+{
+    float3 Position : POSITION;
+    float2 UV : TEXCOORD0;
+    float4 Color : COLOR;
+};
+
+struct PSInput
+{
+    float4 Position : SV_POSITION;
+    float2 UV : TEXCOORD0;
+    float4 Color : COLOR;
+};
+
+PSInput mainVS(VSInput input)
+{
+    PSInput output;
+
+    // 빔 정점은 이미 월드 좌표이므로 ViewProjection만 적용
+    float4 worldPos = float4(input.Position, 1.0);
+    float4 viewPos = mul(worldPos, ViewMatrix);
+    output.Position = mul(viewPos, ProjectionMatrix);
+
+    output.UV = input.UV;
+    output.Color = input.Color;
+
+    return output;
+}
+
+float4 mainPS(PSInput input) : SV_TARGET
+{
+    // 텍스처 샘플링
+    float4 texColor = BeamTexture.Sample(BeamSampler, input.UV);
+
+    // 파티클 색상과 곱하기
+    float4 finalColor = texColor * input.Color;
+
+    return finalColor;
+}

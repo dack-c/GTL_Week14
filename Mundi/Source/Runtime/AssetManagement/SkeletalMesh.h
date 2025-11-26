@@ -9,7 +9,7 @@ public:
     USkeletalMesh();
     virtual ~USkeletalMesh() override;
     
-    void Load(const FString& InFilePath, ID3D11Device* InDevice);
+    bool Load(const FString& InFilePath, ID3D11Device* InDevice);
     
     const FSkeletalMeshData* GetSkeletalMeshData() const { return Data; }
     const FString& GetPathFileName() const { if (Data) return Data->PathFileName; return FString(); }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Vector.h" // uint8
 #include "ParticleDataContainer.h"
 #include "ParticleHelper.h"
@@ -55,6 +55,7 @@ struct FDynamicEmitterDataBase {
     bool bUseSoftParticle = false; 
     float SoftFadeDistance = 50.0f; // 투명 파티클 정렬 기준 
     
+    EScreenAlignment Alignment = EScreenAlignment::None; 
     EParticleSortMode SortMode = EParticleSortMode::None; 
     int32 SortPriority = 0; // Emitter 우선순위
     TArray<int32> AsyncSortedIndices;
@@ -233,3 +234,44 @@ struct FDynamicMeshEmitterData : public FDynamicTranslucentEmitterDataBase
         return &Source;
     }
 };
+
+
+struct FDynamicBeamEmitterReplayData : public FDynamicEmitterReplayDataBase
+{
+    UParticleModuleRequired* RequiredModule = nullptr;
+
+    // 빔 세그먼트 데이터
+    int32 TessellationFactor = 10;
+    float NoiseFrequency = 0.0f;
+    float NoiseAmplitude = 0.0f;
+};
+
+struct FDynamicBeamEmitterData : public FDynamicEmitterDataBase
+{
+    FDynamicBeamEmitterReplayData Source;
+
+    FDynamicBeamEmitterData()
+    {
+        EmitterType = EParticleType::Beam;
+    }
+
+    ~FDynamicBeamEmitterData() override
+    {
+        Source.DataContainer.Free();
+    }
+
+    const FDynamicEmitterReplayDataBase* GetSource() const override
+    {
+        return &Source;
+    }
+
+    const FBaseParticle* GetParticle(int32 Idx) const
+    {
+        if (!Source.DataContainer.ParticleData)
+            return nullptr;
+
+        const uint8* BasePtr = Source.DataContainer.ParticleData + Source.ParticleStride * Idx;
+        return reinterpret_cast<const FBaseParticle*>(BasePtr);
+    }
+};
+

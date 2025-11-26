@@ -35,7 +35,7 @@ class UMaterial : public UMaterialInterface
 	DECLARE_CLASS(UMaterial, UMaterialInterface)
 public:
 	UMaterial();
-	void Load(const FString& InFilePath, ID3D11Device* InDevice);
+	bool Load(const FString& InFilePath, ID3D11Device* InDevice);
 
 protected:
 	~UMaterial() override = default;

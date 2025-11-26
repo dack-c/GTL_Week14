@@ -1,11 +1,7 @@
 ﻿#include "pch.h"
 #include "SkeletalMesh.h"
-
-
 #include "Source/Editor/FBX/FbxLoader.h"
 #include "WindowsBinReader.h"
-#include "WindowsBinWriter.h"
-#include "PathUtils.h"
 #include <filesystem>
 
 IMPLEMENT_CLASS(USkeletalMesh)
@@ -19,7 +15,7 @@ USkeletalMesh::~USkeletalMesh()
     ReleaseResources();
 }
 
-void USkeletalMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
+bool USkeletalMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {
     if (Data)
     {
@@ -32,7 +28,7 @@ void USkeletalMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
     if (!Data || Data->Vertices.empty() || Data->Indices.empty())
     {
         UE_LOG("ERROR: Failed to load FBX mesh from '%s'", InFilePath.c_str());
-        return;
+        return false;
     }
 
     // GPU 버퍼 생성
@@ -41,6 +37,7 @@ void USkeletalMesh::Load(const FString& InFilePath, ID3D11Device* InDevice)
     IndexCount = static_cast<uint32>(Data->Indices.size());
     CPUSkinnedVertexStride = sizeof(FVertexDynamic);
     GPUSkinnedVertexStride = sizeof(FSkinnedVertex);
+    return true;
 }
 
 void USkeletalMesh::ReleaseResources()

@@ -30,7 +30,7 @@ public:
 // JSON Serialization Section
 public:
     // UResourceBase Load
-    void Load(const FString& InFilePath, ID3D11Device* InDevice);
+    bool Load(const FString& InFilePath, ID3D11Device* InDevice);
     
     // ParticleSystem을 JSON 형식으로 파일에 저장
     bool SaveToFile(const FString& FilePath);
