@@ -3,17 +3,6 @@
 
 class UMaterialInterface;
 
-// 블렌드 모드
-enum class EBlendMode : uint8
-{
-    Opaque,        // 불투명
-    Masked,        // 마스크
-    Translucent,   // 반투명
-    Additive,      // 가산
-    Modulate,      // 곱셈
-    Alpha          // 알파 블렌드
-};
-
 // 스크린 정렬 방식
 enum class EScreenAlignment : uint8
 {
@@ -40,14 +29,11 @@ public:
     // (MVP 편의) 기본 스폰레이트 fallback
     float SpawnRateBase = 10.0f;
 
-    // ---- 공간/종료 규칙 ----
+    // ---- 공간 규칙 ----
     bool bUseLocalSpace    = false;
-    bool bKillOnDeactivate = true;
-    bool bKillOnCompleted  = false;
 
     // ---- 렌더 기본 ----
     UMaterialInterface* Material = nullptr;  // UMaterial 또는 UMaterialInstanceDynamic
-    EBlendMode BlendMode = EBlendMode::Alpha;
 
     EScreenAlignment ScreenAlignment = EScreenAlignment::CameraFacing;
     EParticleSortMode SortMode = EParticleSortMode::ByDistance;

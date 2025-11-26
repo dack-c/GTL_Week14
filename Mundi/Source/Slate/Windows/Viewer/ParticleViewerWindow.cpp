@@ -580,37 +580,6 @@ void SParticleViewerWindow::OnRender()
 					ImGui::Columns(2, "RequiredModuleColumns", false);
 					ImGui::SetColumnWidth(0, 150.0f);
 
-                    // Blend Mode
-                    {
-                        ImGui::Text("Blend Mode");
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::SetTooltip("파티클 블렌딩 모드\n- Opaque: 불투명\n- Masked: 알파 마스크\n- Translucent: 반투명\n- Additive: 가산 혼합 (빛나는 효과)\n- Modulate: 곱하기 혼합\n- Alpha: 알파 블렌딩");
-                        }
-                        ImGui::NextColumn();
-
-						const char* blendModes[] = { "Opaque", "Masked", "Translucent", "Additive", "Modulate", "Alpha" };
-						int currentBlendMode = (int)RequiredModule->BlendMode;
-
-						ImGui::SetNextItemWidth(-1);
-						if (ImGui::BeginCombo("##BlendModeCombo", blendModes[currentBlendMode]))
-						{
-							for (int i = 0; i < IM_ARRAYSIZE(blendModes); i++)
-							{
-								bool isSelected = (currentBlendMode == i);
-								if (ImGui::Selectable(blendModes[i], isSelected))
-								{
-									RequiredModule->BlendMode = (EBlendMode)i;
-								}
-							}
-							ImGui::EndCombo();
-						}
-
-						ImGui::NextColumn();
-					}
-
-					ImGui::Spacing();
-
                     // Screen Alignment
                     {
                         ImGui::Text("Screen Alignment");
@@ -792,34 +761,6 @@ void SParticleViewerWindow::OnRender()
 
 						ImGui::NextColumn();
 					}
-
-					ImGui::Spacing();
-
-                    // Kill On Deactivate
-                    {
-                        ImGui::Text("Kill On Deactivate");
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::SetTooltip("에미터 비활성화 시 기존 파티클 즉시 제거\n체크: 즉시 사라짐\n해제: 남은 수명까지 유지");
-                        }
-                        ImGui::NextColumn();
-                        ImGui::Checkbox("##KillOnDeactivate", &RequiredModule->bKillOnDeactivate);
-                        ImGui::NextColumn();
-                    }
-
-					ImGui::Spacing();
-
-                    // Kill On Completed
-                    {
-                        ImGui::Text("Kill On Completed");
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::SetTooltip("에미터 Duration 완료 시 파티클 즉시 제거\n체크: Duration 끝나면 모든 파티클 즉시 제거\n해제: 이미 생성된 파티클은 수명 다할 때까지 유지");
-                        }
-                        ImGui::NextColumn();
-                        ImGui::Checkbox("##KillOnCompleted", &RequiredModule->bKillOnCompleted);
-                        ImGui::NextColumn();
-                    }
 
 					ImGui::Spacing();
 
