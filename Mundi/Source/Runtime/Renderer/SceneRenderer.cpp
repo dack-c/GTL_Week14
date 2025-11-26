@@ -1621,6 +1621,11 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 					SubUVBuffer.SubImages_Horizontal, SubUVBuffer.SubImages_Vertical, SubUVBuffer.InterpMethod);
 			}
 		}
+		else
+		{
+			FSubUVBufferType SubUVBuffer;
+			RHIDevice->SetAndUpdateConstantBuffer(SubUVBuffer);
+		}
 
 		if (Batch.ScreenAlignment != EScreenAlignment::None)
 		{
