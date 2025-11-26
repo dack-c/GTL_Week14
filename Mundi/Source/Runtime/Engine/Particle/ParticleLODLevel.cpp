@@ -115,11 +115,8 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 FJsonSerializer::ReadFloat(ReqJson, "SpawnRateBase", Req->SpawnRateBase);
                 
                 FJsonSerializer::ReadBool(ReqJson, "bUseLocalSpace", Req->bUseLocalSpace);
-                FJsonSerializer::ReadBool(ReqJson, "bKillOnDeactivate", Req->bKillOnDeactivate);
-                FJsonSerializer::ReadBool(ReqJson, "bKillOnCompleted", Req->bKillOnCompleted);
 
-                int32 BlendModeVal = 0, AlignVal = 0, SortVal = 0;
-                if (FJsonSerializer::ReadInt32(ReqJson, "BlendMode", BlendModeVal)) Req->BlendMode = (EBlendMode)BlendModeVal;
+                int32 AlignVal = 0, SortVal = 0;
                 if (FJsonSerializer::ReadInt32(ReqJson, "ScreenAlignment", AlignVal)) Req->ScreenAlignment = (EScreenAlignment)AlignVal;
                 if (FJsonSerializer::ReadInt32(ReqJson, "SortMode", SortVal)) Req->SortMode = (EParticleSortMode)SortVal;
 
@@ -268,9 +265,6 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             RequiredJson["EmitterLoops"] = RequiredModule->EmitterLoops;
             RequiredJson["SpawnRateBase"] = RequiredModule->SpawnRateBase;
             RequiredJson["bUseLocalSpace"] = RequiredModule->bUseLocalSpace;
-            RequiredJson["bKillOnDeactivate"] = RequiredModule->bKillOnDeactivate;
-            RequiredJson["bKillOnCompleted"] = RequiredModule->bKillOnCompleted;
-            RequiredJson["BlendMode"] = static_cast<int>(RequiredModule->BlendMode);
             RequiredJson["ScreenAlignment"] = static_cast<int>(RequiredModule->ScreenAlignment);
             RequiredJson["SortMode"] = static_cast<int>(RequiredModule->SortMode);
 
