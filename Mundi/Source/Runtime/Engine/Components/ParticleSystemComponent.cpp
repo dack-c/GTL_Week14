@@ -631,20 +631,24 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
         Batch.PixelShader = Cmd.ShaderVariant->PixelShader;
         Batch.InputLayout = Cmd.ShaderVariant->InputLayout;
         Batch.Material = Cmd.Material;
+
         Batch.VertexBuffer = MeshVB;
-        Batch.IndexBuffer = MeshIB;
         Batch.VertexStride = MeshVertexStride;
+        Batch.IndexBuffer = MeshIB;
         Batch.IndexCount = MeshIndexCount;
+
         Batch.StartIndex = 0;
         Batch.BaseVertexIndex = 0;
         Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         Batch.WorldMatrix = FMatrix::Identity();
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
+
+        Batch.bInstancedDraw = true;
+        Batch.InstanceVertexBuffer = MeshInstanceBuffer;
+        Batch.InstanceStride = sizeof(FMeshParticleInstanceData);
         Batch.InstanceCount = Cmd.InstanceCount;
         Batch.InstanceStart = Cmd.StartInstance;
-        Batch.bInstancedDraw = true;
-        Batch.InstancingShaderResourceView = MeshInstanceSRV;
     }
 }
 
@@ -1138,7 +1142,6 @@ bool UParticleSystemComponent::EnsureMeshBuffer(uint32 InstanceCount)
     if (MeshInstanceBuffer && InstanceCount <= MeshInstanceCapacity)
         return true;
 
-    if (MeshInstanceSRV) { MeshInstanceSRV->Release(); MeshInstanceSRV = nullptr; }
     if (MeshInstanceBuffer) { MeshInstanceBuffer->Release(); MeshInstanceBuffer = nullptr; }
     MeshInstanceCapacity = 0;
 
@@ -1149,26 +1152,12 @@ bool UParticleSystemComponent::EnsureMeshBuffer(uint32 InstanceCount)
     D3D11_BUFFER_DESC desc = {};
     desc.ByteWidth = sizeof(FMeshParticleInstanceData) * InstanceCount;
     desc.Usage = D3D11_USAGE_DYNAMIC;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    desc.StructureByteStride = sizeof(FMeshParticleInstanceData);
+    desc.StructureByteStride = 0;
 
     if (FAILED(Device->CreateBuffer(&desc, nullptr, &MeshInstanceBuffer)))
         return false;
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = InstanceCount;
-
-    if (FAILED(Device->CreateShaderResourceView(MeshInstanceBuffer, &srvDesc, &MeshInstanceSRV)))
-    {
-        MeshInstanceBuffer->Release();
-        MeshInstanceBuffer = nullptr;
-        return false;
-    }
 
     MeshInstanceCapacity = InstanceCount;
     return true;
@@ -1194,12 +1183,6 @@ void UParticleSystemComponent::ReleaseParticleBuffers()
 
 void UParticleSystemComponent::ReleaseInstanceBuffers()
 {
-    if (MeshInstanceSRV)
-    {
-        MeshInstanceSRV->Release();
-        MeshInstanceSRV = nullptr;
-    }
-
     if (MeshInstanceBuffer)
     {
         MeshInstanceBuffer->Release();

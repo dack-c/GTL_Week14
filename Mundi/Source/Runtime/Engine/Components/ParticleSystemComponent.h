@@ -82,8 +82,7 @@ private:
 
 	// Mesh Instancing
 	ID3D11Buffer* MeshInstanceBuffer = nullptr;
-	ID3D11ShaderResourceView* MeshInstanceSRV = nullptr;
-	uint32               MeshInstanceCapacity = 0;
+	uint32 MeshInstanceCapacity = 0;
 
 	// Ribbon Resources
 	ID3D11Buffer* RibbonVertexBuffer = nullptr;

@@ -70,15 +70,6 @@ SamplerState g_Sample2 : register(s1);
 SamplerComparisonState g_ShadowSample : register(s2);
 SamplerState g_VSMSampler : register(s3);
 
-struct FMeshParticleInstanceData
-{
-    row_major float4x4 WorldMatrix;
-    row_major float4x4 WorldInverseTranspose;
-    float4 Color;
-};
-
-StructuredBuffer<FMeshParticleInstanceData> g_MeshParticleInstanceData : register(t14);
-
 #if PARTICLE_LIGHTING
 // 조명 시스템 include
 #include "../Common/LightStructures.hlsl"
@@ -86,7 +77,6 @@ StructuredBuffer<FMeshParticleInstanceData> g_MeshParticleInstanceData : registe
 #include "../Common/LightingCommon.hlsl"
 #endif
 
-// 입출력 구조체
 struct VS_INPUT
 {
     float3 Position : POSITION;
@@ -94,7 +84,18 @@ struct VS_INPUT
     float2 TexCoord : TEXCOORD0;
     float4 Tangent : TANGENT0;
     float4 Color : COLOR;
-    uint   InstanceID : SV_InstanceID;
+
+    float4 InstanceWorld0 : INSTANCE_WORLD0;
+    float4 InstanceWorld1 : INSTANCE_WORLD1;
+    float4 InstanceWorld2 : INSTANCE_WORLD2;
+    float4 InstanceWorld3 : INSTANCE_WORLD3;
+
+    float4 InstanceInvWorld0 : INSTANCE_INVWORLD0;
+    float4 InstanceInvWorld1 : INSTANCE_INVWORLD1;
+    float4 InstanceInvWorld2 : INSTANCE_INVWORLD2;
+    float4 InstanceInvWorld3 : INSTANCE_INVWORLD3;
+
+    float4 InstanceColor : INSTANCE_COLOR;
 };
 
 struct PS_INPUT
@@ -120,15 +121,25 @@ PS_INPUT mainVS(VS_INPUT Input)
 {
     PS_INPUT Out;
 
-    float4x4 LocalWorldMatrix = WorldMatrix;
-    float3x3 LocalWorldInverseTranspose = (float3x3)WorldInverseTranspose;
-    float4 CombinedColor = Input.Color;
+    float4x4 LocalWorldMatrix = float4x4(
+        Input.InstanceWorld0,
+        Input.InstanceWorld1,
+        Input.InstanceWorld2,
+        Input.InstanceWorld3
+    );
 
-    FMeshParticleInstanceData InstanceData = g_MeshParticleInstanceData[Input.InstanceID];
-    LocalWorldMatrix = InstanceData.WorldMatrix;
-    LocalWorldInverseTranspose = (float3x3) InstanceData.WorldInverseTranspose;
-    CombinedColor *= InstanceData.Color;
+    float4x4 LocalWorldInvT = float4x4(
+        Input.InstanceInvWorld0,
+        Input.InstanceInvWorld1,
+        Input.InstanceInvWorld2,
+        Input.InstanceInvWorld3
+    );
+    
+    float3x3 LocalWorldInverseTranspose = (float3x3) LocalWorldInvT;
 
+    // VertexColor * InstanceColor (ColorOverLife 반영)
+    float4 CombinedColor = Input.Color * Input.InstanceColor;
+    
     float4 WorldPos = mul(float4(Input.Position, 1.0f), LocalWorldMatrix);
     Out.WorldPos = WorldPos.xyz;
 
@@ -138,10 +149,10 @@ PS_INPUT mainVS(VS_INPUT Input)
     float3 WorldNormal = normalize(mul(Input.Normal, LocalWorldInverseTranspose));
     Out.Normal = WorldNormal;
 
-    float3x3 WorldRotation = (float3x3)LocalWorldMatrix;
+    float3x3 WorldRotation = (float3x3) LocalWorldMatrix;
     float3 Tangent = normalize(mul(Input.Tangent.xyz, WorldRotation));
     float3 BiTangent = normalize(cross(WorldNormal, Tangent) * Input.Tangent.w);
-    
+
     row_major float3x3 TBN;
     TBN._m00_m01_m02 = Tangent;
     TBN._m10_m11_m12 = BiTangent;
