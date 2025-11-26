@@ -43,6 +43,7 @@ struct FName
 
     bool operator==(const FName& Other) const { return ComparisonIndex == Other.ComparisonIndex; }
     FString ToString() const { return FNamePool::Get(DisplayIndex).Display; }
+    bool IsValid() const { return DisplayIndex >= 0 && ComparisonIndex >= 0; }
 
     friend FName operator+(const FName& A, const FName& B)
     {

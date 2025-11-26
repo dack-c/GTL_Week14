@@ -33,6 +33,7 @@
 #include "imgui.h"
 #include "PlatformProcess.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleCollision.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleEventReceiverSpawn.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocityCone.h"
 
 SParticleViewerWindow::SParticleViewerWindow()
@@ -2181,7 +2182,7 @@ void SParticleViewerWindow::OnRender()
 
                     if (ImGui::Combo("##Response", &CurrentResponse, ResponseItems, IM_ARRAYSIZE(ResponseItems)))
                     {
-                        CollisionModule->CollisionResponse = (EParticleCollisionResponse)CurrentResponse;
+                        CollisionModule->CollisionResponse = static_cast<EParticleCollisionResponse>(CurrentResponse);
                     }
                     if (ImGui::IsItemHovered())
                     {
@@ -2216,21 +2217,92 @@ void SParticleViewerWindow::OnRender()
 
                     ImGui::Spacing();
 
-                    // 3. Events
-                    ImGui::Text("Events");
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 이벤트 설정");
-                    ImGui::Checkbox("Write Collision Events", &CollisionModule->bWriteEvent);
-                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 이벤트 발생 시 델리게이트 브로드캐스트\n게임 로직과 연동 시 활성화");
+                	// Events Section
+                	ImGui::Text("Events");
+                	if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 이벤트 설정");
+                	ImGui::Checkbox("Write Collision Events", &CollisionModule->bWriteEvent);
+                	if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 이벤트 발생 시 델리게이트 브로드캐스트\n게임 로직과 연동 시 활성화");
 
-                    if (CollisionModule->bWriteEvent)
-                    {
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("(Delegate Broadcast)");
-                    }
+                	if (CollisionModule->bWriteEvent)
+                	{
+                		ImGui::SameLine();
+                		ImGui::TextDisabled("(Delegate Broadcast)");
+        
+                		// Event Name 입력 필드
+                		ImGui::Text("Event Name");
+                		if (ImGui::IsItemHovered()) ImGui::SetTooltip("충돌 이벤트의 이름\n다른 모듈에서 수신할 이벤트 이름");
+                		ImGui::SameLine();
+        
+                		static char CollisionEventNameBuffer[256] = "";
+                		if (ImGui::InputText("##CollisionEventName", CollisionEventNameBuffer, IM_ARRAYSIZE(CollisionEventNameBuffer)))
+                		{
+                			CollisionModule->EventName = FString(CollisionEventNameBuffer);
+                		}
+                	}
+				}
+				else if (auto* EventReceiverModule = Cast<UParticleModuleEventReceiverSpawn>(SelectedModule))
+				{
+					ImGui::Text("Event Receiver Spawn Settings");
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("충돌 파티클 모듈의 이벤트 발생 시\n자동으로 파티클 스폰\n이벤트 기반 연쇄 파티클 효과 생성");
+					}
+					ImGui::Separator();
 
-                    ImGui::Spacing();
-                    ImGui::TextDisabled("Note: 충돌 감지를 위해 유효한 깊이 버퍼 또는 씬 지오메트리 필요");
-                }
+					// Event Name
+					ImGui::Text("Event Name");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("수신할 이벤트의 이름\n충돌 모듈의 이벤트 이름과 일치해야 함");
+					ImGui::SameLine();
+
+					static char EventNameBuffer[256] = "";
+					if (ImGui::InputText("##EventName", EventNameBuffer, IM_ARRAYSIZE(EventNameBuffer)))
+					{
+						EventReceiverModule->EventName = FName(EventNameBuffer);
+					}
+					ImGui::Spacing();
+
+					// Spawn Count
+					ImGui::Text("Spawn Count");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("이벤트 발생 시 스폰할 파티클의 수");
+					ImGui::SameLine();
+					ImGui::DragInt("##Count", &EventReceiverModule->Count, 1, 0, 100);
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("기본 스폰 개수");
+					ImGui::Spacing();
+
+					// Count Range
+					ImGui::Text("Count Range");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("스폰 개수의 랜덤 범위\n실제 스폰 수 = Count ~ Count + CountRange");
+					ImGui::SameLine();
+					ImGui::DragInt("##CountRange", &EventReceiverModule->CountRange, 1, 0, 100);
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("예: Count=5, CountRange=3 → 5~8개 스폰");
+					ImGui::Spacing();
+
+					// Initial Speed
+					ImGui::Text("Initial Speed");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("스폰된 파티클의 초기 속도");
+					ImGui::SameLine();
+					ImGui::DragFloat("##InitialSpeed", &EventReceiverModule->InitialSpeed, 0.5f, 0.0f, 1000.0f, "%.2f");
+					ImGui::Spacing();
+
+					ImGui::Text("Direction & Location");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("스폰 위치 및 방향 설정");
+					ImGui::Separator();
+
+					// Use Emitter Direction
+					ImGui::Checkbox("Use Event Direction", &EventReceiverModule->bUseEmitterDirection);
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("활성화: 스폰된 파티클의 속도가 이벤트 방향을 반영\n비활성화: 일정한 방향으로 스폰");
+					}
+					ImGui::Spacing();
+
+					// Use Emitter Location
+					ImGui::Checkbox("Use Event Location", &EventReceiverModule->bUseEmitterLocation);
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("활성화: 스폰 위치가 이벤트 발생 위치\n비활성화: 이미터 기본 위치에서 스폰");
+					}
+				}
             }
             else if (CurrentParticleSystem)
             {
@@ -2463,11 +2535,8 @@ void SParticleViewerWindow::CreateNewEmitter()
 		return;
 	}
 
-	// 새 이미터 생성 (생성자에서 기본 모듈들이 자동으로 생성됨)
-	UParticleEmitter* NewEmitter = NewObject<UParticleEmitter>();
-
 	// 파티클 시스템에 이미터 추가
-	CurrentParticleSystem->Emitters.Add(NewEmitter);
+	CurrentParticleSystem->AddEmitter(UParticleEmitter::StaticClass());
 
 	// 런타임 캐시 재구축
 	CurrentParticleSystem->BuildRuntimeCache();
@@ -3160,6 +3229,13 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 if (ImGui::MenuItem("Collision"))
                                 {
                                     LOD->AddModule(UParticleModuleCollision::StaticClass());
+                                    CurrentParticleSystem->BuildRuntimeCache();
+                                    PreviewComponent->ResetAndActivate();
+                                }
+
+                                if (ImGui::MenuItem("EventReceiver Spawn"))
+                                {
+                                    LOD->AddModule(UParticleModuleEventReceiverSpawn::StaticClass());
                                     CurrentParticleSystem->BuildRuntimeCache();
                                     PreviewComponent->ResetAndActivate();
                                 }

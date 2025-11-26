@@ -19,6 +19,7 @@
 #include "Modules/ParticleModuleSubUV.h"
 #include "Material.h"
 #include "Modules/ParticleModuleCollision.h"
+#include "Modules/ParticleModuleEventReceiverSpawn.h"
 #include "Modules/ParticleModuleVelocityCone.h"
 
 IMPLEMENT_CLASS(UParticleLODLevel)
@@ -678,8 +679,25 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
             FJsonSerializer::ReadFloat(ModuleJson, "Friction", Collision->Friction);
             FJsonSerializer::ReadFloat(ModuleJson, "RadiusScale", Collision->RadiusScale);
             FJsonSerializer::ReadBool(ModuleJson, "bWriteEvent", Collision->bWriteEvent);
+            FJsonSerializer::ReadString(ModuleJson, "EventName", Collision->EventName);
         }
         NewModule = Collision;
+    }
+    else if (ModuleType == "EventReceiverSpawn")
+    {
+        auto* EventReceiverSpawn = Cast<UParticleModuleEventReceiverSpawn>(AddModule(UParticleModuleEventReceiverSpawn::StaticClass()));
+        if (EventReceiverSpawn)
+        {
+            FString EventNameStr;
+            FJsonSerializer::ReadString(ModuleJson, "EventName", EventNameStr);
+            EventReceiverSpawn->EventName = EventNameStr;
+            FJsonSerializer::ReadBool(ModuleJson, "bUseEmitterDirection", EventReceiverSpawn->bUseEmitterDirection);
+            FJsonSerializer::ReadBool(ModuleJson, "bUseEmitterLocation", EventReceiverSpawn->bUseEmitterLocation);
+            FJsonSerializer::ReadInt32(ModuleJson, "Count", EventReceiverSpawn->Count);
+            FJsonSerializer::ReadInt32(ModuleJson, "CountRange", EventReceiverSpawn->CountRange);
+            FJsonSerializer::ReadFloat(ModuleJson, "InitialSpeed", EventReceiverSpawn->InitialSpeed);
+        }
+        NewModule = EventReceiverSpawn;
     }
     else if (ModuleType == "VelocityCone")
     {
@@ -849,7 +867,8 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["SubImageIndex_bUseRange"] = SubUV->SubImageIndex.bUseRange;
         ModuleJson["InterpMethod"] = static_cast<int>(SubUV->InterpMethod);
         ModuleJson["bUseRealTime"] = SubUV->bUseRealTime;
-    }else if (auto* Collision = Cast<UParticleModuleCollision>(Module))
+    }
+    else if (auto* Collision = Cast<UParticleModuleCollision>(Module))
     {
         ModuleJson["Type"] = "Collision";
         ModuleJson["CollisionResponse"] = static_cast<int>(Collision->CollisionResponse);
@@ -857,6 +876,17 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["Friction"] = Collision->Friction;
         ModuleJson["RadiusScale"] = Collision->RadiusScale;
         ModuleJson["bWriteEvent"] = Collision->bWriteEvent;
+        ModuleJson["EventName"] = Collision->EventName;
+    }
+    else if (auto* EventReceiverSpawn = Cast<UParticleModuleEventReceiverSpawn>(Module))
+    {
+        ModuleJson["Type"] = "EventReceiverSpawn";
+        ModuleJson["EventName"] = EventReceiverSpawn->EventName.ToString();
+        ModuleJson["bUseEmitterDirection"] = EventReceiverSpawn->bUseEmitterDirection;
+        ModuleJson["bUseEmitterLocation"] = EventReceiverSpawn->bUseEmitterLocation;
+        ModuleJson["Count"] = EventReceiverSpawn->Count;
+        ModuleJson["CountRange"] = EventReceiverSpawn->CountRange;
+        ModuleJson["InitialSpeed"] = EventReceiverSpawn->InitialSpeed;
     }
     else if (auto* Cone = Cast<UParticleModuleVelocityCone>(Module))
     {

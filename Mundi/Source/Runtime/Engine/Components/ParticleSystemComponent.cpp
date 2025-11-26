@@ -203,6 +203,10 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     {
         if (!AsyncUpdater.IsBusy())
         {
+            if (EmitterInstances.Num() != Template->Emitters.Num())
+            {
+                InitParticles();
+            }
             // 워커가 놀고 있으면 누적된 시간만큼 일 시킴
             AsyncUpdater.KickOff(EmitterInstances, Context);
             AccumulatedDeltaTime = 0;
@@ -210,6 +214,10 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     }
     else
     {
+        if (EmitterInstances.Num() != Template->Emitters.Num())
+        {
+            InitParticles();
+        }
         AsyncUpdater.KickOffSync(EmitterInstances, Context);
         AccumulatedDeltaTime = 0;
     }
