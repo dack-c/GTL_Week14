@@ -2434,8 +2434,8 @@ void SParticleViewerWindow::OnRenderViewport()
 void SParticleViewerWindow::CreateParticleSystem()
 {
 	// 빈 ParticleSystem 생성
-	UParticleSystem* NewSystem = NewObject<UParticleSystem>();
-	LoadParticleSystem(NewSystem);
+	//UParticleSystem* NewSystem = NewObject<UParticleSystem>();
+	//LoadParticleSystem(NewSystem);
 	SavePath.clear();
 }
 
