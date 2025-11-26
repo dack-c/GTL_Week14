@@ -269,6 +269,7 @@ void UParticleSystemComponent::DuplicateSubObjects()
     EmitterInstances.Empty();
     ParticleVertexBuffer = nullptr;
     ParticleIndexBuffer = nullptr;
+    MeshInstanceBuffer = nullptr;
     
     RibbonVertexBuffer = nullptr;
     RibbonIndexBuffer = nullptr;
@@ -277,6 +278,7 @@ void UParticleSystemComponent::DuplicateSubObjects()
     {
         Beam = nullptr;
     }
+    PerFrameBeamBuffers.clear();
     // TODO Release
 }
 

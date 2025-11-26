@@ -33,7 +33,7 @@
                     "SourceOffset" : [0.000000, 0.000000, 0.000000],
                     "SourcePoint" : [0.000000, 0.000000, 0.000000],
                     "TargetOffset" : [5.000000, 5.000000, 5.000000],
-                    "TargetPoint" : [100.000000, 0.000000, 0.000000],
+                    "TargetPoint" : [10.000000, 0.000000, 0.000000],
                     "TessellationFactor" : 10,
                     "Type" : "Beam",
                     "bEnabled" : true,
@@ -55,7 +55,6 @@
                     "bUseColorOverLife" : false
                   }],
                 "RequiredModule" : {
-                  "BlendMode" : 5,
                   "DiffuseTexture" : "Data/Textures/FakeLight.png",
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
@@ -63,8 +62,8 @@
                   "InitialColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
                   "InitialColor_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
                   "InitialColor_bUseRange" : false,
-                  "InitialRotation_Max" : 0.000000,
-                  "InitialRotation_Min" : 0.000000,
+                  "InitialRotation_Max" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_Min" : [0.000000, 0.000000, 0.000000],
                   "InitialRotation_bUseRange" : false,
                   "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
@@ -76,8 +75,6 @@
                   "SpawnRateBase" : 10.000000,
                   "SubImages_Horizontal" : 1,
                   "SubImages_Vertical" : 1,
-                  "bKillOnCompleted" : false,
-                  "bKillOnDeactivate" : true,
                   "bUseLocalSpace" : true
                 },
                 "SpawnModule" : {
@@ -122,7 +119,7 @@
                     "SourceOffset" : [0.000000, 0.000000, 0.000000],
                     "SourcePoint" : [0.000000, 0.000000, 0.000000],
                     "TargetOffset" : [5.000000, 5.000000, 5.000000],
-                    "TargetPoint" : [100.000000, 0.000000, 0.000000],
+                    "TargetPoint" : [10.000000, 0.000000, 0.000000],
                     "TessellationFactor" : 10,
                     "Type" : "Beam",
                     "bEnabled" : true,
@@ -135,7 +132,6 @@
                     "bEnabled" : true
                   }],
                 "RequiredModule" : {
-                  "BlendMode" : 5,
                   "DiffuseTexture" : "Data/Textures/FakeLight.png",
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
@@ -143,8 +139,8 @@
                   "InitialColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
                   "InitialColor_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
                   "InitialColor_bUseRange" : false,
-                  "InitialRotation_Max" : 0.000000,
-                  "InitialRotation_Min" : 0.000000,
+                  "InitialRotation_Max" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_Min" : [0.000000, 0.000000, 0.000000],
                   "InitialRotation_bUseRange" : false,
                   "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
@@ -156,8 +152,6 @@
                   "SpawnRateBase" : 10.000000,
                   "SubImages_Horizontal" : 1,
                   "SubImages_Vertical" : 1,
-                  "bKillOnCompleted" : false,
-                  "bKillOnDeactivate" : true,
                   "bUseLocalSpace" : true
                 },
                 "SpawnModule" : {
