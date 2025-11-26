@@ -14,25 +14,25 @@ std::wstring GetExceptionDescription(DWORD ExceptionCode)
 {
     switch (ExceptionCode)
     {
-    case EXCEPTION_ACCESS_VIOLATION:         return L"Access Violation (메모리 접근 위반)";
-    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:    return L"Array Bounds Exceeded (배열 범위 초과)";
-    case EXCEPTION_BREAKPOINT:               return L"Breakpoint (중단점)";
-    case EXCEPTION_DATATYPE_MISALIGNMENT:    return L"Datatype Misalignment (데이터 정렬 오류)";
+    case EXCEPTION_ACCESS_VIOLATION:         return L"Access Violation";
+    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:    return L"Array Bounds Exceeded";
+    case EXCEPTION_BREAKPOINT:               return L"Breakpoint";
+    case EXCEPTION_DATATYPE_MISALIGNMENT:    return L"Datatype Misalignment";
     case EXCEPTION_FLT_DENORMAL_OPERAND:     return L"Float: Denormal Operand";
-    case EXCEPTION_FLT_DIVIDE_BY_ZERO:       return L"Float: Divide By Zero (0으로 나누기)";
+    case EXCEPTION_FLT_DIVIDE_BY_ZERO:       return L"Float: Divide By Zero";
     case EXCEPTION_FLT_INEXACT_RESULT:       return L"Float: Inexact Result";
     case EXCEPTION_FLT_INVALID_OPERATION:    return L"Float: Invalid Operation";
     case EXCEPTION_FLT_OVERFLOW:             return L"Float: Overflow";
     case EXCEPTION_FLT_STACK_CHECK:          return L"Float: Stack Check";
     case EXCEPTION_FLT_UNDERFLOW:            return L"Float: Underflow";
-    case EXCEPTION_ILLEGAL_INSTRUCTION:      return L"Illegal Instruction (잘못된 명령어)";
-    case EXCEPTION_IN_PAGE_ERROR:            return L"In Page Error (페이지 오류)";
-    case EXCEPTION_INT_DIVIDE_BY_ZERO:       return L"Integer: Divide By Zero (0으로 나누기)";
+    case EXCEPTION_ILLEGAL_INSTRUCTION:      return L"Illegal Instruction";
+    case EXCEPTION_IN_PAGE_ERROR:            return L"In Page Error";
+    case EXCEPTION_INT_DIVIDE_BY_ZERO:       return L"Integer: Divide By Zero";
     case EXCEPTION_INT_OVERFLOW:             return L"Integer: Overflow";
     case EXCEPTION_INVALID_DISPOSITION:      return L"Invalid Disposition";
     case EXCEPTION_NONCONTINUABLE_EXCEPTION: return L"Noncontinuable Exception";
     case EXCEPTION_PRIV_INSTRUCTION:         return L"Privileged Instruction";
-    case EXCEPTION_STACK_OVERFLOW:           return L"Stack Overflow (스택 오버플로우)";
+    case EXCEPTION_STACK_OVERFLOW:           return L"Stack Overflow";
     default: return L"Unknown Exception";
     }
 }
@@ -59,7 +59,7 @@ LONG __stdcall FCrashHandler::UnhandledExceptionFilter(_EXCEPTION_POINTERS* Exce
     std::wstring TimeString = TimeStream.str();
 
     // 2. 로그 파일 경로
-    std::wstring LogFileName = L"Mundi_CrashLog_" + TimeString + L".txt";
+    std::wstring LogFileName = L"Future_CrashLog_" + TimeString + L".txt";
     std::wstring FullLogPath = std::wstring(DumpDirectory) + L"\\" + LogFileName;
 
     // ============================================================
@@ -148,7 +148,7 @@ LONG __stdcall FCrashHandler::UnhandledExceptionFilter(_EXCEPTION_POINTERS* Exce
     // ============================================================
     // 미니덤프 저장
     // ============================================================
-    std::wstring DumpFileName = L"Mundi_CrashDump_" + TimeString + L".dmp";
+    std::wstring DumpFileName = L"Future_CrashDump_" + TimeString + L".dmp";
     std::wstring FullDumpPath = std::wstring(DumpDirectory) + L"\\" + DumpFileName;
     
     HANDLE hFile = CreateFileW(FullDumpPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -164,38 +164,36 @@ LONG __stdcall FCrashHandler::UnhandledExceptionFilter(_EXCEPTION_POINTERS* Exce
         CloseHandle(hFile);
     }
 
-    // ============================================================
-    // [수정됨] 상세 정보를 포함한 알림창
-    // ============================================================
+    // 상세 정보를 포함한 알림창
     std::wstringstream MsgBoxStream;
-    MsgBoxStream << L"[Mundi Engine Crash Report]\n\n";
+    MsgBoxStream << L"[Future Engine Crash Report]\n\n";
     
-    // 1. 에러 종류
-    MsgBoxStream << L"■ 에러 내용:\n";
+    // 1. Exception Type
+    MsgBoxStream << L"■ Exception:\n";
     MsgBoxStream << L"   " << GetExceptionDescription(ExceptionInfo->ExceptionRecord->ExceptionCode) << L"\n\n";
     
-    // 2. 발생 위치 (알림창에서는 파일명만 간단히 보여주기 위해 경로 파싱)
+    // 2. Crash Location (Parse filename only)
     std::wstring SimpleFileName = CrashFile;
     size_t lastSlash = CrashFile.find_last_of(L"\\/");
     if (lastSlash != std::wstring::npos) SimpleFileName = CrashFile.substr(lastSlash + 1);
 
-    MsgBoxStream << L"■ 발생 위치:\n";
+    MsgBoxStream << L"■ Location:\n";
     if (bCapturedTopFrame) {
-        MsgBoxStream << L"   파일: " << SimpleFileName << L"\n";
-        MsgBoxStream << L"   라인: " << CrashLine << L"\n";
-        MsgBoxStream << L"   함수: " << CrashFunc << L"()\n\n";
+        MsgBoxStream << L"   File: " << SimpleFileName << L"\n";
+        MsgBoxStream << L"   Line: " << CrashLine << L"\n";
+        MsgBoxStream << L"   Function: " << CrashFunc << L"()\n\n";
     } else {
-        MsgBoxStream << L"   (콜스택 정보를 가져오지 못했습니다)\n\n";
+        MsgBoxStream << L"   (Call stack not available)\n\n";
     }
 
-    MsgBoxStream << L"■ 저장된 파일:\n";
+    MsgBoxStream << L"■ Saved Files:\n";
     MsgBoxStream << L"   " << LogFileName << L"\n";
     MsgBoxStream << L"   " << DumpFileName;
 
-    MessageBoxW(NULL, MsgBoxStream.str().c_str(), L"치명적인 오류 발생!", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+    // Title: Fatal Error!
+    MessageBoxW(NULL, MsgBoxStream.str().c_str(), L"Fatal Error!", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 
-    return EXCEPTION_EXECUTE_HANDLER;
-}
+    return EXCEPTION_EXECUTE_HANDLER;}
 
 void FCrashHandler::InjectCrash()
 {
