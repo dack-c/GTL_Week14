@@ -285,6 +285,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\ParticleSystemComponent.cpp" />
     <ClCompile Include="pch.cpp">
@@ -940,6 +941,7 @@
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleCollision.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleColor.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleColorOverLife.h" />
+    <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleLifetime.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleLocation.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleMesh.h" />

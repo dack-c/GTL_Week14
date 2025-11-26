@@ -50,8 +50,8 @@ public:
     TArray<FDynamicEmitterDataBase*> RenderData;
 
     // 작업 시작
-    void KickOff(const TArray<FParticleEmitterInstance*>& Instances, const FParticleSimulationContext& Context);
-    void KickOffSync(const TArray<FParticleEmitterInstance*>& Instances, const FParticleSimulationContext& Context);
+    void KickOff(const TArray<FParticleEmitterInstance*>& Instances, FParticleSimulationContext& Context);
+    void KickOffSync(const TArray<FParticleEmitterInstance*>& Instances, FParticleSimulationContext& Context);
     void EnsureCompletion();
     void ResetStats();
 
@@ -63,7 +63,7 @@ public:
     bool IsBusy() const;
 
 private:
-    static FAsyncSimulationResult DoSimulationWork(const TArray<FParticleEmitterInstance*>& Instances, const FParticleSimulationContext& Context);
+    static FAsyncSimulationResult DoSimulationWork(const TArray<FParticleEmitterInstance*>& Instances, FParticleSimulationContext Context);
     void InternalClearRenderData();
     // 비동기 작업 핸들
     std::future<FAsyncSimulationResult> TaskHandle;

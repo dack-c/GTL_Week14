@@ -13,7 +13,7 @@ UParticleModuleLocation::UParticleModuleLocation()
     bSpawnModule = true;
 }
 
-void UParticleModuleLocation::SpawnAsync(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase, const FParticleSimulationContext& Context)
+void UParticleModuleLocation::SpawnAsync(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase, FParticleSimulationContext& Context)
 {
     ParticleBase->Location = FVector(0, 0, 0);
     FVector LocalOffset = FVector::Zero();

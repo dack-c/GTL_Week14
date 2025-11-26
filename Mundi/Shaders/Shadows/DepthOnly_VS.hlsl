@@ -54,7 +54,7 @@ float3 SkinPosition(float3 Position, uint4 BoneIndices, float4 BoneWeights)
         if (BoneWeights[i] > 0.0f)
         {
             float4x4 BoneMatrix = g_SkinnedMatrices[BoneIndices[i]];
-            SkinnedPos += mul(float4(Position, 1.0f), BoneMatrix) * BoneWeights[i];
+            SkinnedPos += mul(BoneMatrix, float4(Position, 1.0f)) * BoneWeights[i];
         }
     }
     return SkinnedPos.xyz;

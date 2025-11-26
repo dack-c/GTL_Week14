@@ -26,7 +26,7 @@ FParticleAsyncUpdater::~FParticleAsyncUpdater()
     InternalClearRenderData();
 }
 
-void FParticleAsyncUpdater::KickOff(const TArray<FParticleEmitterInstance*>& Instances, const FParticleSimulationContext& Context)
+void FParticleAsyncUpdater::KickOff(const TArray<FParticleEmitterInstance*>& Instances, FParticleSimulationContext& Context)
 {
     if (IsBusy()) { return; }
     
@@ -46,7 +46,7 @@ void FParticleAsyncUpdater::KickOff(const TArray<FParticleEmitterInstance*>& Ins
     });
 }
 
-void FParticleAsyncUpdater::KickOffSync(const TArray<FParticleEmitterInstance*>& Instances, const FParticleSimulationContext& Context)
+void FParticleAsyncUpdater::KickOffSync(const TArray<FParticleEmitterInstance*>& Instances, FParticleSimulationContext& Context)
 {
     Sync();
     if (!RenderData.IsEmpty())
@@ -107,7 +107,7 @@ bool FParticleAsyncUpdater::IsBusy() const
     return TaskHandle.valid() && TaskHandle.wait_for(std::chrono::seconds(0)) != std::future_status::ready;
 }
 
-FAsyncSimulationResult FParticleAsyncUpdater::DoSimulationWork(const TArray<FParticleEmitterInstance*>& Instances, const FParticleSimulationContext& Context)
+FAsyncSimulationResult FParticleAsyncUpdater::DoSimulationWork(const TArray<FParticleEmitterInstance*>& Instances, FParticleSimulationContext Context)
 {
     TIME_PROFILE(Particle_Simulation)
     FAsyncSimulationResult Result;

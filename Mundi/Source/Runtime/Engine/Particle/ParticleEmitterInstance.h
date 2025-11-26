@@ -90,14 +90,14 @@ struct FParticleEmitterInstance
      * @param InitialVelocity 초기 Velocity
      */
     void SpawnParticles(int32 Count, float StartTime, float Increment,
-        const FVector& InitialLocation, const FVector& InitialVelocity, const FParticleSimulationContext& InContext);    
+        const FVector& InitialLocation, const FVector& InitialVelocity, FParticleSimulationContext& InContext);    
 
     /** 파티클 제거 */
     void KillParticle(int32 Index);
 
     /** 파티클 업데이트 */
     /** 비동기 Tick */
-    void Tick(const FParticleSimulationContext& Context);
+    void Tick(FParticleSimulationContext& Context);
     
     /** LOD에 따른 모듈 캐싱 업데이트 */
     void UpdateModuleCache();

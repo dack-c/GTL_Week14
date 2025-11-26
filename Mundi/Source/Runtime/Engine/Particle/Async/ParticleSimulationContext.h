@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Collision.h"
 #include "OBB.h"
 #include "ShapeComponent.h"
 
@@ -31,6 +32,11 @@ struct FColliderProxy
     }
 };
 
+struct FParticleEventData
+{
+    FName EventName;
+    FHitResult HitResult;
+};
 
 struct FParticleSimulationContext
 {
@@ -55,4 +61,5 @@ struct FParticleSimulationContext
 
     // 충돌 정보
     TArray<FColliderProxy> WorldColliders; // 이번 프레임 월드에 있는 충돌체 정보
+    TArray<FParticleEventData> EventData; // 이번 프레임 발생한 이벤트 정보들
 };

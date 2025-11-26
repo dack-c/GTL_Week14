@@ -34,6 +34,5 @@ public:
     // ============================================================
     // 언리얼 스타일 구현
     // ============================================================
-
-    void SpawnAsync(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase, const FParticleSimulationContext& Context) override;
+    void SpawnAsync(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase, FParticleSimulationContext& Context) override;
 };

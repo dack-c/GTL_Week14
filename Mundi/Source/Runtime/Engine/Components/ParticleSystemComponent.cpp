@@ -203,6 +203,10 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     {
         if (!AsyncUpdater.IsBusy())
         {
+            if (EmitterInstances.Num() != Template->Emitters.Num())
+            {
+                InitParticles();
+            }
             // 워커가 놀고 있으면 누적된 시간만큼 일 시킴
             AsyncUpdater.KickOff(EmitterInstances, Context);
             AccumulatedDeltaTime = 0;
@@ -210,6 +214,10 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     }
     else
     {
+        if (EmitterInstances.Num() != Template->Emitters.Num())
+        {
+            InitParticles();
+        }
         AsyncUpdater.KickOffSync(EmitterInstances, Context);
         AccumulatedDeltaTime = 0;
     }
@@ -264,6 +272,13 @@ void UParticleSystemComponent::DuplicateSubObjects()
     ParticleVertexBuffer = nullptr;
     ParticleIndexBuffer = nullptr;
     
+    RibbonVertexBuffer = nullptr;
+    RibbonIndexBuffer = nullptr;
+
+    for (auto& Beam : PerFrameBeamBuffers)
+    {
+        Beam = nullptr;
+    }
     // TODO Release
 }
 
@@ -688,6 +703,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
     D3D11_MAPPED_SUBRESOURCE VMap = {};
     if (FAILED(Context->Map(RibbonVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &VMap)))
         return;
+    
     FParticleSpriteVertex* Vertices = reinterpret_cast<FParticleSpriteVertex*>(VMap.pData);
 
     D3D11_MAPPED_SUBRESOURCE IMap = {};

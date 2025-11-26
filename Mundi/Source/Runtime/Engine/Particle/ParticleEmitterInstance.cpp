@@ -132,15 +132,15 @@ void FParticleEmitterInstance::FreeParticleMemory()
     MaxActiveParticles = 0;  // ← 여기서 리셋됨!
 }
 
-void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, const FParticleSimulationContext& InContext)
+void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, FParticleSimulationContext& InContext)
 {
     // UE_LOG("[SpawnParticles] Called with Count: %d, ActiveParticles: %d, MaxActiveParticles: %d",
     //        Count, ActiveParticles, MaxActiveParticles);
 
     if (ActiveParticles >= MaxActiveParticles)
     {
-        UE_LOG("[SpawnParticles] BLOCKED! ActiveParticles >= MaxActiveParticles (%d >= %d)",
-               ActiveParticles, MaxActiveParticles);
+        // UE_LOG("[SpawnParticles] BLOCKED! ActiveParticles >= MaxActiveParticles (%d >= %d)",
+        //        ActiveParticles, MaxActiveParticles);
         return;
     }
 
@@ -193,10 +193,11 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
 
         if (CurrentLODLevel)
         {
-            for (UParticleModule* Module : CurrentLODLevel->SpawnModules)
+            for (int32 i = 0; i < CurrentLODLevel->SpawnModules.Num(); i++)
             {
+                UParticleModule* Module = CurrentLODLevel->SpawnModules[i];
                 if (!Module || !Module->bEnabled) { continue; }
-                Module->SpawnAsync(this, PayloadOffset, CurrentSpawnTime, Particle, InContext);
+                Module->SpawnAsync(this, PayloadOffset, CurrentSpawnTime, Particle, InContext);   
             }
         }
 
@@ -300,7 +301,7 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
 }
 
 // 비동기 고려된 Tick, 안에서 Component Raw Pointer 절대 사용금지!!!!!!!!
-void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
+void FParticleEmitterInstance::Tick(FParticleSimulationContext& Context)
 {
     if (!Context.bIsActive && ActiveParticles <= 0) { return; }
     UpdateModuleCache();
@@ -401,8 +402,9 @@ void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
         UpdateRibbonTrailDistances();
     }
 
-    for (UParticleModule* Module : CurrentLODLevel->UpdateModules)
+    for (int32 i = 0; i < CurrentLODLevel->UpdateModules.Num(); i++)
     {
+        UParticleModule* Module = CurrentLODLevel->UpdateModules[i];
         if (!Module || !Module->bEnabled) { continue; }
         Module->UpdateAsync(this, Module->PayloadOffset, Context);
     }

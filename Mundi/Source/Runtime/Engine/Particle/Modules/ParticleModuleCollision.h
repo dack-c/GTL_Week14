@@ -16,7 +16,7 @@ class UParticleModuleCollision : public UParticleModule
 
 public:
     UParticleModuleCollision();
-    virtual void UpdateAsync(FParticleEmitterInstance* Owner, int32 Offset, const FParticleSimulationContext& Context) override;
+    void UpdateAsync(FParticleEmitterInstance* Owner, int32 Offset, FParticleSimulationContext& Context) override;
 
 // Module Attribute
 public:
@@ -35,4 +35,5 @@ public:
     // 이벤트를 발생시킬 것인가
     bool bWriteEvent = false;
 
+    FString EventName;
 };

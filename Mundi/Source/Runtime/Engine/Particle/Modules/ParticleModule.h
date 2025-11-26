@@ -80,7 +80,7 @@ class UParticleModule : public UObject
 public:
     // 파티클 생성 시 호출 (단일 파티클)
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase) {}
-    virtual void SpawnAsync(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase, const FParticleSimulationContext& Context)
+    virtual void SpawnAsync(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase, FParticleSimulationContext& Context)
     {
         // 기본적으로는 그냥 Spawn을 부르지만,
         // Component를 쓰는 자식 클래스는 이걸 오버라이딩해서 Context를 써야 함
@@ -89,12 +89,14 @@ public:
 
     // 매 프레임 업데이트 시 호출 (모든 파티클)
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) {}
-    virtual void UpdateAsync(FParticleEmitterInstance* Owner, int32 Offset, const FParticleSimulationContext& Context)
+    virtual void UpdateAsync(FParticleEmitterInstance* Owner, int32 Offset, FParticleSimulationContext& Context)
     {
         // 기본적으로는 그냥 Update를 부르지만,
         // Component를 쓰는 자식 클래스는 이걸 오버라이딩해서 Context를 써야 함
         Update(Owner, Offset, Context.DeltaTime);
     }
+
+    
 
 public:
     EParticleModuleType ModuleType;

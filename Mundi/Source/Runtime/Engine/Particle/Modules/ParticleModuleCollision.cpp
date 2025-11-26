@@ -14,7 +14,7 @@ UParticleModuleCollision::UParticleModuleCollision()
     ModuleType = EParticleModuleType::Update;
 }
 
-void UParticleModuleCollision::UpdateAsync(FParticleEmitterInstance* Owner, int32 Offset, const FParticleSimulationContext& Context)
+void UParticleModuleCollision::UpdateAsync(FParticleEmitterInstance* Owner, int32 Offset, FParticleSimulationContext& Context)
 {
     if (!bEnabled || !Owner || Context.WorldColliders.IsEmpty()) { return; }
 
@@ -82,7 +82,13 @@ void UParticleModuleCollision::UpdateAsync(FParticleEmitterInstance* Owner, int3
                 break;
             }
 
-            // TODO - 이벤트 생성
+            if (bWriteEvent)
+            {
+                FParticleEventData NewEventData;
+                NewEventData.EventName = EventName;
+                NewEventData.HitResult = BestHit;
+                Context.EventData.Add(NewEventData);
+            }
         }
     }
     END_UPDATE_LOOP
