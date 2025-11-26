@@ -51,6 +51,7 @@
 #include "SkinnedMeshComponent.h"
 #include "SkinningStats.h"
 #include "StatsOverlayD2D.h"
+#include "Source/Runtime/Engine/Particle/ParticleStats.h"
 
 FSceneRenderer::FSceneRenderer(UWorld* InWorld, FSceneView* InView, URenderer* InOwnerRenderer)
 	: World(InWorld)
@@ -1005,6 +1006,8 @@ void FSceneRenderer::RenderParticlePass()
 
 	MeshBatchElements.Empty();
 
+	FParticleStatManager::GetInstance().AddDrawCalls(SpriteParticleBatchElements.Num());
+	FParticleStatManager::GetInstance().AddDrawCalls(MeshParticleBatchElements.Num());
 	SpriteParticleBatchElements.Sort();
 	if (!SpriteParticleBatchElements.IsEmpty())
 	{
