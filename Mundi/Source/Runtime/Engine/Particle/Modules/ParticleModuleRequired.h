@@ -42,7 +42,7 @@ public:
     // ---- (선택) 기본 초기값 fallback ----
     FRawDistributionVector InitialSize;
     FRawDistributionColor  InitialColor;
-    FRawDistributionFloat  InitialRotation;
+    FRawDistributionVector  InitialRotation;
 
     // ---- SubUV (스프라이트 시트 애니메이션) ----
     int32 SubImages_Horizontal = 1;  // NX (가로 타일 수)

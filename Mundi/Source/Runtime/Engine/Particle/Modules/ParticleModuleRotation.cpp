@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleModuleRotation.h"
 #include "../ParticleEmitterInstance.h"
 #include "../ParticleHelper.h"
@@ -20,10 +20,8 @@ void UParticleModuleRotation::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     float RandomValue = Owner->GetRandomFloat();
 
     // 초기 회전각 설정 (라디안 단위)
-    float RotationValue = StartRotation.GetValue(RandomValue);
+    FVector RotationValue = StartRotation.GetValue(FVector(RandomValue, RandomValue, RandomValue));
 
     ParticleBase->Rotation = RotationValue;
     ParticleBase->BaseRotation = RotationValue;
-
-    UE_LOG("ParticleModuleRotation::Spawn - Set rotation to: %f radians", RotationValue);
 }
