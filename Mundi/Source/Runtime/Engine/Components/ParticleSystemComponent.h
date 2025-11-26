@@ -84,6 +84,7 @@ private:
 	void ReleaseParticleBuffers();
 	void ReleaseInstanceBuffers();
 	void ReleaseRibbonBuffers();
+	void ReleaseBeamBuffers();
 	
 private:	
 	UPROPERTY(EditAnywhere, Category = "Particle", DisplayName = "파티클 시스템")
@@ -113,6 +114,11 @@ private:
 	ID3D11Buffer* RibbonIndexBuffer = nullptr;
 	uint32 RibbonVertexCapacity = 0;
 	uint32 RibbonIndexCapacity = 0; // 인덱스 개수 용량
+
+	// Beam Resources
+	TArray<ID3D11Buffer*> PerFrameBeamBuffers;
+	uint32 BeamVertexBufferSize = 0;
+	uint32 BeamIndexBufferSize = 0;
 
 	//Async
 	FParticleAsyncUpdater AsyncUpdater;
