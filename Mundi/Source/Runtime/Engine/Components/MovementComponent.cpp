@@ -24,7 +24,7 @@ void UMovementComponent::InitializeComponent()
     Super::InitializeComponent();
     
     // 자신을 소유한 액터의 루트 컴포넌트를 UpdatedComponent로 설정
-    if (!UpdatedComponent && Owner)
+    if (Owner)
     {
         AActor* OwnerActor = Cast<AActor>(Owner);
         if (OwnerActor)
