@@ -588,10 +588,11 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
 
             FMeshParticleInstanceData& Instance = Instances[WrittenInstances++];
 
-            FQuat RotationQuat = FQuat();
-            RotationQuat.RotateVector(Particle->Rotation);
+            FQuat RotationQuatZ = FQuat::FromAxisAngle(FVector(0.0f, 0.0f, 1.0f), Particle->Rotation.Z);
+            FQuat RotationQuatY = FQuat::FromAxisAngle(FVector(0.0f, 1.0f, 0.0f), Particle->Rotation.Y);
+            FQuat RotationQuatX = FQuat::FromAxisAngle(FVector(1.0f, 0.0f, 0.0f), Particle->Rotation.X);
 
-            FTransform ParticleTransform(Particle->Location, RotationQuat, Particle->Size);
+            FTransform ParticleTransform(Particle->Location, RotationQuatX* RotationQuatY* RotationQuatZ, Particle->Size);
             FMatrix ParticleWorld = ParticleTransform.ToMatrix();
             if (MeshData->bUseLocalSpace)
             {
