@@ -16,10 +16,10 @@ struct FBaseParticle
     FLinearColor Color;
     FLinearColor BaseColor;
 
-    float      Rotation;
-    float      BaseRotation;
-    float      RotationRate;
-    float      BaseRotationRate;
+    FVector    Rotation;
+    FVector    BaseRotation;
+    FVector    RotationRate;
+    FVector    BaseRotationRate;
 
     float      RelativeTime;        // 0 ~ 1
     float      OneOverMaxLifetime;  // 1 / Lifetime

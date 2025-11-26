@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ParticleModule.h"
 
 // Initial Rotation (초기 회전) 모듈
@@ -12,7 +12,7 @@ public:
 
     // 초기 회전각 (라디안 단위)
     // 랜덤 분포로 "각기 다른 방향으로 돌아간 파편" 느낌
-    FRawDistributionFloat StartRotation = FRawDistributionFloat(0.0f);
+    FRawDistributionVector StartRotation = FRawDistributionVector(FVector(0.0f, 0.0f, 0.0f));
 
     // ============================================================
     // 언리얼 스타일 구현

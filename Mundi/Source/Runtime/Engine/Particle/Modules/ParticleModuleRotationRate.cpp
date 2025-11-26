@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ParticleModuleRotationRate.h"
 #include "../ParticleEmitter.h"
 #include "../ParticleHelper.h"
@@ -21,12 +21,12 @@ void UParticleModuleRotationRate::Spawn(FParticleEmitterInstance* Owner, int32 O
     float RandomValue = Owner->GetRandomFloat();
 
     // 초기 회전 각도 설정 (라디안 단위)
-    float InitialRotationValue = InitialRotation.GetValue(RandomValue);
+    FVector InitialRotationValue = InitialRotation.GetValue(RandomValue);
     ParticleBase->Rotation = InitialRotationValue;
     ParticleBase->BaseRotation = InitialRotationValue;
 
     // 초기 회전 속도 설정 (라디안/초 단위)
-    float RotationRateValue = StartRotationRate.GetValue(RandomValue);
+    FVector RotationRateValue = StartRotationRate.GetValue(RandomValue);
     ParticleBase->RotationRate = RotationRateValue;
     ParticleBase->BaseRotationRate = RotationRateValue;
 }

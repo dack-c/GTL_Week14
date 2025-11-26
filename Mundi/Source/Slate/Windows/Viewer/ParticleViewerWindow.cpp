@@ -1277,22 +1277,43 @@ void SParticleViewerWindow::OnRender()
                         ImGui::SetTooltip("파티클의 초기 회전 각도 설정\n빌보드 스프라이트의 2D 회전");
                     }
                     ImGui::Separator();
-
-                    if (RotationModule->StartRotation.bUseRange)
-                    {
-                        ImGui::DragFloat("Start Rotation Min (Radians)", &RotationModule->StartRotation.MinValue, 0.01f,
-                                         -6.28f, 6.28f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)\n0 = 회전 없음, PI = 180도");
-                        ImGui::DragFloat("Start Rotation Max (Radians)", &RotationModule->StartRotation.MaxValue, 0.01f,
-                                         -6.28f, 6.28f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)\n0~2PI 범위로 완전 랜덤 회전");
-                    }
-                    else
-                    {
-                        ImGui::DragFloat("Start Rotation (Radians)", &RotationModule->StartRotation.MinValue, 0.01f,
-                                         -6.28f, 6.28f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)\n모든 파티클이 동일한 각도로 시작");
-                    }
+					bool bIsMesh = SelectedEmitter->RenderType == EParticleType::Mesh;
+					if (bIsMesh)
+					{
+						if (RotationModule->StartRotation.bUseRange)
+						{
+							ImGui::DragFloat3("Start Rotation Min (Radians)", &RotationModule->StartRotation.MinValue.X, 0.01f,
+								-6.28f, 6.28f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)\n0 = 회전 없음, PI = 180도");
+							ImGui::DragFloat3("Start Rotation Max (Radians)", &RotationModule->StartRotation.MaxValue.X, 0.01f,
+								-6.28f, 6.28f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)\n0~2PI 범위로 완전 랜덤 회전");
+						}
+						else
+						{
+							ImGui::DragFloat3("Start Rotation (Radians)", &RotationModule->StartRotation.MinValue.X, 0.01f,
+								-6.28f, 6.28f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)\n모든 파티클이 동일한 각도로 시작");
+						}
+					}
+					else
+					{
+						if (RotationModule->StartRotation.bUseRange)
+						{
+							ImGui::DragFloat("Start Rotation Min (Radians)", &RotationModule->StartRotation.MinValue.X, 0.01f,
+								-6.28f, 6.28f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)\n0 = 회전 없음, PI = 180도");
+							ImGui::DragFloat("Start Rotation Max (Radians)", &RotationModule->StartRotation.MaxValue.X, 0.01f,
+								-6.28f, 6.28f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)\n0~2PI 범위로 완전 랜덤 회전");
+						}
+						else
+						{
+							ImGui::DragFloat("Start Rotation (Radians)", &RotationModule->StartRotation.MinValue.X, 0.01f,
+								-6.28f, 6.28f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)\n모든 파티클이 동일한 각도로 시작");
+						}
+					}
                     ImGui::Checkbox("Use Range", &RotationModule->StartRotation.bUseRange);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip("랜덤 회전 범위 사용\n자연스러운 랜덤 회전 효과");
 
@@ -1310,42 +1331,86 @@ void SParticleViewerWindow::OnRender()
 
                     ImGui::Text("Initial Rotation");
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip("파티클 생성 시 초기 회전 각도");
-                    if (RotationRateModule->InitialRotation.bUseRange)
-                    {
-                        ImGui::DragFloat("Initial Rotation Min (Rad)", &RotationRateModule->InitialRotation.MinValue,
-                                         0.01f, 0.0f, 6.28318f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)");
-                        ImGui::DragFloat("Initial Rotation Max (Rad)", &RotationRateModule->InitialRotation.MaxValue,
-                                         0.01f, 0.0f, 6.28318f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)");
-                    }
-                    else
-                    {
-                        ImGui::DragFloat("Initial Rotation (Rad)", &RotationRateModule->InitialRotation.MinValue, 0.01f,
-                                         0.0f, 6.28318f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)");
-                    }
+					bool bIsMesh = SelectedEmitter->RenderType == EParticleType::Mesh;
+					if (bIsMesh)
+					{
+						if (RotationRateModule->InitialRotation.bUseRange)
+						{
+							ImGui::DragFloat3("Initial Rotation Min (Rad)", &RotationRateModule->InitialRotation.MinValue.X,
+								0.01f, 0.0f, 6.28318f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)");
+							ImGui::DragFloat3("Initial Rotation Max (Rad)", &RotationRateModule->InitialRotation.MaxValue.X,
+								0.01f, 0.0f, 6.28318f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)");
+						}
+						else
+						{
+							ImGui::DragFloat3("Initial Rotation (Rad)", &RotationRateModule->InitialRotation.MinValue.X, 0.01f,
+								0.0f, 6.28318f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)");
+						}
+					}
+					else
+					{
+						if (RotationRateModule->InitialRotation.bUseRange)
+						{
+							ImGui::DragFloat("Initial Rotation Min (Rad)", &RotationRateModule->InitialRotation.MinValue.X,
+								0.01f, 0.0f, 6.28318f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최소값 (라디안)");
+							ImGui::DragFloat("Initial Rotation Max (Rad)", &RotationRateModule->InitialRotation.MaxValue.X,
+								0.01f, 0.0f, 6.28318f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 최대값 (라디안)");
+						}
+						else
+						{
+							ImGui::DragFloat("Initial Rotation (Rad)", &RotationRateModule->InitialRotation.MinValue.X, 0.01f,
+								0.0f, 6.28318f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 각도 (라디안)");
+						}
+					}
                     ImGui::Checkbox("Use Initial Rotation Range", &RotationRateModule->InitialRotation.bUseRange);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip("초기 회전 랜덤 범위 사용");
 
                     ImGui::Spacing();
                     ImGui::Text("Rotation Speed");
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip("초당 회전 속도 (라디안/초)\n양수=시계방향, 음수=반시계방향");
-                    if (RotationRateModule->StartRotationRate.bUseRange)
-                    {
-                        ImGui::DragFloat("Start Rotation Rate Min (Rad/s)",
-                                         &RotationRateModule->StartRotationRate.MinValue, 0.01f, -10.0f, 10.0f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최소값 (rad/s)");
-                        ImGui::DragFloat("Start Rotation Rate Max (Rad/s)",
-                                         &RotationRateModule->StartRotationRate.MaxValue, 0.01f, -10.0f, 10.0f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최대값 (rad/s)\n다양한 속도로 회전하는 효과");
-                    }
-                    else
-                    {
-                        ImGui::DragFloat("Start Rotation Rate (Rad/s)", &RotationRateModule->StartRotationRate.MinValue,
-                                         0.01f, -10.0f, 10.0f);
-                        if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 (rad/s)\n1.0 ≈ 초당 57도 회전");
-                    }
+					if (bIsMesh)
+					{
+						if (RotationRateModule->StartRotationRate.bUseRange)
+						{
+							ImGui::DragFloat3("Start Rotation Rate Min (Rad/s)",
+								&RotationRateModule->StartRotationRate.MinValue.X, 0.01f, -10.0f, 10.0f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최소값 (rad/s)");
+							ImGui::DragFloat3("Start Rotation Rate Max (Rad/s)",
+								&RotationRateModule->StartRotationRate.MaxValue.X, 0.01f, -10.0f, 10.0f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최대값 (rad/s)\n다양한 속도로 회전하는 효과");
+						}
+						else
+						{
+							ImGui::DragFloat3("Start Rotation Rate (Rad/s)", &RotationRateModule->StartRotationRate.MinValue.X,
+								0.01f, -10.0f, 10.0f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 (rad/s)\n1.0 ≈ 초당 57도 회전");
+						}
+					}
+					else
+					{
+						if (RotationRateModule->StartRotationRate.bUseRange)
+						{
+							ImGui::DragFloat("Start Rotation Rate Min (Rad/s)",
+								&RotationRateModule->StartRotationRate.MinValue.X, 0.01f, -10.0f, 10.0f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최소값 (rad/s)");
+							ImGui::DragFloat("Start Rotation Rate Max (Rad/s)",
+								&RotationRateModule->StartRotationRate.MaxValue.X, 0.01f, -10.0f, 10.0f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 최대값 (rad/s)\n다양한 속도로 회전하는 효과");
+						}
+						else
+						{
+							ImGui::DragFloat("Start Rotation Rate (Rad/s)", &RotationRateModule->StartRotationRate.MinValue.X,
+								0.01f, -10.0f, 10.0f);
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 (rad/s)\n1.0 ≈ 초당 57도 회전");
+						}
+					}
+                    
                     ImGui::Checkbox("Use Rotation Rate Range", &RotationRateModule->StartRotationRate.bUseRange);
                     if (ImGui::IsItemHovered()) ImGui::SetTooltip("회전 속도 랜덤 범위 사용\n음수~양수 범위로 양방향 회전");
 

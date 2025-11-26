@@ -371,7 +371,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
 
             const FVector2D Size = FVector2D(Particle->Size.X, Particle->Size.Y);
             const FLinearColor Color = Particle->Color;
-            const float Rotation = Particle->Rotation;
+            const float Rotation = Particle->Rotation.X;
             const FVector Velocity = Particle->Velocity;
 
             // 4개 코너 버텍스 생성
@@ -587,7 +587,10 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
             }
 
             FMeshParticleInstanceData& Instance = Instances[WrittenInstances++];
-            FQuat RotationQuat = FQuat::FromAxisAngle(FVector(0.0f, 0.0f, 1.0f), Particle->Rotation);
+
+            FQuat RotationQuat = FQuat();
+            RotationQuat.RotateVector(Particle->Rotation);
+
             FTransform ParticleTransform(Particle->Location, RotationQuat, Particle->Size);
             FMatrix ParticleWorld = ParticleTransform.ToMatrix();
             if (MeshData->bUseLocalSpace)

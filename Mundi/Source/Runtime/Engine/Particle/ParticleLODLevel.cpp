@@ -177,8 +177,8 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 FJsonSerializer::ReadLinearColor(ReqJson, "InitialColor_Max", Req->InitialColor.MaxValue);
                 FJsonSerializer::ReadBool(ReqJson, "InitialColor_bUseRange", Req->InitialColor.bUseRange);
 
-                FJsonSerializer::ReadFloat(ReqJson, "InitialRotation_Min", Req->InitialRotation.MinValue);
-                FJsonSerializer::ReadFloat(ReqJson, "InitialRotation_Max", Req->InitialRotation.MaxValue);
+                FJsonSerializer::ReadVector(ReqJson, "InitialRotation_Min", Req->InitialRotation.MinValue);
+                FJsonSerializer::ReadVector(ReqJson, "InitialRotation_Max", Req->InitialRotation.MaxValue);
                 FJsonSerializer::ReadBool(ReqJson, "InitialRotation_bUseRange", Req->InitialRotation.bUseRange);
 
                 // SubUV (스프라이트 시트)
@@ -320,8 +320,8 @@ void UParticleLODLevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             RequiredJson["InitialColor_bUseRange"] = RequiredModule->InitialColor.bUseRange;
 
             // InitialRotation
-            RequiredJson["InitialRotation_Min"] = RequiredModule->InitialRotation.MinValue;
-            RequiredJson["InitialRotation_Max"] = RequiredModule->InitialRotation.MaxValue;
+            RequiredJson["InitialRotation_Min"] = FJsonSerializer::VectorToJson(RequiredModule->InitialRotation.MinValue);
+            RequiredJson["InitialRotation_Max"] = FJsonSerializer::VectorToJson(RequiredModule->InitialRotation.MaxValue);
             RequiredJson["InitialRotation_bUseRange"] = RequiredModule->InitialRotation.bUseRange;
 
             // SubUV (스프라이트 시트)
@@ -588,8 +588,8 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         auto* Rotation = Cast<UParticleModuleRotation>(AddModule(UParticleModuleRotation::StaticClass()));
         if (Rotation)
         {
-            FJsonSerializer::ReadFloat(ModuleJson, "StartRotation_Min", Rotation->StartRotation.MinValue);
-            FJsonSerializer::ReadFloat(ModuleJson, "StartRotation_Max", Rotation->StartRotation.MaxValue);
+            FJsonSerializer::ReadVector(ModuleJson, "StartRotation_Min", Rotation->StartRotation.MinValue);
+            FJsonSerializer::ReadVector(ModuleJson, "StartRotation_Max", Rotation->StartRotation.MaxValue);
             FJsonSerializer::ReadBool(ModuleJson, "StartRotation_bUseRange", Rotation->StartRotation.bUseRange);
         }
         NewModule = Rotation;
@@ -599,12 +599,12 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         auto* RotationRate = Cast<UParticleModuleRotationRate>(AddModule(UParticleModuleRotationRate::StaticClass()));
         if (RotationRate)
         {
-            FJsonSerializer::ReadFloat(ModuleJson, "InitialRotation_Min", RotationRate->InitialRotation.MinValue);
-            FJsonSerializer::ReadFloat(ModuleJson, "InitialRotation_Max", RotationRate->InitialRotation.MaxValue);
+            FJsonSerializer::ReadVector(ModuleJson, "InitialRotation_Min", RotationRate->InitialRotation.MinValue);
+            FJsonSerializer::ReadVector(ModuleJson, "InitialRotation_Max", RotationRate->InitialRotation.MaxValue);
             FJsonSerializer::ReadBool(ModuleJson, "InitialRotation_bUseRange", RotationRate->InitialRotation.bUseRange);
 
-            FJsonSerializer::ReadFloat(ModuleJson, "StartRotationRate_Min", RotationRate->StartRotationRate.MinValue);
-            FJsonSerializer::ReadFloat(ModuleJson, "StartRotationRate_Max", RotationRate->StartRotationRate.MaxValue);
+            FJsonSerializer::ReadVector(ModuleJson, "StartRotationRate_Min", RotationRate->StartRotationRate.MinValue);
+            FJsonSerializer::ReadVector(ModuleJson, "StartRotationRate_Max", RotationRate->StartRotationRate.MaxValue);
             FJsonSerializer::ReadBool(ModuleJson, "StartRotationRate_bUseRange", RotationRate->StartRotationRate.bUseRange);
         }
         NewModule = RotationRate;
@@ -817,19 +817,19 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
     else if (auto* Rotation = Cast<UParticleModuleRotation>(Module))
     {
         ModuleJson["Type"] = "Rotation";
-        ModuleJson["StartRotation_Min"] = Rotation->StartRotation.MinValue;
-        ModuleJson["StartRotation_Max"] = Rotation->StartRotation.MaxValue;
+        ModuleJson["StartRotation_Min"] = FJsonSerializer::VectorToJson(Rotation->StartRotation.MinValue);
+        ModuleJson["StartRotation_Max"] = FJsonSerializer::VectorToJson(Rotation->StartRotation.MaxValue);
         ModuleJson["StartRotation_bUseRange"] = Rotation->StartRotation.bUseRange;
     }
     else if (auto* RotationRate = Cast<UParticleModuleRotationRate>(Module))
     {
         ModuleJson["Type"] = "RotationRate";
-        ModuleJson["InitialRotation_Min"] = RotationRate->InitialRotation.MinValue;
-        ModuleJson["InitialRotation_Max"] = RotationRate->InitialRotation.MaxValue;
+        ModuleJson["InitialRotation_Min"] = FJsonSerializer::VectorToJson(RotationRate->InitialRotation.MinValue);
+        ModuleJson["InitialRotation_Max"] = FJsonSerializer::VectorToJson(RotationRate->InitialRotation.MaxValue);
         ModuleJson["InitialRotation_bUseRange"] = RotationRate->InitialRotation.bUseRange;
 
-        ModuleJson["StartRotationRate_Min"] = RotationRate->StartRotationRate.MinValue;
-        ModuleJson["StartRotationRate_Max"] = RotationRate->StartRotationRate.MaxValue;
+        ModuleJson["StartRotationRate_Min"] = FJsonSerializer::VectorToJson(RotationRate->StartRotationRate.MinValue);
+        ModuleJson["StartRotationRate_Max"] = FJsonSerializer::VectorToJson(RotationRate->StartRotationRate.MaxValue);
         ModuleJson["StartRotationRate_bUseRange"] = RotationRate->StartRotationRate.bUseRange;
     }
     else if (auto* Mesh = Cast<UParticleModuleMesh>(Module))
