@@ -3,6 +3,7 @@
 #include "Pawn.h"
 #include "CameraComponent.h"
 #include <windows.h>
+#include <cmath>
 #include  "Character.h"
 
 APlayerController::APlayerController()
@@ -78,14 +79,32 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 	{
 		InputDir.Normalize();
 
-		// controller의 회전을  inputDir에  적용시켜준다.
-		FMatrix RotMatrix = GetControlRotation().ToMatrix(); 
-		FVector WorldDir = RotMatrix.TransformVector(InputDir);
-	 	
-		Pawn->AddMovementInput(WorldDir * (Pawn->GetVelocity() * DeltaTime)); 
+		// 플레이어의 현재 Forward 기준으로 월드 이동 방향 계산
+		FMatrix PawnRotMatrix = Pawn->GetActorRotation().ToMatrix();
+		FVector WorldDir = PawnRotMatrix.TransformVector(InputDir);
+		WorldDir.Z = 0.0f; // 수평 이동만
+		WorldDir.Normalize();
+
+		// W가 아닌 다른 방향키를 누르면 그 방향으로 회전
+		// (W만 누르면 현재 방향 유지, 다른 키 조합이면 회전)
+		bool bOnlyForward = (InputDir.X > 0.0f && InputDir.Y == 0.0f);
+		if (!bOnlyForward)
+		{
+			// 이동 방향으로 플레이어 회전
+			float TargetYaw = std::atan2(WorldDir.Y, WorldDir.X) * (180.0f / PI);
+			FQuat TargetRotation = FQuat::MakeFromEulerZYX(FVector(0.0f, 0.0f, TargetYaw));
+
+			// 부드러운 회전 (보간)
+			FQuat CurrentRotation = Pawn->GetActorRotation();
+			FQuat NewRotation = FQuat::Slerp(CurrentRotation, TargetRotation, FMath::Clamp(DeltaTime * 2.0f, 0.0f, 1.0f));
+			Pawn->SetActorRotation(NewRotation);
+		}
+
+		// 이동 적용
+		Pawn->AddMovementInput(WorldDir * (Pawn->GetVelocity() * DeltaTime));
 	}
 
-    // 점프 처리  
+    // 점프 처리
     if (InputManager.IsKeyPressed(VK_SPACE)) {          // 눌린 순간 1회
         if (auto* Character = Cast<ACharacter>(Pawn)) {
             Character->Jump();
@@ -94,7 +113,7 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
     if (InputManager.IsKeyReleased(VK_SPACE)) {         // 뗀 순간 1회 (있다면)
         if (auto* Character = Cast<ACharacter>(Pawn)) {
             Character->StopJumping();
-        } 
+        }
     }
 }
 
@@ -110,34 +129,29 @@ void APlayerController::ProcessRotationInput(float DeltaTime)
     {
         const float Sensitivity = 0.1f;
 
-        FVector Euler = GetControlRotation().ToEulerZYXDeg(); 
-        //Yaw 
+        FVector Euler = GetControlRotation().ToEulerZYXDeg();
+        // Yaw (좌우 회전)
         Euler.Z += MouseDelta.X * Sensitivity;
-        
-        //Pitch
-        Euler.Y += MouseDelta.Y * Sensitivity;
 
-		Euler.Y = FMath::Clamp(Euler.Y, -89.0f, 89.0f);
-		
-		//Roll 방지 
-		Euler.X = 0.0f;
+        // Pitch (상하 회전)
+        Euler.Y += MouseDelta.Y * Sensitivity;
+        Euler.Y = FMath::Clamp(Euler.Y, -89.0f, 89.0f);
+
+        // Roll 방지
+        Euler.X = 0.0f;
 
         FQuat NewControlRotation = FQuat::MakeFromEulerZYX(Euler);
         SetControlRotation(NewControlRotation);
 
-		// Pawn Rotate
-		FQuat PawnRotation = FQuat::MakeFromEulerZYX(FVector(0, 0, Euler.Z));
-		Pawn->SetActorRotation(PawnRotation);
-			
-		// Camera Rotate  
+        // 카메라만 회전 (플레이어는 회전하지 않음)
         if (UActorComponent* C = Pawn->GetComponent(UCameraComponent::StaticClass()))
         {
-            if (UCameraComponent* CamComp = Cast<UCameraComponent>(C))  
+            if (UCameraComponent* CamComp = Cast<UCameraComponent>(C))
             {
-                FQuat CameraLocalRot = FQuat::MakeFromEulerZYX(FVector(0.0f, Euler.Y, 0.0f));
+                // 카메라는 Yaw + Pitch 모두 적용 (로컬 회전)
+                FQuat CameraLocalRot = FQuat::MakeFromEulerZYX(FVector(0.0f, Euler.Y, Euler.Z));
                 CamComp->SetRelativeRotation(CameraLocalRot);
             }
         }
-
-    } 
+    }
 }
