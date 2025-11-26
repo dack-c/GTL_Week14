@@ -949,7 +949,6 @@ void FSceneRenderer::RenderParticlePass()
 	RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId); // Scene+Depth
 	RHIDevice->RSSetState(ERasterizerMode::Solid);
 	RHIDevice->OMSetBlendState(true);
-	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
 
 	// ParticleMesh 라이팅을 위한 상수버퍼 바인딩
 	FLightManager* LightManager = World->GetLightManager();
@@ -1009,7 +1008,6 @@ void FSceneRenderer::RenderParticlePass()
 	SpriteParticleBatchElements.Sort();
 	if (!SpriteParticleBatchElements.IsEmpty())
 	{
-		RHIDevice->OMSetBlendState(true);
 		RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
 		DrawMeshBatches(SpriteParticleBatchElements, true);
 	}
@@ -1018,7 +1016,6 @@ void FSceneRenderer::RenderParticlePass()
 	if (!MeshParticleBatchElements.IsEmpty())
 	{
 		RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
-		RHIDevice->OMSetBlendState(false);
 		DrawMeshBatches(MeshParticleBatchElements, true);
 	}
 
