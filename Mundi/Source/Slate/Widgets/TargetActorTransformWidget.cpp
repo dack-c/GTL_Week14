@@ -466,8 +466,8 @@ void UTargetActorTransformWidget::RenderComponentHierarchy(AActor* SelectedActor
 		RenderActorComponent(SelectedActor, SelectedComponent, ComponentPendingRemoval);
 	}
 
-	// 삭제 입력 처리
-	const bool bDeletePressed = ImGui::IsKeyPressed(ImGuiKey_Delete);
+	// 삭제 입력 처리 - 이 위젯에 포커스가 있을 때만 처리
+	const bool bDeletePressed = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_Delete);
 	if (bDeletePressed)
 	{
 		if (bActorSelected) ActorPendingRemoval = SelectedActor;
