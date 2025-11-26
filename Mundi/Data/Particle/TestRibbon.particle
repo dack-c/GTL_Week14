@@ -15,12 +15,12 @@
                     "Type" : "Size",
                     "bEnabled" : true
                   }, {
-                    "Gravity" : [0.000000, 0.000000, 0.000000],
-                    "StartVelocity_Max" : [0.000000, 0.000000, 0.000000],
-                    "StartVelocity_Min" : [0.000000, 0.000000, 0.000000],
+                    "Gravity" : [0.000000, 0.000000, -980.000000],
+                    "StartVelocity_Max" : [0.000000, 0.000000, 20.000000],
+                    "StartVelocity_Min" : [0.000000, 0.000000, 10.000000],
                     "StartVelocity_bUseRange" : true,
                     "Type" : "Velocity",
-                    "bEnabled" : true
+                    "bEnabled" : false
                   }, {
                     "TilingDistance" : 0.000000,
                     "TrailLifetime" : 1.000000,

@@ -676,14 +676,12 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(
 
         const int32 TrailCount = Src->TrailCount;
         const TArray<int32>& TrailHeads = Src->TrailHeads;
-        const int32 TrailPayloadOffset = Src->TrailPayloadOffset;
         const float Width = Src->Width;
         const float TilingDistance = Src->TilingDistance;
         const bool  bUseCameraFacing = Src->bUseCameraFacing;
 
         if (!Src->DataContainer.ParticleData ||
-            TrailCount <= 0 ||
-            TrailPayloadOffset < 0)
+            TrailCount <= 0)
         {
             continue;
         }
@@ -709,13 +707,13 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(
                     Src->DataContainer.ParticleData +
                     Src->ParticleStride * Current;
 
-                const FRibbonTrailPayload* Payload =
-                    reinterpret_cast<const FRibbonTrailPayload*>(BasePtr + TrailPayloadOffset);
+                const FBaseParticle* ChainParticle =
+                    reinterpret_cast<const FBaseParticle*>(BasePtr);
 
-                if (!Payload)
+                if (!ChainParticle)
                     break;
 
-                Current = Payload->NextIndex;
+                Current = ChainParticle->NextIndex;
             }
 
             if (Chain.Num() < 2)

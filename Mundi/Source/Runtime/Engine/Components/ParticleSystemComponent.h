@@ -113,10 +113,6 @@ private:
 	ID3D11Buffer* RibbonIndexBuffer = nullptr;
 	uint32 RibbonVertexCapacity = 0;
 	uint32 RibbonIndexCapacity = 0; // 인덱스 개수 용량
-	struct FRibbonTrailPayload
-	{
-		int32 NextIndex;
-	};
 
 	//Async
 	FParticleAsyncUpdater AsyncUpdater;
