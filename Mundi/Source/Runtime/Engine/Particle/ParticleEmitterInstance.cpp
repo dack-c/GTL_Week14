@@ -642,10 +642,6 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             RibbonOut.TrailHeads = RibbonTrailHeads;
             break;
         }
-
-
-        default:
-            break;
         case EParticleType::Beam:
         {
             auto& BeamOut = static_cast<FDynamicBeamEmitterReplayData&>(OutData);
@@ -676,6 +672,8 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             }
             break;
         }
+        default:
+            break;
     }
 }
 
