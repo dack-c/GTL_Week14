@@ -829,20 +829,20 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(
             // 4-3) 체인 기반 인덱스 생성
             for (int32 ci = 0; ci < Chain.Num() - 1; ++ci)
             {
-                const uint32 V_TopLeft = BaseVertexIndex + (ci * 2);
-                const uint32 V_BottomLeft = BaseVertexIndex + (ci * 2) + 1;
-                const uint32 V_TopRight = BaseVertexIndex + ((ci + 1) * 2);
+                const uint32 V_TopLeft     = BaseVertexIndex + (ci * 2);
+                const uint32 V_BottomLeft  = BaseVertexIndex + (ci * 2) + 1;
+                const uint32 V_TopRight    = BaseVertexIndex + ((ci + 1) * 2);
                 const uint32 V_BottomRight = BaseVertexIndex + ((ci + 1) * 2) + 1;
 
-                // 삼각형 1 (TL - TR - BL)
+                // 삼각형 1: TL - BL - TR  (CCW)
                 IndicesPtr[IndexCursor++] = V_TopLeft;
-                IndicesPtr[IndexCursor++] = V_TopRight;
                 IndicesPtr[IndexCursor++] = V_BottomLeft;
+                IndicesPtr[IndexCursor++] = V_TopRight;
 
-                // 삼각형 2 (BL - TR - BR)
+                // 삼각형 2: BL - BR - TR  (CCW)
                 IndicesPtr[IndexCursor++] = V_BottomLeft;
-                IndicesPtr[IndexCursor++] = V_TopRight;
                 IndicesPtr[IndexCursor++] = V_BottomRight;
+                IndicesPtr[IndexCursor++] = V_TopRight;
             }
 
             // trail 하나가 만든 index 수는 (Chain.Num() - 1) * 6
@@ -1852,8 +1852,8 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
             for (uint32 i = 0; i < SegmentCount; ++i)
             {
                 uint32 LocalBase = BaseVertexIndex + (i * 2);
-                EmitterIndices.Add(LocalBase + 0); EmitterIndices.Add(LocalBase + 2); EmitterIndices.Add(LocalBase + 1);
-                EmitterIndices.Add(LocalBase + 1); EmitterIndices.Add(LocalBase + 2); EmitterIndices.Add(LocalBase + 3);
+                EmitterIndices.Add(LocalBase + 0); EmitterIndices.Add(LocalBase + 1); EmitterIndices.Add(LocalBase + 2);
+                EmitterIndices.Add(LocalBase + 1); EmitterIndices.Add(LocalBase + 3); EmitterIndices.Add(LocalBase + 2);
             }
         } // End Particle Loop
 
