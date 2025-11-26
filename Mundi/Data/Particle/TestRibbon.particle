@@ -25,20 +25,19 @@
                     "TilingDistance" : 85.000000,
                     "TrailLifetime" : 1.000000,
                     "Type" : "Ribbon",
-                    "Width" : 10.000000,
+                    "Width" : 1.000000,
                     "bEnabled" : true,
                     "bUseCameraFacing" : true
                   }],
                 "RequiredModule" : {
-                  "BlendMode" : 5,
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
                   "EmitterLoops" : 0,
                   "InitialColor_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
                   "InitialColor_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
                   "InitialColor_bUseRange" : false,
-                  "InitialRotation_Max" : 0.000000,
-                  "InitialRotation_Min" : 0.000000,
+                  "InitialRotation_Max" : [0.000000, 0.000000, 0.000000],
+                  "InitialRotation_Min" : [0.000000, 0.000000, 0.000000],
                   "InitialRotation_bUseRange" : false,
                   "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
@@ -49,8 +48,6 @@
                   "SpawnRateBase" : 10.000000,
                   "SubImages_Horizontal" : 1,
                   "SubImages_Vertical" : 1,
-                  "bKillOnCompleted" : false,
-                  "bKillOnDeactivate" : true,
                   "bUseLocalSpace" : false
                 },
                 "SpawnModule" : {
