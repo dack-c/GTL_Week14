@@ -19,7 +19,7 @@ set TOOL_DIR=%~dp0SymStore
 :: Target binary directory to process
 set BIN_DIR=%~dp0..\..\Binaries\%CONFIG%
 
-:: Path to pdbstr.exe (Required for source indexing)
+:: Path to pdbstr.exe
 set PDBSTR_EXE=%TOOL_DIR%\pdbstr.exe
 
 :: ========================================================
@@ -44,11 +44,8 @@ echo [Git] Repository: %GIT_URL%
 if exist "%PDBSTR_EXE%" (
     echo [SourceIndexing] Injecting source info into PDBs...
     
-    :: Generate srcsrv.ini file (Temporary)
     set SRCSRV_INI=%TEMP%\srcsrv_%GIT_HASH%.ini
     
-    :: Note: This mapping assumes a standard GitHub structure.
-    :: Adjust the mapping (*.cpp*MYSERVER/...) if your folder structure differs.
     (
         echo SRCSRV: variables ------------------------------------------
         echo VERSION=1
@@ -61,7 +58,6 @@ if exist "%PDBSTR_EXE%" (
         echo %~dp0..\..\Source\*.inl*MYSERVER/Source/*.inl
     ) > "!SRCSRV_INI!"
 
-    :: Loop through all PDBs and inject the stream
     for %%f in ("%BIN_DIR%\*.pdb") do (
         "%PDBSTR_EXE%" -w -p:"%%f" -i:"!SRCSRV_INI!" -s:srcsrv
     )
