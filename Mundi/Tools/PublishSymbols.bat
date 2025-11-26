@@ -28,7 +28,10 @@ set PDBSTR_EXE=%TOOL_DIR%\pdbstr.exe
 echo [Git] Extracting version info...
 
 for /f "delims=" %%i in ('git rev-parse --short HEAD') do set GIT_HASH=%%i
-for /f "delims=" %%i in ('git remote get-url origin') do set GIT_URL=%%i
+for /f "delims=" %%i in ('git remote get-url origin') do set GIT_URL_RAW=%%i
+
+:: Remove .git extension for raw content access
+set GIT_URL=%GIT_URL_RAW:.git=%
 
 if "%GIT_HASH%"=="" set GIT_HASH=NoGit
 if "%GIT_URL%"=="" set GIT_URL=UnknownRepo
@@ -41,11 +44,18 @@ echo [Git] Repository: %GIT_URL%
 :: Inject source repository info into PDB files.
 :: This allows the debugger to fetch source code from the remote repo.
 :: ========================================================
+REM Calculate absolute path for Source root to handle relative paths correctly
+pushd "%~dp0..\..\Source"
+set "SOURCE_ROOT=%CD%"
+popd
+
 if exist "%PDBSTR_EXE%" (
     echo [SourceIndexing] Injecting source info into PDBs...
     
+    REM Generate srcsrv.ini file (Temporary)
     set SRCSRV_INI=%TEMP%\srcsrv_%GIT_HASH%.ini
     
+    REM 1. Write Header
     (
         echo SRCSRV: variables ------------------------------------------
         echo VERSION=1
@@ -53,11 +63,20 @@ if exist "%PDBSTR_EXE%" (
         echo SRCSRV: variables ------------------------------------------
         echo MYSERVER=%GIT_URL%/raw/%GIT_HASH%
         echo SRCSRV: source files ---------------------------------------
-        echo %~dp0..\..\Source\*.cpp*MYSERVER/Source/*.cpp
-        echo %~dp0..\..\Source\*.h*MYSERVER/Source/*.h
-        echo %~dp0..\..\Source\*.inl*MYSERVER/Source/*.inl
     ) > "!SRCSRV_INI!"
 
+    REM 2. Map every source file individually (Wildcards not supported by srcsrv)
+    for /r "%SOURCE_ROOT%" %%f in (*.cpp *.h *.inl) do (
+        set "FULL_PATH=%%f"
+        REM Remove root path to get relative path
+        set "REL_PATH=!FULL_PATH:%SOURCE_ROOT%=!"
+        REM Convert backslashes to slashes for URL
+        set "URL_PATH=!REL_PATH:\=/!"
+        
+        echo !FULL_PATH!*MYSERVER/Source!URL_PATH! >> "!SRCSRV_INI!"
+    )
+
+    REM Loop through all PDBs and inject the stream
     for %%f in ("%BIN_DIR%\*.pdb") do (
         "%PDBSTR_EXE%" -w -p:"%%f" -i:"!SRCSRV_INI!" -s:srcsrv
     )
@@ -66,7 +85,6 @@ if exist "%PDBSTR_EXE%" (
 ) else (
     echo [Warning] pdbstr.exe not found in TOOL_DIR. Skipping Source Indexing.
 )
-
 :: ========================================================
 :: [Setup 4] Symbol Server Connection Check
 :: ========================================================
