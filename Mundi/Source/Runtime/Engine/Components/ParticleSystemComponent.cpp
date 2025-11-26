@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ParticleSystemComponent.h"
 
 #include "BoxComponent.h"
@@ -617,8 +617,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(
         if (!Base || Base->EmitterType != EParticleType::Ribbon)
             continue;
 
-        const FDynamicEmitterReplayDataBase* SrcBase = Base->GetSource();
-        const auto* Src = static_cast<const FDynamicRibbonEmitterReplayData*>(SrcBase);
+        const auto* Src = static_cast<const FDynamicRibbonEmitterReplayData*>(Base->GetSource());
         if (Src && Src->ActiveParticleCount >= 2)
         {
             TotalSpinePoints += static_cast<uint32>(Src->ActiveParticleCount);
