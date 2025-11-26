@@ -461,7 +461,12 @@ void FSceneRenderer::RenderShadowDepthPass(FShadowRenderRequest& ShadowRequest, 
 	UShader* DepthVS = UResourceManager::GetInstance().Load<UShader>("Shaders/Shadows/DepthOnly_VS.hlsl");
 	if (!DepthVS || !DepthVS->GetVertexShader()) return;
 
-	FShaderVariant* ShaderVariant = DepthVS->GetOrCompileShaderVariant();
+	TArray<FShaderMacro> Macros;
+	if (GWorld->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning))
+	{
+		Macros.Add({"USE_GPU_SKINNING", "1"});
+	}
+	FShaderVariant* ShaderVariant = DepthVS->GetOrCompileShaderVariant(Macros);
 	if (!ShaderVariant) return;
 
 	// vsm용 픽셀 셰이더

@@ -109,7 +109,7 @@ void USkinnedMeshComponent::CollectMeshBatches(TArray<FMeshBatchElement>& OutMes
 {
    if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshData()) { return; }
 
-   bForceGPUSkinning = GetWorld()->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning);         
+   bForceGPUSkinning = GWorld->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_GPUSkinning);         
 
    if (bSkinningMatricesDirty && !bForceGPUSkinning)
    {
