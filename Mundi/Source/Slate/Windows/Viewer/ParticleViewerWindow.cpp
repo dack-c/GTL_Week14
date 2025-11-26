@@ -15,6 +15,7 @@
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleVelocity.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColor.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleMesh.h"
+#include "Source/Runtime/Engine/Particle/Modules/ParticleModuleBeam.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleLocation.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Source/Runtime/Engine/Particle/Modules/ParticleModuleSizeMultiplyLife.h"
@@ -1720,6 +1721,149 @@ void SParticleViewerWindow::OnRender()
                         }
                     }
                     }
+                else if (auto* BeamModule = Cast<UParticleModuleBeam>(SelectedModule))
+                {
+                    ImGui::Spacing();
+                    ImGui::Columns(2, "BeamModuleColumns", false);
+                    ImGui::SetColumnWidth(0, 150.0f);
+
+                    // Source Point
+                    {
+                        ImGui::Text("Source Point");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamSourcePoint", &BeamModule->SourcePoint.X, 1.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Target Point
+                    {
+                        ImGui::Text("Target Point");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamTargetPoint", &BeamModule->TargetPoint.X, 1.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Tessellation Factor
+                    {
+                        ImGui::Text("Tessellation Factor");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragInt("##BeamTessellation", &BeamModule->TessellationFactor, 1, 1, 100))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Noise Frequency
+                    {
+                        ImGui::Text("Noise Frequency");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat("##BeamNoiseFreq", &BeamModule->NoiseFrequency, 0.01f, 0.0f, 10.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Noise Amplitude
+                    {
+                        ImGui::Text("Noise Amplitude");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat("##BeamNoiseAmp", &BeamModule->NoiseAmplitude, 0.1f, 0.0f, 100.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Use Random Offset (번개 효과)
+                    {
+                        ImGui::Text("Use Random Offset");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::Checkbox("##BeamUseRandomOffset", &BeamModule->bUseRandomOffset))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    // Source Offset (랜덤 범위)
+                    if (BeamModule->bUseRandomOffset)
+                    {
+                        ImGui::Text("Source Offset");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamSourceOffset", &BeamModule->SourceOffset.X, 1.0f, 0.0f, 1000.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+
+                        // Target Offset (랜덤 범위)
+                        ImGui::Text("Target Offset");
+                        ImGui::NextColumn();
+
+                        ImGui::SetNextItemWidth(-1);
+                        if (ImGui::DragFloat3("##BeamTargetOffset", &BeamModule->TargetOffset.X, 1.0f, 0.0f, 1000.0f))
+                        {
+                            if (PreviewComponent && CurrentParticleSystem)
+                            {
+                                CurrentParticleSystem->BuildRuntimeCache();
+                                PreviewComponent->ResetAndActivate();
+                            }
+                        }
+                        ImGui::NextColumn();
+                    }
+
+                    ImGui::Columns(1);
+                }
                 else if (auto* CollisionModule = Cast<UParticleModuleCollision>(SelectedModule))
                 {
                     ImGui::Text("Collision Settings");
@@ -2341,6 +2485,7 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
 
                                 const char* typeName = "TypeData";
                                 if (Cast<UParticleModuleMesh>(TypeDataModule)) typeName = "Mesh";
+                                else if (Cast<UParticleModuleBeam>(TypeDataModule)) typeName = "Beam";
 
                                 if (ImGui::Selectable(typeName, isSelected, 0, ImVec2(nameWidth, 20)))
                                 {
@@ -2591,9 +2736,20 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 if (ImGui::MenuItem("Mesh"))
                                 {
                                     UParticleModuleMesh* MeshModule = Cast<UParticleModuleMesh>(LOD->AddModule(UParticleModuleMesh::StaticClass()));
-                                    if (MeshModule && SelectedEmitter)
+                                    if (MeshModule && Emitter)
                                     {
-                                        MeshModule->ApplyToEmitter(SelectedEmitter);
+                                        MeshModule->ApplyToEmitter(Emitter);
+                                        CurrentParticleSystem->BuildRuntimeCache();
+                                        PreviewComponent->ResetAndActivate();
+                                    }
+                                }
+
+                                if (ImGui::MenuItem("Beam"))
+                                {
+                                    UParticleModuleBeam* BeamModule = Cast<UParticleModuleBeam>(LOD->AddModule(UParticleModuleBeam::StaticClass()));
+                                    if (BeamModule && Emitter)
+                                    {
+                                        BeamModule->ApplyToEmitter(Emitter);
                                         CurrentParticleSystem->BuildRuntimeCache();
                                         PreviewComponent->ResetAndActivate();
                                     }

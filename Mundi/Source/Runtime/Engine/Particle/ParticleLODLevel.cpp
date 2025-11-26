@@ -14,6 +14,7 @@
 #include "Modules/ParticleModuleRotation.h"
 #include "Modules/ParticleModuleRotationRate.h"
 #include "Modules/ParticleModuleMesh.h"
+#include "Modules/ParticleModuleBeam.h"
 #include "Modules/ParticleModuleSubUV.h"
 #include "Material.h"
 #include "Modules/ParticleModuleCollision.h"
@@ -623,6 +624,22 @@ void UParticleLODLevel::ParseAndAddModule(JSON& ModuleJson)
         }
         NewModule = Mesh;
     }
+    else if (ModuleType == "Beam")
+    {
+        auto* Beam = Cast<UParticleModuleBeam>(AddModule(UParticleModuleBeam::StaticClass()));
+        if (Beam)
+        {
+            FJsonSerializer::ReadVector(ModuleJson, "SourcePoint", Beam->SourcePoint);
+            FJsonSerializer::ReadVector(ModuleJson, "TargetPoint", Beam->TargetPoint);
+            FJsonSerializer::ReadInt32(ModuleJson, "TessellationFactor", Beam->TessellationFactor);
+            FJsonSerializer::ReadFloat(ModuleJson, "NoiseFrequency", Beam->NoiseFrequency);
+            FJsonSerializer::ReadFloat(ModuleJson, "NoiseAmplitude", Beam->NoiseAmplitude);
+            FJsonSerializer::ReadVector(ModuleJson, "SourceOffset", Beam->SourceOffset);
+            FJsonSerializer::ReadVector(ModuleJson, "TargetOffset", Beam->TargetOffset);
+            FJsonSerializer::ReadBool(ModuleJson, "bUseRandomOffset", Beam->bUseRandomOffset);
+        }
+        NewModule = Beam;
+    }
     else if (ModuleType == "SubUV")
     {
         auto* SubUV = Cast<UParticleModuleSubUV>(AddModule(UParticleModuleSubUV::StaticClass()));
@@ -796,6 +813,18 @@ JSON UParticleLODLevel::SerializeModule(UParticleModule* Module)
         ModuleJson["MeshAssetPath"] = Mesh->MeshAssetPath;
         ModuleJson["OverrideMaterialPath"] = Mesh->OverrideMaterialPath;
         ModuleJson["bUseMeshMaterials"] = Mesh->bUseMeshMaterials;
+    }
+    else if (auto* Beam = Cast<UParticleModuleBeam>(Module))
+    {
+        ModuleJson["Type"] = "Beam";
+        ModuleJson["SourcePoint"] = FJsonSerializer::VectorToJson(Beam->SourcePoint);
+        ModuleJson["TargetPoint"] = FJsonSerializer::VectorToJson(Beam->TargetPoint);
+        ModuleJson["TessellationFactor"] = Beam->TessellationFactor;
+        ModuleJson["NoiseFrequency"] = Beam->NoiseFrequency;
+        ModuleJson["NoiseAmplitude"] = Beam->NoiseAmplitude;
+        ModuleJson["SourceOffset"] = FJsonSerializer::VectorToJson(Beam->SourceOffset);
+        ModuleJson["TargetOffset"] = FJsonSerializer::VectorToJson(Beam->TargetOffset);
+        ModuleJson["bUseRandomOffset"] = Beam->bUseRandomOffset;
     }
     else if (auto* SubUV = Cast<UParticleModuleSubUV>(Module))
     {

@@ -22,10 +22,18 @@ public:
     float NoiseFrequency = 0.0f;
     float NoiseAmplitude = 0.0f;
 
+    // 번개 효과를 위한 랜덤 오프셋 설정
+    FVector SourceOffset = FVector::Zero();      // 시작점 랜덤 오프셋 범위
+    FVector TargetOffset = FVector::Zero();      // 끝점 랜덤 오프셋 범위
+    bool bUseRandomOffset = false;               // 랜덤 오프셋 사용 여부
+
+    void ApplyToEmitter(UParticleEmitter* OwnerEmitter);
+
     // 타입별 파티클 추가 데이터 크기
+    // Payload 레이아웃: [SourcePoint(FVector)] [TargetPoint(FVector)] [RandomSeed(float)]
     virtual int32 GetRequiredParticleBytes() const override
     {
-        return sizeof(FVector) * 2;  // SourcePoint + TargetPoint
+        return sizeof(FVector) * 2 + sizeof(float);  // SourcePoint + TargetPoint + RandomSeed
     }
 
     virtual int32 GetDynamicVertexStride() const override

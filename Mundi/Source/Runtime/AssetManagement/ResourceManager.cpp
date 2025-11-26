@@ -537,6 +537,19 @@ void UResourceManager::InitShaderILMap()
     ShaderToInputLayoutMap["Shaders/Effects/ParticleSprite_Instanced.hlsl"] = layout;
     layout.clear();
 
+    // ────────────────────────────────
+    // Particle Beam 렌더링용 Shader
+    // FParticleBeamVertex: Position(float3) + UV(float2) + Color(float4)
+    // ────────────────────────────────
+    layout.Add({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,
+                 D3D11_INPUT_PER_VERTEX_DATA, 0 });
+    layout.Add({ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, 12,
+                 D3D11_INPUT_PER_VERTEX_DATA, 0 });
+    layout.Add({ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20,
+                 D3D11_INPUT_PER_VERTEX_DATA, 0 });
+    ShaderToInputLayoutMap["Shaders/Effects/ParticleBeam.hlsl"] = layout;
+    layout.clear();
+
     ShaderToInputLayoutMap["Shaders/Utility/FullScreenTriangle_VS.hlsl"] = {};  // FullScreenTriangle 는 InputLayout을 사용하지 않는다
 }
 

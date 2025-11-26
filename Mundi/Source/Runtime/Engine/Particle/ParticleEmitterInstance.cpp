@@ -8,6 +8,7 @@
 #include "Modules/ParticleModuleSpawn.h"
 #include "Modules/ParticleModuleSubUV.h"
 #include "Modules/ParticleModuleMesh.h"
+#include "Modules/ParticleModuleBeam.h"
 
 void FParticleEmitterInstance::Init(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
 {
@@ -62,7 +63,15 @@ void FParticleEmitterInstance::InitializeParticleMemory()
 
     if (ParticleStride == 0)
     {
-        ParticleSize = sizeof(FBaseParticle);
+        // Template에서 계산된 파티클 크기 사용 (Beam Payload 포함)
+        if (Template && Template->ParticleSizeBytes > 0)
+        {
+            ParticleSize = Template->ParticleSizeBytes;
+        }
+        else
+        {
+            ParticleSize = sizeof(FBaseParticle);
+        }
         ParticleStride = (ParticleSize + 15) & ~15;
     }
 
@@ -187,7 +196,63 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
                 Module->SpawnAsync(this, PayloadOffset, CurrentSpawnTime, Particle, InContext);
             }
         }
-        
+
+        // 빔 타입인 경우 Payload에 시작점/끝점 저장
+        if (Template && Template->RenderType == EParticleType::Beam)
+        {
+            // TypeDataModule에서 직접 가져오기
+            UParticleModuleBeam* BeamModule = CurrentLODLevel ? Cast<UParticleModuleBeam>(CurrentLODLevel->TypeDataModule) : nullptr;
+
+            UE_LOG("[SpawnParticles::Beam] CurrentLODLevel=%p, TypeDataModule=%p, BeamModule=%p, PayloadOffset=%d",
+                CurrentLODLevel,
+                CurrentLODLevel ? CurrentLODLevel->TypeDataModule : nullptr,
+                BeamModule,
+                PayloadOffset);
+
+            if (BeamModule)
+            {
+                uint8* ParticleBase = reinterpret_cast<uint8*>(Particle);
+                FVector* BeamSource = reinterpret_cast<FVector*>(ParticleBase + PayloadOffset);
+                FVector* BeamTarget = reinterpret_cast<FVector*>(ParticleBase + PayloadOffset + sizeof(FVector));
+
+                // 기본 시작점/끝점 설정
+                FVector FinalSource = BeamModule->SourcePoint;
+                FVector FinalTarget = BeamModule->TargetPoint;
+
+                UE_LOG("[SpawnParticles::Beam] Source=(%.1f, %.1f, %.1f), Target=(%.1f, %.1f, %.1f)",
+                    FinalSource.X, FinalSource.Y, FinalSource.Z,
+                    FinalTarget.X, FinalTarget.Y, FinalTarget.Z);
+
+                // 랜덤 오프셋 적용 (번개 효과)
+                if (BeamModule->bUseRandomOffset)
+                {
+                    // 각 축마다 -Offset ~ +Offset 범위에서 랜덤 값 생성
+                    // GetRandomFloat()는 0~1 범위이므로 -1~1로 변환 후 오프셋 곱하기
+                    FVector SourceRandom(
+                        (GetRandomFloat() * 2.0f - 1.0f) * BeamModule->SourceOffset.X,
+                        (GetRandomFloat() * 2.0f - 1.0f) * BeamModule->SourceOffset.Y,
+                        (GetRandomFloat() * 2.0f - 1.0f) * BeamModule->SourceOffset.Z
+                    );
+
+                    FVector TargetRandom(
+                        (GetRandomFloat() * 2.0f - 1.0f) * BeamModule->TargetOffset.X,
+                        (GetRandomFloat() * 2.0f - 1.0f) * BeamModule->TargetOffset.Y,
+                        (GetRandomFloat() * 2.0f - 1.0f) * BeamModule->TargetOffset.Z
+                    );
+
+                    FinalSource += SourceRandom;
+                    FinalTarget += TargetRandom;
+                }
+
+                *BeamSource = FinalSource;
+                *BeamTarget = FinalTarget;
+
+                // 노이즈용 랜덤 시드 저장
+                float* BeamRandomSeed = reinterpret_cast<float*>(ParticleBase + PayloadOffset + sizeof(FVector) * 2);
+                *BeamRandomSeed = GetRandomFloat() * 1000.0f;
+            }
+        }
+
         ParticleIndices[NewParticleIndex] = NewParticleIndex;
         ActiveParticles++;
         ParticleCounter++;
@@ -338,12 +403,39 @@ void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
 void FParticleEmitterInstance::UpdateModuleCache()
 {
     if (!Template) { return; }
-    
+
     CurrentLODLevel = Template->LODLevels[CurrentLODLevelIndex];
     if (!CurrentLODLevel || !CurrentLODLevel->bEnabled) { return; }
 
     CachedRequiredModule = CurrentLODLevel->RequiredModule;
     CachedSpawnModule = CurrentLODLevel->SpawnModule;
+
+    // BeamModule이 있으면 PayloadOffset 설정
+    if (Template->RenderType == EParticleType::Beam)
+    {
+        // TypeDataModule에서 직접 가져오기
+        if (UParticleModuleBeam* BeamModule = Cast<UParticleModuleBeam>(CurrentLODLevel->TypeDataModule))
+        {
+            // BeamModule의 PayloadOffset이 설정되어 있으면 사용, 아니면 기본값
+            if (BeamModule->PayloadOffset > 0)
+            {
+                PayloadOffset = BeamModule->PayloadOffset;
+            }
+            else
+            {
+                // PayloadOffset이 설정 안 됐으면 FBaseParticle 바로 뒤로 설정
+                PayloadOffset = sizeof(FBaseParticle);
+            }
+        }
+        else
+        {
+            PayloadOffset = sizeof(FBaseParticle);
+        }
+    }
+    else
+    {
+        PayloadOffset = sizeof(FBaseParticle);
+    }
 }
 
 FDynamicEmitterDataBase* FParticleEmitterInstance::CreateDynamicData()
@@ -386,6 +478,18 @@ FDynamicEmitterDataBase* FParticleEmitterInstance::CreateDynamicData()
             delete MeshData;
             NewData = nullptr;
         }
+    }
+    else if (Type == EParticleType::Beam)
+    {
+        auto* BeamData = new FDynamicBeamEmitterData();
+        BeamData->EmitterType = Type;
+        BeamData->SortMode = CachedRequiredModule->SortMode;
+        BeamData->SortPriority = 0;
+        BeamData->bUseLocalSpace = CachedRequiredModule->bUseLocalSpace;
+
+        // 데이터 채우기
+        BuildReplayData(BeamData->Source);
+        NewData = BeamData;
     }
 
     return NewData;
@@ -469,6 +573,37 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
                     MeshOut.bLighting = ModuleMesh->bLighting;
                 }
             }
+            break;
+        }
+        case EParticleType::Beam:
+        {
+            auto& BeamOut = static_cast<FDynamicBeamEmitterReplayData&>(OutData);
+            BeamOut.RequiredModule = CachedRequiredModule;
+
+            // 빔 모듈에서 설정 가져오기 (TypeDataModule에서 직접 가져오기)
+            if (CurrentLODLevel && CurrentLODLevel->TypeDataModule)
+            {
+                UParticleModuleBeam* BeamModule = Cast<UParticleModuleBeam>(CurrentLODLevel->TypeDataModule);
+                if (BeamModule)
+                {
+                    BeamOut.TessellationFactor = BeamModule->TessellationFactor;
+                    BeamOut.NoiseFrequency = BeamModule->NoiseFrequency;
+                    BeamOut.NoiseAmplitude = BeamModule->NoiseAmplitude;
+
+                    UE_LOG("[BuildReplayData::Beam] TessellationFactor=%d, NoiseFreq=%.2f, NoiseAmp=%.2f",
+                        BeamOut.TessellationFactor, BeamOut.NoiseFrequency, BeamOut.NoiseAmplitude);
+                }
+                else
+                {
+                    UE_LOG("[BuildReplayData::Beam] BeamModule Cast failed!");
+                }
+            }
+            else
+            {
+                UE_LOG("[BuildReplayData::Beam] CurrentLODLevel=%p, TypeDataModule=%p",
+                    CurrentLODLevel, CurrentLODLevel ? CurrentLODLevel->TypeDataModule : nullptr);
+            }
+            break;
         }
     }
 }

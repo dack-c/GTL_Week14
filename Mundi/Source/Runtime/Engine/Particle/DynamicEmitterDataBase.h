@@ -233,5 +233,14 @@ struct FDynamicBeamEmitterData : public FDynamicEmitterDataBase
     {
         return &Source;
     }
+
+    const FBaseParticle* GetParticle(int32 Idx) const
+    {
+        if (!Source.DataContainer.ParticleData)
+            return nullptr;
+
+        const uint8* BasePtr = Source.DataContainer.ParticleData + Source.ParticleStride * Idx;
+        return reinterpret_cast<const FBaseParticle*>(BasePtr);
+    }
 };
 

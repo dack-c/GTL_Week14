@@ -458,3 +458,10 @@ struct FMeshParticleInstanceData
     FMatrix      WorldInverseTranspose;
     FLinearColor Color;
 };
+
+struct FParticleBeamVertex
+{
+    FVector Position;       // 월드 위치
+    FVector2D UV;          // 텍스처 좌표
+    FLinearColor Color;    // 파티클 색상
+};
