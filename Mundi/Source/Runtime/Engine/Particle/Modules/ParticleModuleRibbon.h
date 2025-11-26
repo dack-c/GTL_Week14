@@ -1,6 +1,13 @@
 ﻿#pragma once
 #include "ParticleModuleTypeDataBase.h"
 
+struct FRibbonTrailPayload
+{
+    int32 TrailIndex = -1;          // 파티클이 속한 트레일의 고유 ID
+    int32 NextIndex = -1;           // 트레일 내의 다음 파티클 인덱스 (-1은 끝을 의미)
+    float DistanceFromHead = 0.0f; // 트레일 시작점부터의 누적 거리 (UV 매핑용)
+};
+
 class UParticleModuleRibbon : public UParticleModuleTypeDataBase
 {
 	DECLARE_CLASS(UParticleModuleRibbon, UParticleModuleTypeDataBase)

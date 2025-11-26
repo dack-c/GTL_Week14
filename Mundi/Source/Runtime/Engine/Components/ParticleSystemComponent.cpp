@@ -613,7 +613,11 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
         for (int32 i = 0; i < Count; ++i)
         {
             const FBaseParticle* Particle = RibbonData->GetParticle(i);
-            
+            if (!Particle)
+            {
+                continue;
+            }
+
             const FVector ParticleWorldPos = RibbonData->bUseLocalSpace
                 ? GetWorldMatrix().TransformPosition(Particle->Location)
                 : Particle->Location;
@@ -646,6 +650,13 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
                 RightVector = FVector::Cross(FVector(0, 0, 1), Tangent).GetSafeNormal();
             }
 
+            // Lifetime factor for fading + width reduction
+            const float Age = FMath::Clamp(RibbonData->GetParticleAge(i), 0.0f, 1.0f);
+            const float FadeFactor = 1.0f - Age;
+            const float WidthScale = FMath::Max(0.01f, Width * FadeFactor);
+            FLinearColor Color = Particle->Color;
+            Color.A *= FadeFactor;
+
             // C. 누적 거리 계산 (UV V좌표)
             if (i > 0)
             {
@@ -656,8 +667,6 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
             float V_Coord = (Src->TilingDistance > 0.0f)
                 ? (CurrentDistance / Src->TilingDistance) // Tiling
                 : (float)i / (float)(Count - 1);          // Stretch
-
-            const FLinearColor Color = Particle->Color;
 
             // SubImageIndex 추출 (SubUV 모듈이 있을 때)
             float SubImageIndex = 0.0f;
@@ -670,19 +679,19 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
             // D. 버텍스 생성 (Top/Bottom pair)
             // Top Vertex (U=0)
             FParticleSpriteVertex& V0 = Vertices[VertexCursor++];
-            V0.Position = ParticleWorldPos + (RightVector * Width * 0.5f);
+            V0.Position = ParticleWorldPos + (RightVector * WidthScale * 0.5f);
             V0.Corner = FVector2D(0.0f, V_Coord); // Corner를 UV로 전용
             V0.Color = Color;
-            V0.Size = FVector2D(Width, 0); // 필요 시 사용
+            V0.Size = FVector2D(WidthScale, 0); // 필요 시 사용
             V0.Rotation = 0.0f;
             V0.SubImageIndex = SubImageIndex;
 
             // Bottom Vertex (U=1)
             FParticleSpriteVertex& V1 = Vertices[VertexCursor++];
-            V1.Position = ParticleWorldPos - (RightVector * Width * 0.5f);
+            V1.Position = ParticleWorldPos - (RightVector * WidthScale * 0.5f);
             V1.Corner = FVector2D(1.0f, V_Coord);
             V1.Color = Color;
-            V1.Size = FVector2D(Width, 0);
+            V1.Size = FVector2D(WidthScale, 0);
             V1.Rotation = 0.0f;
             V1.SubImageIndex = SubImageIndex;
         }

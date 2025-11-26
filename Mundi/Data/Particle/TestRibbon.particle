@@ -24,7 +24,7 @@
                   }],
                 "RequiredModule" : {
                   "BlendMode" : 5,
-                  "DiffuseTexture" : "Data/Model/GatlingGun_Turret_Mat_baseColor.png",
+                  "DiffuseTexture" : "Data/cube_texture.png",
                   "EmitterDelay" : 0.000000,
                   "EmitterDuration" : 1.000000,
                   "EmitterLoops" : 0,
@@ -37,9 +37,8 @@
                   "InitialSize_Max" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_Min" : [50.000000, 50.000000, 1.000000],
                   "InitialSize_bUseRange" : false,
-                  "Material" : "GatlingGun_Turret_Mat",
+                  "Material" : "texture",
                   "MaxParticles" : 1000,
-                  "NormalTexture" : "Data/Model/GatlingGun_Turret_Mat_normal.png",
                   "ScreenAlignment" : 0,
                   "SortMode" : 1,
                   "SpawnRateBase" : 10.000000,
@@ -57,9 +56,9 @@
                 },
                 "bEnabled" : true
               }],
-            "Name" : "UParticleEmitter_11",
+            "Name" : "UParticleEmitter_13",
             "RenderType" : 2
           }],
-        "Name" : "UParticleSystem_6",
+        "Name" : "UParticleSystem_8",
         "Type" : "ParticleSystem"
       }
