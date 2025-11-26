@@ -947,10 +947,9 @@ void FSceneRenderer::RenderParticlePass()
 		return;
 
 	RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId); // Scene+Depth
-
 	RHIDevice->RSSetState(ERasterizerMode::Solid);
-	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
 	RHIDevice->OMSetBlendState(true);
+	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
 
 	// ParticleMesh 라이팅을 위한 상수버퍼 바인딩
 	FLightManager* LightManager = World->GetLightManager();
@@ -990,9 +989,38 @@ void FSceneRenderer::RenderParticlePass()
 		ParticleComp->CollectMeshBatches(MeshBatchElements, View);
 	}
 
-	MeshBatchElements.Sort();
+	TArray<FMeshBatchElement> MeshParticleBatchElements;
+	TArray<FMeshBatchElement> SpriteParticleBatchElements;
 
-	DrawMeshBatches(MeshBatchElements, true);
+	for (const FMeshBatchElement& Batch : MeshBatchElements)
+	{
+		if (Batch.bIsDepthWrite)
+		{
+			MeshParticleBatchElements.Add(Batch);
+		}
+		else
+		{
+			SpriteParticleBatchElements.Add(Batch);
+		}
+	}
+
+	MeshBatchElements.Empty();
+
+	SpriteParticleBatchElements.Sort();
+	if (!SpriteParticleBatchElements.IsEmpty())
+	{
+		RHIDevice->OMSetBlendState(true);
+		RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqualReadOnly);
+		DrawMeshBatches(SpriteParticleBatchElements, true);
+	}
+	
+	MeshParticleBatchElements.Sort();
+	if (!MeshParticleBatchElements.IsEmpty())
+	{
+		RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
+		RHIDevice->OMSetBlendState(false);
+		DrawMeshBatches(MeshParticleBatchElements, true);
+	}
 
 	// Renderer 복구
 	ID3D11ShaderResourceView* NullSRV[1] = { nullptr };

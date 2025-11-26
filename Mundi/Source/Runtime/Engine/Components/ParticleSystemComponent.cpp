@@ -446,6 +446,7 @@ void UParticleSystemComponent::BuildSpriteParticleBatch(TArray<FDynamicEmitterDa
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
         Batch.ScreenAlignment = Cmd.SpriteData->Alignment;
+        Batch.bIsDepthWrite = false;
 
         // SubUV 파라미터 설정
         const FDynamicSpriteEmitterReplayData* SrcData =
@@ -660,6 +661,7 @@ void UParticleSystemComponent::BuildMeshParticleBatch(TArray<FDynamicEmitterData
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
 
+        Batch.bIsDepthWrite = true;
         Batch.bInstancedDraw = true;
         Batch.InstanceVertexBuffer = MeshInstanceBuffer;
         Batch.InstanceStride = sizeof(FMeshParticleInstanceData);
@@ -966,6 +968,7 @@ void UParticleSystemComponent::BuildRibbonParticleBatch(TArray<FDynamicEmitterDa
         Batch.WorldMatrix = FMatrix::Identity(); // 리본은 월드 위치로 작성
         Batch.ObjectID = InternalIndex;
         Batch.SortPriority = Cmd.SortPriority;
+        Batch.bIsDepthWrite = false;
     }
 }
 
@@ -1576,6 +1579,7 @@ void UParticleSystemComponent::BuildBeamParticleBatch(TArray<FDynamicEmitterData
         Batch.PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         Batch.WorldMatrix = FMatrix::Identity();
         Batch.SortPriority = BeamData->SortPriority;
+        Batch.bIsDepthWrite = false;
 
     } // End Emitter Loop
 }
