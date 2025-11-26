@@ -112,5 +112,5 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Particle", Tooltip="비동기 활성화")
 	bool bUseAsyncSimulation = true; // 비동기 시뮬레이션 활성화
 
-	int MaxDebugParticles = 10000;
+	int MaxDebugParticles = 100000;
 };

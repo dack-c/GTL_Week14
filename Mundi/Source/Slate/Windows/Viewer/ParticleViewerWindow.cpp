@@ -3076,6 +3076,7 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 if (ImGui::Selectable("Required", true, 0, ImVec2(nameWidth, 20)))
                                 {
                                     SelectedModule = LOD->RequiredModule;
+                                	SelectedEmitter = Emitter;
                                 }
                                 if (ImGui::IsItemHovered())
                                 {
@@ -3089,6 +3090,7 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
                                 if (ImGui::Button("C##Req", ImVec2(buttonWidth, 20)))
                                 {
                                     SelectedModule = LOD->RequiredModule;
+                                	SelectedEmitter = Emitter;
                                 }
                                 ImGui::PopStyleVar();
                                 ImGui::PopID();
@@ -3127,6 +3129,7 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
 									if (ImGui::Selectable(displayName, showAsSelected, 0, ImVec2(nameWidth, 20)))
 									{
 										SelectedModule = Module;
+                                		SelectedEmitter = Emitter;
 									}
 
                                     // 모듈별 호버링 툴팁
@@ -3207,6 +3210,7 @@ void SParticleViewerWindow::RenderEmitterPanel(float Width, float Height)
 									if (ImGui::Button("C", ImVec2(buttonWidth, 20)))
 									{
 										SelectedModule = Module;
+                                		SelectedEmitter = Emitter;
 									}
 									ImGui::PopStyleVar();
 									ImGui::PopID();
@@ -3457,18 +3461,20 @@ void SParticleViewerWindow::RenderCurveEditor(float Width, float Height)
 					for (auto* Module : LOD->AllModulesCache)
 					{
 						// SizeMultiplyLife, ColorOverLife 등 커브를 사용하는 모듈만 표시
-						if (auto* SizeModule = dynamic_cast<UParticleModuleSizeMultiplyLife*>(Module))
+						if (auto SizeModule = Cast<UParticleModuleSizeMultiplyLife>(Module))
 						{
 							if (ImGui::Selectable("SizeMultiplyLife", SelectedModule == Module))
 							{
 								SelectedModule = Module;
+                                SelectedEmitter = Emitter;
 							}
 						}
-						else if (auto* ColorModule = dynamic_cast<UParticleModuleColorOverLife*>(Module))
+						else if (auto ColorModule = Cast<UParticleModuleColorOverLife>(Module))
 						{
 							if (ImGui::Selectable("ColorOverLife", SelectedModule == Module))
 							{
 								SelectedModule = Module;
+                                SelectedEmitter = Emitter;
 							}
 						}
 					}
