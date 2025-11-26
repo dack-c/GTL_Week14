@@ -487,6 +487,8 @@ FDynamicEmitterDataBase* FParticleEmitterInstance::CreateDynamicData()
         BeamData->SortMode = CachedRequiredModule->SortMode;
         BeamData->SortPriority = 0;
         BeamData->bUseLocalSpace = CachedRequiredModule->bUseLocalSpace;
+        BuildReplayData(BeamData->Source);
+        NewData = BeamData;
     }
     else if (Type == EParticleType::Ribbon)
     {
