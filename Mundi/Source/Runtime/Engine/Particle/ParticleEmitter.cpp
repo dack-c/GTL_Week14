@@ -6,6 +6,7 @@
 #include "Modules/ParticleModuleRequired.h"
 #include "Modules/ParticleModuleMesh.h"
 #include "Modules/ParticleModuleBeam.h"
+#include "Modules/ParticleModuleRibbon.h"
 
 IMPLEMENT_CLASS(UParticleEmitter)
 
@@ -73,6 +74,10 @@ void UParticleEmitter::CacheEmitterModuleInfo()
         else if (UParticleModuleBeam* BeamModule = Cast<UParticleModuleBeam>(LOD0->TypeDataModule))
         {
             BeamModule->ApplyToEmitter(this);
+        }
+        else if (UParticleModuleRibbon* RibbonModule = Cast<UParticleModuleRibbon>(LOD0->TypeDataModule))
+        {
+            RibbonModule->ApplyToEmitter(this);
         }
     }
     else
@@ -182,5 +187,7 @@ T* UParticleEmitter::GetModule(int32 LODIndex) const
 // 명시적 인스턴스화 (사용되는 타입들)
 #include "Modules/ParticleModuleMesh.h"
 #include "Modules/ParticleModuleBeam.h"
+#include "Modules/ParticleModuleRibbon.h"
 template class UParticleModuleMesh* UParticleEmitter::GetModule<class UParticleModuleMesh>(int32) const;
 template class UParticleModuleBeam* UParticleEmitter::GetModule<class UParticleModuleBeam>(int32) const;
+template class UParticleModuleRibbon* UParticleEmitter::GetModule<class UParticleModuleRibbon>(int32) const;
