@@ -1,11 +1,10 @@
 ﻿#pragma once
 #include "ParticleModuleTypeDataBase.h"
 
-struct FRibbonTrailPayload
+struct FRibbonTrailRuntimePayload
 {
-    int32 TrailIndex = -1;          // 파티클이 속한 트레일의 고유 ID
-    int32 NextIndex = -1;           // 트레일 내의 다음 파티클 인덱스 (-1은 끝을 의미)
-    float DistanceFromHead = 0.0f; // 트레일 시작점부터의 누적 거리 (UV 매핑용)
+    int32 TrailIndex = 0;
+    float DistanceFromHead = 0.0f;
 };
 
 class UParticleModuleRibbon : public UParticleModuleTypeDataBase
@@ -14,9 +13,9 @@ class UParticleModuleRibbon : public UParticleModuleTypeDataBase
 public:
 	UParticleModuleRibbon();
     void ApplyToEmitter(UParticleEmitter* OwnerEmitter);
-    virtual int32 GetRequiredBytesPerParticle() const override { return sizeof(FRibbonTrailPayload); }
+    virtual int32 GetRequiredBytesPerParticle() const override { return sizeof(FRibbonTrailRuntimePayload); };
 
-    // 리본 전체 기본 폭 (World Space)
+    int32 MaxTrailCount = 1;
     float Width;
 
     // 리본 길이 방향 UV 타일링 거리 (월드 거리 -> U/V 1.0f)

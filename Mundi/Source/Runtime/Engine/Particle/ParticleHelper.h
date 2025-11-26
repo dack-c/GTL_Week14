@@ -26,6 +26,7 @@ struct FBaseParticle
 
     uint32     Flags;
 
+    int32      NextIndex;
     // 이 뒤에 모듈별 Payload 데이터
 };
 

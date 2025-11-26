@@ -4,7 +4,7 @@
                 "LODIndex" : 0,
                 "Modules" : [{
                     "Lifetime_Max" : 1.000000,
-                    "Lifetime_Min" : 2.010000,
+                    "Lifetime_Min" : 1.000000,
                     "Lifetime_bUseRange" : false,
                     "Type" : "Lifetime",
                     "bEnabled" : true
@@ -55,17 +55,17 @@
                 },
                 "SpawnModule" : {
                   "BurstList" : [],
-                  "SpawnRateOverTime_Max" : 0.000000,
-                  "SpawnRateOverTime_Min" : 0.000000,
-                  "SpawnRateOverTime_bUseRange" : false,
+                  "SpawnRateOverTime_Max" : 50.000000,
+                  "SpawnRateOverTime_Min" : 10.000000,
+                  "SpawnRateOverTime_bUseRange" : true,
                   "SpawnRateType" : 0,
-                  "SpawnRate_Max" : 151.199997,
-                  "SpawnRate_Min" : 151.199997,
+                  "SpawnRate_Max" : 20.000000,
+                  "SpawnRate_Min" : 20.000000,
                   "SpawnRate_bUseRange" : false
                 },
                 "bEnabled" : true
               }],
-            "Name" : "UParticleEmitter_13",
+            "Name" : "UParticleEmitter_15",
             "RenderType" : 3
           }],
         "Name" : "UParticleSystem_8",

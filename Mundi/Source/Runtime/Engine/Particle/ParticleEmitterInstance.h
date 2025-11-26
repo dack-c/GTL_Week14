@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <random>
 #include "ParticleEmitter.h"
 
@@ -39,6 +39,14 @@ struct FParticleEmitterInstance
     /** ParticleData에서 다음 칸으로 넘어가는 크기 (패딩 포함) */
     int32 ParticleStride = 0;
     
+    // TODO PayLoad로 옮기기
+    int32 RibbonPayloadOffset = -1;
+    int32 RibbonTrailCount = 0;
+    int32 RibbonSpawnTrailCursor = 0;
+    TArray<int32> RibbonTrailHeads;
+    bool bHasRibbonTrails = false;
+    class UParticleModuleRibbon* CachedRibbonModule = nullptr;
+
     /** 현재 활성화된 파티클 수 */
     int32 ActiveParticles = 0;
     /** 단조 증가 카운터 (랜덤 시드 용) */
@@ -96,6 +104,13 @@ struct FParticleEmitterInstance
 
     struct FDynamicEmitterDataBase* CreateDynamicData();
     void BuildReplayData(FDynamicEmitterReplayDataBase& OutData);
+
+    void InitializeRibbonState();
+    void UpdateRibbonTrailDistances();
+    void AttachRibbonParticle(int32 NewIndex, class FRibbonTrailRuntimePayload* Payload);
+    void DetachRibbonParticle(int32 Index);
+    void RemapRibbonParticleIndex(int32 FromIndex, int32 ToIndex);
+    FRibbonTrailRuntimePayload * GetRibbonPayload(int32 Index) const;
 
     bool IsComplete() const;
 

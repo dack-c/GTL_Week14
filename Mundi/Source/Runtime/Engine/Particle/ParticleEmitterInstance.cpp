@@ -48,7 +48,8 @@ void FParticleEmitterInstance::Init(UParticleEmitter* InTemplate, UParticleSyste
     }
 
     InitializeParticleMemory();
-    
+    InitializeRibbonState();
+
     std::random_device Rd;
     InitRandom(Rd());
 }
@@ -254,6 +255,14 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
             }
         }
 
+        if (bHasRibbonTrails && RibbonPayloadOffset >= 0)
+        {
+            uint8* ParticleBase = reinterpret_cast<uint8*>(Particle);
+            auto* TrailPayload = reinterpret_cast<FRibbonTrailRuntimePayload*>(ParticleBase +
+                RibbonPayloadOffset);
+            AttachRibbonParticle(NewParticleIndex, TrailPayload);
+        }
+
         ParticleIndices[NewParticleIndex] = NewParticleIndex;
         ActiveParticles++;
         ParticleCounter++;
@@ -263,6 +272,11 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
 void FParticleEmitterInstance::KillParticle(int32 Index)
 {
     if (Index < 0 || Index >= ActiveParticles) return;
+
+    if (bHasRibbonTrails)
+    {
+        DetachRibbonParticle(Index);
+    }
 
     // 1. 마지막 파티클의 인덱스 (ActiveParticles - 1)
     int32 LastIndex = ActiveParticles - 1;
@@ -274,6 +288,11 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
         DECLARE_PARTICLE_PTR(Dest, ParticleData, ParticleStride, Index)
         DECLARE_PARTICLE_PTR(Src, ParticleData, ParticleStride, LastIndex)
         memcpy(Dest, Src, ParticleStride);
+
+        if (bHasRibbonTrails)
+        {
+            RemapRibbonParticleIndex(LastIndex, Index);
+        }
     }
 
     ActiveParticles--;
@@ -376,6 +395,11 @@ void FParticleEmitterInstance::Tick(const FParticleSimulationContext& Context)
     // ============================================================
     // Module Update
     // ============================================================
+    if (bHasRibbonTrails)
+    {
+        UpdateRibbonTrailDistances();
+    }
+
     for (UParticleModule* Module : CurrentLODLevel->UpdateModules)
     {
         if (!Module || !Module->bEnabled) { continue; }
@@ -433,9 +457,29 @@ void FParticleEmitterInstance::UpdateModuleCache()
             PayloadOffset = sizeof(FBaseParticle);
         }
     }
+    else if (Template->RenderType == EParticleType::Ribbon)
+    {
+        if (auto* RibbonModule = Cast<UParticleModuleRibbon>(CurrentLODLevel->TypeDataModule))
+        {
+            CachedRibbonModule = RibbonModule;
+            RibbonTrailCount = FMath::Max(1, RibbonModule->MaxTrailCount);
+            RibbonPayloadOffset = (RibbonModule->PayloadOffset > 0) ? RibbonModule->PayloadOffset :
+                sizeof(FBaseParticle);
+            PayloadOffset = RibbonPayloadOffset;
+        }
+        else
+        {
+            CachedRibbonModule = nullptr;
+            RibbonTrailCount = 0;
+            RibbonPayloadOffset = sizeof(FBaseParticle);
+            PayloadOffset = RibbonPayloadOffset;
+        }
+    }
     else
     {
         PayloadOffset = sizeof(FBaseParticle);
+        RibbonPayloadOffset = -1;
+        CachedRibbonModule = nullptr;
     }
 }
 
@@ -587,25 +631,13 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
         {
             auto& RibbonOut = static_cast<FDynamicRibbonEmitterReplayData&>(OutData);
 
-            RibbonOut.Width = 10.0f;
-            RibbonOut.TilingDistance = 0.0f;
-            RibbonOut.TrailLifetime = 1.0f;
-            RibbonOut.bUseCameraFacing = true;
-
-            if (CurrentLODLevel)
-            {
-                for (UParticleModule* Module : CurrentLODLevel->AllModulesCache)
-                {
-                    if (auto* RibbonModule = Cast<UParticleModuleRibbon>(Module))
-                    {
-                        RibbonOut.Width = RibbonModule->Width;
-                        RibbonOut.TilingDistance = RibbonModule->TilingDistance;
-                        RibbonOut.TrailLifetime = RibbonModule->TrailLifetime;
-                        RibbonOut.bUseCameraFacing = RibbonModule->bUseCameraFacing;
-                        break;
-                    }
-                }
-            }
+            RibbonOut.Width = CachedRibbonModule ? CachedRibbonModule->Width : 10.0f;
+            RibbonOut.TilingDistance = CachedRibbonModule ? CachedRibbonModule->TilingDistance : 0.0f;
+            RibbonOut.TrailLifetime = CachedRibbonModule ? CachedRibbonModule->TrailLifetime : 1.0f;
+            RibbonOut.bUseCameraFacing = CachedRibbonModule ? CachedRibbonModule->bUseCameraFacing : true;
+            RibbonOut.TrailPayloadOffset = RibbonPayloadOffset;
+            RibbonOut.TrailCount = RibbonTrailCount;
+            RibbonOut.TrailHeads = RibbonTrailHeads;
             break;
         }
 
@@ -643,6 +675,165 @@ void FParticleEmitterInstance::BuildReplayData(FDynamicEmitterReplayDataBase& Ou
             break;
         }
     }
+}
+
+void FParticleEmitterInstance::InitializeRibbonState()
+{
+    RibbonTrailHeads.Empty();
+    RibbonSpawnTrailCursor = 0;
+
+    if (Template && Template->RenderType == EParticleType::Ribbon)
+    {
+        bHasRibbonTrails = true;
+        if (CachedRibbonModule)
+        {
+            RibbonTrailCount = FMath::Max(1, CachedRibbonModule->MaxTrailCount);
+            RibbonPayloadOffset = (CachedRibbonModule->PayloadOffset > 0) ?
+                CachedRibbonModule->PayloadOffset : sizeof(FBaseParticle);
+        }
+        else
+        {
+            RibbonTrailCount = FMath::Max(1, RibbonTrailCount);
+            RibbonPayloadOffset = sizeof(FBaseParticle);
+        }
+        RibbonTrailHeads.resize(RibbonTrailCount, INDEX_NONE);
+    }
+    else
+    {
+        bHasRibbonTrails = false;
+        RibbonTrailCount = 0;
+        RibbonPayloadOffset = -1;
+    }
+}
+
+void FParticleEmitterInstance::UpdateRibbonTrailDistances()
+{
+    if (!bHasRibbonTrails || RibbonPayloadOffset < 0) return;
+
+    for (int32 TrailIdx = 0; TrailIdx < RibbonTrailHeads.Num(); ++TrailIdx)
+    {
+        int32 Current = RibbonTrailHeads[TrailIdx];
+        float AccDistance = 0.0f;
+        int32 Safety = 0;
+
+        while (Current != INDEX_NONE && Safety++ < ActiveParticles)
+        {
+            if (Current < 0 || Current >= ActiveParticles)
+            {
+                RibbonTrailHeads[TrailIdx] = INDEX_NONE;
+                break;
+            }
+
+            const FBaseParticle* Particle = reinterpret_cast<const FBaseParticle*>(ParticleData + Current
+                * ParticleStride);
+            FRibbonTrailRuntimePayload* Payload = GetRibbonPayload(Current);
+            if (!Particle || !Payload)
+            {
+                break;
+            }
+
+            Payload->TrailIndex = TrailIdx;
+            Payload->DistanceFromHead = AccDistance;
+
+            const int32 Next = Particle->NextIndex;
+            if (Next == INDEX_NONE || Next < 0 || Next >= ActiveParticles)
+            {
+                break;
+            }
+
+            const FBaseParticle* NextParticle = reinterpret_cast<const FBaseParticle*>(ParticleData + Next
+                * ParticleStride);
+            if (!NextParticle)
+            {
+                break;
+            }
+
+            AccDistance += FVector::Distance(Particle->Location, NextParticle->Location);
+            Current = Next;
+        }
+    }
+}
+
+void FParticleEmitterInstance::AttachRibbonParticle(int32 NewIndex, FRibbonTrailRuntimePayload* Payload)
+{
+    if (!bHasRibbonTrails || !Payload) return;
+
+    const int32 TrailIndex = (RibbonTrailCount > 0) ? (RibbonSpawnTrailCursor++ % RibbonTrailCount) : 0;
+    Payload->TrailIndex = TrailIndex;
+    Payload->DistanceFromHead = 0.0f;
+
+    const int32 PrevHead = (RibbonTrailHeads[TrailIndex] >= 0) ? RibbonTrailHeads[TrailIndex] :
+        INDEX_NONE;
+    RibbonTrailHeads[TrailIndex] = NewIndex;
+
+    if (PrevHead != INDEX_NONE)
+    {
+        DECLARE_PARTICLE_PTR(HeadParticle, ParticleData, ParticleStride, NewIndex);
+        HeadParticle->NextIndex = PrevHead;
+    }
+    else
+    {
+        DECLARE_PARTICLE_PTR(HeadParticle, ParticleData, ParticleStride, NewIndex);
+        HeadParticle->NextIndex = INDEX_NONE;
+    }
+}
+
+void FParticleEmitterInstance::DetachRibbonParticle(int32 Index)
+{
+    if (!bHasRibbonTrails) return;
+
+    DECLARE_PARTICLE_PTR(Particle, ParticleData, ParticleStride, Index);
+    auto It = std::find(RibbonTrailHeads.begin(), RibbonTrailHeads.end(), Index);
+    int32 TrailIndex = (It != RibbonTrailHeads.end())
+        ? std::distance(RibbonTrailHeads.begin(), It)
+        : INDEX_NONE;
+
+    if (TrailIndex != INDEX_NONE && RibbonTrailHeads[TrailIndex] == Index)
+    {
+        RibbonTrailHeads[TrailIndex] = Particle->NextIndex;
+    }
+
+    for (int32 i = 0; i < ActiveParticles; ++i)
+    {
+        if (i == Index) continue;
+        DECLARE_PARTICLE_PTR(Other, ParticleData, ParticleStride, i);
+        if (Other->NextIndex == Index)
+        {
+            Other->NextIndex = Particle->NextIndex;
+        }
+    }
+    Particle->NextIndex = INDEX_NONE;
+}
+
+void FParticleEmitterInstance::RemapRibbonParticleIndex(int32 FromIndex, int32 ToIndex)
+{
+    if (!bHasRibbonTrails || FromIndex == ToIndex) return;
+
+    for (int32& Head : RibbonTrailHeads)
+    {
+        if (Head == FromIndex)
+        {
+            Head = ToIndex;
+        }
+    }
+
+    for (int32 i = 0; i < ActiveParticles; ++i)
+    {
+        DECLARE_PARTICLE_PTR(P, ParticleData, ParticleStride, i);
+        if (P->NextIndex == FromIndex)
+        {
+            P->NextIndex = ToIndex;
+        }
+    }
+}
+
+FRibbonTrailRuntimePayload* FParticleEmitterInstance::GetRibbonPayload(int32 Index) const
+{
+    if (!bHasRibbonTrails || RibbonPayloadOffset < 0 || !ParticleData) return nullptr;
+    if (Index < 0 || Index >= ActiveParticles) return nullptr;
+
+    uint8* BasePtr = ParticleData + Index * ParticleStride;
+    return reinterpret_cast<FRibbonTrailRuntimePayload*>(BasePtr + RibbonPayloadOffset);
 }
 
 bool FParticleEmitterInstance::IsComplete() const

@@ -9,6 +9,7 @@ UParticleModuleRibbon::UParticleModuleRibbon()
     ModuleType = EParticleModuleType::TypeData;
     TypeDataType = EParticleType::Ribbon;
 
+    MaxTrailCount = 10;
     Width = 10.0f;
     TilingDistance = 0.0f;    // 0이면 전체를 0~1로 Stretch
     TrailLifetime = 1.0f;     // 기본 1초
