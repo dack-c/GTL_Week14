@@ -59,11 +59,16 @@ public:
     bool bIsRecording = false;
     bool bIsLooping = true;
 
+	// ======== 피직스 애셋 관련 ==========
+    
     // Asset Browser Mode
     EAssetBrowserMode AssetBrowserMode = EAssetBrowserMode::Animation;
     
     // Physics Asset
     UPhysicsAsset* CurrentPhysicsAsset = nullptr;
+
+    // Selected BodySetup (for showing body details / selection)
+    UBodySetup* SelectedBodySetup = nullptr;
 
     // Rename state for Physics Asset: use boolean (CurrentPhysicsAsset holds the asset being renamed)
     bool bIsRenaming = false;                          // true while inline-rename is active

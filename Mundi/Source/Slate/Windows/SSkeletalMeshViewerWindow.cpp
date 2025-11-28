@@ -413,6 +413,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                                         Phys->BodySetups.Add(NewBody);
                                         Phys->BuildBodySetupIndexMap();
 
+                                        // Set newly created body as selected so right panel shows its details
+                                        ActiveState->SelectedBodySetup = NewBody;
                                         UE_LOG("Added UBodySetup for bone %s to PhysicsAsset %s", ClickedBoneName, Phys->GetName().ToString().c_str());
                                     }
                                 }
@@ -422,6 +424,9 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                         if (ImGui::IsItemClicked())
                         {
+                            // Clear body selection when a bone itself is clicked
+                            ActiveState->SelectedBodySetup = nullptr;
+
                             if (ActiveState->SelectedBoneIndex != Index)
                             {
                                 ActiveState->SelectedBoneIndex = Index;
@@ -441,7 +446,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             }
                         }
                         
-                        // Render matching UBodySetup entry under the bone when node is open (leaf nodes also honor 'open')
+						// 매칭되는 바디가 있으면 본 아래에 표시
                         if (ActiveState->CurrentPhysicsAsset)
                         {
                             UBodySetup* MatchedBody = ActiveState->CurrentPhysicsAsset->FindBodySetup(FName(Label));
@@ -460,6 +465,9 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.85f, 0.7f, 0.25f, 1.0f));
                                 if (ImGui::Selectable(BodyLabel, bBodySelected))
                                 {
+                                    // When user selects a body, set SelectedBodySetup and also select corresponding bone
+                                    ActiveState->SelectedBodySetup = MatchedBody;
+
                                     // When user selects a body, also select the corresponding bone and move gizmo
                                     if (ActiveState->SelectedBoneIndex != Index)
                                     {
@@ -576,8 +584,109 @@ void SSkeletalMeshViewerWindow::OnRender()
                 ImGui::PopStyleColor();
                 ImGui::Spacing();
 
-                // === 선택된 본의 트랜스폼 편집 UI ===
-                if (ActiveState->SelectedBoneIndex >= 0 && ActiveState->CurrentMesh)
+                if (ActiveState->SelectedBodySetup)
+                {
+                    UBodySetup* Body = ActiveState->SelectedBodySetup;
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.90f, 0.40f, 1.0f));
+                    ImGui::Text("> Selected Body");
+                    ImGui::PopStyleColor();
+
+                    ImGui::Spacing();
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.90f, 0.95f, 1.00f, 1.0f));
+                    ImGui::TextWrapped("%s", Body->BoneName.ToString().c_str());
+                    ImGui::PopStyleColor();
+
+                    ImGui::Spacing();
+                    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.8f));
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+
+                    // Basic physics properties
+                    ImGui::Text("Mass: %.3f", Body->Mass);
+                    ImGui::Text("Linear Damping: %.3f", Body->LinearDamping);
+                    ImGui::Text("Angular Damping: %.3f", Body->AngularDamping);
+                    ImGui::Text("Simulate Physics: %s", Body->bSimulatePhysics ? "True" : "False");
+                    ImGui::Text("Enable Gravity: %s", Body->bEnableGravity ? "True" : "False");
+
+                    ImGui::Spacing();
+                    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.5f));
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+                    ImGui::Spacing();
+
+                    // AggGeom counts
+                    int NumSpheres = Body->AggGeom.SphereElements.Num();
+                    int NumBoxes = Body->AggGeom.BoxElements.Num();
+                    int NumSphyls = Body->AggGeom.SphylElements.Num();
+                    int NumConvex = Body->AggGeom.ConvexElements.Num();
+
+                    ImGui::Text("Aggregate Geometry:");
+                    ImGui::Indent(10.0f);
+                    ImGui::Text("Spheres: %d", NumSpheres);
+                    ImGui::Text("Boxes: %d", NumBoxes);
+                    ImGui::Text("Sphyl (capsules): %d", NumSphyls);
+                    ImGui::Text("Convexes: %d", NumConvex);
+                    ImGui::Unindent(10.0f);
+
+                    ImGui::Spacing();
+
+                    // 상세 요소 출력 (예: Sphere 목록)
+                    if (NumSpheres > 0)
+                    {
+                        ImGui::Text("Sphere Elements:");
+                        ImGui::Indent(10.0f);
+                        for (int si = 0; si < NumSpheres; ++si)
+                        {
+                            const auto& S = Body->AggGeom.SphereElements[si];
+                            ImGui::Text("[%d] Center: (%.2f, %.2f, %.2f)  Radius: %.2f", si, S.Center.X, S.Center.Y, S.Center.Z, S.Radius);
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+
+                    if (NumSphyls > 0)
+                    {
+                        ImGui::Text("Sphyl Elements (Capsules):");
+                        ImGui::Indent(10.0f);
+                        for (int si = 0; si < NumSphyls; ++si)
+                        {
+                            const auto& S = Body->AggGeom.SphylElements[si];
+                            ImGui::Text("[%d] Center: (%.2f, %.2f, %.2f)  Radius: %.2f  HalfLength: %.2f", si, S.Center.X, S.Center.Y, S.Center.Z, S.Radius, S.HalfLength);
+							ImGui::Text("     Orientation: (%.2f, %.2f, %.2f, %.2f)", S.Rotation.X, S.Rotation.Y, S.Rotation.Z, S.Rotation.W);
+                            FVector RotEuler = S.Rotation.ToEulerZYXDeg();
+							ImGui::Text("     Euler (ZYX): (%.2f°, %.2f°, %.2f°)", RotEuler.Z, RotEuler.Y, RotEuler.X);
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+
+                    if (NumBoxes > 0)
+                    {
+                        ImGui::Text("Box Elements:");
+                        ImGui::Indent(10.0f);
+                        for (int bi = 0; bi < NumBoxes; ++bi)
+                        {
+                            const auto& B = Body->AggGeom.BoxElements[bi];
+                            ImGui::Text("[%d] Center: (%.2f, %.2f, %.2f)  Extents: (%.2f, %.2f, %.2f)", bi, B.Center.X, B.Center.Y, B.Center.Z, B.Extents.X, B.Extents.Y, B.Extents.Z);
+                            ImGui::Text("     Orientation: (%.2f, %.2f, %.2f, %.2f)", B.Rotation.X, B.Rotation.Y, B.Rotation.Z, B.Rotation.W);
+                            FVector RotEuler = B.Rotation.ToEulerZYXDeg();
+                            ImGui::Text("     Euler (ZYX): (%.2f°, %.2f°, %.2f°)", RotEuler.Z, RotEuler.Y, RotEuler.X);
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+
+                    if (NumConvex > 0)
+                    {
+                        ImGui::Text("Convex Elements: (vertex counts)");
+                        ImGui::Indent(10.0f);
+                        for (int ci = 0; ci < NumConvex; ++ci)
+                        {
+                            const auto& C = Body->AggGeom.ConvexElements[ci];
+                            ImGui::Text("[%d] Vertices: %d", ci, C.Vertices.Num());
+                            // TODO: Vertices 관련 UI?
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+                }
+                else if (ActiveState->SelectedBoneIndex >= 0 && ActiveState->CurrentMesh) // 선택된 본의 트랜스폼 편집 UI
                 {
                     const FSkeleton* Skeleton = ActiveState->CurrentMesh->GetSkeleton();
                     if (Skeleton && ActiveState->SelectedBoneIndex < Skeleton->Bones.size())
