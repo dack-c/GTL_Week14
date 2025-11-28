@@ -2,6 +2,8 @@
 #include "PhysicsAsset.h"
 #include "BodySetup.h"
 
+IMPLEMENT_CLASS(UPhysicsAsset)
+
 void UPhysicsAsset::BuildBodySetupIndexMap()
 {
 	BodySetupIndexMap.Empty();
