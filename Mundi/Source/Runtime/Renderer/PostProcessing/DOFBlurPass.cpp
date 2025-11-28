@@ -76,7 +76,7 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
 
         // 상수 버퍼: Horizontal
         FDOFBlurBufferType blurCB;
-        blurCB.BlurDirection = FVector2(1.0f, 0.0f);
+        blurCB.BlurDirection = FVector2D(1.0f, 0.0f);
         blurCB.BlurRadius = BlurRadius;
         blurCB._Pad0 = 0.0f;
         RHIDevice->SetAndUpdateConstantBuffer(blurCB);
@@ -106,7 +106,7 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
 
         // 상수 버퍼: Vertical
         FDOFBlurBufferType blurCB;
-        blurCB.BlurDirection = FVector2(0.0f, 1.0f);
+        blurCB.BlurDirection = FVector2D(0.0f, 1.0f);
         blurCB.BlurRadius = BlurRadius;
         blurCB._Pad0 = 0.0f;
         RHIDevice->SetAndUpdateConstantBuffer(blurCB);
@@ -136,7 +136,7 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
 
         // 상수 버퍼: Horizontal
         FDOFBlurBufferType blurCB;
-        blurCB.BlurDirection = FVector2(1.0f, 0.0f);
+        blurCB.BlurDirection = FVector2D(1.0f, 0.0f);
         blurCB.BlurRadius = BlurRadius;
         blurCB._Pad0 = 0.0f;
         RHIDevice->SetAndUpdateConstantBuffer(blurCB);
@@ -166,7 +166,7 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
 
         // 상수 버퍼: Vertical
         FDOFBlurBufferType blurCB;
-        blurCB.BlurDirection = FVector2(0.0f, 1.0f);
+        blurCB.BlurDirection = FVector2D(0.0f, 1.0f);
         blurCB.BlurRadius = BlurRadius;
         blurCB._Pad0 = 0.0f;
         RHIDevice->SetAndUpdateConstantBuffer(blurCB);
