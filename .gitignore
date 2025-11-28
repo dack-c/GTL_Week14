@@ -446,7 +446,7 @@ GEMINI.md
 .env
 
 # Untracked Data Files
-/Mundi/Data/untracked/**
+/Mundi/Data/**
 /Mundi/DerivedDataCache/**
 /Mundi/ThirdParty/**
 
