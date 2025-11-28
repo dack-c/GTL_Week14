@@ -15,8 +15,9 @@ struct FPhysicsConstraintSetup
 };
 
 class UBodySetup;
-class UPhysicsAsset : public UObject
+class UPhysicsAsset : public UResourceBase
 {
+    DECLARE_CLASS(UPhysicsAsset, UResourceBase)
 public:
     TArray<UBodySetup*> BodySetups;
     TArray<FPhysicsConstraintSetup> Constraints; // Runtime에 Instance로 변환
