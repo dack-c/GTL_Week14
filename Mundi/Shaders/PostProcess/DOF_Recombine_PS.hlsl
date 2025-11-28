@@ -65,6 +65,34 @@ struct PS_OUTPUT
     float4 Color : SV_Target0;
 };
 
+// Bilateral Upsampling: 깊이 기반 가중치로 엣지 보존 업샘플링
+float4 BilateralUpsample(Texture2D blurTex, float2 uv, float centerDepth, float2 lowResTexelSize)
+{
+    float4 blur = 0;
+    float totalWeight = 0;
+
+    [unroll]
+    for (int y = -1; y <= 1; y++)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; x++)
+        {
+            float2 sampleUV = uv + float2(x, y) * lowResTexelSize;
+            float4 s = blurTex.Sample(g_LinearClampSample, sampleUV);
+
+            float sampleDepth = g_SceneDepthTex.Sample(g_PointClampSample, sampleUV).r;
+            sampleDepth = LinearizeDepth(sampleDepth, NearClip, FarClip, IsOrthographic2);
+
+            float depthDiff = abs(sampleDepth - centerDepth) / max(centerDepth, 0.1);
+            float w = exp(-depthDiff * 5.0);
+            blur += s * w;
+            totalWeight += w;
+        }
+    }
+
+    return blur / max(totalWeight, 0.001);
+}
+
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
@@ -103,23 +131,25 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // 5. Blurred Field 샘플링 (Blur에서 이미 정규화됨)
-    float4 farField = g_FarFieldTex.Sample(g_LinearClampSample, input.texCoord);
-    float4 nearField = g_NearFieldTex.Sample(g_LinearClampSample, input.texCoord);
+    // 5. Bilateral Upsampling으로 블러 텍스처 샘플링 (엣지 보존)
+    float2 lowResTexelSize = ScreenSize.zw * 4.0;  // 1/4 해상도 텍셀 크기
+    float4 farField = BilateralUpsample(g_FarFieldTex, input.texCoord, viewDepth, lowResTexelSize);
+    float4 nearField = BilateralUpsample(g_NearFieldTex, input.texCoord, viewDepth, lowResTexelSize);
 
-    // 6. CoC에 따라 합성
+    // 6. Smoothstep 블렌딩 (경계 부드럽게)
+    float blendFactor = saturate(abs(CoC));
+    blendFactor = blendFactor * blendFactor * (3.0 - 2.0 * blendFactor);  // Smoothstep
+
     float4 finalColor;
 
     if (CoC > 0.0)
     {
         // 원경 (Far Field)
-        float blendFactor = saturate(CoC);
         finalColor = lerp(sceneColor, float4(farField.rgb, 1.0), blendFactor);
     }
     else  // CoC < 0.0
     {
         // 근경 (Near Field)
-        float blendFactor = saturate(abs(CoC));
         finalColor = lerp(sceneColor, float4(nearField.rgb, 1.0), blendFactor);
     }
 
