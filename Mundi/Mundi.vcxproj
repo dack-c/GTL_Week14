@@ -469,6 +469,9 @@
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleEmitterInstance.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleLODLevel.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\ParticleSystem.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\BodyInstance.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\ConstraintInstance.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Physics\PhysicsAsset.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\GameObject.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Scripting\LuaBindingRegistry.cpp" />
@@ -966,6 +969,9 @@
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleLODLevel.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleStats.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\ParticleSystem.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\BodyInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\ConstraintInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Physics\PhysicsAsset.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\GameObject.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaBindHelpers.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaBindingRegistry.h" />
