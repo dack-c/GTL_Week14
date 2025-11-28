@@ -114,3 +114,81 @@ extern UGameEngine GEngine;
 #endif
 
 extern UWorld* GWorld;
+
+#ifdef _DEBUG
+#pragma comment(lib, "PhysXExtensions_static_64.lib")
+#pragma comment(lib, "PhysX_64.lib")
+#pragma comment(lib, "PhysXCommon_64.lib")
+#pragma comment(lib, "PhysXFoundation_64.lib")
+#pragma comment(lib, "PhysXPvdSDK_static_64.lib") 
+#else
+#pragma comment(lib, "PhysXExtensions_static_64.lib")
+#pragma comment(lib, "PhysX_64.lib")
+#pragma comment(lib, "PhysXCommon_64.lib")
+#pragma comment(lib, "PhysXFoundation_64.lib")
+#pragma comment(lib, "PhysXPvdSDK_static_64.lib")
+#endif
+
+// Integration code for PhysX 4.1
+
+#include <PxPhysicsAPI.h>
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include <vector>
+
+using namespace physx;
+using namespace DirectX;
+
+// PhysX 전역
+PxDefaultAllocator      gAllocator;
+PxDefaultErrorCallback  gErrorCallback;
+PxFoundation*           gFoundation = nullptr;
+PxPhysics*              gPhysics = nullptr;
+PxScene*                gScene = nullptr;
+PxMaterial*             gMaterial = nullptr;
+PxDefaultCpuDispatcher* gDispatcher = nullptr;
+
+// 게임 오브젝트
+struct GameObject {
+    PxRigidDynamic* rigidBody = nullptr;
+    XMMATRIX worldMatrix = XMMatrixIdentity();
+
+    void UpdateFromPhysics() {
+        PxTransform t = rigidBody->getGlobalPose();
+        PxMat44 mat(t);
+        worldMatrix = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&mat));
+    }
+};
+
+std::vector<GameObject> gObjects;
+
+void InitPhysX() {
+    gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
+    gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale());
+    gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+
+    PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
+    sceneDesc.gravity = PxVec3(0, -9.81f, 0);
+    gDispatcher = PxDefaultCpuDispatcherCreate(2);
+    sceneDesc.cpuDispatcher = gDispatcher;
+    sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+    gScene = gPhysics->createScene(sceneDesc);
+}
+
+GameObject CreateBox(const PxVec3& pos, const PxVec3& halfExtents) {
+    GameObject obj;
+    PxTransform pose(pos);
+    obj.rigidBody = gPhysics->createRigidDynamic(pose);
+    PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfExtents), *gMaterial);
+    obj.rigidBody->attachShape(*shape);
+    PxRigidBodyExt::updateMassAndInertia(*obj.rigidBody, 10.0f);
+    gScene->addActor(*obj.rigidBody);
+    obj.UpdateFromPhysics();
+    return obj;
+}
+
+void Simulate(float dt) {
+    gScene->simulate(dt);
+    gScene->fetchResults(true);
+    for (auto& obj : gObjects) obj.UpdateFromPhysics();
+}
