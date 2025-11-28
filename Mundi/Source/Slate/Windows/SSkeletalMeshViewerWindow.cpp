@@ -397,12 +397,12 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 ActiveState->ExpandedBoneIndices.erase(Index);
                         }
 
-                        RightClickedBoneIndex = Index;
+                        // 본 우클릭 이벤트
                         if (ImGui::BeginPopupContextItem("BoneContextMenu"))
                         {
-                            if (RightClickedBoneIndex >= 0 && RightClickedBoneIndex < Bones.size())
+                            if (Index >= 0 && Index < Bones.size())
                             {
-                                const char* ClickedBoneName = Bones[RightClickedBoneIndex].Name.c_str();
+                                const char* ClickedBoneName = Bones[Index].Name.c_str();
                                 UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
                                 if (Phys && ImGui::MenuItem("Add Body"))
                                 {
@@ -448,9 +448,39 @@ void SSkeletalMeshViewerWindow::OnRender()
                             if (MatchedBody && open)
                             {
                                 ImGui::Indent(14.0f);
+
+                                // Make body entry selectable (unique ID per bone index)
+                                char BodyLabel[256];
+                                snprintf(BodyLabel, sizeof(BodyLabel), "Body: %s", MatchedBody->BoneName.ToString().c_str());
+
+                                // Highlight when the bone is selected so selection is consistent
+                                bool bBodySelected = (ActiveState->SelectedBoneIndex == Index);
+
+                                // Optional small color to match previous "Body:" text color
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.85f, 0.7f, 0.25f, 1.0f));
-                                ImGui::Text("Body: %s", MatchedBody->BoneName.ToString().c_str());
+                                if (ImGui::Selectable(BodyLabel, bBodySelected))
+                                {
+                                    // When user selects a body, also select the corresponding bone and move gizmo
+                                    if (ActiveState->SelectedBoneIndex != Index)
+                                    {
+                                        ActiveState->SelectedBoneIndex = Index;
+                                        ActiveState->bBoneLinesDirty = true;
+
+                                        ExpandToSelectedBone(ActiveState, Index);
+
+                                        if (ActiveState->PreviewActor && ActiveState->World)
+                                        {
+                                            ActiveState->PreviewActor->RepositionAnchorToBone(Index);
+                                            if (USceneComponent* Anchor = ActiveState->PreviewActor->GetBoneGizmoAnchor())
+                                            {
+                                                ActiveState->World->GetSelectionManager()->SelectActor(ActiveState->PreviewActor);
+                                                ActiveState->World->GetSelectionManager()->SelectComponent(Anchor);
+                                            }
+                                        }
+                                    }
+                                }
                                 ImGui::PopStyleColor();
+
                                 ImGui::Unindent(14.0f);
                             }
                         }
