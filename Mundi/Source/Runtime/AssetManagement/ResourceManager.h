@@ -17,6 +17,7 @@
 #include "SkeletalMesh.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Particle/ParticleSystem.h"
+#include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
 // ... 기타 include ...
 
 // --- 전방 선언 ---
