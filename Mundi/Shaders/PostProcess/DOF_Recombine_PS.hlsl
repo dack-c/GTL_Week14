@@ -131,27 +131,23 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // 5. Bilateral Upsampling으로 블러 텍스처 샘플링 (엣지 보존)
+    // 5. 블러 텍스처 샘플링 (둘 다 Bilateral Upsampling)
     float2 lowResTexelSize = ScreenSize.zw * 4.0;  // 1/4 해상도 텍셀 크기
     float4 farField = BilateralUpsample(g_FarFieldTex, input.texCoord, viewDepth, lowResTexelSize);
     float4 nearField = BilateralUpsample(g_NearFieldTex, input.texCoord, viewDepth, lowResTexelSize);
 
-    // 6. Smoothstep 블렌딩 (경계 부드럽게)
-    float blendFactor = saturate(abs(CoC));
-    blendFactor = blendFactor * blendFactor * (3.0 - 2.0 * blendFactor);  // Smoothstep
+    // 6. UE 스타일 레이어 합성 (Far → Sharp → Near)
+    float4 finalColor = sceneColor;
 
-    float4 finalColor;
+    // Layer 1: Far Blur (배경)
+    float farMask = saturate(CoC);  // CoC > 0 일때만
+    farMask = farMask * farMask * (3.0 - 2.0 * farMask);  // Smoothstep
+    finalColor = lerp(finalColor, float4(farField.rgb, 1.0), farMask * farField.a);
 
-    if (CoC > 0.0)
-    {
-        // 원경 (Far Field)
-        finalColor = lerp(sceneColor, float4(farField.rgb, 1.0), blendFactor);
-    }
-    else  // CoC < 0.0
-    {
-        // 근경 (Near Field)
-        finalColor = lerp(sceneColor, float4(nearField.rgb, 1.0), blendFactor);
-    }
+    // Layer 2: Near Blur (전경) - nearField.a (블러된 CoC)로 Sharp 위에 덮기
+    float nearMask = nearField.a;  // 텍스처에서 온 CoC (블러되어 번짐)
+    nearMask = nearMask * nearMask * (3.0 - 2.0 * nearMask);  // Smoothstep
+    finalColor = lerp(finalColor, float4(nearField.rgb, 1.0), nearMask);
 
     output.Color = finalColor;
 
