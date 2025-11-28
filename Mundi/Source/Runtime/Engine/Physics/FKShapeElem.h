@@ -27,8 +27,8 @@ struct FKSphylElem // Capsule
 };
 
 // TODO : 추후 구현
-//struct FKConvexElem
-//{
-//    // Convex Hull 데이터
-//    TArray<FVector> Vertices;
-//};
+struct FKConvexElem
+{
+    // Convex Hull 데이터
+    TArray<FVector> Vertices;
+};

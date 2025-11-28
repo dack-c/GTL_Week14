@@ -32,15 +32,12 @@ inline FQuat FromPx(const physx::PxQuat& q)
 inline physx::PxTransform ToPx(const FTransform& t)
 {
     return physx::PxTransform(
-        ToPx(t.GetLocation()),
-        ToPx(t.GetRotation())
+        ToPx(t.Translation),
+        ToPx(t.Rotation)
     );
 }
 
 inline FTransform FromPx(const physx::PxTransform& t)
 {
-    return FTransform(
-        FromPx(t.q),
-        FromPx(t.p)
-    );
+    return FTransform(FromPx(t.p), FromPx(t.q), FVector(1, 1, 1));
 }
