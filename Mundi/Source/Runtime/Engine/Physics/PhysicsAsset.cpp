@@ -1,6 +1,8 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "PhysicsAsset.h"
 #include "BodySetup.h"
+
+IMPLEMENT_CLASS(UPhysicsAsset)
 
 void UPhysicsAsset::BuildBodySetupIndexMap()
 {
@@ -32,5 +34,14 @@ UBodySetup* UPhysicsAsset::FindBodySetup(FName BodyName) const
 
 int32 UPhysicsAsset::FindConstraintIndex(FName BodyA, FName BodyB) const
 {
-	return int32();
+	for (int32 i = 0; i < Constraints.Num(); ++i)
+	{
+		const auto& C = Constraints[i];
+		if ((C.BodyNameA == BodyA && C.BodyNameB == BodyB) ||
+			(C.BodyNameA == BodyB && C.BodyNameB == BodyA))
+		{
+			return i;
+		}
+	}
+	return INDEX_NONE;
 }

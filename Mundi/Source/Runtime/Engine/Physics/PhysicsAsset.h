@@ -1,4 +1,7 @@
 ﻿#pragma once
+#include "Name.h"
+#include "ResourceBase.h"
+
 struct FPhysicsConstraintSetup
 {
     FName BodyNameA;
@@ -15,9 +18,18 @@ struct FPhysicsConstraintSetup
 };
 
 class UBodySetup;
-class UPhysicsAsset : public UObject
+class UPhysicsAsset : public UResourceBase
 {
+    DECLARE_CLASS(UPhysicsAsset, UResourceBase)
 public:
+	DECLARE_CLASS(UPhysicsAsset, UResourceBase)
+
+    UPhysicsAsset() = default;
+    virtual ~UPhysicsAsset() = default;
+
+    void SetName(const FName& NewName) { Name = NewName; }
+    FName GetName() const { return Name; }
+
     TArray<UBodySetup*> BodySetups;
     TArray<FPhysicsConstraintSetup> Constraints; // Runtime에 Instance로 변환
 
@@ -31,4 +43,8 @@ public:
     UBodySetup* FindBodySetup(FName BodyName) const;
 
     int32 FindConstraintIndex(FName BodyA, FName BodyB) const;
+
+private:
+    FName Name;
+
 };
