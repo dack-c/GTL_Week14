@@ -272,6 +272,8 @@ EResourceType UResourceManager::GetResourceType()
 		return EResourceType::Animation;
 	if (T::StaticClass() == UParticleSystem::StaticClass())
 		return EResourceType::Particle;
+	if (T::StaticClass() == UPhysicsAsset::StaticClass())
+		return EResourceType::PhysicsAsset;
 
     return EResourceType::None;
 }

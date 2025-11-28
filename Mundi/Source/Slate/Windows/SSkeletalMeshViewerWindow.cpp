@@ -19,6 +19,7 @@
 #include <filesystem>
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
+#include "Source/Runtime/Engine/Physics/BodySetup.h"
 
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
@@ -1671,6 +1672,21 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
     ImGui::PopStyleColor(3);
     ImGui::Spacing();
 
+    // Gather skeleton bone names for assets compatibility check
+    TArray<FName> SkeletonBoneNames;
+    const FSkeleton* SkeletonPtr = nullptr;
+    if (State->CurrentMesh)
+    {
+        SkeletonPtr = State->CurrentMesh->GetSkeleton();
+        if (SkeletonPtr)
+        {
+            for (const FBone& Bone : SkeletonPtr->Bones)
+            {
+                SkeletonBoneNames.Add(FName(Bone.Name));
+            }
+        }
+    }
+
     // --- Render appropriate browser based on mode ---
     if (State->AssetBrowserMode == EAssetBrowserMode::Animation)
     {
@@ -1686,20 +1702,6 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
         ImGui::Spacing();
 
         TArray<UAnimSequence*> AnimSequences = UResourceManager::GetInstance().GetAll<UAnimSequence>();
-
-        // Get current skeleton bone names for compatibility check
-        TArray<FName> SkeletonBoneNames;
-        if (State->CurrentMesh)
-        {
-            const FSkeleton* Skeleton = State->CurrentMesh->GetSkeleton();
-            if (Skeleton)
-            {
-                for (const FBone& Bone : Skeleton->Bones)
-                {
-                    SkeletonBoneNames.Add(Bone.Name);
-                }
-            }
-        }
 
         if (SkeletonBoneNames.Num() == 0)
         {
@@ -1771,45 +1773,154 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
         // Get all Physics Assets from ResourceManager
         TArray<UPhysicsAsset*> PhysicsAssets = UResourceManager::GetInstance().GetAll<UPhysicsAsset>();
 
-        if (PhysicsAssets.IsEmpty())
+        if (SkeletonBoneNames.Num() == 0)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-            ImGui::TextWrapped("No physics assets found in the project.");
+            ImGui::TextWrapped("Load a skeletal mesh first to see compatible physics assets.");
             ImGui::PopStyleColor();
         }
         else
         {
+            TArray<UPhysicsAsset*> CompatiblePhysicsAssets;
             for (UPhysicsAsset* PhysAsset : PhysicsAssets)
             {
                 if (!PhysAsset) continue;
 
-                FString AssetName = PhysAsset->GetName().ToString();
-                if (AssetName.empty())
+				int32 TotalBodies = 0; // 전체 바디 수
+				int32 MatchedBodies = 0; // 스켈레탈 메시의 본과 매칭되는 바디 수
+
+                for (UBodySetup* Body : PhysAsset->BodySetups)
                 {
-                    AssetName = "Unnamed Physics Asset";
+                    if (!Body) continue;
+                    TotalBodies++;
+
+                    // UBodySetupCore::BoneName stores the bone mapping
+                    if (SkeletonPtr && SkeletonPtr->FindBoneIndex(Body->BoneName) != INDEX_NONE)
+                    {
+                        MatchedBodies++;
+                    }
                 }
 
-                bool bIsSelected = (State->CurrentPhysicsAsset == PhysAsset);
-
-                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.45f, 0.30f, 0.20f, 0.8f));
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.55f, 0.40f, 0.30f, 1.0f));
-                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.40f, 0.25f, 0.15f, 1.0f));
-
-                if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+				if (TotalBodies == MatchedBodies) // 전부 일치하는 경우에만 허용
                 {
-                    State->CurrentPhysicsAsset = PhysAsset;
-                    // TODO: Apply physics asset to skeletal mesh if needed
-                    // For now, just store the selection
+                    CompatiblePhysicsAssets.Add(PhysAsset);
                 }
+            }
 
-                ImGui::PopStyleColor(3);
-
-                // Show tooltip on hover
-                if (ImGui::IsItemHovered())
+            if (CompatiblePhysicsAssets.IsEmpty())
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+                ImGui::TextWrapped("No compatible physics assets found for this skeleton.");
+                ImGui::PopStyleColor();
+            }
+            else
+            {
+                for (UPhysicsAsset* PhysAsset : CompatiblePhysicsAssets)
                 {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Physics Asset: %s", AssetName.c_str());
-                    ImGui::EndTooltip();
+                    if (!PhysAsset) continue;
+
+                    FString AssetName = PhysAsset->GetName().ToString();
+                    if (AssetName.empty())
+                    {
+                        AssetName = "Unnamed Physics Asset";
+                    }
+
+                    bool bIsSelected = (State->CurrentPhysicsAsset == PhysAsset);
+                    // Rename mode is per-state boolean; check it's active and refers to this asset
+                    bool bIsRenamingThis = (State->bIsRenaming && bIsSelected);
+
+                    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.45f, 0.30f, 0.20f, 0.8f));
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.55f, 0.40f, 0.30f, 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.40f, 0.25f, 0.15f, 1.0f));
+
+                    ImGui::PushID((void*)PhysAsset);
+                    if (bIsRenamingThis)
+                    {
+                        if (State->PhysicsAssetNameBuffer[0] == '\0')
+                        {
+                            strncpy_s(State->PhysicsAssetNameBuffer, AssetName.c_str(), sizeof(State->PhysicsAssetNameBuffer) - 1);
+                        }
+
+                        char RenameLabel[64];
+                        snprintf(RenameLabel, sizeof(RenameLabel), "##RenamePhysics_%p", (void*)PhysAsset);
+
+                        // Request focus for the next widget (the InputText that follows)
+                        ImGui::SetKeyboardFocusHere(0);
+                        ImGui::PushItemWidth(-1);
+
+                        int flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
+                        bool committed = ImGui::InputText(RenameLabel, State->PhysicsAssetNameBuffer, sizeof(State->PhysicsAssetNameBuffer), flags);
+                        if (committed || ImGui::IsItemDeactivated() || (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemActive()))
+                        {
+                            PhysAsset->SetName(FName(State->PhysicsAssetNameBuffer));
+                            State->bIsRenaming = false;
+                            State->PhysicsAssetNameBuffer[0] = '\0';
+                            ImGui::ClearActiveID(); // 중요: 이전 Active ID 제거
+                        }
+
+                        ImGui::PopItemWidth();
+                    }
+                    else
+                    {
+                        if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+                        {
+                            State->CurrentPhysicsAsset = PhysAsset;
+
+                            // ensure BodySetupIndexMap is built for quick lookups and apply to preview mesh
+                            if (State->CurrentMesh)
+                            {
+                                PhysAsset->BuildBodySetupIndexMap();
+                                State->CurrentMesh->PhysicsAsset = PhysAsset;
+                            }
+                        }
+
+                        // Enter rename mode on double-click: set per-state boolean and ensure CurrentPhysicsAsset points to the asset
+                        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                        {
+                            State->CurrentPhysicsAsset = PhysAsset; // ensure target is current
+                            State->bIsRenaming = true;
+                            strncpy_s(State->PhysicsAssetNameBuffer, AssetName.c_str(), sizeof(State->PhysicsAssetNameBuffer) - 1);
+                        }
+                    }
+                    ImGui::PopID();
+                    ImGui::PopStyleColor(3);
+
+                    // Tooltip
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Physics Asset: %s", AssetName.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+
+            // New Asset button: create a new UPhysicsAsset and assign to State->CurrentPhysicsAsset
+            if (ImGui::Button("New Physics Asset"))
+            {
+                UPhysicsAsset* NewAsset = NewObject<UPhysicsAsset>();
+                if (NewAsset)
+                {
+                    // Give the asset a sensible default name (ObjectFactory::NewObject already set ObjectName)
+                    NewAsset->SetName(NewAsset->ObjectName);
+
+					FString AssetNameStr = NewAsset->GetName().ToString();
+                    UResourceManager::GetInstance().Add<UPhysicsAsset>(AssetNameStr, NewAsset);
+
+                    // Assign to viewer state
+                    State->CurrentPhysicsAsset = NewAsset;
+
+                    // Optionally attach to the currently loaded skeletal mesh so the preview can use it
+                    if (State->CurrentMesh)
+                    {
+                        State->CurrentMesh->PhysicsAsset = NewAsset;
+                    }
+
+                    UE_LOG("Created new PhysicsAsset: %s", NewAsset->GetName().ToString().c_str());
+                }
+                else
+                {
+                    UE_LOG("Failed to create new UPhysicsAsset");
                 }
             }
         }
