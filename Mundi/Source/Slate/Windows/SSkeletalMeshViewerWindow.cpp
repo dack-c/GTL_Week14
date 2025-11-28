@@ -19,6 +19,7 @@
 #include <filesystem>
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
+#include "Source/Runtime/Engine/Physics/BodySetup.h"
 
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
@@ -347,6 +348,9 @@ void SSkeletalMeshViewerWindow::OnRender()
                         }
                     }
 
+                    // Track which bone was right-clicked to open context menu
+                    int RightClickedBoneIndex = -1;
+
                     std::function<void(int32)> DrawNode = [&](int32 Index)
                     {
                         const bool bLeaf = Children[Index].IsEmpty();
@@ -393,8 +397,36 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 ActiveState->ExpandedBoneIndices.erase(Index);
                         }
 
+                        // 본 우클릭 이벤트
+                        if (ImGui::BeginPopupContextItem("BoneContextMenu"))
+                        {
+                            if (Index >= 0 && Index < Bones.size())
+                            {
+                                const char* ClickedBoneName = Bones[Index].Name.c_str();
+                                UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
+                                if (Phys && ImGui::MenuItem("Add Body"))
+                                {
+                                    UBodySetup* NewBody = NewObject<UBodySetup>();
+                                    if (NewBody)
+                                    {
+                                        NewBody->BoneName = FName(ClickedBoneName);
+                                        Phys->BodySetups.Add(NewBody);
+                                        Phys->BuildBodySetupIndexMap();
+
+                                        // Set newly created body as selected so right panel shows its details
+                                        ActiveState->SelectedBodySetup = NewBody;
+                                        UE_LOG("Added UBodySetup for bone %s to PhysicsAsset %s", ClickedBoneName, Phys->GetName().ToString().c_str());
+                                    }
+                                }
+                            }
+                            ImGui::EndPopup();
+                        }
+
                         if (ImGui::IsItemClicked())
                         {
+                            // Clear body selection when a bone itself is clicked
+                            ActiveState->SelectedBodySetup = nullptr;
+
                             if (ActiveState->SelectedBoneIndex != Index)
                             {
                                 ActiveState->SelectedBoneIndex = Index;
@@ -414,6 +446,53 @@ void SSkeletalMeshViewerWindow::OnRender()
                             }
                         }
                         
+						// 매칭되는 바디가 있으면 본 아래에 표시
+                        if (ActiveState->CurrentPhysicsAsset)
+                        {
+                            UBodySetup* MatchedBody = ActiveState->CurrentPhysicsAsset->FindBodySetup(FName(Label));
+                            if (MatchedBody && open)
+                            {
+                                ImGui::Indent(14.0f);
+
+                                // Make body entry selectable (unique ID per bone index)
+                                char BodyLabel[256];
+                                snprintf(BodyLabel, sizeof(BodyLabel), "Body: %s", MatchedBody->BoneName.ToString().c_str());
+
+                                // Highlight when the bone is selected so selection is consistent
+                                bool bBodySelected = (ActiveState->SelectedBoneIndex == Index);
+
+                                // Optional small color to match previous "Body:" text color
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.85f, 0.7f, 0.25f, 1.0f));
+                                if (ImGui::Selectable(BodyLabel, bBodySelected))
+                                {
+                                    // When user selects a body, set SelectedBodySetup and also select corresponding bone
+                                    ActiveState->SelectedBodySetup = MatchedBody;
+
+                                    // When user selects a body, also select the corresponding bone and move gizmo
+                                    if (ActiveState->SelectedBoneIndex != Index)
+                                    {
+                                        ActiveState->SelectedBoneIndex = Index;
+                                        ActiveState->bBoneLinesDirty = true;
+
+                                        ExpandToSelectedBone(ActiveState, Index);
+
+                                        if (ActiveState->PreviewActor && ActiveState->World)
+                                        {
+                                            ActiveState->PreviewActor->RepositionAnchorToBone(Index);
+                                            if (USceneComponent* Anchor = ActiveState->PreviewActor->GetBoneGizmoAnchor())
+                                            {
+                                                ActiveState->World->GetSelectionManager()->SelectActor(ActiveState->PreviewActor);
+                                                ActiveState->World->GetSelectionManager()->SelectComponent(Anchor);
+                                            }
+                                        }
+                                    }
+                                }
+                                ImGui::PopStyleColor();
+
+                                ImGui::Unindent(14.0f);
+                            }
+                        }
+
                         if (!bLeaf && open)
                         {
                             for (int32 Child : Children[Index])
@@ -505,8 +584,109 @@ void SSkeletalMeshViewerWindow::OnRender()
                 ImGui::PopStyleColor();
                 ImGui::Spacing();
 
-                // === 선택된 본의 트랜스폼 편집 UI ===
-                if (ActiveState->SelectedBoneIndex >= 0 && ActiveState->CurrentMesh)
+                if (ActiveState->SelectedBodySetup)
+                {
+                    UBodySetup* Body = ActiveState->SelectedBodySetup;
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.90f, 0.40f, 1.0f));
+                    ImGui::Text("> Selected Body");
+                    ImGui::PopStyleColor();
+
+                    ImGui::Spacing();
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.90f, 0.95f, 1.00f, 1.0f));
+                    ImGui::TextWrapped("%s", Body->BoneName.ToString().c_str());
+                    ImGui::PopStyleColor();
+
+                    ImGui::Spacing();
+                    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.8f));
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+
+                    // Basic physics properties
+                    ImGui::Text("Mass: %.3f", Body->Mass);
+                    ImGui::Text("Linear Damping: %.3f", Body->LinearDamping);
+                    ImGui::Text("Angular Damping: %.3f", Body->AngularDamping);
+                    ImGui::Text("Simulate Physics: %s", Body->bSimulatePhysics ? "True" : "False");
+                    ImGui::Text("Enable Gravity: %s", Body->bEnableGravity ? "True" : "False");
+
+                    ImGui::Spacing();
+                    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.5f));
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+                    ImGui::Spacing();
+
+                    // AggGeom counts
+                    int NumSpheres = Body->AggGeom.SphereElements.Num();
+                    int NumBoxes = Body->AggGeom.BoxElements.Num();
+                    int NumSphyls = Body->AggGeom.SphylElements.Num();
+                    int NumConvex = Body->AggGeom.ConvexElements.Num();
+
+                    ImGui::Text("Aggregate Geometry:");
+                    ImGui::Indent(10.0f);
+                    ImGui::Text("Spheres: %d", NumSpheres);
+                    ImGui::Text("Boxes: %d", NumBoxes);
+                    ImGui::Text("Sphyl (capsules): %d", NumSphyls);
+                    ImGui::Text("Convexes: %d", NumConvex);
+                    ImGui::Unindent(10.0f);
+
+                    ImGui::Spacing();
+
+                    // 상세 요소 출력 (예: Sphere 목록)
+                    if (NumSpheres > 0)
+                    {
+                        ImGui::Text("Sphere Elements:");
+                        ImGui::Indent(10.0f);
+                        for (int si = 0; si < NumSpheres; ++si)
+                        {
+                            const auto& S = Body->AggGeom.SphereElements[si];
+                            ImGui::Text("[%d] Center: (%.2f, %.2f, %.2f)  Radius: %.2f", si, S.Center.X, S.Center.Y, S.Center.Z, S.Radius);
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+
+                    if (NumSphyls > 0)
+                    {
+                        ImGui::Text("Sphyl Elements (Capsules):");
+                        ImGui::Indent(10.0f);
+                        for (int si = 0; si < NumSphyls; ++si)
+                        {
+                            const auto& S = Body->AggGeom.SphylElements[si];
+                            ImGui::Text("[%d] Center: (%.2f, %.2f, %.2f)  Radius: %.2f  HalfLength: %.2f", si, S.Center.X, S.Center.Y, S.Center.Z, S.Radius, S.HalfLength);
+							ImGui::Text("     Orientation: (%.2f, %.2f, %.2f, %.2f)", S.Rotation.X, S.Rotation.Y, S.Rotation.Z, S.Rotation.W);
+                            FVector RotEuler = S.Rotation.ToEulerZYXDeg();
+							ImGui::Text("     Euler (ZYX): (%.2f°, %.2f°, %.2f°)", RotEuler.Z, RotEuler.Y, RotEuler.X);
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+
+                    if (NumBoxes > 0)
+                    {
+                        ImGui::Text("Box Elements:");
+                        ImGui::Indent(10.0f);
+                        for (int bi = 0; bi < NumBoxes; ++bi)
+                        {
+                            const auto& B = Body->AggGeom.BoxElements[bi];
+                            ImGui::Text("[%d] Center: (%.2f, %.2f, %.2f)  Extents: (%.2f, %.2f, %.2f)", bi, B.Center.X, B.Center.Y, B.Center.Z, B.Extents.X, B.Extents.Y, B.Extents.Z);
+                            ImGui::Text("     Orientation: (%.2f, %.2f, %.2f, %.2f)", B.Rotation.X, B.Rotation.Y, B.Rotation.Z, B.Rotation.W);
+                            FVector RotEuler = B.Rotation.ToEulerZYXDeg();
+                            ImGui::Text("     Euler (ZYX): (%.2f°, %.2f°, %.2f°)", RotEuler.Z, RotEuler.Y, RotEuler.X);
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+
+                    if (NumConvex > 0)
+                    {
+                        ImGui::Text("Convex Elements: (vertex counts)");
+                        ImGui::Indent(10.0f);
+                        for (int ci = 0; ci < NumConvex; ++ci)
+                        {
+                            const auto& C = Body->AggGeom.ConvexElements[ci];
+                            ImGui::Text("[%d] Vertices: %d", ci, C.Vertices.Num());
+                            // TODO: Vertices 관련 UI?
+                        }
+                        ImGui::Unindent(10.0f);
+                    }
+                }
+                else if (ActiveState->SelectedBoneIndex >= 0 && ActiveState->CurrentMesh) // 선택된 본의 트랜스폼 편집 UI
                 {
                     const FSkeleton* Skeleton = ActiveState->CurrentMesh->GetSkeleton();
                     if (Skeleton && ActiveState->SelectedBoneIndex < Skeleton->Bones.size())
@@ -1269,6 +1449,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
                         bool bPressed = bHover && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
                         bool bDoubleClicked = bHover && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
                             
+
                         // Styling
                         ImU32 FillCol = IM_COL32(100, 100, 255, bHover ? 140 : 100);
                         ImU32 LineCol = IM_COL32(200, 200, 255, 150);
@@ -1671,6 +1852,21 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
     ImGui::PopStyleColor(3);
     ImGui::Spacing();
 
+    // Gather skeleton bone names for assets compatibility check
+    TArray<FName> SkeletonBoneNames;
+    const FSkeleton* SkeletonPtr = nullptr;
+    if (State->CurrentMesh)
+    {
+        SkeletonPtr = State->CurrentMesh->GetSkeleton();
+        if (SkeletonPtr)
+        {
+            for (const FBone& Bone : SkeletonPtr->Bones)
+            {
+                SkeletonBoneNames.Add(FName(Bone.Name));
+            }
+        }
+    }
+
     // --- Render appropriate browser based on mode ---
     if (State->AssetBrowserMode == EAssetBrowserMode::Animation)
     {
@@ -1686,20 +1882,6 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
         ImGui::Spacing();
 
         TArray<UAnimSequence*> AnimSequences = UResourceManager::GetInstance().GetAll<UAnimSequence>();
-
-        // Get current skeleton bone names for compatibility check
-        TArray<FName> SkeletonBoneNames;
-        if (State->CurrentMesh)
-        {
-            const FSkeleton* Skeleton = State->CurrentMesh->GetSkeleton();
-            if (Skeleton)
-            {
-                for (const FBone& Bone : Skeleton->Bones)
-                {
-                    SkeletonBoneNames.Add(Bone.Name);
-                }
-            }
-        }
 
         if (SkeletonBoneNames.Num() == 0)
         {
@@ -1771,45 +1953,154 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
         // Get all Physics Assets from ResourceManager
         TArray<UPhysicsAsset*> PhysicsAssets = UResourceManager::GetInstance().GetAll<UPhysicsAsset>();
 
-        if (PhysicsAssets.IsEmpty())
+        if (SkeletonBoneNames.Num() == 0)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-            ImGui::TextWrapped("No physics assets found in the project.");
+            ImGui::TextWrapped("Load a skeletal mesh first to see compatible physics assets.");
             ImGui::PopStyleColor();
         }
         else
         {
+            TArray<UPhysicsAsset*> CompatiblePhysicsAssets;
             for (UPhysicsAsset* PhysAsset : PhysicsAssets)
             {
                 if (!PhysAsset) continue;
 
-                FString AssetName = PhysAsset->GetName().ToString();
-                if (AssetName.empty())
+				int32 TotalBodies = 0; // 전체 바디 수
+				int32 MatchedBodies = 0; // 스켈레탈 메시의 본과 매칭되는 바디 수
+
+                for (UBodySetup* Body : PhysAsset->BodySetups)
                 {
-                    AssetName = "Unnamed Physics Asset";
+                    if (!Body) continue;
+                    TotalBodies++;
+
+                    // UBodySetupCore::BoneName stores the bone mapping
+                    if (SkeletonPtr && SkeletonPtr->FindBoneIndex(Body->BoneName) != INDEX_NONE)
+                    {
+                        MatchedBodies++;
+                    }
                 }
 
-                bool bIsSelected = (State->CurrentPhysicsAsset == PhysAsset);
-
-                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.45f, 0.30f, 0.20f, 0.8f));
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.55f, 0.40f, 0.30f, 1.0f));
-                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.40f, 0.25f, 0.15f, 1.0f));
-
-                if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+				if (TotalBodies == MatchedBodies) // 전부 일치하는 경우에만 허용
                 {
-                    State->CurrentPhysicsAsset = PhysAsset;
-                    // TODO: Apply physics asset to skeletal mesh if needed
-                    // For now, just store the selection
+                    CompatiblePhysicsAssets.Add(PhysAsset);
                 }
+            }
 
-                ImGui::PopStyleColor(3);
-
-                // Show tooltip on hover
-                if (ImGui::IsItemHovered())
+            if (CompatiblePhysicsAssets.IsEmpty())
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+                ImGui::TextWrapped("No compatible physics assets found for this skeleton.");
+                ImGui::PopStyleColor();
+            }
+            else
+            {
+                for (UPhysicsAsset* PhysAsset : CompatiblePhysicsAssets)
                 {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Physics Asset: %s", AssetName.c_str());
-                    ImGui::EndTooltip();
+                    if (!PhysAsset) continue;
+
+                    FString AssetName = PhysAsset->GetName().ToString();
+                    if (AssetName.empty())
+                    {
+                        AssetName = "Unnamed Physics Asset";
+                    }
+
+                    bool bIsSelected = (State->CurrentPhysicsAsset == PhysAsset);
+                    // Rename mode is per-state boolean; check it's active and refers to this asset
+                    bool bIsRenamingThis = (State->bIsRenaming && bIsSelected);
+
+                    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.45f, 0.30f, 0.20f, 0.8f));
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.55f, 0.40f, 0.30f, 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.40f, 0.25f, 0.15f, 1.0f));
+
+                    ImGui::PushID((void*)PhysAsset);
+                    if (bIsRenamingThis)
+                    {
+                        if (State->PhysicsAssetNameBuffer[0] == '\0')
+                        {
+                            strncpy_s(State->PhysicsAssetNameBuffer, AssetName.c_str(), sizeof(State->PhysicsAssetNameBuffer) - 1);
+                        }
+
+                        char RenameLabel[64];
+                        snprintf(RenameLabel, sizeof(RenameLabel), "##RenamePhysics_%p", (void*)PhysAsset);
+
+                        // Request focus for the next widget (the InputText that follows)
+                        ImGui::SetKeyboardFocusHere(0);
+                        ImGui::PushItemWidth(-1);
+
+                        int flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
+                        bool committed = ImGui::InputText(RenameLabel, State->PhysicsAssetNameBuffer, sizeof(State->PhysicsAssetNameBuffer), flags);
+                        if (committed || ImGui::IsItemDeactivated() || (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemActive()))
+                        {
+                            PhysAsset->SetName(FName(State->PhysicsAssetNameBuffer));
+                            State->bIsRenaming = false;
+                            State->PhysicsAssetNameBuffer[0] = '\0';
+                            ImGui::ClearActiveID(); // 중요: 이전 Active ID 제거
+                        }
+
+                        ImGui::PopItemWidth();
+                    }
+                    else
+                    {
+                        if (ImGui::Selectable(AssetName.c_str(), bIsSelected))
+                        {
+                            State->CurrentPhysicsAsset = PhysAsset;
+
+                            // ensure BodySetupIndexMap is built for quick lookups and apply to preview mesh
+                            if (State->CurrentMesh)
+                            {
+                                PhysAsset->BuildBodySetupIndexMap();
+                                State->CurrentMesh->PhysicsAsset = PhysAsset;
+                            }
+                        }
+
+                        // Enter rename mode on double-click: set per-state boolean and ensure CurrentPhysicsAsset points to the asset
+                        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                        {
+                            State->CurrentPhysicsAsset = PhysAsset; // ensure target is current
+                            State->bIsRenaming = true;
+                            strncpy_s(State->PhysicsAssetNameBuffer, AssetName.c_str(), sizeof(State->PhysicsAssetNameBuffer) - 1);
+                        }
+                    }
+                    ImGui::PopID();
+                    ImGui::PopStyleColor(3);
+
+                    // Tooltip
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Physics Asset: %s", AssetName.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+
+            // New Asset button: create a new UPhysicsAsset and assign to State->CurrentPhysicsAsset
+            if (ImGui::Button("New Physics Asset"))
+            {
+                UPhysicsAsset* NewAsset = NewObject<UPhysicsAsset>();
+                if (NewAsset)
+                {
+                    // Give the asset a sensible default name (ObjectFactory::NewObject already set ObjectName)
+                    NewAsset->SetName(NewAsset->ObjectName);
+
+					FString AssetNameStr = NewAsset->GetName().ToString();
+                    UResourceManager::GetInstance().Add<UPhysicsAsset>(AssetNameStr, NewAsset);
+
+                    // Assign to viewer state
+                    State->CurrentPhysicsAsset = NewAsset;
+
+                    // Optionally attach to the currently loaded skeletal mesh so the preview can use it
+                    if (State->CurrentMesh)
+                    {
+                        State->CurrentMesh->PhysicsAsset = NewAsset;
+                    }
+
+                    UE_LOG("Created new PhysicsAsset: %s", NewAsset->GetName().ToString().c_str());
+                }
+                else
+                {
+                    UE_LOG("Failed to create new UPhysicsAsset");
                 }
             }
         }
