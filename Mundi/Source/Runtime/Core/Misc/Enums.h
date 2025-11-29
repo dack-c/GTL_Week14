@@ -272,3 +272,12 @@ enum class EParticleSortMode : uint8
     ByAge,         // 생성 시간순
     ByViewDepth    // 뷰 깊이순, 정면일수록 우선순위
 };
+
+enum class EAggCollisionShapeType : int32
+{
+    Sphere,
+    Box,
+    Sphyl,
+    Convex,
+    Unknown
+};
