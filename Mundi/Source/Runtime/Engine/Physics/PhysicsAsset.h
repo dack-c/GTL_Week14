@@ -20,6 +20,7 @@ struct FPhysicsConstraintSetup
 
     void Clear();
     void Serialize(const bool bInIsLoading, JSON& InOutHandle);
+    bool  bEnableCollision = false;   // 기본은 서로 충돌 안 함
 };
 
 class UBodySetup;

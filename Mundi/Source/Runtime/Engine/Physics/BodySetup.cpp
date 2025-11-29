@@ -4,6 +4,7 @@
 
 IMPLEMENT_CLASS(UBodySetup)
 
+
 void UBodySetup::AddSphere(const FKSphereElem& Elem)
 {
     AggGeom.SphereElements.Add(Elem);
