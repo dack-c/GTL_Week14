@@ -18,6 +18,8 @@ struct FKBoxElem
     FQuat   Rotation = FQuat::Identity();
 };
 
+// 캡슐은 특별함. PxCapsuleGeometry는 hieght를 x축으로 뻗는 걸로 생각한다. 캡슐을 생성할 때 이걸 지키면서하기보다는 우리는 z축으로 뻗는 캡슐을 보통 생각하니까.
+// 축변환을 해줘야함
 struct FKSphylElem // Capsule
 {
     FVector Center = FVector::Zero();

@@ -7,7 +7,7 @@ struct FConstraintLimitData;
 // PhysX의 PxJoint 전방 선언
 namespace physx
 {
-    class PxJoint;
+    class PxD6Joint;
 }
 
 
@@ -22,5 +22,5 @@ public:
 public:
     FBodyInstance*          ParentBody   = nullptr;
     FBodyInstance*          ChildBody    = nullptr;
-    physx::PxJoint*         Joint        = nullptr;  // 명시적으로 physx의 joint라고 선언, 이 후 cpp에서 <PxPhysicsAPI.h> include
+    physx::PxD6Joint*       Joint        = nullptr;  // 명시적으로 physx의 joint라고 선언, 이 후 cpp에서 <PxPhysicsAPI.h> include
 };
