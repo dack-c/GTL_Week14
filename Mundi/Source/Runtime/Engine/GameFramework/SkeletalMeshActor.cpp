@@ -1,6 +1,9 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "SkeletalMeshActor.h"
 #include "World.h"
+#include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
+#include "Source/Runtime/Engine/Physics/BodySetup.h"
+#include "Source/Runtime/Engine/Physics/FKShapeElem.h"
 
 ASkeletalMeshActor::ASkeletalMeshActor()
 {
@@ -45,7 +48,7 @@ void ASkeletalMeshActor::SetSkeletalMesh(const FString& PathFileName)
 void ASkeletalMeshActor::EnsureViewerComponents()
 {
     // Only create viewer components if they don't exist and we're in a preview world
-    if (BoneLineComponent && BoneAnchor)
+    if (BoneLineComponent && BoneAnchor && BodyLineComponent)
     {
         return;
     }
@@ -67,6 +70,20 @@ void ASkeletalMeshActor::EnsureViewerComponents()
             BoneLineComponent->SetAlwaysOnTop(true);
             AddOwnedComponent(BoneLineComponent);
             BoneLineComponent->RegisterComponent(World);
+        }
+    }
+
+    // Create body line component for physics body visualization
+    if (!BodyLineComponent)
+    {
+        BodyLineComponent = NewObject<ULineComponent>();
+        if (BodyLineComponent && RootComponent)
+        {
+            BodyLineComponent->ObjectName = "BodyLines";
+            BodyLineComponent->SetupAttachment(RootComponent, EAttachmentRule::KeepRelative);
+            BodyLineComponent->SetAlwaysOnTop(true);
+            AddOwnedComponent(BodyLineComponent);
+            BodyLineComponent->RegisterComponent(World);
         }
     }
 
@@ -200,7 +217,14 @@ void ASkeletalMeshActor::DuplicateSubObjects()
     {
         if (auto* Comp = Cast<ULineComponent>(Component))
         {
-            BoneLineComponent = Comp;
+            if (Comp->ObjectName == FName("BoneLines"))
+            {
+                BoneLineComponent = Comp;
+            }
+            else if (Comp->ObjectName == FName("BodyLines"))
+            {
+                BodyLineComponent = Comp;
+            }
         }
         else if (auto* Comp = Cast<UBoneAnchorComponent>(Component))
         {
@@ -574,4 +598,232 @@ int32 ASkeletalMeshActor::PickBone(const FRay& Ray, float& OutDistance) const
     }
 
     return ClosestBoneIndex;
+}
+
+void ASkeletalMeshActor::RebuildBodyLines()
+{
+    // Ensure viewer components exist before using them
+    EnsureViewerComponents();
+
+    if (!BodyLineComponent || !SkeletalMeshComponent)
+    {
+        return;
+    }
+
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
+    if (!SkeletalMesh || !SkeletalMesh->PhysicsAsset)
+    {
+        BodyLineComponent->ClearLines();
+        return;
+    }
+
+    const FSkeletalMeshData* Data = SkeletalMesh->GetSkeletalMeshData();
+    if (!Data)
+    {
+        BodyLineComponent->ClearLines();
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAsset = SkeletalMesh->PhysicsAsset;
+    const FSkeleton* Skeleton = &Data->Skeleton;
+
+    // Clear previous body lines
+    BodyLineComponent->ClearLines();
+
+    // Blue color for physics bodies (semi-transparent)
+    const FVector4 BodyColor(0.2f, 0.5f, 1.0f, 0.7f);
+    constexpr int NumSegments = 16;
+
+    // Render each body setup
+    for (UBodySetup* Body : PhysicsAsset->BodySetups)
+    {
+        if (!Body)
+            continue;
+
+        // Find the bone index for this body
+        int32 BoneIndex = Skeleton->FindBoneIndex(Body->BoneName);
+        if (BoneIndex == INDEX_NONE)
+            continue;
+
+        // Get bone transform in local (actor) space
+        FTransform BoneWorldTransform = SkeletalMeshComponent->GetBoneWorldTransform(BoneIndex);
+        FMatrix WorldInv = GetWorldMatrix().InverseAffine();
+        FMatrix BoneLocalMatrix = BoneWorldTransform.ToMatrix() * WorldInv;
+        FTransform BoneLocalTransform(BoneLocalMatrix);
+
+        // Render Sphere Elements
+        for (const FKSphereElem& Sphere : Body->AggGeom.SphereElements)
+        {
+            FVector LocalCenter = BoneLocalTransform.TransformPosition(Sphere.Center);
+            float LocalRadius = Sphere.Radius * BoneLocalTransform.Scale3D.GetMaxValue();
+
+            // Draw 3 orthogonal circles (XY, XZ, YZ planes)
+            // XY plane
+            for (int i = 0; i < NumSegments; ++i)
+            {
+                float angle1 = (float)i / NumSegments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / NumSegments * 2.0f * PI;
+
+                FVector p1 = LocalCenter + FVector(LocalRadius * cosf(angle1), LocalRadius * sinf(angle1), 0.0f);
+                FVector p2 = LocalCenter + FVector(LocalRadius * cosf(angle2), LocalRadius * sinf(angle2), 0.0f);
+
+                BodyLineComponent->AddLine(p1, p2, BodyColor);
+            }
+
+            // XZ plane
+            for (int i = 0; i < NumSegments; ++i)
+            {
+                float angle1 = (float)i / NumSegments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / NumSegments * 2.0f * PI;
+
+                FVector p1 = LocalCenter + FVector(LocalRadius * cosf(angle1), 0.0f, LocalRadius * sinf(angle1));
+                FVector p2 = LocalCenter + FVector(LocalRadius * cosf(angle2), 0.0f, LocalRadius * sinf(angle2));
+
+                BodyLineComponent->AddLine(p1, p2, BodyColor);
+            }
+
+            // YZ plane
+            for (int i = 0; i < NumSegments; ++i)
+            {
+                float angle1 = (float)i / NumSegments * 2.0f * PI;
+                float angle2 = (float)(i + 1) / NumSegments * 2.0f * PI;
+
+                FVector p1 = LocalCenter + FVector(0.0f, LocalRadius * cosf(angle1), LocalRadius * sinf(angle1));
+                FVector p2 = LocalCenter + FVector(0.0f, LocalRadius * cosf(angle2), LocalRadius * sinf(angle2));
+
+                BodyLineComponent->AddLine(p1, p2, BodyColor);
+            }
+        }
+
+        // Render Box Elements
+        for (const FKBoxElem& Box : Body->AggGeom.BoxElements)
+        {
+            FVector LocalExtent = Box.Extents;
+            FTransform ShapeLocalTransform(Box.Center, Box.Rotation, FVector::One());
+            FTransform ShapeTransform = BoneLocalTransform.GetWorldTransform(ShapeLocalTransform);
+
+            FVector WorldExtent = LocalExtent * ShapeTransform.Scale3D;
+
+            // Box의 8개 꼭지점 (local space)
+            FVector LocalCorners[8] = {
+                {-LocalExtent.X, -LocalExtent.Y, -LocalExtent.Z}, {+LocalExtent.X, -LocalExtent.Y, -LocalExtent.Z},
+                {-LocalExtent.X, +LocalExtent.Y, -LocalExtent.Z}, {+LocalExtent.X, +LocalExtent.Y, -LocalExtent.Z},
+                {-LocalExtent.X, -LocalExtent.Y, +LocalExtent.Z}, {+LocalExtent.X, -LocalExtent.Y, +LocalExtent.Z},
+                {-LocalExtent.X, +LocalExtent.Y, +LocalExtent.Z}, {+LocalExtent.X, +LocalExtent.Y, +LocalExtent.Z},
+            };
+
+            FVector Corners[8];
+            for (int i = 0; i < 8; ++i)
+            {
+                Corners[i] = ShapeTransform.TransformPosition(LocalCorners[i]);
+            }
+
+            // 12개 모서리
+            static const int Edges[12][2] = {
+                {0,1},{1,3},{3,2},{2,0}, // bottom
+                {4,5},{5,7},{7,6},{6,4}, // top
+                {0,4},{1,5},{2,6},{3,7}  // verticals
+            };
+
+            for (int i = 0; i < 12; ++i)
+            {
+                BodyLineComponent->AddLine(Corners[Edges[i][0]], Corners[Edges[i][1]], BodyColor);
+            }
+        }
+
+        // Render Capsule (Sphyl) Elements
+        for (const FKSphylElem& Capsule : Body->AggGeom.SphylElements)
+        {
+            FTransform ShapeLocalTransform(Capsule.Center, Capsule.Rotation, FVector::One());
+            FTransform ShapeTransform = BoneLocalTransform.GetWorldTransform(ShapeLocalTransform);
+
+            float LocalRadius = Capsule.Radius * ShapeTransform.Scale3D.GetMaxValue();
+            float LocalHalfLength = Capsule.HalfLength * ShapeTransform.Scale3D.Z;
+
+            FVector UpAxis = ShapeTransform.Rotation.RotateVector(FVector(0, 0, 1));
+            FVector TopCenter = ShapeTransform.Translation + UpAxis * LocalHalfLength;
+            FVector BottomCenter = ShapeTransform.Translation - UpAxis * LocalHalfLength;
+
+            // 상단 반구
+            for (int i = 0; i < NumSegments; ++i)
+            {
+                float angle1 = (float)i / NumSegments * PI;
+
+                FVector Right = ShapeTransform.Rotation.RotateVector(FVector(1, 0, 0));
+                FVector Forward = ShapeTransform.Rotation.RotateVector(FVector(0, 1, 0));
+
+                for (int j = 0; j < NumSegments; ++j)
+                {
+                    float theta1 = (float)j / NumSegments * 2.0f * PI;
+                    float theta2 = (float)(j + 1) / NumSegments * 2.0f * PI;
+
+                    float z1 = LocalRadius * cosf(angle1);
+                    float r1 = LocalRadius * sinf(angle1);
+
+                    FVector p1 = TopCenter + UpAxis * z1 + (Right * cosf(theta1) + Forward * sinf(theta1)) * r1;
+                    FVector p2 = TopCenter + UpAxis * z1 + (Right * cosf(theta2) + Forward * sinf(theta2)) * r1;
+
+                    BodyLineComponent->AddLine(p1, p2, BodyColor);
+                }
+            }
+
+            // 하단 반구
+            for (int i = 0; i < NumSegments; ++i)
+            {
+                float angle1 = (float)i / NumSegments * PI;
+
+                FVector Right = ShapeTransform.Rotation.RotateVector(FVector(1, 0, 0));
+                FVector Forward = ShapeTransform.Rotation.RotateVector(FVector(0, 1, 0));
+
+                for (int j = 0; j < NumSegments; ++j)
+                {
+                    float theta1 = (float)j / NumSegments * 2.0f * PI;
+                    float theta2 = (float)(j + 1) / NumSegments * 2.0f * PI;
+
+                    float z1 = -LocalRadius * cosf(angle1);
+                    float r1 = LocalRadius * sinf(angle1);
+
+                    FVector p1 = BottomCenter + UpAxis * z1 + (Right * cosf(theta1) + Forward * sinf(theta1)) * r1;
+                    FVector p2 = BottomCenter + UpAxis * z1 + (Right * cosf(theta2) + Forward * sinf(theta2)) * r1;
+
+                    BodyLineComponent->AddLine(p1, p2, BodyColor);
+                }
+            }
+
+            // 원기둥 부분 (4개의 수직선으로 표현)
+            FVector Right = ShapeTransform.Rotation.RotateVector(FVector(1, 0, 0));
+            FVector Forward = ShapeTransform.Rotation.RotateVector(FVector(0, 1, 0));
+
+            for (int i = 0; i < 4; ++i)
+            {
+                float angle = (float)i / 4.0f * 2.0f * PI;
+                FVector Offset = (Right * cosf(angle) + Forward * sinf(angle)) * LocalRadius;
+
+                BodyLineComponent->AddLine(TopCenter + Offset, BottomCenter + Offset, BodyColor);
+            }
+        }
+
+        // Render Convex Elements (simplified as vertex connections)
+        for (const FKConvexElem& Convex : Body->AggGeom.ConvexElements)
+        {
+            if (Convex.Vertices.IsEmpty())
+                continue;
+
+            // Simple line strip through all vertices
+            for (int32 i = 0; i < Convex.Vertices.Num() - 1; ++i)
+            {
+                FVector p1 = BoneLocalTransform.TransformPosition(Convex.Vertices[i]);
+                FVector p2 = BoneLocalTransform.TransformPosition(Convex.Vertices[i + 1]);
+                BodyLineComponent->AddLine(p1, p2, BodyColor);
+            }
+
+            // Close the loop
+            if (Convex.Vertices.Num() > 2)
+            {
+                FVector p1 = BoneLocalTransform.TransformPosition(Convex.Vertices[Convex.Vertices.Num() - 1]);
+                FVector p2 = BoneLocalTransform.TransformPosition(Convex.Vertices[0]);
+                BodyLineComponent->AddLine(p1, p2, BodyColor);
+            }
+        }
+    }
 }

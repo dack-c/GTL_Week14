@@ -1187,6 +1187,12 @@ void SSkeletalMeshViewerWindow::OnRenderViewport()
             ActiveState->bBoneLinesDirty = false;
         }
 
+        // Rebuild physics body lines when physics asset changes
+        if (ActiveState->PreviewActor && ActiveState->CurrentMesh && ActiveState->CurrentMesh->PhysicsAsset)
+        {
+            ActiveState->PreviewActor->RebuildBodyLines();
+        }
+
         // 뷰포트 렌더링 (ImGui보다 먼저)
         ActiveState->Viewport->Render();
     }
@@ -1342,7 +1348,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
         bool bIsTimelineHovered = false;
         float FrameAtMouse = 0.0f;
 
-        // --- 1.2. 헤더 행 (필터 + 눈금자) ---
+        // --- 1.2. 헤더 행 (필터 + 눈금을자) ---
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         
         // 헤더 - 컬럼 0: 필터
