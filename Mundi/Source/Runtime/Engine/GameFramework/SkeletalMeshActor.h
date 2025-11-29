@@ -89,6 +89,7 @@ protected:
     bool bBodyLinesInitialized = false;
     TArray<FBodyDebugLines> BodyLinesCache; // size == BodySetup count
     UPhysicsAsset* CachedPhysicsAsset = nullptr;
+    int32 CachedSelectedBody = -1;
 
     float BoneJointRadius = 0.02f;
     float BoneBaseRadius = 0.03f;
@@ -97,6 +98,7 @@ protected:
     void BuildBodyLinesCache();
     void UpdateBoneSubtreeTransforms(int32 BoneIndex);
     void UpdateBoneSelectionHighlight(int32 SelectedBoneIndex);
+    void UpdateBodySelectionHighlight(int32 SelectedBodyIndex);
     void UpdateBodyTransforms();
 
     // Lazily create viewer-only components (BoneLineComponent, BodyLineComponent, BoneAnchor) if in preview world

@@ -421,6 +421,57 @@ void ASkeletalMeshActor::UpdateBoneSelectionHighlight(int32 SelectedBoneIndex)
     }
 }
 
+void ASkeletalMeshActor::UpdateBodySelectionHighlight(int32 SelectedBodyIndex)
+{
+    if (!SkeletalMeshComponent || !BodyLineComponent)
+    {
+        return;
+    }
+
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
+    if (!SkeletalMesh || !SkeletalMesh->PhysicsAsset)
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAsset = SkeletalMesh->PhysicsAsset;
+    const int32 BodyCount = PhysicsAsset->BodySetups.Num();
+
+    const FVector4 SelectedColor(1.0f, 0.0f, 0.0f, 1.0f);   // Red for selected body
+    const FVector4 NormalColor(0.2f, 0.5f, 1.0f, 0.7f);     // Blue for normal body
+
+    for (int32 i = 0; i < BodyCount && i < BodyLinesCache.Num(); ++i)
+    {
+        const bool bSelected = (i == SelectedBodyIndex);
+        const FVector4 Color = bSelected ? SelectedColor : NormalColor;
+        FBodyDebugLines& BDL = BodyLinesCache[i];
+
+        // Update sphere line colors
+        for (ULine* L : BDL.SphereLines)
+        {
+            if (L) L->SetColor(Color);
+        }
+
+        // Update box line colors
+        for (ULine* L : BDL.BoxLines)
+        {
+            if (L) L->SetColor(Color);
+        }
+
+        // Update capsule line colors
+        for (ULine* L : BDL.CapsuleLines)
+        {
+            if (L) L->SetColor(Color);
+        }
+
+        // Update convex line colors
+        for (ULine* L : BDL.ConvexLines)
+        {
+            if (L) L->SetColor(Color);
+        }
+    }
+}
+
 void ASkeletalMeshActor::UpdateBoneSubtreeTransforms(int32 BoneIndex)
 {
     if (!SkeletalMeshComponent)
@@ -646,8 +697,16 @@ void ASkeletalMeshActor::RebuildBodyLines(bool& bChangedGeomNum, int32 SelectedB
         BuildBodyLinesCache();
         bBodyLinesInitialized = true;
         CachedPhysicsAsset = PhysicsAsset;
+        CachedSelectedBody = -1;
         
         bChangedGeomNum = false;
+    }
+
+    // Update selection highlight only when changed
+    if (CachedSelectedBody != SelectedBodyIndex)
+    {
+        UpdateBodySelectionHighlight(SelectedBodyIndex);
+        CachedSelectedBody = SelectedBodyIndex;
     }
 
 	// Update transforms only(body들은 그대로고 트랜스폼만 바뀌는 경우)

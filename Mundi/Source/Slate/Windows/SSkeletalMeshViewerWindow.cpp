@@ -468,6 +468,9 @@ void SSkeletalMeshViewerWindow::OnRender()
                                     // When user selects a body, set SelectedBodySetup and also select corresponding bone
                                     ActiveState->SelectedBodySetup = MatchedBody;
 
+                                    ActiveState->SelectedBodyIndex = ActiveState->CurrentPhysicsAsset->FindBodyIndex(FName(Label));
+
+
                                     // When user selects a body, also select the corresponding bone and move gizmo
                                     if (ActiveState->SelectedBoneIndex != Index)
                                     {
@@ -1196,7 +1199,7 @@ void SSkeletalMeshViewerWindow::OnRenderViewport()
         // Rebuild physics body lines when physics asset changes
         if (ActiveState->PreviewActor && ActiveState->CurrentMesh && ActiveState->CurrentMesh->PhysicsAsset)
         {
-            ActiveState->PreviewActor->RebuildBodyLines(ActiveState->bChangedGeomNum, 0);
+            ActiveState->PreviewActor->RebuildBodyLines(ActiveState->bChangedGeomNum, ActiveState->SelectedBodyIndex);
         }
 
         // 뷰포트 렌더링 (ImGui보다 먼저)
