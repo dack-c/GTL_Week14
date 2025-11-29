@@ -84,7 +84,7 @@ float4 BilateralUpsample(Texture2D blurTex, float2 uv, float centerDepth, float2
             sampleDepth = LinearizeDepth(sampleDepth, NearClip, FarClip, IsOrthographic2);
 
             float depthDiff = abs(sampleDepth - centerDepth) / max(centerDepth, 0.1);
-            float w = exp(-depthDiff * 5.0);
+            float w = exp(-depthDiff * 2.0);
             blur += s * w;
             totalWeight += w;
         }
@@ -131,8 +131,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // 5. 블러 텍스처 샘플링 (둘 다 Bilateral Upsampling)
-    float2 lowResTexelSize = ScreenSize.zw * 4.0;  // 1/4 해상도 텍셀 크기
+    // 5. 블러 텍스처 샘플링 (Bilateral, 부드러운 깊이 가중치)
+    float2 lowResTexelSize = ScreenSize.zw * 1.f;
     float4 farField = BilateralUpsample(g_FarFieldTex, input.texCoord, viewDepth, lowResTexelSize);
     float4 nearField = BilateralUpsample(g_NearFieldTex, input.texCoord, viewDepth, lowResTexelSize);
 

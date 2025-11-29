@@ -118,12 +118,9 @@ static_assert(sizeof(FDOFSetupBufferType) % 16 == 0, "CB must be 16-byte aligned
 // DOF Blur Pass (b2)
 struct alignas(16) FDOFBlurBufferType
 {
-    FVector2D TexelSize;           // 텍셀 크기 (1/width, 1/height)
     FVector2D BlurDirection;       // (1,0) = Horizontal, (0,1) = Vertical
-
     float BlurRadius;              // 블러 반경 스케일
-    int32 KernelSize;              // 커널 크기 (5, 9, 13)
-    FVector2D _Pad0;
+    float _Pad0;
 };
 static_assert(sizeof(FDOFBlurBufferType) % 16 == 0, "CB must be 16-byte aligned");
 
