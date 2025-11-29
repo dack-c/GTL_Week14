@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Name.h"
 #include "ResourceBase.h"
-
+#include "FKShapeElem.h"
 struct FPhysicsConstraintSetup
 {
     FName BodyNameA;
@@ -23,7 +23,15 @@ struct FPhysicsConstraintSetup
     bool  bEnableCollision = false;   // 기본은 서로 충돌 안 함
 };
 
+struct FBonePoints
+{
+    FVector Start;
+    FVector End;
+};
+
 class UBodySetup;
+struct FSkeleton;
+struct FBonePoints;
 class UPhysicsAsset : public UResourceBase
 {
 public:
@@ -54,7 +62,17 @@ public:
 
     int32 FindConstraintIndex(FName BodyA, FName BodyB) const;
 
-    // void CreateBodyInstance(FBodyInstance& OutInstance, FPhysicsScene& PhysicsScnene/*physics의 life cycle을 돌리는 class*/, const FTransform& WorldTransform);
+    // ====================================
+    // 뷰어, 자동 PhysicsAsset 관련 함수
+    // ====================================
+    void CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton);
+    void SelectBonesForBodies(const FSkeleton* Skeleton, TArray<int32>& OutBones) const;
+    FBonePoints GetBonePoints(const FSkeleton* Skeleton, int32 BoneIndex) const;
+    FKSphereElem FitSphereToBone(const FSkeleton* Skeleton, int32 BoneIndex);
+    FKBoxElem FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex);
+    FKSphylElem FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex);
+
+    void GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate);
 
     // ====================================
     // Asset 직렬화

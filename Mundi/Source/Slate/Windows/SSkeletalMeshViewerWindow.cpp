@@ -1019,7 +1019,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             ImGui::DragFloat3("Position A", &Constraint.LocalFrameA.Translation.X, 0.1f, -1000.0f, 1000.0f, "%.2f");
                             
                             FVector EulerA = Constraint.LocalFrameA.Rotation.ToEulerZYXDeg();
-                            if (ImGui::DragFloat3("Rotation A", &EulerA.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
+                            if (ImGui::DragFloat3("Rotation A", &EulerA.X, 0.5f, -180.0f, 180.0f, "%.2f"))
                             {
                                 Constraint.LocalFrameA.Rotation = FQuat::MakeFromEulerZYX(EulerA);
                             }
@@ -1029,7 +1029,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             ImGui::DragFloat3("Position B", &Constraint.LocalFrameB.Translation.X, 0.1f, -1000.0f, 1000.0f, "%.2f");
                             
                             FVector EulerB = Constraint.LocalFrameB.Rotation.ToEulerZYXDeg();
-                            if (ImGui::DragFloat3("Rotation B", &EulerB.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
+                            if (ImGui::DragFloat3("Rotation B", &EulerB.X, 0.5f, -180.0f, 180.0f, "%.2f"))
                             {
                                 Constraint.LocalFrameB.Rotation = FQuat::MakeFromEulerZYX(EulerB);
                             }
@@ -2526,67 +2526,108 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                 }
             }
 
-        if (State->CurrentPhysicsAsset)
-        {
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.60f, 0.45f, 0.35f, 0.7f));
-            ImGui::Separator();
-            ImGui::PopStyleColor();
-            ImGui::Spacing();
-
-            const FString& SavePath = State->CurrentPhysicsAsset->GetFilePath();
-            ImGui::Text("Active Physics Asset: %s", State->CurrentPhysicsAsset->GetName().ToString().c_str());
-            ImGui::Text("Save Path: %s", SavePath.empty() ? "<None>" : SavePath.c_str());
-
-            //if (ImGui::Button("Browse Save Path"))
-            //{
-            //    FString DefaultPath = SavePath.empty() ? (GDataDir + "/NewPhysicsAsset.physics") : SavePath;
-            //    FWideString Initial = UTF8ToWide(DefaultPath);
-            //    std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
-            //    if (!Selected.empty())
-            //    {
-            //        FString PathStr = ResolveAssetRelativePath(WideToUTF8(Selected.wstring()), GDataDir);
-            //        State->CurrentPhysicsAsset->SetFilePath(PathStr);
-            //    }
-            //}
-            //ImGui::SameLine();
-            //if (ImGui::Button("Save Physics Asset"))
-            //{
-            //    SavePhysicsAsset(State);
-            //}
-
-            //ImGui::SameLine();
-
-            // Save button: save currently selected PhysicsAsset to file
-            if (ImGui::Button("Save"))
+            if (State->CurrentPhysicsAsset)
             {
-                if (State->CurrentPhysicsAsset)
-                {
-                    // Get save path
-                    FWideString WideInitialPath = UTF8ToWide(PhysicsAssetPath.string());
-                    std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"phys", L"Physics Asset Files");
-					FString PathStr = ResolveAssetRelativePath(WidePath.string(), PhysicsAssetPath.string());
+                ImGui::Spacing();
+                ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.60f, 0.45f, 0.35f, 0.7f));
+                ImGui::Separator();
+                ImGui::PopStyleColor();
+                ImGui::Spacing();
 
-                    if (!WidePath.empty())
-                    {               
-                        if (State->CurrentPhysicsAsset->SaveToFile(PathStr))
-                        {
-                            State->CurrentPhysicsAsset->SetFilePath(PathStr);
+                const FString& SavePath = State->CurrentPhysicsAsset->GetFilePath();
+                ImGui::Text("Active Physics Asset: %s", State->CurrentPhysicsAsset->GetName().ToString().c_str());
+                ImGui::Text("Save Path: %s", SavePath.empty() ? "<None>" : SavePath.c_str());
+
+                // Save button: save currently selected PhysicsAsset to file
+                if (ImGui::Button("Save"))
+                {
+                    if (State->CurrentPhysicsAsset)
+                    {
+                        // Get save path
+                        FWideString WideInitialPath = UTF8ToWide(PhysicsAssetPath.string());
+                        std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"phys", L"Physics Asset Files");
+					    FString PathStr = ResolveAssetRelativePath(WidePath.string(), PhysicsAssetPath.string());
+
+                        if (!WidePath.empty())
+                        {               
+                            if (State->CurrentPhysicsAsset->SaveToFile(PathStr))
+                            {
+                                State->CurrentPhysicsAsset->SetFilePath(PathStr);
                             
-                            UE_LOG("PhysicsAsset saved to: %s", PathStr.c_str());
+                                UE_LOG("PhysicsAsset saved to: %s", PathStr.c_str());
+                            }
+                            else
+                            {
+                                UE_LOG("Failed to save PhysicsAsset to: %s", PathStr.c_str());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        UE_LOG("No PhysicsAsset selected to save");
+                    }
+                }
+
+                if (ImGui::Button("Generate All Body"))
+                {
+                    ImGui::OpenPopup("ShapeTypePopup");
+                }
+
+                static EAggCollisionShapeType SelectedShapeType = EAggCollisionShapeType::Sphere;
+                if (ImGui::BeginPopup("ShapeTypePopup"))
+                {
+                    if (ImGui::Selectable("Sphere"))  SelectedShapeType = EAggCollisionShapeType::Sphere;
+                    if (ImGui::Selectable("Box"))     SelectedShapeType = EAggCollisionShapeType::Box;
+                    if (ImGui::Selectable("Sphyl"))   SelectedShapeType = EAggCollisionShapeType::Sphyl;
+                    if (ImGui::Selectable("Convex"))  SelectedShapeType = EAggCollisionShapeType::Convex;
+
+                    ImGui::Separator();
+
+                    if (ImGui::Button("Create"))
+                    {
+                        ImGui::CloseCurrentPopup();
+
+                        UPhysicsAsset* NewAsset = NewObject<UPhysicsAsset>();
+                        if (NewAsset)
+                        {
+                            NewAsset->SetName("Default");
+
+                            FString AssetNameStr = NewAsset->GetName().ToString();
+                            UResourceManager::GetInstance().Add<UPhysicsAsset>(AssetNameStr, NewAsset);
+
+                            if (State->CurrentMesh)
+                            {
+                                NewAsset->CreateGenerateAllBodySetup(
+                                    SelectedShapeType,
+                                    State->CurrentMesh->GetSkeleton()
+                                );
+                            }
+                            else
+                            {
+                                UE_LOG("Cannot generate PhysicsAsset: No mesh available");
+                                ImGui::EndPopup();
+                                return;
+                            }
+
+                            State->CurrentPhysicsAsset = NewAsset;
+                            State->CurrentPhysicsAsset->SetFilePath(FString());
+
+                            if (State->CurrentMesh)
+                            {
+                                State->CurrentMesh->PhysicsAsset = NewAsset;
+                            }
+
+                            UE_LOG("Created new PhysicsAsset: %s", NewAsset->GetName().ToString().c_str());
                         }
                         else
                         {
-                            UE_LOG("Failed to save PhysicsAsset to: %s", PathStr.c_str());
+                            UE_LOG("Failed to create new UPhysicsAsset");
                         }
                     }
-                }
-                else
-                {
-                    UE_LOG("No PhysicsAsset selected to save");
+                    ImGui::EndPopup();
                 }
             }
         }
-        }
     }
 }
+
