@@ -23,6 +23,8 @@
 
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
+    PhysicsAssetPath = std::filesystem::path(GDataDir) / "PhysicsAsset";
+
     CenterRect = FRect(0, 0, 0, 0);
     
     IconFirstFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToFront.png");
@@ -468,6 +470,9 @@ void SSkeletalMeshViewerWindow::OnRender()
                                     // When user selects a body, set SelectedBodySetup and also select corresponding bone
                                     ActiveState->SelectedBodySetup = MatchedBody;
 
+                                    ActiveState->SelectedBodyIndex = ActiveState->CurrentPhysicsAsset->FindBodyIndex(FName(Label));
+
+
                                     // When user selects a body, also select the corresponding bone and move gizmo
                                     if (ActiveState->SelectedBoneIndex != Index)
                                     {
@@ -650,6 +655,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 if (ImGui::Button("Remove Sphere"))
                                 {
                                     Body->AggGeom.SphereElements.RemoveAt(si);
+                                    ActiveState->bChangedGeomNum = true;
                                     ImGui::TreePop();
                                     ImGui::PopID();
                                     break;
@@ -666,6 +672,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             NewSphere.Center = FVector::Zero();
                             NewSphere.Radius = 50.0f;
                             Body->AggGeom.SphereElements.Add(NewSphere);
+                            ActiveState->bChangedGeomNum = true;
                         }
                         
                         ImGui::PopID(); // Pop "SphereElements"
@@ -700,6 +707,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 if (ImGui::Button("Remove Box"))
                                 {
                                     Body->AggGeom.BoxElements.RemoveAt(bi);
+                                    ActiveState->bChangedGeomNum = true;
                                     ImGui::TreePop();
                                     ImGui::PopID();
                                     break;
@@ -717,6 +725,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             NewBox.Extents = FVector(50.0f, 50.0f, 50.0f);
                             NewBox.Rotation = FQuat::Identity();
                             Body->AggGeom.BoxElements.Add(NewBox);
+                            ActiveState->bChangedGeomNum = true;
                         }
                         
                         ImGui::PopID(); // Pop "BoxElements"
@@ -752,6 +761,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 if (ImGui::Button("Remove Capsule"))
                                 {
                                     Body->AggGeom.SphylElements.RemoveAt(si);
+                                    ActiveState->bChangedGeomNum = true;
                                     ImGui::TreePop();
                                     ImGui::PopID();
                                     break;
@@ -770,6 +780,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             NewSphyl.HalfLength = 50.0f;
                             NewSphyl.Rotation = FQuat::Identity();
                             Body->AggGeom.SphylElements.Add(NewSphyl);
+                            ActiveState->bChangedGeomNum = true;
                         }
                         
                         ImGui::PopID(); // Pop "SphylElements"
@@ -1187,6 +1198,12 @@ void SSkeletalMeshViewerWindow::OnRenderViewport()
             ActiveState->bBoneLinesDirty = false;
         }
 
+        // Rebuild physics body lines when physics asset changes
+        if (ActiveState->PreviewActor && ActiveState->CurrentMesh && ActiveState->CurrentMesh->PhysicsAsset)
+        {
+            ActiveState->PreviewActor->RebuildBodyLines(ActiveState->bChangedGeomNum, ActiveState->SelectedBodyIndex);
+        }
+
         // 뷰포트 렌더링 (ImGui보다 먼저)
         ActiveState->Viewport->Render();
     }
@@ -1342,7 +1359,7 @@ void SSkeletalMeshViewerWindow::DrawAnimationPanel(ViewerState* State)
         bool bIsTimelineHovered = false;
         float FrameAtMouse = 0.0f;
 
-        // --- 1.2. 헤더 행 (필터 + 눈금자) ---
+        // --- 1.2. 헤더 행 (필터 + 눈금을자) ---
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         
         // 헤더 - 컬럼 0: 필터
@@ -2207,6 +2224,38 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                 else
                 {
                     UE_LOG("Failed to create new UPhysicsAsset");
+                }
+            }
+
+            ImGui::SameLine();
+
+            // Save button: save currently selected PhysicsAsset to file
+            if (ImGui::Button("Save"))
+            {
+                if (State->CurrentPhysicsAsset)
+                {
+                    // Get save path
+                    FWideString WideInitialPath = UTF8ToWide(PhysicsAssetPath.string());
+                    std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"phys", L"Physics Asset Files");
+					FString PathStr = ResolveAssetRelativePath(WidePath.string(), PhysicsAssetPath.string());
+
+                    if (!WidePath.empty())
+                    {               
+                        if (State->CurrentPhysicsAsset->SaveToFile(PathStr))
+                        {
+                            State->CurrentPhysicsAsset->SetFilePath(PathStr);
+                            
+                            UE_LOG("PhysicsAsset saved to: %s", PathStr.c_str());
+                        }
+                        else
+                        {
+                            UE_LOG("Failed to save PhysicsAsset to: %s", PathStr.c_str());
+                        }
+                    }
+                }
+                else
+                {
+                    UE_LOG("No PhysicsAsset selected to save");
                 }
             }
         }
