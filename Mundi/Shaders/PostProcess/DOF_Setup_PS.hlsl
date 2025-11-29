@@ -33,19 +33,17 @@ cbuffer ViewProjBuffer : register(b1)
 cbuffer DOFSetupCB : register(b2)
 {
     float FocalDistance;           // m (meters)
-    float Fstop;
-    float SensorWidth;             // m (e.g., 0.024 = 24mm)
     float FocalRegion;             // m
-
     float NearTransitionRegion;    // m
     float FarTransitionRegion;     // m
+
     float MaxNearBlurSize;         // pixels
     float MaxFarBlurSize;          // pixels
-
     float NearClip;
     float FarClip;
+
     int IsOrthographic2;
-    float _Pad0;
+    float3 _Pad0;
 }
 
 cbuffer ViewportConstants : register(b10)
@@ -79,8 +77,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float CoC = CalculateCoC(
         viewDepth,
         FocalDistance,
-        Fstop,
-        SensorWidth,
         FocalRegion,
         NearTransitionRegion,
         FarTransitionRegion,
