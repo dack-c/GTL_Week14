@@ -18,8 +18,9 @@ namespace physx
 
 struct FBodyInstance
 {
-    void InitDynamic(FPhysScene& World, const FTransform& WorldTransform, float Mass);
-    void InitStatic(FPhysScene& World, const FTransform& WorldTransform);
+    // Dynamic과 Static에 스케일을 적용한다. 여기 들어간 파라미터를 이용해서 Shape를 생성한다.
+    void InitDynamic(FPhysScene& World, const FTransform& WorldTransform, float Mass, const FVector& Scale3D = FVector(1,1,1));
+    void InitStatic(FPhysScene& World, const FTransform& WorldTransform, const FVector& Scale3D = FVector(1,1,1));
 
     void Terminate(FPhysScene& World);
 

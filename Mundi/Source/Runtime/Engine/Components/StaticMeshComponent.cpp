@@ -266,10 +266,11 @@ void UStaticMeshComponent::InitPhysics(FPhysScene& PhysScene)
 	BodyInstance->BodySetup = GetBodySetup(); // StaticMesh에서 가져오기
 
 	FTransform WorldTM = GetWorldTransform();
+	FVector Scale3D = WorldTM.Scale3D;  // 월드 스케일 추출
 
 	if (bIsStaticPhysics)
 	{
-		BodyInstance->InitStatic(PhysScene, WorldTM);
+		BodyInstance->InitStatic(PhysScene, WorldTM, Scale3D);
 	}
 	else
 	{
@@ -279,7 +280,7 @@ void UStaticMeshComponent::InitPhysics(FPhysScene& PhysScene)
 		{
 			Mass = BodyInstance->BodySetup->Mass;
 		}
-		BodyInstance->InitDynamic(PhysScene, WorldTM, Mass);
+		BodyInstance->InitDynamic(PhysScene, WorldTM, Mass, Scale3D);
 	}
 }
 

@@ -10,7 +10,7 @@ using namespace physx;
 // -------------------------
 // Dynamic Body 초기화
 // -------------------------
-void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransform, float Mass)
+void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransform, float Mass, const FVector& Scale3D)
 {
     // 이미 RigidActor가 존재하면 정리
     if (RigidActor)
@@ -42,13 +42,20 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
     {
         const FKAggregateGeom& Agg = BodySetup->AggGeom;
 
+        // 스케일의 절대값 사용 (음수 스케일 대응)
+        const FVector AbsScale(std::fabs(Scale3D.X), std::fabs(Scale3D.Y), std::fabs(Scale3D.Z));
+
         // 1) 스피어들
         for (const FKSphereElem& Sphere : Agg.SphereElements)
         {
-            FTransform LocalXform(Sphere.Center, FQuat::Identity(), FVector(1,1,1));
+            // 스피어 중심도 스케일 적용
+            FVector ScaledCenter = Sphere.Center * Scale3D;
+            FTransform LocalXform(ScaledCenter, FQuat::Identity(), FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
 
-            PxSphereGeometry Geom(Sphere.Radius);
+            // 균등 스케일이 아닌 경우 가장 큰 축 사용
+            float MaxScale = std::max({AbsScale.X, AbsScale.Y, AbsScale.Z});
+            PxSphereGeometry Geom(Sphere.Radius * MaxScale);
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
@@ -61,10 +68,17 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         // 2) 박스들
         for (const FKBoxElem& Box : Agg.BoxElements)
         {
-            FTransform LocalXform(Box.Center, Box.Rotation,FVector(1,1,1));
+            // 박스 중심도 스케일 적용
+            FVector ScaledCenter = Box.Center * Scale3D;
+            FTransform LocalXform(ScaledCenter, Box.Rotation, FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
 
-            PxBoxGeometry Geom(Box.Extents.X, Box.Extents.Y, Box.Extents.Z);
+            // 박스 Extents에 스케일 적용
+            PxBoxGeometry Geom(
+                Box.Extents.X * AbsScale.X,
+                Box.Extents.Y * AbsScale.Y,
+                Box.Extents.Z * AbsScale.Z
+            );
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
@@ -77,28 +91,21 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         // 3) 캡슐(Sphyl)들
         for (const FKSphylElem& Sphyl : Agg.SphylElements)
         {
-            // 1) 엔진 기준: "본 로컬 Z축으로 뻗는 캡슐"이라고 생각하고 데이터 저장해 둔 상태
-            FTransform LocalZCapsule(Sphyl.Center, Sphyl.Rotation, FVector(1,1,1));
+            // 캡슐 중심도 스케일 적용
+            FVector ScaledCenter = Sphyl.Center * Scale3D;
 
-            // 2) Z축 캡슐 → PhysX X축 캡슐로 보정
-            //    +X -> +Z 로 보내는 회전 = Y축 기준 -90도
+            // Z축 캡슐 → PhysX X축 캡슐로 보정
             FQuat ZToX = FQuat::FromAxisAngle(FVector(0, 1, 0), -XM_PIDIV2);
-
-            // ★ 곱하는 순서는 엔진의 쿼터니언 convention에 따라 다를 수 있는데,
-            //    보통 "기존 회전에 보정 회전을 추가" = Existing * Delta 로 많이 쓴다.
             FQuat PhysRot = Sphyl.Rotation * ZToX;
 
-            
-            // PhysX 캡슐 축은 X축 방향(±X) 기준
-            // 우리 엔진에서 Z-up, X-forward 기준으로 Sphyl.Rotation을 이미 맞춰둔다고 가정
-            FTransform LocalXform(Sphyl.Center, PhysRot, FVector(1,1,1));
+            FTransform LocalXform(ScaledCenter, PhysRot, FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
 
-            float HalfHeight = Sphyl.HalfLength;
+            // 캡슐: 반지름은 XY 평균, 높이는 Z 스케일 적용
+            float RadiusScale = (AbsScale.X + AbsScale.Y) * 0.5f;
+            float HeightScale = AbsScale.Z;
 
-            // 이 부분에서 항상 로컬 x축 (+x)방향으로 길게 뻗는 캡슐임.
-            // 우리엔진에서 캡슐의 길이는 z 방향이라고 생각(본이 z로 뻗는다고 생각)하기 때문에, 축변환을 해줘야함
-            PxCapsuleGeometry Geom(Sphyl.Radius, HalfHeight);
+            PxCapsuleGeometry Geom(Sphyl.Radius * RadiusScale, Sphyl.HalfLength * HeightScale);
 
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
@@ -136,7 +143,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
 // -------------------------
 // Static Body 초기화
 // -------------------------
-void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransform)
+void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransform, const FVector& Scale3D)
 {
     // 이미 바디가 존재하면 정리
     if (RigidActor)
@@ -165,13 +172,20 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
     {
         const FKAggregateGeom& Agg = BodySetup->AggGeom;
 
+        // 스케일의 절대값 사용 (음수 스케일 대응)
+        const FVector AbsScale(std::fabs(Scale3D.X), std::fabs(Scale3D.Y), std::fabs(Scale3D.Z));
+
         // 1) 스피어들
         for (const FKSphereElem& Sphere : Agg.SphereElements)
         {
-            FTransform LocalXform(Sphere.Center, FQuat::Identity(), FVector(1,1,1));
+            // 스피어 중심도 스케일 적용
+            FVector ScaledCenter = Sphere.Center * Scale3D;
+            FTransform LocalXform(ScaledCenter, FQuat::Identity(), FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
 
-            PxSphereGeometry Geom(Sphere.Radius);
+            // 균등 스케일이 아닌 경우 가장 큰 축 사용
+            float MaxScale = std::max({AbsScale.X, AbsScale.Y, AbsScale.Z});
+            PxSphereGeometry Geom(Sphere.Radius * MaxScale);
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
@@ -184,10 +198,17 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
         // 2) 박스들
         for (const FKBoxElem& Box : Agg.BoxElements)
         {
-            FTransform LocalXform(Box.Center, Box.Rotation, FVector(1,1,1));
+            // 박스 중심도 스케일 적용
+            FVector ScaledCenter = Box.Center * Scale3D;
+            FTransform LocalXform(ScaledCenter, Box.Rotation, FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
 
-            PxBoxGeometry Geom(Box.Extents.X, Box.Extents.Y, Box.Extents.Z);
+            // 박스 Extents에 스케일 적용
+            PxBoxGeometry Geom(
+                Box.Extents.X * AbsScale.X,
+                Box.Extents.Y * AbsScale.Y,
+                Box.Extents.Z * AbsScale.Z
+            );
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
@@ -200,14 +221,21 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
         // 3) 캡슐(Sphyl)들
         for (const FKSphylElem& Sphyl : Agg.SphylElements)
         {
+            // 캡슐 중심도 스케일 적용
+            FVector ScaledCenter = Sphyl.Center * Scale3D;
+
             // Z축 캡슐 → PhysX X축 캡슐로 보정
             FQuat ZToX = FQuat::FromAxisAngle(FVector(0, 1, 0), -XM_PIDIV2);
             FQuat PhysRot = Sphyl.Rotation * ZToX;
 
-            FTransform LocalXform(Sphyl.Center, PhysRot, FVector(1,1,1));
+            FTransform LocalXform(ScaledCenter, PhysRot, FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
 
-            PxCapsuleGeometry Geom(Sphyl.Radius, Sphyl.HalfLength);
+            // 캡슐: 반지름은 XY 평균, 높이는 Z 스케일 적용
+            float RadiusScale = (AbsScale.X + AbsScale.Y) * 0.5f;
+            float HeightScale = AbsScale.Z;
+
+            PxCapsuleGeometry Geom(Sphyl.Radius * RadiusScale, Sphyl.HalfLength * HeightScale);
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
