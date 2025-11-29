@@ -23,8 +23,8 @@ public:
     FKAggregateGeom AggGeom;             // 이 Body가 가진 Primitive Collision 모음
 
     float Mass = 10.0f;                
-    float LinearDamping = 0.01f;  // 선속도를 줄이는 속도에 비례한 마찰
-    float AngularDamping = 0.05f; // 각속도를 줄이는 회전에 대한 공기저항/마찰
+    float LinearDamping = 0.01f;  // 위치의 시간 당 변화량
+    float AngularDamping = 0.05f; // 회전의 시간 당 변화량
 
     // Material
     // TODO : 직렬화 + 구조 짜기

@@ -7,13 +7,15 @@ struct FPhysicsConstraintSetup
     FName BodyNameA;
     FName BodyNameB;
 
-    FTransform LocalFrameA;
+    //Actor의 local 기준, 조인트의 transform
+    FTransform LocalFrameA; 
     FTransform LocalFrameB;
 
-    // 제한 값들
-    float TwistLimitMin;
+    // UI에 노출될 제한 값들 : (-Limit ~ +Limit) 
+    // 원하는 값이 좌 -15, 우 +45면 초기화를 +15로 하고, limit를 15로 줄 것
+    float TwistLimitMin; // x축 회전
     float TwistLimitMax;
-    float SwingLimitY;
+    float SwingLimitY; // y축 회전
     float SwingLimitZ;
 };
 
@@ -43,7 +45,14 @@ public:
 
     int32 FindConstraintIndex(FName BodyA, FName BodyB) const;
 
+    // void CreateBodyInstance(FBodyInstance& OutInstance, FPhysicsScene& PhysicsScnene/*physics의 life cycle을 돌리는 class*/, const FTransform& WorldTransform);
+
+    // UResourceBase Load
+    bool Load(const FString& InFilePath, ID3D11Device* InDevice);
+
+    // PhysicsAsset을 JSON 형식으로 파일에 저장
+    bool SaveToFile(const FString& FilePath);
+
 private:
     FName Name;
-
 };

@@ -1,6 +1,9 @@
 ﻿#pragma once
 struct FKShapeElem
 {
+    EAggCollisionShapeType ShapeType = EAggCollisionShapeType::Unknown;
+
+    EAggCollisionShapeType GetShapeType() const { return ShapeType; }
 };
 
 struct FKSphereElem
