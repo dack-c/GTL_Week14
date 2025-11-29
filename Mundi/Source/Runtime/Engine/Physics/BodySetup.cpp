@@ -4,13 +4,6 @@
 
 IMPLEMENT_CLASS(UBodySetup)
 
-void FKAggregateGeom::Clear()
-{
-    SphereElements.Empty();
-    BoxElements.Empty();
-    SphylElements.Empty();
-    ConvexElements.Empty();
-}
 
 void UBodySetup::AddSphere(const FKSphereElem& Elem)
 {
