@@ -23,6 +23,8 @@
 
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
+    PhysicsAssetPath = std::filesystem::path(GDataDir) / "PhysicsAsset";
+
     CenterRect = FRect(0, 0, 0, 0);
     
     IconFirstFrame = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsToFront.png");
@@ -2222,6 +2224,38 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                 else
                 {
                     UE_LOG("Failed to create new UPhysicsAsset");
+                }
+            }
+
+            ImGui::SameLine();
+
+            // Save button: save currently selected PhysicsAsset to file
+            if (ImGui::Button("Save"))
+            {
+                if (State->CurrentPhysicsAsset)
+                {
+                    // Get save path
+                    FWideString WideInitialPath = UTF8ToWide(PhysicsAssetPath.string());
+                    std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"phys", L"Physics Asset Files");
+					FString PathStr = ResolveAssetRelativePath(WidePath.string(), PhysicsAssetPath.string());
+
+                    if (!WidePath.empty())
+                    {               
+                        if (State->CurrentPhysicsAsset->SaveToFile(PathStr))
+                        {
+                            State->CurrentPhysicsAsset->SetFilePath(PathStr);
+                            
+                            UE_LOG("PhysicsAsset saved to: %s", PathStr.c_str());
+                        }
+                        else
+                        {
+                            UE_LOG("Failed to save PhysicsAsset to: %s", PathStr.c_str());
+                        }
+                    }
+                }
+                else
+                {
+                    UE_LOG("No PhysicsAsset selected to save");
                 }
             }
         }
