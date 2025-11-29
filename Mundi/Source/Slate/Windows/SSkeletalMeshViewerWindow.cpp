@@ -482,7 +482,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                         if (ActiveState->CurrentPhysicsAsset)
                         {
                             UBodySetup* MatchedBody = ActiveState->CurrentPhysicsAsset->FindBodySetup(FName(Label));
-                            if (MatchedBody && open)
+                            if (MatchedBody)
                             {
                                 ImGui::Indent(14.0f);
 
@@ -502,6 +502,9 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                                     ActiveState->SelectedBodyIndex = ActiveState->CurrentPhysicsAsset->FindBodyIndex(FName(Label));
 
+
+                                    // Clear constraint selection when body is selected
+                                    ActiveState->SelectedConstraintIndex = -1;
 
                                     // When user selects a body, also select the corresponding bone and move gizmo
                                     if (ActiveState->SelectedBoneIndex != Index)
@@ -599,6 +602,61 @@ void SSkeletalMeshViewerWindow::OnRender()
                                     }
                                     ImGui::EndPopup();
                                 }
+
+
+                                ImGui::Indent(14.0f);
+                                // Display constraints connected to this body
+                                UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
+                                FName CurrentBodyName = MatchedBody->BoneName;
+
+                                // Find all constraints involving this body
+                                for (int32 ConstraintIdx = 0; ConstraintIdx < Phys->Constraints.Num(); ++ConstraintIdx)
+                                {
+                                    const FPhysicsConstraintSetup& Constraint = Phys->Constraints[ConstraintIdx];
+
+                                    // Check if this constraint involves the current body
+                                    if (Constraint.BodyNameA == CurrentBodyName || Constraint.BodyNameB == CurrentBodyName)
+                                    {
+                                        // Determine the "other" body name
+                                        FName OtherBodyName = (Constraint.BodyNameA == CurrentBodyName) ? Constraint.BodyNameB : Constraint.BodyNameA;
+
+                                        char ConstraintLabel[256];
+                                        snprintf(ConstraintLabel, sizeof(ConstraintLabel), "  Constraint -> %s", OtherBodyName.ToString().c_str());
+
+                                        bool bConstraintSelected = (ActiveState->SelectedConstraintIndex == ConstraintIdx);
+
+                                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.85f, 0.85f, 1.0f));
+                                        if (ImGui::Selectable(ConstraintLabel, bConstraintSelected))
+                                        {
+                                            // Select this constraint
+                                            ActiveState->SelectedConstraintIndex = ConstraintIdx;
+
+                                            // Clear body selection when constraint is selected
+                                            ActiveState->SelectedBodySetup = nullptr;
+                                            ActiveState->SelectedBodyIndex = -1;
+                                        }
+                                        ImGui::PopStyleColor();
+
+                                        // Right-click to delete constraint
+                                        if (ImGui::BeginPopupContextItem())
+                                        {
+                                            if (ImGui::MenuItem("Delete Constraint"))
+                                            {
+                                                Phys->Constraints.RemoveAt(ConstraintIdx);
+                                                if (ActiveState->SelectedConstraintIndex == ConstraintIdx)
+                                                {
+                                                    ActiveState->SelectedConstraintIndex = -1;
+                                                }
+                                                else if (ActiveState->SelectedConstraintIndex > ConstraintIdx)
+                                                {
+                                                    ActiveState->SelectedConstraintIndex--;
+                                                }
+                                            }
+                                            ImGui::EndPopup();
+                                        }
+                                    }
+                                }
+                                ImGui::Unindent(14.0f);
 
                                 ImGui::Unindent(14.0f);
                             }
@@ -878,6 +936,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 ImGui::DragFloat3("Center", &B.Center.X, 0.1f, -10000.0f, 10000.0f, "%.2f");
                                 ImGui::DragFloat3("Extents", &B.Extents.X, 0.1f, 0.1f, 10000.0f, "%.2f");
                                 
+
                                 // Rotation as Euler angles
                                 FVector EulerDeg = B.Rotation.ToEulerZYXDeg();
                                 if (ImGui::DragFloat3("Rotation", &EulerDeg.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
@@ -982,6 +1041,81 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 ImGui::Text("[%d] Vertices: %d", ci, C.Vertices.Num());
                             }
                             ImGui::Unindent(10.0f);
+                        }
+                    }
+                }
+                else if (ActiveState->SelectedConstraintIndex >= 0 && ActiveState->CurrentPhysicsAsset) // Constraint Properties
+                {
+                    UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
+                    if (ActiveState->SelectedConstraintIndex < Phys->Constraints.Num())
+                    {
+                        FPhysicsConstraintSetup& Constraint = Phys->Constraints[ActiveState->SelectedConstraintIndex];
+
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.9f, 0.9f, 1.0f));
+                        ImGui::Text("> Selected Constraint");
+                        ImGui::PopStyleColor();
+
+                        ImGui::Spacing();
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.90f, 0.95f, 1.00f, 1.0f));
+                        ImGui::TextWrapped("%s <-> %s", 
+                            Constraint.BodyNameA.ToString().c_str(), 
+                            Constraint.BodyNameB.ToString().c_str());
+                        ImGui::PopStyleColor();
+
+                        ImGui::Spacing();
+                        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.8f));
+                        ImGui::Separator();
+                        ImGui::PopStyleColor();
+
+                        // Editable constraint properties
+                        ImGui::Text("Constraint Limits:");
+                        ImGui::Spacing();
+
+                        ImGui::Text("Twist Limits (X-axis):");
+                        ImGui::DragFloat("Min Twist##Twist", &Constraint.TwistLimitMin, 0.5f, -180.0f, Constraint.TwistLimitMax, "%.2f°");
+                        ImGui::DragFloat("Max Twist##Twist", &Constraint.TwistLimitMax, 0.5f, Constraint.TwistLimitMin, 180.0f, "%.2f°");
+
+                        ImGui::Spacing();
+                        ImGui::Text("Swing Limits:");
+                        ImGui::DragFloat("Swing Y##Swing", &Constraint.SwingLimitY, 0.5f, 0.0f, 180.0f, "%.2f°");
+                        ImGui::DragFloat("Swing Z##Swing", &Constraint.SwingLimitZ, 0.5f, 0.0f, 180.0f, "%.2f°");
+
+                        ImGui::Spacing();
+                        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.5f));
+                        ImGui::Separator();
+                        ImGui::PopStyleColor();
+                        ImGui::Spacing();
+
+                        ImGui::Text("Collision:");
+                        ImGui::Checkbox("Enable Collision", &Constraint.bEnableCollision);
+
+                        ImGui::Spacing();
+                        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.5f));
+                        ImGui::Separator();
+                        ImGui::PopStyleColor();
+                        ImGui::Spacing();
+
+                        // Local Frame editing (advanced)
+                        if (ImGui::CollapsingHeader("Local Frames (Advanced)"))
+                        {
+                            ImGui::Text("Local Frame A (Parent):");
+                            ImGui::DragFloat3("Position A", &Constraint.LocalFrameA.Translation.X, 0.1f, -1000.0f, 1000.0f, "%.2f");
+                            
+                            FVector EulerA = Constraint.LocalFrameA.Rotation.ToEulerZYXDeg();
+                            if (ImGui::DragFloat3("Rotation A", &EulerA.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
+                            {
+                                Constraint.LocalFrameA.Rotation = FQuat::MakeFromEulerZYX(EulerA);
+                            }
+
+                            ImGui::Spacing();
+                            ImGui::Text("Local Frame B (Child):");
+                            ImGui::DragFloat3("Position B", &Constraint.LocalFrameB.Translation.X, 0.1f, -1000.0f, 1000.0f, "%.2f");
+                            
+                            FVector EulerB = Constraint.LocalFrameB.Rotation.ToEulerZYXDeg();
+                            if (ImGui::DragFloat3("Rotation B", &EulerB.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
+                            {
+                                Constraint.LocalFrameB.Rotation = FQuat::MakeFromEulerZYX(EulerB);
+                            }
                         }
                     }
                 }
@@ -1094,7 +1228,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                 else
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-                    ImGui::TextWrapped("Select a bone from the hierarchy to edit its transform properties.");
+                    ImGui::TextWrapped("Select a bone, body, or constraint from the hierarchy to edit its properties.");
                     ImGui::PopStyleColor();
                 }
             }

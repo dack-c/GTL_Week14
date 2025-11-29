@@ -71,6 +71,9 @@ public:
     UBodySetup* SelectedBodySetup = nullptr;
 	int32 SelectedBodyIndex = -1;
 
+    // Selected Constraint (for showing constraint details / selection)
+    int32 SelectedConstraintIndex = -1;
+
     // Rename state for Physics Asset: use boolean (CurrentPhysicsAsset holds the asset being renamed)
     bool bIsRenaming = false;                          // true while inline-rename is active
     char PhysicsAssetNameBuffer[128] = { 0 };          // temporary editable b
