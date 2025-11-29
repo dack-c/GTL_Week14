@@ -1246,7 +1246,7 @@ void SSkeletalMeshViewerWindow::LoadPhysicsAsset(UPhysicsAsset* PhysicsAsset)
         return;
     }
 
-    PhysicsAsset->BuildBodySetupIndexMap();
+    PhysicsAsset->BuildRuntimeCache();
 
     if (ActiveState->CurrentMesh)
     {
