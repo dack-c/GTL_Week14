@@ -1029,7 +1029,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             ImGui::DragFloat3("Position B", &Constraint.LocalFrameB.Translation.X, 0.1f, -1000.0f, 1000.0f, "%.2f");
                             
                             FVector EulerB = Constraint.LocalFrameB.Rotation.ToEulerZYXDeg();
-                            if (ImGui::DragFloat3("Rotation B", &EulerB.X, 0.5f, -180.0f, 180.0f, "%.2f"))
+                            if (ImGui::DragFloat3("Rotation B", &EulerB.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
                             {
                                 Constraint.LocalFrameB.Rotation = FQuat::MakeFromEulerZYX(EulerB);
                             }
@@ -2573,57 +2573,62 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                     ImGui::OpenPopup("ShapeTypePopup");
                 }
 
-                static EAggCollisionShapeType SelectedShapeType = EAggCollisionShapeType::Sphere;
-                if (ImGui::BeginPopup("ShapeTypePopup"))
-                {
-                    if (ImGui::Selectable("Sphere"))  SelectedShapeType = EAggCollisionShapeType::Sphere;
-                    if (ImGui::Selectable("Box"))     SelectedShapeType = EAggCollisionShapeType::Box;
-                    if (ImGui::Selectable("Sphyl"))   SelectedShapeType = EAggCollisionShapeType::Sphyl;
-                    if (ImGui::Selectable("Convex"))  SelectedShapeType = EAggCollisionShapeType::Convex;
-
-                    ImGui::Separator();
-
-                    if (ImGui::Button("Create"))
+                auto CreatePhysicsAssetWithShape = [&](EAggCollisionShapeType ShapeType)
                     {
-                        ImGui::CloseCurrentPopup();
+                        if (!State->CurrentMesh)
+                        {
+                            UE_LOG("Cannot generate PhysicsAsset: No mesh available");
+                            return;
+                        }
 
                         UPhysicsAsset* NewAsset = NewObject<UPhysicsAsset>();
-                        if (NewAsset)
-                        {
-                            NewAsset->SetName("Default");
-
-                            FString AssetNameStr = NewAsset->GetName().ToString();
-                            UResourceManager::GetInstance().Add<UPhysicsAsset>(AssetNameStr, NewAsset);
-
-                            if (State->CurrentMesh)
-                            {
-                                NewAsset->CreateGenerateAllBodySetup(
-                                    SelectedShapeType,
-                                    State->CurrentMesh->GetSkeleton()
-                                );
-                            }
-                            else
-                            {
-                                UE_LOG("Cannot generate PhysicsAsset: No mesh available");
-                                ImGui::EndPopup();
-                                return;
-                            }
-
-                            State->CurrentPhysicsAsset = NewAsset;
-                            State->CurrentPhysicsAsset->SetFilePath(FString());
-
-                            if (State->CurrentMesh)
-                            {
-                                State->CurrentMesh->PhysicsAsset = NewAsset;
-                            }
-
-                            UE_LOG("Created new PhysicsAsset: %s", NewAsset->GetName().ToString().c_str());
-                        }
-                        else
+                        if (!NewAsset)
                         {
                             UE_LOG("Failed to create new UPhysicsAsset");
+                            return;
                         }
+
+                        NewAsset->SetName("Default");
+
+                        FString AssetNameStr = NewAsset->GetName().ToString();
+                        UResourceManager::GetInstance().Add<UPhysicsAsset>(AssetNameStr, NewAsset);
+
+                        NewAsset->CreateGenerateAllBodySetup(
+                            ShapeType,
+                            State->CurrentMesh->GetSkeleton()
+                        );
+
+                        State->CurrentPhysicsAsset = NewAsset;
+                        State->CurrentPhysicsAsset->SetFilePath(FString()); // 아직 파일 없음
+
+                        State->CurrentMesh->PhysicsAsset = NewAsset;
+
+                        UE_LOG("Created new PhysicsAsset: %s", NewAsset->GetName().ToString().c_str());
+                    };
+
+                if (ImGui::BeginPopup("ShapeTypePopup"))
+                {
+                    if (ImGui::Selectable("Sphere"))
+                    {
+                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Sphere);
+                        ImGui::CloseCurrentPopup();
                     }
+                    if (ImGui::Selectable("Box"))
+                    {
+                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Box);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::Selectable("Sphyl"))
+                    {
+                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Sphyl);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::Selectable("Convex"))
+                    {
+                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Convex);
+                        ImGui::CloseCurrentPopup();
+                    }
+
                     ImGui::EndPopup();
                 }
             }
