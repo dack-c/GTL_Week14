@@ -302,8 +302,6 @@ void APlayerCameraManager::StartGamma(float Gamma)
 
 void APlayerCameraManager::StartDOF(
 	float FocalDistance,
-	float Fstop,
-	float SensorWidth,
 	float FocalRegion,
 	float NearTransitionRegion,
 	float FarTransitionRegion,
@@ -326,8 +324,6 @@ void APlayerCameraManager::StartDOF(
 	DOFModifier->bEnabled = true;
 
 	DOFModifier->FocalDistance = FocalDistance;
-	DOFModifier->Fstop = Fstop;
-	DOFModifier->SensorWidth = SensorWidth;
 	DOFModifier->FocalRegion = FocalRegion;
 	DOFModifier->NearTransitionRegion = NearTransitionRegion;
 	DOFModifier->FarTransitionRegion = FarTransitionRegion;

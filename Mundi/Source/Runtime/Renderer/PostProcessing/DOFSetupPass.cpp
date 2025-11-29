@@ -91,19 +91,17 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
     // b2: DOFSetupCB
     FDOFSetupBufferType DOFSetupCB;
     DOFSetupCB.FocalDistance = M.Payload.Params0.X;
-    DOFSetupCB.Fstop = M.Payload.Params0.Y;
-    DOFSetupCB.SensorWidth = M.Payload.Params0.Z;
     DOFSetupCB.FocalRegion = M.Payload.Params0.W;
-
     DOFSetupCB.NearTransitionRegion = M.Payload.Params1.X;
     DOFSetupCB.FarTransitionRegion = M.Payload.Params1.Y;
+
     DOFSetupCB.MaxNearBlurSize = M.Payload.Params1.Z;
     DOFSetupCB.MaxFarBlurSize = M.Payload.Params1.W;
-
     DOFSetupCB.NearClip = View->NearClip;
     DOFSetupCB.FarClip = View->FarClip;
+
     DOFSetupCB.IsOrthographic = (View->ProjectionMode == ECameraProjectionMode::Orthographic) ? 1 : 0;
-    DOFSetupCB._Pad0 = 0.0f;
+    DOFSetupCB._Pad0 = FVector::Zero();
 
     RHIDevice->SetAndUpdateConstantBuffer(DOFSetupCB);
 

@@ -12,11 +12,9 @@ public:
 
     // DOF 파라미터 (엔진 단위: m)
     float FocalDistance = 6.0f;             // m (초점 거리)
-    float Fstop = 2.8f;                     // 조리개 값
-    float SensorWidth = 0.024f;             // m (센서 너비, 24mm)
     float FocalRegion = 4.0f;               // m (완전 선명 영역)
     float NearTransitionRegion = 5.0f;      // m (근경 블러 전환)
-    float FarTransitionRegion = + 20.0f;       // m (원경 블러 전환)
+    float FarTransitionRegion = 20.0f;      // m (원경 블러 전환)
     float MaxNearBlurSize = 3.0f;           // pixels (근경 최대 블러)
     float MaxFarBlurSize = 3.0f;            // pixels (원경 최대 블러)
 
@@ -34,11 +32,11 @@ public:
         M.SourceObject = this;
 
         // Payload에 DOF 파라미터 담기 (엔진 단위: m)
-        // Params0: FocalDistance(m), Fstop, SensorWidth(m), FocalRegion(m)
+        // Params0: FocalDistance(m), unused, unused, FocalRegion(m)
         M.Payload.Params0 = FVector4(
             FocalDistance,
-            Fstop,
-            SensorWidth,
+            0.0f,
+            0.0f,
             FocalRegion
         );
 

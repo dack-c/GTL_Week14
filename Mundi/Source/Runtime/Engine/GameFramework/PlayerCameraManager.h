@@ -48,8 +48,6 @@ public:
 
 	void StartDOF(
 		float FocalDistance = 5.0f,          // m (meters)
-		float Fstop = 2.8f,
-		float SensorWidth = 0.024f,          // m (24mm)
 		float FocalRegion = 0.5f,            // m (0.5m = 50cm)
 		float NearTransitionRegion = 2.0f,   // m
 		float FarTransitionRegion = 5.0f,    // m

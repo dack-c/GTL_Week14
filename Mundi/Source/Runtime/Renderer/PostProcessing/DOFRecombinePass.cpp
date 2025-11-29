@@ -79,17 +79,15 @@ void FDOFRecombinePass::Execute(const FPostProcessModifier& M, FSceneView* View,
     // b2: DOFRecombineCB
     FDOFRecombineBufferType DOFRecombineCB;
     DOFRecombineCB.FocalDistance = M.Payload.Params0.X;
-    DOFRecombineCB.Fstop = M.Payload.Params0.Y;
-    DOFRecombineCB.SensorWidth = M.Payload.Params0.Z;
     DOFRecombineCB.FocalRegion = M.Payload.Params0.W;
-
     DOFRecombineCB.NearTransitionRegion = M.Payload.Params1.X;
     DOFRecombineCB.FarTransitionRegion = M.Payload.Params1.Y;
+
     DOFRecombineCB.MaxNearBlurSize = M.Payload.Params1.Z;
     DOFRecombineCB.MaxFarBlurSize = M.Payload.Params1.W;
-
     DOFRecombineCB.NearClip = View->NearClip;
     DOFRecombineCB.FarClip = View->FarClip;
+
     DOFRecombineCB.IsOrthographic = (View->ProjectionMode == ECameraProjectionMode::Orthographic) ? 1 : 0;
     DOFRecombineCB._Pad0 = 0.0f;
 

@@ -35,22 +35,21 @@ cbuffer ViewProjBuffer : register(b1)
 cbuffer DOFRecombineCB : register(b2)
 {
     float FocalDistance;           // m (meters)
-    float Fstop;
-    float SensorWidth;             // m (e.g., 0.024 = 24mm)
     float FocalRegion;             // m
-
     float NearTransitionRegion;    // m
     float FarTransitionRegion;     // m
+
     float MaxNearBlurSize;         // pixels
     float MaxFarBlurSize;          // pixels
-
     float NearClip;
     float FarClip;
+
     int IsOrthographic2;
     float _Pad0;
-
     float2 ViewRectMinUV;          // ViewRect 시작 UV (게임 영역)
+
     float2 ViewRectMaxUV;          // ViewRect 끝 UV (게임 영역)
+    float2 _Pad1;
 }
 
 cbuffer ViewportConstants : register(b10)
@@ -115,8 +114,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float CoC = CalculateCoC(
         viewDepth,
         FocalDistance,
-        Fstop,
-        SensorWidth,
         FocalRegion,
         NearTransitionRegion,
         FarTransitionRegion,

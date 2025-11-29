@@ -98,20 +98,18 @@ static_assert(sizeof(FGammaCorrectionBufferType) % 16 == 0, "CB must be 16-byte 
 // DOF Setup Pass (b2)
 struct alignas(16) FDOFSetupBufferType
 {
-    float FocalDistance;           // cm (초점 거리)
-    float Fstop;                   // 조리개 값 (2.8, 5.6 등)
-    float SensorWidth;             // mm (센서 너비, 기본 24mm)
-    float FocalRegion;             // cm (완전 선명 영역)
+    float FocalDistance;           // m (초점 거리)
+    float FocalRegion;             // m (완전 선명 영역)
+    float NearTransitionRegion;    // m (근경 블러 전환 영역)
+    float FarTransitionRegion;     // m (원경 블러 전환 영역)
 
-    float NearTransitionRegion;    // cm (근경 블러 전환 영역)
-    float FarTransitionRegion;     // cm (원경 블러 전환 영역)
     float MaxNearBlurSize;         // pixels (근경 최대 블러)
     float MaxFarBlurSize;          // pixels (원경 최대 블러)
-
     float NearClip;
     float FarClip;
+
     int32 IsOrthographic;          // 0 = Perspective, 1 = Orthographic
-    float _Pad0;
+    FVector _Pad0;
 };
 static_assert(sizeof(FDOFSetupBufferType) % 16 == 0, "CB must be 16-byte aligned");
 
@@ -127,23 +125,22 @@ static_assert(sizeof(FDOFBlurBufferType) % 16 == 0, "CB must be 16-byte aligned"
 // DOF Recombine Pass (b2)
 struct alignas(16) FDOFRecombineBufferType
 {
-    float FocalDistance;           // Setup과 동일한 CoC 파라미터
-    float Fstop;
-    float SensorWidth;
-    float FocalRegion;
+    float FocalDistance;           // m (초점 거리)
+    float FocalRegion;             // m (완전 선명 영역)
+    float NearTransitionRegion;    // m (근경 블러 전환 영역)
+    float FarTransitionRegion;     // m (원경 블러 전환 영역)
 
-    float NearTransitionRegion;
-    float FarTransitionRegion;
-    float MaxNearBlurSize;
-    float MaxFarBlurSize;
-
+    float MaxNearBlurSize;         // pixels (근경 최대 블러)
+    float MaxFarBlurSize;          // pixels (원경 최대 블러)
     float NearClip;
     float FarClip;
+
     int32 IsOrthographic;
     float _Pad0;
-
     FVector2D ViewRectMinUV;       // ViewRect 시작 UV (게임 영역)
+
     FVector2D ViewRectMaxUV;       // ViewRect 끝 UV (게임 영역)
+    FVector2D _Pad1;
 };
 static_assert(sizeof(FDOFRecombineBufferType) % 16 == 0, "CB must be 16-byte aligned");
 

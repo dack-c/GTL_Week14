@@ -26,8 +26,6 @@ float LinearizeDepth(float rawDepth, float nearPlane, float farPlane, int isOrth
 float CalculateCoC(
     float viewDepth,             // View-space depth (m 단위)
     float focalDistance,         // 초점 거리 (m)
-    float fstop,                 // 조리개 값 (F-stop)
-    float sensorWidth,           // 센서 너비 (m, e.g., 0.024 = 24mm)
     float focalRegion,           // 완전 선명 영역 (m)
     float nearTransition,        // 근경 전환 영역 (m)
     float farTransition,         // 원경 전환 영역 (m)
