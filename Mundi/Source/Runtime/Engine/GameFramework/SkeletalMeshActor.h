@@ -71,19 +71,34 @@ protected:
         TArray<ULine*> Rings;             // 3 * NumSegments lines per bone (joint spheres)
     };
 
+    // Physics body line cache (avoid ClearLines every frame)
+    struct FBodyDebugLines
+    {
+        TArray<ULine*> SphereLines;       // Lines for sphere collision shapes
+        TArray<ULine*> BoxLines;          // Lines for box collision shapes
+        TArray<ULine*> CapsuleLines;      // Lines for capsule collision shapes
+        TArray<ULine*> ConvexLines;       // Lines for convex collision shapes
+    };
+
     bool bBoneLinesInitialized = false;
     int32 CachedSegments = 4;
     int32 CachedSelected = -1;
     TArray<FBoneDebugLines> BoneLinesCache; // size == BoneCount
     TArray<TArray<int32>> BoneChildren;     // adjacency for subtree updates
 
+    bool bBodyLinesInitialized = false;
+    TArray<FBodyDebugLines> BodyLinesCache; // size == BodySetup count
+    UPhysicsAsset* CachedPhysicsAsset = nullptr;
+
     float BoneJointRadius = 0.02f;
     float BoneBaseRadius = 0.03f;
 
     void BuildBoneLinesCache();
+    void BuildBodyLinesCache();
     void UpdateBoneSubtreeTransforms(int32 BoneIndex);
     void UpdateBoneSelectionHighlight(int32 SelectedBoneIndex);
+    void UpdateBodyTransforms();
 
-    // Lazily create viewer-only components (BoneLineComponent, BoneAnchor) if in preview world
+    // Lazily create viewer-only components (BoneLineComponent, BodyLineComponent, BoneAnchor) if in preview world
     void EnsureViewerComponents();
 };
