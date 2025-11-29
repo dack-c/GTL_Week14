@@ -524,6 +524,82 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 }
                                 ImGui::PopStyleColor();
 
+                                // Right-click context menu on body to add constraint
+                                if (ImGui::BeginPopupContextItem("BodyContextMenu"))
+                                {
+                                    UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
+                                    if (Phys && ImGui::BeginMenu("Add Constraint"))
+                                    {
+                                        // Display all bodies as potential child bodies for constraint
+                                        for (UBodySetup* ChildBody : Phys->BodySetups)
+                                        {
+                                            if (!ChildBody) continue;
+
+                                            // Skip self
+                                            if (ChildBody == MatchedBody) continue;
+
+                                            FString ChildBodyName = ChildBody->BoneName.ToString();
+                                            if (ImGui::MenuItem(ChildBodyName.c_str()))
+                                            {
+                                                // Get skeleton to calculate bone transforms
+                                                const FSkeleton* Skeleton = ActiveState->CurrentMesh ? ActiveState->CurrentMesh->GetSkeleton() : nullptr;
+                                                assert(Skeleton && "Skeleton must be valid when adding constraints");
+                                                if (Skeleton)
+                                                {
+                                                    // Find bone indices
+                                                    int32 ParentBoneIndex = Skeleton->FindBoneIndex(MatchedBody->BoneName.ToString());
+                                                    int32 ChildBoneIndex = Skeleton->FindBoneIndex(ChildBody->BoneName.ToString());
+
+                                                    // Create new constraint with:
+                                                    // - MatchedBody (right-clicked body) as parent (BodyA)
+                                                    // - ChildBody (selected from menu) as child (BodyB)
+                                                    FPhysicsConstraintSetup NewConstraint;
+                                                    NewConstraint.BodyNameA = MatchedBody->BoneName;  // Parent body
+                                                    NewConstraint.BodyNameB = ChildBody->BoneName;    // Child body
+
+                                                    // Calculate LocalFrameA: child bone's transform relative to parent bone's coordinate system
+                                                    if (ParentBoneIndex != INDEX_NONE && ChildBoneIndex != INDEX_NONE &&
+                                                        ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
+                                                    {
+                                                        // Get world transforms for both bones
+                                                        FTransform ParentWorldTransform = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ParentBoneIndex);
+                                                        FTransform ChildWorldTransform = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ChildBoneIndex);
+
+                                                        // Calculate relative transform: child relative to parent
+                                                        // LocalFrameA = ParentWorld^-1 * ChildWorld
+                                                        NewConstraint.LocalFrameA = ChildWorldTransform.GetRelativeTransform(ParentWorldTransform);
+                                                    }
+                                                    else
+                                                    {
+                                                        // Fallback to identity if bones not found
+                                                        assert(false && "Bone indices not found for constraint setup");
+                                                        NewConstraint.LocalFrameA = FTransform();
+                                                    }
+
+                                                    // LocalFrameB is identity (child bone's own local space)
+                                                    NewConstraint.LocalFrameB = FTransform();
+
+                                                    // Initialize with default limits
+                                                    NewConstraint.TwistLimitMin = -45.0f;
+                                                    NewConstraint.TwistLimitMax = 45.0f;
+                                                    NewConstraint.SwingLimitY = 45.0f;
+                                                    NewConstraint.SwingLimitZ = 45.0f;
+                                                    NewConstraint.bEnableCollision = false;
+
+                                                    // Add to physics asset
+                                                    Phys->Constraints.Add(NewConstraint);
+
+                                                    UE_LOG("Added constraint between %s (parent) and %s (child)",
+                                                        MatchedBody->BoneName.ToString().c_str(),
+                                                        ChildBody->BoneName.ToString().c_str());
+                                                }
+                                            }
+                                        }
+                                        ImGui::EndMenu();
+                                    }
+                                    ImGui::EndPopup();
+                                }
+
                                 ImGui::Unindent(14.0f);
                             }
                         }
