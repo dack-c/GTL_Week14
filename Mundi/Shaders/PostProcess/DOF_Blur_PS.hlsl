@@ -48,7 +48,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     // 3. Variable Kernel Size (1/4 해상도 고려해서 스케일 다운)
     float kernelRadius = centerCoc * BlurRadius * 0.25;
-    kernelRadius = max(kernelRadius, 0.5);
+    kernelRadius = max(kernelRadius, 0.1);
 
     // 4. Gaussian Blur with CoC Weighting
     float2 texelSize = ScreenSize.zw;
