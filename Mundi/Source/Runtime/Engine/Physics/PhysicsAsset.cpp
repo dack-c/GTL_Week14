@@ -1,8 +1,30 @@
 ﻿#include "pch.h"
 #include "PhysicsAsset.h"
 #include "BodySetup.h"
-
+#include "../Animation/AnimationAsset.h"
 IMPLEMENT_CLASS(UPhysicsAsset)
+
+namespace
+{
+    FTransform GetComponentSpaceBindPose(const FSkeleton* Skeleton, int32 BoneIndex)
+    {
+        if (!Skeleton || BoneIndex < 0 || BoneIndex >= Skeleton->GetNumBones())
+        {
+            return FTransform();
+        }
+
+        FMatrix ChildMatrix = Skeleton->Bones[BoneIndex].BindPose;
+        int32 ParentIndex = Skeleton->Bones[BoneIndex].ParentIndex;
+
+        while (ParentIndex != INDEX_NONE)
+        {
+            ChildMatrix = (Skeleton->Bones[ParentIndex].BindPose * ChildMatrix);
+            ParentIndex = Skeleton->Bones[ParentIndex].ParentIndex;
+        }
+
+        return FTransform(ChildMatrix);
+    }
+}
 
 void UPhysicsAsset::BuildRuntimeCache()
 {
@@ -62,6 +84,266 @@ int32 UPhysicsAsset::FindConstraintIndex(FName BodyA, FName BodyB) const
 	}
 	return INDEX_NONE;
 }
+
+void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton)
+{
+    if (!Skeleton)
+    {
+        UE_LOG("UPhysicsAsset::CreateGenerateAllBodySetup : Skeleton is null");
+        return;
+    }
+
+    for (UBodySetup* Body : BodySetups)
+    {
+        if (Body)
+        {
+            ObjectFactory::DeleteObject(Body);
+        }
+    }
+    BodySetups.Empty();
+    Constraints.Empty();
+
+    TArray<int32> BoneIndicesToCreate;
+    SelectBonesForBodies(Skeleton, BoneIndicesToCreate);
+    if (BoneIndicesToCreate.IsEmpty())
+    {
+        UE_LOG("UPhysicsAsset::CreateGenerateAllBodySetup : no bones selected");
+        return;
+    }
+
+    for (int32 BoneIndex : BoneIndicesToCreate)
+    {
+        UBodySetup* Body = NewObject<UBodySetup>();
+        if (!Body)
+        {
+            continue;
+        }
+
+        Body->BoneName = Skeleton->GetBoneName(BoneIndex);
+
+        switch (ShapeType)
+        {
+        case EAggCollisionShapeType::Sphyl:
+            Body->AddSphyl(FitCapsuleToBone(Skeleton, BoneIndex));
+            break;
+        case EAggCollisionShapeType::Box:
+            Body->AddBox(FitBoxToBone(Skeleton, BoneIndex));
+            break;
+        case EAggCollisionShapeType::Sphere:
+            Body->AddSphere(FitSphereToBone(Skeleton, BoneIndex));
+            break;
+        default:
+            Body->AddSphyl(FitCapsuleToBone(Skeleton, BoneIndex));
+            break;
+        }
+
+        BodySetups.Add(Body);
+    }
+
+    GenerateConstraintsFromSkeleton(Skeleton, BoneIndicesToCreate);
+    BuildRuntimeCache();
+}
+
+
+
+void UPhysicsAsset::SelectBonesForBodies(const FSkeleton* Skeleton, TArray<int32>& OutBones) const
+{
+    OutBones.Empty();
+    if (!Skeleton)
+    {
+        return;
+    }
+
+    const int32 NumBones = Skeleton->GetNumBones();
+    const float MinBoneLength = 0.1f;
+
+    for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
+    {
+        const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
+        if (ParentIndex == INDEX_NONE)
+        {
+            OutBones.Add(BoneIndex);
+            continue;
+        }
+
+        const FTransform ParentTransform(Skeleton->Bones[ParentIndex].BindPose);
+        const FTransform ChildTransform(Skeleton->Bones[BoneIndex].BindPose);
+
+        const float Length = (ChildTransform.Translation - ParentTransform.Translation).Size();
+        
+        if (Length >= MinBoneLength)
+        {
+            OutBones.Add(BoneIndex);
+        }
+    }
+}
+
+
+
+FBonePoints UPhysicsAsset::GetBonePoints(const FSkeleton* Skeleton, int32 BoneIndex) const
+{
+    FBonePoints Points{};
+
+    if (!Skeleton)
+    {
+        return Points;
+    }
+
+    const int32 NumBones = Skeleton->GetNumBones();
+    if (BoneIndex < 0 || BoneIndex >= NumBones)
+    {
+        return Points;
+    }
+
+    const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
+    const FTransform ChildT = GetComponentSpaceBindPose(Skeleton, BoneIndex);
+    FTransform ParentT = ChildT;
+    if (ParentIndex != INDEX_NONE && ParentIndex < NumBones)
+    {
+        ParentT = GetComponentSpaceBindPose(Skeleton, ParentIndex);
+    }
+
+    Points.Start = ParentT.Translation;
+    Points.End = ChildT.Translation;
+
+    return Points;
+}
+
+
+
+FKSphereElem UPhysicsAsset::FitSphereToBone(const FSkeleton* Skeleton, int32 BoneIndex)
+{
+    FBonePoints Point = GetBonePoints(Skeleton, BoneIndex);
+    const FVector BoneDir = (Point.End - Point.Start);
+    const float BoneLen = BoneDir.Size();
+
+    FKSphereElem Elem;
+    Elem.Center = Point.End;
+    Elem.Radius = FMath::Max(BoneLen * 0.5f, 10.0f);
+
+    return Elem;
+}
+
+
+
+FKBoxElem UPhysicsAsset::FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex)
+{
+    FBonePoints Point = GetBonePoints(Skeleton, BoneIndex);
+
+    const FVector BoneDir = (Point.End - Point.Start);
+    const float BoneLen = BoneDir.Size();
+    FVector DirNorm = BoneDir;
+    if (DirNorm.SizeSquared() < KINDA_SMALL_NUMBER)
+    {
+        DirNorm = FVector(0.0f, 0.0f, 1.0f);
+    }
+    else
+    {
+        DirNorm.Normalize();
+    }
+
+    const FVector Center = (Point.Start + Point.End) * 0.5f;
+    const float HalfDepth = FMath::Max(BoneLen * 0.5f, 10.0f);
+    const float HalfWidth = FMath::Max(BoneLen * 0.15f, 10.0f);
+
+    const FVector BoxAxis(0, 0, 1);
+    const FQuat Rot = FQuat::FindBetweenNormals(BoxAxis, DirNorm);
+
+    FKBoxElem Elem;
+    Elem.Center = Center;
+    Elem.Extents = FVector(HalfWidth, HalfWidth, HalfDepth);
+    Elem.Rotation = Rot;
+
+    return Elem;
+}
+
+
+
+FKSphylElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex)
+{
+    FBonePoints Point = GetBonePoints(Skeleton, BoneIndex);
+
+    const FVector BoneDir = (Point.End - Point.Start);
+    const float BoneLen = BoneDir.Size();
+    FVector DirNorm = BoneDir;
+    if (DirNorm.SizeSquared() < KINDA_SMALL_NUMBER)
+    {
+        DirNorm = FVector(0.0f, 0.0f, 1.0f);
+    }
+    else
+    {
+        DirNorm.Normalize();
+    }
+
+    const FVector Center = (Point.Start + Point.End) * 0.5f;
+
+    const float Radius = FMath::Max(BoneLen * 0.25f, 10.0f);
+    const float HalfLength = FMath::Max((BoneLen * 0.5f) - Radius, 0.0f);
+
+    const FVector CapsuleAxis(0, 0, 1);
+    const FQuat Rot = FQuat::FindBetweenNormals(CapsuleAxis, DirNorm);
+
+    FKSphylElem Elem;
+    Elem.Center = Center;
+    Elem.Radius = Radius;
+    Elem.HalfLength = HalfLength;
+    Elem.Rotation = Rot;
+
+    return Elem;
+}
+
+
+
+void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate)
+{
+    if (!Skeleton)
+    {
+        return;
+    }
+
+    TSet<int32> BodyBones;
+    for (int32 BoneIndex : BoneIndicesToCreate)
+    {
+        BodyBones.Add(BoneIndex);
+    }
+
+    for (int32 BoneIndex : BoneIndicesToCreate)
+    {
+        const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
+        if (ParentIndex == INDEX_NONE)
+        {
+            continue;
+        }
+
+        if (!BodyBones.Contains(ParentIndex))
+        {
+            continue;
+        }
+
+        const FName ChildBoneName = Skeleton->GetBoneName(BoneIndex);
+        const FName ParentBoneName = Skeleton->GetBoneName(ParentIndex);
+
+        FPhysicsConstraintSetup Setup{};
+        Setup.BodyNameA = ParentBoneName;
+        Setup.BodyNameB = ChildBoneName;
+
+        const FTransform ParentRef(Skeleton->Bones[ParentIndex].BindPose);
+        const FTransform ChildRef(Skeleton->Bones[BoneIndex].BindPose);
+        const FTransform JointWorld = ChildRef;
+
+        Setup.LocalFrameA = JointWorld.GetRelativeTransform(ParentRef);
+        Setup.LocalFrameB = JointWorld.GetRelativeTransform(ChildRef);
+
+        Setup.TwistLimitMin = DegreesToRadians(-45.0f);
+        Setup.TwistLimitMax = DegreesToRadians(45.0f);
+        Setup.SwingLimitY = DegreesToRadians(30.0f);
+        Setup.SwingLimitZ = DegreesToRadians(30.0f);
+
+        Constraints.Add(Setup);
+    }
+}
+
+
 
 bool UPhysicsAsset::Load(const FString& InFilePath, ID3D11Device* InDevice)
 {

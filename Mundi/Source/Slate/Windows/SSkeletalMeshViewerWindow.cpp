@@ -17,15 +17,104 @@
 #include "Source/Editor/PlatformProcess.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
 #include <filesystem>
+#include <unordered_set>
+#include <limits>
+#include <cstdlib>
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
 #include "Source/Runtime/Engine/Physics/BodySetup.h"
 #include "Source/Runtime/Engine/Physics/PhysicalMaterial.h"
 #include <cstring>
 
+namespace
+{
+    using FBoneNameSet = std::unordered_set<FName>;
+
+    FBoneNameSet GatherPhysicsAssetBones(const UPhysicsAsset* PhysicsAsset)
+    {
+        FBoneNameSet Result;
+        if (!PhysicsAsset)
+        {
+            return Result;
+        }
+
+        for (UBodySetup* Body : PhysicsAsset->BodySetups)
+        {
+            if (!Body)
+            {
+                continue;
+            }
+
+            if (Body->BoneName.IsValid())
+            {
+                Result.insert(Body->BoneName);
+            }
+        }
+
+        return Result;
+    }
+
+    bool SkeletonSupportsBones(const FSkeleton* Skeleton, const FBoneNameSet& RequiredBones)
+    {
+        if (!Skeleton || RequiredBones.empty())
+        {
+            return false;
+        }
+
+        for (const FName& BoneName : RequiredBones)
+        {
+            if (!BoneName.IsValid())
+            {
+                continue;
+            }
+
+            if (Skeleton->FindBoneIndex(BoneName) == INDEX_NONE)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    USkeletalMesh* FindCompatibleMesh(const FBoneNameSet& RequiredBones)
+    {
+        if (RequiredBones.empty())
+        {
+            return nullptr;
+        }
+
+        USkeletalMesh* BestMatch = nullptr;
+        int32 BestScore = std::numeric_limits<int32>::max();
+
+        TArray<USkeletalMesh*> AllMeshes = UResourceManager::GetInstance().GetAll<USkeletalMesh>();
+        for (USkeletalMesh* Mesh : AllMeshes)
+        {
+            if (!Mesh)
+            {
+                continue;
+            }
+
+            const FSkeleton* Skeleton = Mesh->GetSkeleton();
+            if (!SkeletonSupportsBones(Skeleton, RequiredBones))
+            {
+                continue;
+            }
+
+            const int32 BoneDifference = std::abs(Skeleton->GetNumBones() - static_cast<int32>(RequiredBones.size()));
+            if (!BestMatch || BoneDifference < BestScore)
+            {
+                BestMatch = Mesh;
+                BestScore = BoneDifference;
+            }
+        }
+
+        return BestMatch;
+    }
+}
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
-    PhysicsAssetPath = std::filesystem::path(GDataDir) / "PhysicsAsset";
+    PhysicsAssetPath = std::filesystem::path(GDataDir) / "Physics";
 
     CenterRect = FRect(0, 0, 0, 0);
     
@@ -1539,6 +1628,27 @@ void SSkeletalMeshViewerWindow::LoadPhysicsAsset(UPhysicsAsset* PhysicsAsset)
 
     PhysicsAsset->BuildRuntimeCache();
 
+    FBoneNameSet RequiredBones = GatherPhysicsAssetBones(PhysicsAsset);
+
+    const bool bHasCompatibleMesh = ActiveState->CurrentMesh && SkeletonSupportsBones(ActiveState->CurrentMesh->GetSkeleton(), RequiredBones);
+
+    if (!bHasCompatibleMesh)
+    {
+        if (USkeletalMesh* AutoMesh = FindCompatibleMesh(RequiredBones))
+        {
+            const FString& MeshPath = AutoMesh->GetFilePath();
+            if (!MeshPath.empty())
+            {
+                LoadSkeletalMesh(MeshPath);
+                UE_LOG("SSkeletalMeshViewerWindow: Auto-loaded %s for PhysicsAsset %s", MeshPath.c_str(), PhysicsAsset->GetName().ToString().c_str());
+            }
+        }
+        else if (!RequiredBones.empty())
+        {
+            UE_LOG("SSkeletalMeshViewerWindow: No compatible skeletal mesh found for PhysicsAsset %s", PhysicsAsset->GetName().ToString().c_str());
+        }
+    }
+
     if (ActiveState->CurrentMesh)
     {
         ActiveState->CurrentMesh->PhysicsAsset = PhysicsAsset;
@@ -1566,8 +1676,8 @@ bool SSkeletalMeshViewerWindow::SavePhysicsAsset(ViewerState* State)
 
     if (TargetPath.empty())
     {
-        FWideString Initial = UTF8ToWide(GDataDir) + L"/NewPhysicsAsset.physics";
-        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
+        FWideString Initial = UTF8ToWide(GDataDir) + L"/NewPhysicsAsset.phys";
+        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.phys)");
         if (Selected.empty())
         {
             return false;
@@ -2617,67 +2727,107 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                 }
             }
 
-        if (State->CurrentPhysicsAsset)
-        {
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.60f, 0.45f, 0.35f, 0.7f));
-            ImGui::Separator();
-            ImGui::PopStyleColor();
-            ImGui::Spacing();
-
-            const FString& SavePath = State->CurrentPhysicsAsset->GetFilePath();
-            ImGui::Text("Active Physics Asset: %s", State->CurrentPhysicsAsset->GetName().ToString().c_str());
-            ImGui::Text("Save Path: %s", SavePath.empty() ? "<None>" : SavePath.c_str());
-
-            //if (ImGui::Button("Browse Save Path"))
-            //{
-            //    FString DefaultPath = SavePath.empty() ? (GDataDir + "/NewPhysicsAsset.physics") : SavePath;
-            //    FWideString Initial = UTF8ToWide(DefaultPath);
-            //    std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.physics)");
-            //    if (!Selected.empty())
-            //    {
-            //        FString PathStr = ResolveAssetRelativePath(WideToUTF8(Selected.wstring()), GDataDir);
-            //        State->CurrentPhysicsAsset->SetFilePath(PathStr);
-            //    }
-            //}
-            //ImGui::SameLine();
-            //if (ImGui::Button("Save Physics Asset"))
-            //{
-            //    SavePhysicsAsset(State);
-            //}
-
-            //ImGui::SameLine();
-
-            // Save button: save currently selected PhysicsAsset to file
-            if (ImGui::Button("Save"))
+            if (State->CurrentPhysicsAsset)
             {
-                if (State->CurrentPhysicsAsset)
-                {
-                    // Get save path
-                    FWideString WideInitialPath = UTF8ToWide(PhysicsAssetPath.string());
-                    std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"phys", L"Physics Asset Files");
-					FString PathStr = ResolveAssetRelativePath(WidePath.string(), PhysicsAssetPath.string());
+                ImGui::Spacing();
+                ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.60f, 0.45f, 0.35f, 0.7f));
+                ImGui::Separator();
+                ImGui::PopStyleColor();
+                ImGui::Spacing();
 
-                    if (!WidePath.empty())
-                    {               
-                        if (State->CurrentPhysicsAsset->SaveToFile(PathStr))
-                        {
-                            State->CurrentPhysicsAsset->SetFilePath(PathStr);
-                            
-                            UE_LOG("PhysicsAsset saved to: %s", PathStr.c_str());
-                        }
-                        else
-                        {
-                            UE_LOG("Failed to save PhysicsAsset to: %s", PathStr.c_str());
-                        }
+                const FString& SavePath = State->CurrentPhysicsAsset->GetFilePath();
+                if (!SavePath.empty())
+                {
+                    std::filesystem::path DisplayPath(SavePath);
+                    FString FileName = DisplayPath.filename().string();
+                    if (!FileName.empty())
+                    {
+                        State->CurrentPhysicsAsset->SetName(FName(FileName.c_str()));
                     }
                 }
-                else
+
+                ImGui::Text("Active Physics Asset: %s", State->CurrentPhysicsAsset->GetName().ToString().c_str());
+                ImGui::Text("Save Path: %s", SavePath.empty() ? "<None>" : SavePath.c_str());
+
+                // Save button: save currently selected PhysicsAsset to file
+                if (ImGui::Button("Save"))
                 {
-                    UE_LOG("No PhysicsAsset selected to save");
+                    if (State->CurrentPhysicsAsset)
+                    {
+                        // Get save path
+                        FWideString WideInitialPath = UTF8ToWide(PhysicsAssetPath.string());
+                        std::filesystem::path WidePath = FPlatformProcess::OpenSaveFileDialog(WideInitialPath, L"phys", L"Physics Asset Files");
+					    FString PathStr = ResolveAssetRelativePath(WidePath.string(), PhysicsAssetPath.string());
+
+                        if (!WidePath.empty())
+                        {               
+                            if (State->CurrentPhysicsAsset->SaveToFile(PathStr))
+                            {
+                                State->CurrentPhysicsAsset->SetFilePath(PathStr);
+                            
+                                UE_LOG("PhysicsAsset saved to: %s", PathStr.c_str());
+                            }
+                            else
+                            {
+                                UE_LOG("Failed to save PhysicsAsset to: %s", PathStr.c_str());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        UE_LOG("No PhysicsAsset selected to save");
+                    }
+                }
+
+                if (ImGui::Button("Generate All Body"))
+                {
+                    ImGui::OpenPopup("ShapeTypePopup");
+                }
+
+                auto RebuildPhysicsAssetWithShape = [&](EAggCollisionShapeType ShapeType)
+                    {
+                        if (!State->CurrentMesh)
+                        {
+                            UE_LOG("Cannot generate PhysicsAsset: No mesh available");
+                            return;
+                        }
+
+                        State->CurrentPhysicsAsset->CreateGenerateAllBodySetup(
+                            ShapeType,
+                            State->CurrentMesh->GetSkeleton()
+                        );
+
+                        State->CurrentPhysicsAsset->SetFilePath(FString()); // 아직 파일 없음
+                    };
+
+                if (ImGui::BeginPopup("ShapeTypePopup"))
+                {
+                    if (ImGui::Selectable("Sphere"))
+                    {
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Sphere);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::Selectable("Box"))
+                    {
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Box);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::Selectable("Sphyl"))
+                    {
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Sphyl);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::Selectable("Convex"))
+                    {
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Convex);
+                        ImGui::CloseCurrentPopup();
+                    }
+
+                    ImGui::EndPopup();
                 }
             }
         }
-        }
     }
 }
+
+

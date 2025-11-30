@@ -68,7 +68,7 @@ void UBodySetup::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             AggGeom.Serialize(true, InOutHandle["Aggregate"]);
         }
 
-        // PhysMaterial (있을 수도, 없을 수도)
+        // PhysMaterial (있을 수도, 없을 수도. TODO: 현재는 생성자에서 NewObject 해주고 있음. 그러나 추후 이것도 에셋화가 필요할지도)
         if (InOutHandle.hasKey("PhysMaterial"))
         {
             JSON& MatJson = InOutHandle["PhysMaterial"];
