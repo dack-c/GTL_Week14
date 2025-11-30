@@ -88,15 +88,15 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             }
         }
 
-        // 3) 캡슐(Sphyl)들
-        for (const FKSphylElem& Sphyl : Agg.SphylElements)
+        // 3) 캡슐(Capsule)들
+        for (const FKCapsuleElem& Capsule : Agg.CapsuleElements)
         {
             // 캡슐 중심도 스케일 적용
-            FVector ScaledCenter = Sphyl.Center * Scale3D;
+            FVector ScaledCenter = Capsule.Center * Scale3D;
 
             // Z축 캡슐 → PhysX X축 캡슐로 보정
             FQuat ZToX = FQuat::FromAxisAngle(FVector(0, 1, 0), -XM_PIDIV2);
-            FQuat PhysRot = Sphyl.Rotation * ZToX;
+            FQuat PhysRot = Capsule.Rotation * ZToX;
 
             FTransform LocalXform(ScaledCenter, PhysRot, FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
@@ -105,7 +105,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
             float RadiusScale = (AbsScale.X + AbsScale.Y) * 0.5f;
             float HeightScale = AbsScale.Z;
 
-            PxCapsuleGeometry Geom(Sphyl.Radius * RadiusScale, Sphyl.HalfLength * HeightScale);
+            PxCapsuleGeometry Geom(Capsule.Radius * RadiusScale, Capsule.HalfLength * HeightScale);
 
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
@@ -218,15 +218,15 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             }
         }
 
-        // 3) 캡슐(Sphyl)들
-        for (const FKSphylElem& Sphyl : Agg.SphylElements)
+        // 3) 캡슐(Capsule)들
+        for (const FKCapsuleElem& Capsule : Agg.CapsuleElements)
         {
             // 캡슐 중심도 스케일 적용
-            FVector ScaledCenter = Sphyl.Center * Scale3D;
+            FVector ScaledCenter = Capsule.Center * Scale3D;
 
             // Z축 캡슐 → PhysX X축 캡슐로 보정
             FQuat ZToX = FQuat::FromAxisAngle(FVector(0, 1, 0), -XM_PIDIV2);
-            FQuat PhysRot = Sphyl.Rotation * ZToX;
+            FQuat PhysRot = Capsule.Rotation * ZToX;
 
             FTransform LocalXform(ScaledCenter, PhysRot, FVector(1,1,1));
             PxTransform LocalPose = ToPx(LocalXform);
@@ -235,7 +235,7 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
             float RadiusScale = (AbsScale.X + AbsScale.Y) * 0.5f;
             float HeightScale = AbsScale.Z;
 
-            PxCapsuleGeometry Geom(Sphyl.Radius * RadiusScale, Sphyl.HalfLength * HeightScale);
+            PxCapsuleGeometry Geom(Capsule.Radius * RadiusScale, Capsule.HalfLength * HeightScale);
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {

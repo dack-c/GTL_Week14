@@ -111,8 +111,8 @@ void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType,
 
         switch (ShapeType)
         {
-        case EAggCollisionShapeType::Sphyl:
-            Body->AddSphyl(FitCapsuleToBone(Skeleton, BoneIndex));
+        case EAggCollisionShapeType::Capsule:
+            Body->AddCapsule(FitCapsuleToBone(Skeleton, BoneIndex));
             break;
         case EAggCollisionShapeType::Box:
             Body->AddBox(FitBoxToBone(Skeleton, BoneIndex));
@@ -121,7 +121,7 @@ void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType,
             Body->AddSphere(FitSphereToBone(Skeleton, BoneIndex));
             break;
         default:
-            Body->AddSphyl(FitCapsuleToBone(Skeleton, BoneIndex));
+            Body->AddCapsule(FitCapsuleToBone(Skeleton, BoneIndex));
             break;
         }
 
@@ -254,7 +254,7 @@ FKBoxElem UPhysicsAsset::FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex
 
 
 
-FKSphylElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex)
+FKCapsuleElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex)
 {
     FBonePoints Point = GetBonePoints(Skeleton, BoneIndex);
 
@@ -278,7 +278,7 @@ FKSphylElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 Bon
     const FVector CapsuleAxis(0, 0, 1);
     const FQuat WorldRot = FQuat::FindBetweenNormals(CapsuleAxis, DirNorm);
 
-    FKSphylElem Elem;
+    FKCapsuleElem Elem;
     Elem.Radius = Radius;
     Elem.HalfLength = HalfLength;
 
@@ -496,7 +496,7 @@ void FKAggregateGeom::Clear()
 {
     SphereElements.Empty();
     BoxElements.Empty();
-    SphylElements.Empty();
+    CapsuleElements.Empty();
     ConvexElements.Empty();
 }
 

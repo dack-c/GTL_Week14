@@ -72,7 +72,7 @@ public:
     FBonePoints GetBonePoints(const FSkeleton* Skeleton, int32 BoneIndex) const;
     FKSphereElem FitSphereToBone(const FSkeleton* Skeleton, int32 BoneIndex);
     FKBoxElem FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex);
-    FKSphylElem FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex);
+    FKCapsuleElem FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex);
 
     void GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate, USkeletalMeshComponent* SkeletalComponent = nullptr);
 

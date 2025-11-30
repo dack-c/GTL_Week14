@@ -3,14 +3,14 @@
 
 struct FKSphereElem;
 struct FKBoxElem;
-struct FKSphylElem;
+struct FKCapsuleElem;
 struct FKConvexElem;
 
 struct FKAggregateGeom
 {
     TArray<FKSphereElem> SphereElements;
     TArray<FKBoxElem>    BoxElements;
-    TArray<FKSphylElem>  SphylElements;
+    TArray<FKCapsuleElem>  CapsuleElements;
     TArray<FKConvexElem> ConvexElements;
 
     void Clear();
@@ -41,7 +41,7 @@ public:
 
     void AddSphere(const FKSphereElem& Elem);
     void AddBox(const FKBoxElem& Elem);
-    void AddSphyl(const FKSphylElem& Elem);
+    void AddCapsule(const FKCapsuleElem& Elem);
 
     void BuildCachedData();
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;

@@ -31,9 +31,9 @@ void UBodySetup::AddBox(const FKBoxElem& Elem)
     bCachedDataDirty = true;
 }
 
-void UBodySetup::AddSphyl(const FKSphylElem& Elem)
+void UBodySetup::AddCapsule(const FKCapsuleElem& Elem)
 {
-    AggGeom.SphylElements.Add(Elem);
+    AggGeom.CapsuleElements.Add(Elem);
     bCachedDataDirty = true;
 }
 
@@ -160,15 +160,15 @@ void FKAggregateGeom::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             Elem.Rotation = FQuat(RotVec.X, RotVec.Y, RotVec.Z, RotVec.W);
         });
 
-    SerializeArray("Sphyls", SphylElements,
-        [](const FKSphylElem& Elem, JSON& Out)
+    SerializeArray("Capsules", CapsuleElements,
+        [](const FKCapsuleElem& Elem, JSON& Out)
         {
             Out["Center"] = FJsonSerializer::VectorToJson(Elem.Center);
             Out["Radius"] = Elem.Radius;
             Out["HalfLength"] = Elem.HalfLength;
             Out["Rotation"] = FJsonSerializer::Vector4ToJson(FVector4(Elem.Rotation.X, Elem.Rotation.Y, Elem.Rotation.Z, Elem.Rotation.W));
         },
-        [](const JSON& In, FKSphylElem& Elem)
+        [](const JSON& In, FKCapsuleElem& Elem)
         {
             FJsonSerializer::ReadVector(In, "Center", Elem.Center);
             FJsonSerializer::ReadFloat(In, "Radius", Elem.Radius);

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "SkeletalMeshActor.h"
 #include "World.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
@@ -917,8 +917,8 @@ void ASkeletalMeshActor::BuildBodyLinesCache()
             }
         }
 
-        // Build Capsule (Sphyl) Elements - Match UCapsuleComponent::RenderDebugVolume style
-        for (const FKSphylElem& Capsule : Body->AggGeom.SphylElements)
+        // Build Capsule Elements - Match UCapsuleComponent::RenderDebugVolume style
+        for (const FKCapsuleElem& Capsule : Body->AggGeom.CapsuleElements)
         {
             FTransform ShapeLocalTransform(Capsule.Center, Capsule.Rotation, FVector::One());
             FTransform ShapeTransform = BoneLocalTransform.GetWorldTransform(ShapeLocalTransform);
@@ -1169,8 +1169,8 @@ void ASkeletalMeshActor::UpdateBodyTransforms()
 
         LineIndex = 0;
 
-        // Update Capsule (Sphyl) Elements - Match UCapsuleComponent::RenderDebugVolume style
-        for (const FKSphylElem& Capsule : Body->AggGeom.SphylElements)
+        // Update Capsule Elements - Match UCapsuleComponent::RenderDebugVolume style
+        for (const FKCapsuleElem& Capsule : Body->AggGeom.CapsuleElements)
         {
             FTransform ShapeLocalTransform(Capsule.Center, Capsule.Rotation, FVector::One());
             FTransform ShapeTransform = BoneLocalTransform.GetWorldTransform(ShapeLocalTransform);

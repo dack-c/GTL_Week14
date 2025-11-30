@@ -282,7 +282,7 @@ enum class EAggCollisionShapeType : int32
 {
     Sphere,
     Box,
-    Sphyl,
+    Capsule,
     Convex,
     Unknown
 };

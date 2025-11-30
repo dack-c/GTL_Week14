@@ -984,7 +984,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                     // AggGeom counts
                     int NumSpheres = Body->AggGeom.SphereElements.Num();
                     int NumBoxes = Body->AggGeom.BoxElements.Num();
-                    int NumSphyls = Body->AggGeom.SphylElements.Num();
+                    int NumCapsules = Body->AggGeom.CapsuleElements.Num();
                     int NumConvex = Body->AggGeom.ConvexElements.Num();
 
                     ImGui::Text("Aggregate Geometry:");
@@ -1089,15 +1089,15 @@ void SSkeletalMeshViewerWindow::OnRender()
                         ImGui::Unindent(10.0f);
                     }
 
-                    // Editable Sphyl (Capsule) Elements
-                    if (ImGui::CollapsingHeader("Sphyl Elements (Capsules)"))
+                    // Editable Capsule (Capsule) Elements
+                    if (ImGui::CollapsingHeader("Capsule Elements (Capsules)"))
                     {
                         ImGui::Indent(10.0f);
-                        ImGui::PushID("SphylElements");
+                        ImGui::PushID("CapsuleElements");
                         
-                        for (int si = 0; si < NumSphyls; ++si)
+                        for (int si = 0; si < NumCapsules; ++si)
                         {
-                            FKSphylElem& S = Body->AggGeom.SphylElements[si];
+                            FKCapsuleElem& S = Body->AggGeom.CapsuleElements[si];
                             ImGui::PushID(si);
                             
                             if (ImGui::TreeNodeEx((void*)(intptr_t)si, ImGuiTreeNodeFlags_DefaultOpen, "Capsule [%d]", si))
@@ -1117,7 +1117,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 
                                 if (ImGui::Button("Remove Capsule"))
                                 {
-                                    Body->AggGeom.SphylElements.RemoveAt(si);
+                                    Body->AggGeom.CapsuleElements.RemoveAt(si);
                                     ActiveState->bChangedGeomNum = true;
                                     ImGui::TreePop();
                                     ImGui::PopID();
@@ -1131,16 +1131,16 @@ void SSkeletalMeshViewerWindow::OnRender()
                         
                         if (ImGui::Button("Add Capsule"))
                         {
-                            FKSphylElem NewSphyl;
-                            NewSphyl.Center = FVector::Zero();
-                            NewSphyl.Radius = 0.3f;
-                            NewSphyl.HalfLength = 0.5f;
-                            NewSphyl.Rotation = FQuat::Identity();
-                            Body->AggGeom.SphylElements.Add(NewSphyl);
+                            FKCapsuleElem NewCapsule;
+                            NewCapsule.Center = FVector::Zero();
+                            NewCapsule.Radius = 0.3f;
+                            NewCapsule.HalfLength = 0.5f;
+                            NewCapsule.Rotation = FQuat::Identity();
+                            Body->AggGeom.CapsuleElements.Add(NewCapsule);
                             ActiveState->bChangedGeomNum = true;
                         }
                         
-                        ImGui::PopID(); // Pop "SphylElements"
+                        ImGui::PopID(); // Pop "CapsuleElements"
                         ImGui::Unindent(10.0f);
                     }
 
@@ -2873,9 +2873,9 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                         RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Box);
                         ImGui::CloseCurrentPopup();
                     }
-                    if (ImGui::Selectable("Sphyl"))
+                    if (ImGui::Selectable("Capsule"))
                     {
-                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Sphyl);
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Capsule);
                         ImGui::CloseCurrentPopup();
                     }
                     if (ImGui::Selectable("Convex"))
