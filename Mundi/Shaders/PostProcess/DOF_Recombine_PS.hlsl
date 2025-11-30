@@ -139,7 +139,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // Layer 1: Far Blur (배경)
     float farMask = saturate(CoC);  // CoC > 0 일때만
     farMask = farMask * farMask * (3.0 - 2.0 * farMask);  // Smoothstep
-    finalColor = lerp(finalColor, float4(farField.rgb, 1.0), farMask * farField.a);
+    finalColor = lerp(finalColor, float4(farField.rgb, 1.0), farMask);
 
     // Layer 2: Near Blur (전경) - nearField.a (블러된 CoC)로 Sharp 위에 덮기
     float nearMask = nearField.a;  // 텍스처에서 온 CoC (블러되어 번짐)

@@ -91,6 +91,19 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     float4 sceneColor = dsResult.color;
     float CoC = dsResult.coc;
+    float linearDepth = dsResult.linearDepth;
+
+    // 헤일로 방지: Sky Focus Distance (부드러운 전환)
+    // 매우 먼 거리(하늘/빈 공간)는 블러 점진적 감소
+    const float skyFocusStart = FarClip * 0.6;   // 전환 시작 (50%)
+    const float skyFocusEnd = FarClip * 0.9;     // 전환 끝 (90%)
+
+    if (linearDepth > skyFocusStart && CoC > 0.0)
+    {
+        // smoothstep으로 부드럽게 CoC 감소
+        float skyFalloff = 1.0 - smoothstep(skyFocusStart, skyFocusEnd, linearDepth);
+        CoC *= skyFalloff;
+    }
 
     // 2. Near/Far 분리 (CoC 기준으로 한쪽에만 출력 - 색 섞임 방지)
     if (CoC > 0.0)
