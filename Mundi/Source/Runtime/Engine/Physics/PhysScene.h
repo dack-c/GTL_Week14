@@ -5,6 +5,20 @@
 using namespace physx;
 using namespace DirectX;
 
+// PhysX Assert를 로그로 출력하는 커스텀 핸들러
+class FPhysXAssertHandler : public PxAssertHandler
+{
+public:
+    virtual void operator()(const char* exp, const char* file, int line, bool& ignore) override
+    {
+        UE_LOG("[PhysX ASSERT FAILED] Expression: %s", exp);
+        UE_LOG("[PhysX ASSERT FAILED] File: %s, Line: %d", file, line);
+        // ignore = true로 설정하면 assert를 무시하고 계속 진행
+        // ignore = false면 기본 동작 (크래시)
+        ignore = true;  // 일단 무시하고 계속 진행하도록
+    }
+};
+
 class FPhysScene
 {
 public:
@@ -45,6 +59,7 @@ public:
 private:
     PxDefaultAllocator      Allocator;
     PxDefaultErrorCallback  ErrorCallback;
+    FPhysXAssertHandler     AssertHandler;  // 커스텀 Assert 핸들러
     PxFoundation*           Foundation      = nullptr;
     PxPvd*                  Pvd             = nullptr;  // PhysX Visual Debugger
     PxPvdTransport*         PvdTransport    = nullptr;
