@@ -133,7 +133,7 @@ void UPhysicsAsset::SelectBonesForBodies(const FSkeleton* Skeleton, TArray<int32
     }
 
     const int32 NumBones = Skeleton->GetNumBones();
-    const float MinBoneLength = 5.0f;
+    const float MinBoneLength = 0.1f;
 
     for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
     {
@@ -148,7 +148,7 @@ void UPhysicsAsset::SelectBonesForBodies(const FSkeleton* Skeleton, TArray<int32
         const FTransform ChildTransform(Skeleton->Bones[BoneIndex].BindPose);
 
         const float Length = (ChildTransform.Translation - ParentTransform.Translation).Size();
-
+        
         if (Length >= MinBoneLength)
         {
             OutBones.Add(BoneIndex);
