@@ -17,12 +17,101 @@
 #include "Source/Editor/PlatformProcess.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
 #include <filesystem>
+#include <unordered_set>
+#include <limits>
+#include <cstdlib>
 #include "Source/Runtime/Engine/GameFramework/CameraActor.h"
 #include "Source/Runtime/Engine/Physics/PhysicsAsset.h"
 #include "Source/Runtime/Engine/Physics/BodySetup.h"
 #include "Source/Runtime/Engine/Physics/PhysicalMaterial.h"
 #include <cstring>
 
+namespace
+{
+    using FBoneNameSet = std::unordered_set<FName>;
+
+    FBoneNameSet GatherPhysicsAssetBones(const UPhysicsAsset* PhysicsAsset)
+    {
+        FBoneNameSet Result;
+        if (!PhysicsAsset)
+        {
+            return Result;
+        }
+
+        for (UBodySetup* Body : PhysicsAsset->BodySetups)
+        {
+            if (!Body)
+            {
+                continue;
+            }
+
+            if (Body->BoneName.IsValid())
+            {
+                Result.insert(Body->BoneName);
+            }
+        }
+
+        return Result;
+    }
+
+    bool SkeletonSupportsBones(const FSkeleton* Skeleton, const FBoneNameSet& RequiredBones)
+    {
+        if (!Skeleton || RequiredBones.empty())
+        {
+            return false;
+        }
+
+        for (const FName& BoneName : RequiredBones)
+        {
+            if (!BoneName.IsValid())
+            {
+                continue;
+            }
+
+            if (Skeleton->FindBoneIndex(BoneName) == INDEX_NONE)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    USkeletalMesh* FindCompatibleMesh(const FBoneNameSet& RequiredBones)
+    {
+        if (RequiredBones.empty())
+        {
+            return nullptr;
+        }
+
+        USkeletalMesh* BestMatch = nullptr;
+        int32 BestScore = std::numeric_limits<int32>::max();
+
+        TArray<USkeletalMesh*> AllMeshes = UResourceManager::GetInstance().GetAll<USkeletalMesh>();
+        for (USkeletalMesh* Mesh : AllMeshes)
+        {
+            if (!Mesh)
+            {
+                continue;
+            }
+
+            const FSkeleton* Skeleton = Mesh->GetSkeleton();
+            if (!SkeletonSupportsBones(Skeleton, RequiredBones))
+            {
+                continue;
+            }
+
+            const int32 BoneDifference = std::abs(Skeleton->GetNumBones() - static_cast<int32>(RequiredBones.size()));
+            if (!BestMatch || BoneDifference < BestScore)
+            {
+                BestMatch = Mesh;
+                BestScore = BoneDifference;
+            }
+        }
+
+        return BestMatch;
+    }
+}
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
     PhysicsAssetPath = std::filesystem::path(GDataDir) / "PhysicsAsset";
@@ -1457,6 +1546,27 @@ void SSkeletalMeshViewerWindow::LoadPhysicsAsset(UPhysicsAsset* PhysicsAsset)
     }
 
     PhysicsAsset->BuildBodySetupIndexMap();
+
+    FBoneNameSet RequiredBones = GatherPhysicsAssetBones(PhysicsAsset);
+
+    const bool bHasCompatibleMesh = ActiveState->CurrentMesh && SkeletonSupportsBones(ActiveState->CurrentMesh->GetSkeleton(), RequiredBones);
+
+    if (!bHasCompatibleMesh)
+    {
+        if (USkeletalMesh* AutoMesh = FindCompatibleMesh(RequiredBones))
+        {
+            const FString& MeshPath = AutoMesh->GetFilePath();
+            if (!MeshPath.empty())
+            {
+                LoadSkeletalMesh(MeshPath);
+                UE_LOG("SSkeletalMeshViewerWindow: Auto-loaded %s for PhysicsAsset %s", MeshPath.c_str(), PhysicsAsset->GetName().ToString().c_str());
+            }
+        }
+        else if (!RequiredBones.empty())
+        {
+            UE_LOG("SSkeletalMeshViewerWindow: No compatible skeletal mesh found for PhysicsAsset %s", PhysicsAsset->GetName().ToString().c_str());
+        }
+    }
 
     if (ActiveState->CurrentMesh)
     {
