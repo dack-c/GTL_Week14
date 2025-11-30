@@ -355,21 +355,38 @@ void SSkeletalMeshViewerWindow::OnRender()
                     // Track which bone was right-clicked to open context menu
                     int RightClickedBoneIndex = -1;
 
-                    std::function<void(int32)> DrawNode = [&](int32 Index)
+                    // Tree line drawing setup
+                    ImDrawList* DrawList = ImGui::GetWindowDrawList();
+                    const ImU32 LineColor = IM_COL32(90, 90, 90, 255);
+                    const float IndentPerLevel = ImGui::GetStyle().IndentSpacing;
+
+                    // Structure to store node position info for line drawing
+                    struct NodePosInfo
+                    {
+                        float CenterY;
+                        float BaseX;
+                        int Depth;
+                        int32 ParentIndex;
+                        bool bIsLastChild;
+                    };
+                    std::vector<NodePosInfo> NodePositions;
+                    NodePositions.resize(Bones.size());
+
+                    std::function<void(int32, int, bool)> DrawNode = [&](int32 Index, int Depth, bool bIsLastChild)
                     {
                         const bool bLeaf = Children[Index].IsEmpty();
                         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
-                        
+
                         if (bLeaf)
                         {
                             flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
                         }
-                        
+
                         if (ActiveState->ExpandedBoneIndices.count(Index) > 0)
                         {
                             ImGui::SetNextItemOpen(true);
                         }
-                        
+
                         if (ActiveState->SelectedBoneIndex == Index)
                         {
                             flags |= ImGuiTreeNodeFlags_Selected;
@@ -377,6 +394,18 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                         ImGui::PushID(Index);
                         const char* Label = Bones[Index].Name.c_str();
+
+                        // Get position before drawing tree node for line connections
+                        ImVec2 CursorPos = ImGui::GetCursorScreenPos();
+                        float ItemCenterY = CursorPos.y + ImGui::GetFrameHeight() * 0.5f;
+                        float BaseX = CursorPos.x;
+
+                        // Store position info for later line drawing
+                        NodePositions[Index].CenterY = ItemCenterY;
+                        NodePositions[Index].BaseX = BaseX;
+                        NodePositions[Index].Depth = Depth;
+                        NodePositions[Index].ParentIndex = Bones[Index].ParentIndex;
+                        NodePositions[Index].bIsLastChild = bIsLastChild;
 
                         if (ActiveState->SelectedBoneIndex == Index)
                         {
@@ -390,7 +419,6 @@ void SSkeletalMeshViewerWindow::OnRender()
                         if (ActiveState->SelectedBoneIndex == Index)
                         {
                             ImGui::PopStyleColor(3);
-                            ImGui::SetScrollHereY(0.5f);
                         }
 
                         if (ImGui::IsItemToggledOpen())
@@ -502,20 +530,75 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                         if (!bLeaf && open)
                         {
-                            for (int32 Child : Children[Index])
+                            int32 ChildCount = Children[Index].Num();
+                            for (int32 ci = 0; ci < ChildCount; ++ci)
                             {
-                                DrawNode(Child);
+                                int32 Child = Children[Index][ci];
+                                bool bChildIsLast = (ci == ChildCount - 1);
+                                DrawNode(Child, Depth + 1, bChildIsLast);
                             }
+
                             ImGui::TreePop();
                         }
                         ImGui::PopID();
                     };
 
+                    // First pass: draw all tree nodes and collect positions
                     for (int32 i = 0; i < Bones.size(); ++i)
                     {
                         if (Bones[i].ParentIndex < 0)
                         {
-                            DrawNode(i);
+                            DrawNode(i, 0, true);
+                        }
+                    }
+
+                    // Second pass: draw connecting lines based on collected positions
+                    for (int32 i = 0; i < Bones.size(); ++i)
+                    {
+                        const NodePosInfo& Info = NodePositions[i];
+                        if (Info.Depth == 0) continue; // Skip root nodes
+
+                        int32 ParentIdx = Info.ParentIndex;
+                        if (ParentIdx < 0 || ParentIdx >= Bones.size()) continue;
+
+                        const NodePosInfo& ParentInfo = NodePositions[ParentIdx];
+
+                        // Calculate the X position for vertical line (at parent's indent level)
+                        float LineX = Info.BaseX - IndentPerLevel + 10.0f;
+
+                        // Draw horizontal line from vertical line to this node
+                        float LineEndX = Info.BaseX - 2.0f;
+                        DrawList->AddLine(ImVec2(LineX, Info.CenterY), ImVec2(LineEndX, Info.CenterY), LineColor, 2.0f);
+
+                        // Draw vertical line from parent to this node
+                        // Find the first child of parent to get the starting Y
+                        float VertStartY = ParentInfo.CenterY;
+                        float VertEndY = Info.CenterY;
+
+                        // Only draw vertical segment if this is the first child or we need to connect
+                        if (!Children[ParentIdx].IsEmpty())
+                        {
+                            int32 FirstChild = Children[ParentIdx][0];
+                            if (i == FirstChild)
+                            {
+                                // First child: draw from parent center to this node
+                                DrawList->AddLine(ImVec2(LineX, VertStartY), ImVec2(LineX, VertEndY), LineColor, 2.0f);
+                            }
+                            else
+                            {
+                                // Not first child: draw from previous sibling to this node
+                                // Find previous sibling
+                                for (int32 ci = 1; ci < Children[ParentIdx].Num(); ++ci)
+                                {
+                                    if (Children[ParentIdx][ci] == i)
+                                    {
+                                        int32 PrevSibling = Children[ParentIdx][ci - 1];
+                                        float PrevY = NodePositions[PrevSibling].CenterY;
+                                        DrawList->AddLine(ImVec2(LineX, PrevY), ImVec2(LineX, VertEndY), LineColor, 2.0f);
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -1342,6 +1425,16 @@ void SSkeletalMeshViewerWindow::LoadSkeletalMesh(const FString& Path)
 
         // Mark bone lines as dirty to rebuild on next frame
         ActiveState->bBoneLinesDirty = true;
+
+        // Expand all bones by default so bone tree is fully visible on load
+        ActiveState->ExpandedBoneIndices.clear();
+        if (const FSkeleton* Skeleton = Mesh->GetSkeleton())
+        {
+            for (int32 i = 0; i < Skeleton->Bones.size(); ++i)
+            {
+                ActiveState->ExpandedBoneIndices.insert(i);
+            }
+        }
 
         // Clear and sync bone line visibility
         if (auto* LineComp = ActiveState->PreviewActor->GetBoneLineComponent())
