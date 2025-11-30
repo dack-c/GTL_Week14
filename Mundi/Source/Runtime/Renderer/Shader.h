@@ -19,9 +19,11 @@ struct FShaderVariant
 {
 	ID3DBlob* VSBlob = nullptr;
 	ID3DBlob* PSBlob = nullptr;
+	ID3DBlob* CSBlob = nullptr;  // Compute Shader Blob
 	ID3D11InputLayout* InputLayout = nullptr; // InputLayout은 VS Blob에 종속적이므로 함께 관리해야 합니다.
 	ID3D11VertexShader* VertexShader = nullptr;
 	ID3D11PixelShader* PixelShader = nullptr;
+	ID3D11ComputeShader* ComputeShader = nullptr;  // Compute Shader
 
 	// Store macros for hot reload
 	TArray<FShaderMacro> SourceMacros;
@@ -31,9 +33,11 @@ struct FShaderVariant
 	{
 		if (VSBlob) { VSBlob->Release(); VSBlob = nullptr; }
 		if (PSBlob) { PSBlob->Release(); PSBlob = nullptr; }
+		if (CSBlob) { CSBlob->Release(); CSBlob = nullptr; }
 		if (InputLayout) { InputLayout->Release(); InputLayout = nullptr; }
 		if (VertexShader) { VertexShader->Release(); VertexShader = nullptr; }
 		if (PixelShader) { PixelShader->Release(); PixelShader = nullptr; }
+		if (ComputeShader) { ComputeShader->Release(); ComputeShader = nullptr; }
 	}
 };
 
@@ -53,6 +57,7 @@ public:
 	ID3D11InputLayout* GetInputLayout(const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
 	ID3D11VertexShader* GetVertexShader(const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
 	ID3D11PixelShader* GetPixelShader(const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
+	ID3D11ComputeShader* GetComputeShader(const TArray<FShaderMacro>& InMacros = TArray<FShaderMacro>());
 
 	// Hot Reload Support
 	bool IsOutdated() const;

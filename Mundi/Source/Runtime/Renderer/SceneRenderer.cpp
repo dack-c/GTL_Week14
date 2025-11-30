@@ -1203,12 +1203,14 @@ void FSceneRenderer::RenderPostProcessingPasses()
 			GammaPass.Execute(Modifier, View, RHIDevice);
 			break;
 		case EPostProcessEffectType::DepthOfField:
-			// DOF는 3단계로 실행: Setup → Blur → Recombine
+			// DOF는 4단계로 실행: Setup → Tile → Blur → Recombine
 			DOFSetupPass.Execute(Modifier, View, RHIDevice);
+			DOFTilePass.Execute(RHIDevice);
+			DOFBlurPass.SetTileSRV(DOFTilePass.GetDilatedTileSRV());
 			DOFBlurPass.Execute(Modifier, View, RHIDevice);
 			DOFRecombinePass.Execute(Modifier, View, RHIDevice);
 			break;
-		}
+		} 
 	}
 }
 

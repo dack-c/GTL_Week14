@@ -161,6 +161,32 @@ public:
 	void PrepareShader(UShader* InShader);
 	void PrepareShader(UShader* InVertexShader, UShader* InPixelShader);
 
+	// ========== Compute Shader 지원 ==========
+	// Compute Shader 설정
+	void CSSetShader(ID3D11ComputeShader* ComputeShader);
+
+	// Compute Shader에 SRV 바인딩
+	void CSSetShaderResources(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView* const* SRVs);
+
+	// Compute Shader에 UAV 바인딩
+	void CSSetUnorderedAccessViews(UINT StartSlot, UINT NumUAVs, ID3D11UnorderedAccessView* const* UAVs, const UINT* InitialCounts = nullptr);
+
+	// Compute Shader에 Constant Buffer 바인딩
+	void CSSetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer* const* Buffers);
+
+	// Compute Shader에 Sampler 바인딩
+	void CSSetSamplers(UINT StartSlot, UINT NumSamplers, ID3D11SamplerState* const* Samplers);
+
+	// Compute Shader Dispatch
+	void Dispatch(UINT ThreadGroupCountX, UINT ThreadGroupCountY, UINT ThreadGroupCountZ);
+
+	// UAV 텍스처 생성 (RWTexture2D용)
+	HRESULT CreateUAVTexture2D(UINT Width, UINT Height, DXGI_FORMAT Format,
+		ID3D11Texture2D** OutTexture, ID3D11ShaderResourceView** OutSRV, ID3D11UnorderedAccessView** OutUAV);
+
+	// Compute 리소스 언바인드
+	void UnbindComputeResources();
+
 	// Structured Buffer 관련 메서드 (타일 기반 라이트 컬링용)
 	HRESULT CreateStructuredBuffer(UINT InElementSize, UINT InElementCount, const void* InInitData, ID3D11Buffer** OutBuffer);
 	HRESULT CreateStructuredBufferSRV(ID3D11Buffer* InBuffer, ID3D11ShaderResourceView** OutSRV);
@@ -205,6 +231,8 @@ public:
     ID3D11RenderTargetView* GetBackBufferRTV() const { return BackBufferRTV; }
     ID3D11RenderTargetView** GetDOFRTVs() { return DOFRTVs; }
     ID3D11RenderTargetView* GetDOFRTV(int index) { return DOFRTVs[index]; }
+    ID3D11ShaderResourceView** GetDOFSRVs() { return DOFSRVs; }
+    ID3D11ShaderResourceView* GetDOFSRV(int index) { return DOFSRVs[index]; }
 
 private:
 	void CreateDeviceAndSwapChain(HWND hWindow); // 여기서 디바이스, 디바이스 컨택스트, 스왑체인, 뷰포트를 초기화한다

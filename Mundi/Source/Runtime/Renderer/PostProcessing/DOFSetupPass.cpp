@@ -22,15 +22,15 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
 
     RHIDevice->OMSetCustomRenderTargets(2, DOFRTVs, nullptr);
 
-    // 2-1) Viewport를 ViewRect/4 기준으로 설정 (게임 영역만)
-    D3D11_VIEWPORT quarterViewport;
-    quarterViewport.TopLeftX = View->ViewRect.MinX / 4.0f;
-    quarterViewport.TopLeftY = View->ViewRect.MinY / 4.0f;
-    quarterViewport.Width = View->ViewRect.Width() / 4.0f;
-    quarterViewport.Height = View->ViewRect.Height() / 4.0f;
-    quarterViewport.MinDepth = 0.0f;
-    quarterViewport.MaxDepth = 1.0f;
-    RHIDevice->GetDeviceContext()->RSSetViewports(1, &quarterViewport);
+    // 2-1) Viewport를 ViewRect/2 기준으로 설정 (게임 영역만)
+    D3D11_VIEWPORT halfViewport;
+    halfViewport.TopLeftX = View->ViewRect.MinX / 2.0f;
+    halfViewport.TopLeftY = View->ViewRect.MinY / 2.0f;
+    halfViewport.Width = View->ViewRect.Width() / 2.0f;
+    halfViewport.Height = View->ViewRect.Height() / 2.0f;
+    halfViewport.MinDepth = 0.0f;
+    halfViewport.MaxDepth = 1.0f;
+    RHIDevice->GetDeviceContext()->RSSetViewports(1, &halfViewport);
 
     // 3) Clear RTV (검은색)
     float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
