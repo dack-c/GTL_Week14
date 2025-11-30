@@ -705,14 +705,14 @@ void D3D11RHI::CreateDOFResources()
     DXGI_SWAP_CHAIN_DESC swapDesc;
     SwapChain->GetDesc(&swapDesc);
 
-    // 1/4 해상도 계산
-    UINT quarterWidth = swapDesc.BufferDesc.Width / 4;
-    UINT quarterHeight = swapDesc.BufferDesc.Height / 4;
+    // 1/2 해상도 계산 (품질 향상)
+    UINT halfWidth = swapDesc.BufferDesc.Width / 2;
+    UINT halfHeight = swapDesc.BufferDesc.Height / 2;
 
     // DOF 텍스처 Description (고정밀도 Float)
     D3D11_TEXTURE2D_DESC DOFDesc = {};
-    DOFDesc.Width = quarterWidth;
-    DOFDesc.Height = quarterHeight;
+    DOFDesc.Width = halfWidth;
+    DOFDesc.Height = halfHeight;
     DOFDesc.MipLevels = 1;
     DOFDesc.ArraySize = 1;
     DOFDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;  // RGB=Color, A=CoC
@@ -760,7 +760,7 @@ void D3D11RHI::CreateDOFResources()
         }
     }
 
-    UE_LOG("D3D11RHI: DOF Resources 생성 완료 (%d x %d)\n", quarterWidth, quarterHeight);
+    UE_LOG("D3D11RHI: DOF Resources 생성 완료 (%d x %d)\n", halfWidth, halfHeight);
 }
 
 void D3D11RHI::CreateRasterizerState()
