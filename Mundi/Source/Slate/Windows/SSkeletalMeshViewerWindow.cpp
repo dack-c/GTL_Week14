@@ -454,6 +454,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             ImGui::EndPopup();
                         }
 
+						// 본 좌클릭 이벤트
                         if (ImGui::IsItemClicked())
                         {
                             // Clear body selection when a bone itself is clicked
@@ -478,7 +479,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                             }
                         }
                         
-						// 매칭되는 바디가 있으면 본 아래에 표시
+						// ======== 바디 및 컨스트레인트 UI ===========
                         if (ActiveState->CurrentPhysicsAsset)
                         {
                             UBodySetup* MatchedBody = ActiveState->CurrentPhysicsAsset->FindBodySetup(FName(Label));
@@ -493,7 +494,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 // Highlight when the bone is selected so selection is consistent
                                 bool bBodySelected = (ActiveState->SelectedBoneIndex == Index);
 
-                                // Optional small color to match previous "Body:" text color
+                                // ==== 바디 UI ====
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.85f, 0.7f, 0.25f, 1.0f));
                                 if (ImGui::Selectable(BodyLabel, bBodySelected))
                                 {
@@ -527,7 +528,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 }
                                 ImGui::PopStyleColor();
 
-                                // Right-click context menu on body to add constraint
+                                // ===== 바디 UI 우클릭 이벤트 =======
                                 if (ImGui::BeginPopupContextItem("BodyContextMenu"))
                                 {
                                     UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
@@ -603,7 +604,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                     ImGui::EndPopup();
                                 }
 
-
+								// ======= Constraint UI 및 우클릭 이벤트========
                                 ImGui::Indent(14.0f);
                                 // Display constraints connected to this body
                                 UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
@@ -625,6 +626,7 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                                         bool bConstraintSelected = (ActiveState->SelectedConstraintIndex == ConstraintIdx);
 
+                                        // ======= Constraint UI =======
                                         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.85f, 0.85f, 1.0f));
                                         if (ImGui::Selectable(ConstraintLabel, bConstraintSelected))
                                         {
@@ -637,7 +639,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                                         }
                                         ImGui::PopStyleColor();
 
-                                        // Right-click to delete constraint
+                                        // ======= Constraint UI 우클릭 이벤트 =======
                                         if (ImGui::BeginPopupContextItem())
                                         {
                                             if (ImGui::MenuItem("Delete Constraint"))
