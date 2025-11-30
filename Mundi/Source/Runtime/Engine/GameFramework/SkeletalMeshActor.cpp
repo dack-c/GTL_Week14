@@ -1001,6 +1001,9 @@ void ASkeletalMeshActor::UpdateBodyTransforms()
         FMatrix BoneLocalMatrix = BoneWorldTransform.ToMatrix() * WorldInv;
         FTransform BoneLocalTransform(BoneLocalMatrix);
 
+		// physicsX에서 body가 속한 공간의 "스케일"은 아마? 무시하기 때문에, 스케일을 1로 고정
+		BoneLocalTransform.Scale3D = FVector::One(); // Ignore scale for transform updates
+
         int32 LineIndex = 0;
 
         // Update Sphere Elements
