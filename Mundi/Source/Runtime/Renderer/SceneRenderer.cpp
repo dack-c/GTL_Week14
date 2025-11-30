@@ -1210,7 +1210,7 @@ void FSceneRenderer::RenderPostProcessingPasses()
 			DOFBlurPass.Execute(Modifier, View, RHIDevice);
 			DOFRecombinePass.Execute(Modifier, View, RHIDevice);
 			break;
-		}
+		} 
 	}
 }
 

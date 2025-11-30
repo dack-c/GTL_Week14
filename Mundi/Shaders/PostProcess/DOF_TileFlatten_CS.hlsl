@@ -17,9 +17,11 @@ cbuffer TileConstants : register(b0)
     float3 _Pad;
 };
 
-// Far/Near 각각 Max CoC 저장
+// Far/Near 각각 Min/Max CoC 저장
 groupshared float sharedFarMaxCoC[TILE_SIZE * TILE_SIZE];
 groupshared float sharedNearMaxCoC[TILE_SIZE * TILE_SIZE];
+groupshared float sharedFarMinCoC[TILE_SIZE * TILE_SIZE];
+groupshared float sharedNearMinCoC[TILE_SIZE * TILE_SIZE];
 
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void mainCS(
@@ -40,8 +42,11 @@ void mainCS(
     }
 
     // Shared memory에 저장
+    // Min은 CoC > 0인 픽셀만 고려 (0이면 큰 값으로 초기화)
     sharedFarMaxCoC[GroupIndex] = farCoC;
     sharedNearMaxCoC[GroupIndex] = nearCoC;
+    sharedFarMinCoC[GroupIndex] = (farCoC > 0.001) ? farCoC : 999999.0;
+    sharedNearMinCoC[GroupIndex] = (nearCoC > 0.001) ? nearCoC : 999999.0;
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -53,6 +58,8 @@ void mainCS(
         {
             sharedFarMaxCoC[GroupIndex] = max(sharedFarMaxCoC[GroupIndex], sharedFarMaxCoC[GroupIndex + s]);
             sharedNearMaxCoC[GroupIndex] = max(sharedNearMaxCoC[GroupIndex], sharedNearMaxCoC[GroupIndex + s]);
+            sharedFarMinCoC[GroupIndex] = min(sharedFarMinCoC[GroupIndex], sharedFarMinCoC[GroupIndex + s]);
+            sharedNearMinCoC[GroupIndex] = min(sharedNearMinCoC[GroupIndex], sharedNearMinCoC[GroupIndex + s]);
         }
         GroupMemoryBarrierWithGroupSync();
     }
@@ -60,7 +67,11 @@ void mainCS(
     // Thread 0이 결과 저장
     if (GroupIndex == 0)
     {
-        // x: FarMaxCoC, y: NearMaxCoC, z: unused, w: unused
-        g_TileOutput[GroupId.xy] = float4(sharedFarMaxCoC[0], sharedNearMaxCoC[0], 0, 0);
+        // Min이 999999면 유효한 CoC가 없었음 → 0으로 저장
+        float farMin = (sharedFarMinCoC[0] < 999999.0) ? sharedFarMinCoC[0] : 0.0;
+        float nearMin = (sharedNearMinCoC[0] < 999999.0) ? sharedNearMinCoC[0] : 0.0;
+
+        // x: FarMaxCoC, y: NearMaxCoC, z: FarMinCoC, w: NearMinCoC
+        g_TileOutput[GroupId.xy] = float4(sharedFarMaxCoC[0], sharedNearMaxCoC[0], farMin, nearMin);
     }
 }
