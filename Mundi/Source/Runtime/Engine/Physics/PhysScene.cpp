@@ -14,6 +14,9 @@ FPhysScene::~FPhysScene()
 
 bool FPhysScene::Initialize()
 {
+    // 0) 커스텀 Assert 핸들러 등록 - PhysX Debug 빌드에서 어떤 assertion이 실패하는지 로그로 출력
+    PxSetAssertHandler(AssertHandler);
+
     // 1) Foundation
     // PhysX SDK의 최상위 루트 객체
     Foundation = PxCreateFoundation(PX_PHYSICS_VERSION, Allocator, ErrorCallback);
@@ -39,7 +42,18 @@ bool FPhysScene::Initialize()
             else
             {
                 UE_LOG("[PhysScene] PVD connection failed (PVD application not running?)");
+                // 연결 실패 시 PVD 해제
+                Pvd->release();
+                Pvd = nullptr;
+                PvdTransport->release();
+                PvdTransport = nullptr;
             }
+        }
+        else
+        {
+            // Transport 생성 실패 시 PVD 해제
+            Pvd->release();
+            Pvd = nullptr;
         }
     }
 
@@ -48,11 +62,20 @@ bool FPhysScene::Initialize()
     // PxTolerancesScale()은 길이/질량/속도 스케일 과 같은 기본값을 넘겨주는 구조체
     // SceneDesc, joint limit, contact offset 같은 곳에 "이 게임 세계의 단위가 어느 정도냐"를 추정할 때 사용
     // 한줄요약 : "씬, 머티리얼, 쉐이프 같은 물리 객체를 전부 찍어내는 공장(Factory)"
-    // PVD를 전달하여 디버깅 지원
+    // PVD 연결 성공 시에만 전달, 실패 시 nullptr
     Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, PxTolerancesScale(), true, Pvd);
 
     if (!Physics)
     {
+        return false;
+    }
+
+    // ★ Extensions 초기화 (Joint, Character Controller 등 사용 시 필수)
+    // PVD가 연결된 상태에서 Joint를 만들려면 반드시 PxInitExtensions를 호출해야 함
+    // 그렇지 않으면 PVD가 Joint 인스턴스를 인식하지 못해 isInstanceValid Assert 발생
+    if (!PxInitExtensions(*Physics, Pvd))
+    {
+        UE_LOG("[PhysScene] PxInitExtensions failed!");
         return false;
     }
 
@@ -149,6 +172,9 @@ void FPhysScene::Shutdown()
 
     if (Physics)
     {
+        // Extensions 해제 (Physics 해제 직전에 호출)
+        PxCloseExtensions();
+
         Physics->release();
         Physics = nullptr;
     }
