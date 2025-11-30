@@ -1,19 +1,25 @@
 // DOF Tile Flatten Compute Shader
-// 8x8 타일별 Min/Max CoC 계산
+// 8x8 타일별 Min/Max CoC 계산 (Far + Near)
 
 #define TILE_SIZE 8
 
-Texture2D<float4> g_CoCTexture : register(t0);  // Setup 결과 (Far 또는 Near)
+Texture2D<float4> g_FarFieldTex  : register(t0);  // Far Field (CoC in alpha)
+Texture2D<float4> g_NearFieldTex : register(t1);  // Near Field (CoC in alpha)
 RWTexture2D<float4> g_TileOutput : register(u0);
 
 cbuffer TileConstants : register(b0)
 {
-    uint2 InputSize;    // 입력 텍스처 크기 (1/4 해상도)
-    uint2 TileCount;    // 타일 개수
+    uint InputSizeX;
+    uint InputSizeY;
+    uint TileCountX;
+    uint TileCountY;
+    float CocRadiusToTileScale;
+    float3 _Pad;
 };
 
-groupshared float sharedMinCoC[TILE_SIZE * TILE_SIZE];
-groupshared float sharedMaxCoC[TILE_SIZE * TILE_SIZE];
+// Far/Near 각각 Max CoC 저장
+groupshared float sharedFarMaxCoC[TILE_SIZE * TILE_SIZE];
+groupshared float sharedNearMaxCoC[TILE_SIZE * TILE_SIZE];
 
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void mainCS(
@@ -24,16 +30,18 @@ void mainCS(
     // 픽셀 좌표 계산
     uint2 pixelPos = GroupId.xy * TILE_SIZE + GroupThreadId.xy;
 
-    // 경계 체크
-    float coc = 0.0;
-    if (all(pixelPos < InputSize))
+    // 경계 체크 및 Far/Near CoC 읽기
+    float farCoC = 0.0;
+    float nearCoC = 0.0;
+    if (pixelPos.x < InputSizeX && pixelPos.y < InputSizeY)
     {
-        coc = g_CoCTexture[pixelPos].a;  // Alpha = CoC
+        farCoC = g_FarFieldTex[pixelPos].a;   // Far Field CoC
+        nearCoC = g_NearFieldTex[pixelPos].a; // Near Field CoC (양수화됨)
     }
 
     // Shared memory에 저장
-    sharedMinCoC[GroupIndex] = coc;
-    sharedMaxCoC[GroupIndex] = coc;
+    sharedFarMaxCoC[GroupIndex] = farCoC;
+    sharedNearMaxCoC[GroupIndex] = nearCoC;
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -43,8 +51,8 @@ void mainCS(
     {
         if (GroupIndex < s)
         {
-            sharedMinCoC[GroupIndex] = min(sharedMinCoC[GroupIndex], sharedMinCoC[GroupIndex + s]);
-            sharedMaxCoC[GroupIndex] = max(sharedMaxCoC[GroupIndex], sharedMaxCoC[GroupIndex + s]);
+            sharedFarMaxCoC[GroupIndex] = max(sharedFarMaxCoC[GroupIndex], sharedFarMaxCoC[GroupIndex + s]);
+            sharedNearMaxCoC[GroupIndex] = max(sharedNearMaxCoC[GroupIndex], sharedNearMaxCoC[GroupIndex + s]);
         }
         GroupMemoryBarrierWithGroupSync();
     }
@@ -52,7 +60,7 @@ void mainCS(
     // Thread 0이 결과 저장
     if (GroupIndex == 0)
     {
-        // x: MinCoC, y: MaxCoC, z: unused, w: unused
-        g_TileOutput[GroupId.xy] = float4(sharedMinCoC[0], sharedMaxCoC[0], 0, 0);
+        // x: FarMaxCoC, y: NearMaxCoC, z: unused, w: unused
+        g_TileOutput[GroupId.xy] = float4(sharedFarMaxCoC[0], sharedNearMaxCoC[0], 0, 0);
     }
 }

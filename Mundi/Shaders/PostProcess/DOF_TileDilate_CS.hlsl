@@ -1,33 +1,34 @@
 // DOF Tile Dilate Compute Shader
-// 이웃 타일로 Min/Max CoC 확장
+// 이웃 타일로 Far/Near MaxCoC 확장
 
 #define TILE_SIZE 8
 #define DILATE_RADIUS 2  // 2 = 최대 16픽셀(2타일) 거리까지 확인
 
-Texture2D<float4> g_TileInput : register(t0);   // Flatten 결과
+Texture2D<float4> g_TileInput : register(t0);   // Flatten 결과 (x: FarMax, y: NearMax)
 RWTexture2D<float4> g_TileOutput : register(u0);
 
 cbuffer TileConstants : register(b0)
 {
-    uint2 TileCount;    // 타일 개수
-    float CocRadiusToTileScale;  // CoC를 타일 거리로 변환하는 스케일
-    float _Pad0;
+    uint InputSizeX;
+    uint InputSizeY;
+    uint TileCountX;
+    uint TileCountY;
+    float CocRadiusToTileScale;
+    float3 _Pad;
 };
 
 [numthreads(8, 8, 1)]
 void mainCS(uint3 DTid : SV_DispatchThreadID)
 {
-    if (any(DTid.xy >= TileCount))
+    if (DTid.x >= TileCountX || DTid.y >= TileCountY)
         return;
 
-    // 현재 타일의 Min/Max
+    // 현재 타일의 Far/Near MaxCoC
     float4 centerTile = g_TileInput[DTid.xy];
-    float minCoC = centerTile.x;
-    float maxCoC = centerTile.y;
+    float farMaxCoC = centerTile.x;
+    float nearMaxCoC = centerTile.y;
 
     // Ring별로 이웃 타일 확인
-    // Ring 1: 거리 1 타일 (8픽셀)
-    // Ring 2: 거리 2 타일 (16픽셀)
     [unroll]
     for (int ring = 1; ring <= DILATE_RADIUS; ring++)
     {
@@ -45,29 +46,29 @@ void mainCS(uint3 DTid : SV_DispatchThreadID)
                 int2 neighborPos = int2(DTid.xy) + int2(x, y);
 
                 // 경계 체크
-                if (any(neighborPos < 0) || any(neighborPos >= int2(TileCount)))
+                if (neighborPos.x < 0 || neighborPos.y < 0 ||
+                    neighborPos.x >= (int)TileCountX || neighborPos.y >= (int)TileCountY)
                     continue;
 
                 float4 neighborTile = g_TileInput[neighborPos];
-                float neighborMin = neighborTile.x;
-                float neighborMax = neighborTile.y;
+                float neighborFarMax = neighborTile.x;
+                float neighborNearMax = neighborTile.y;
 
                 // 이웃의 CoC가 이 거리까지 도달할 수 있는지 체크
-                // CoC 반경 >= 타일 경계까지 거리 이면 영향 있음
-                if (neighborMax * CocRadiusToTileScale > ringDistance)
+                if (neighborFarMax * CocRadiusToTileScale > ringDistance)
                 {
-                    maxCoC = max(maxCoC, neighborMax);
+                    farMaxCoC = max(farMaxCoC, neighborFarMax);
                 }
 
-                if (abs(neighborMin) * CocRadiusToTileScale > ringDistance)
+                if (neighborNearMax * CocRadiusToTileScale > ringDistance)
                 {
-                    minCoC = min(minCoC, neighborMin);
+                    nearMaxCoC = max(nearMaxCoC, neighborNearMax);
                 }
             }
         }
     }
 
     // 결과 저장
-    // x: Dilated MinCoC, y: Dilated MaxCoC
-    g_TileOutput[DTid.xy] = float4(minCoC, maxCoC, 0, 0);
+    // x: Dilated FarMaxCoC, y: Dilated NearMaxCoC
+    g_TileOutput[DTid.xy] = float4(farMaxCoC, nearMaxCoC, 0, 0);
 }

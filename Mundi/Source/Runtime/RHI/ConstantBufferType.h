@@ -118,7 +118,7 @@ struct alignas(16) FDOFBlurBufferType
 {
     FVector2D BlurDirection;       // (1,0) = Horizontal, (0,1) = Vertical
     float BlurRadius;              // 블러 반경 스케일
-    float _Pad0;
+    int32 IsFarField;              // 1 = Far Field, 0 = Near Field
 };
 static_assert(sizeof(FDOFBlurBufferType) % 16 == 0, "CB must be 16-byte aligned");
 
