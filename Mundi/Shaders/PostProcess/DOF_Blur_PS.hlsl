@@ -54,13 +54,15 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // 2. Tile에서 Max CoC 가져오기 (Point Sampling)
+    // 2. Tile에서 Min/Max CoC 가져오기 (Point Sampling)
+    // tileData: x=FarMax, y=NearMax, z=FarMin, w=NearMin
     float2 pixelPos = input.texCoord * ScreenSize.xy;
     float2 tileCount = ScreenSize.xy / TILE_SIZE;
     int2 tileIdx = int2(pixelPos / TILE_SIZE);
     tileIdx = clamp(tileIdx, int2(0, 0), int2(tileCount) - 1);
     float4 tileData = g_TileTex.Load(int3(tileIdx, 0));
     float tileMaxCoc = (IsFarField == 1) ? tileData.x : tileData.y;
+    float tileMinCoc = (IsFarField == 1) ? tileData.z : tileData.w;
 
     // 3. Early Out: 주변에 흐린 게 하나도 없으면 원본 리턴
     if (centerCoc < 0.01 && tileMaxCoc < 0.01)
@@ -69,7 +71,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // 4. 검색 반경 결정 (100% tileMaxCoc 사용)
+    // 4. 검색 반경 결정
     // CoC는 0~1 정규화
     float halfBlurRadius = BlurRadius * 0.25;
     float searchRadius = max(centerCoc, tileMaxCoc);  // 0~1 정규화
