@@ -25,6 +25,7 @@
 #include "Source/Runtime/Engine/Physics/BodySetup.h"
 #include "Source/Runtime/Engine/Physics/PhysicalMaterial.h"
 #include <cstring>
+#include "RenderManager.h"
 
 namespace
 {
@@ -857,6 +858,19 @@ void SSkeletalMeshViewerWindow::OnRender()
                 ImVec2 rectMin = childPos;
                 ImVec2 rectMax(childPos.x + childSize.x, childPos.y + childSize.y);
                 CenterRect.Left = rectMin.x; CenterRect.Top = rectMin.y; CenterRect.Right = rectMax.x; CenterRect.Bottom = rectMax.y; CenterRect.UpdateMinMax();
+
+                URenderer* CurrentRenderer = URenderManager::GetInstance().GetRenderer();
+                D3D11RHI* RHIDevice = CurrentRenderer->GetRHIDevice();
+
+                uint32 TotalWidth = RHIDevice->GetViewportWidth();
+				uint32 TotalHeight = RHIDevice->GetViewportHeight();
+
+                ImVec2 uv0(CenterRect.Left / TotalWidth, CenterRect.Top / TotalHeight);
+                ImVec2 uv1((CenterRect.Left + childSize.x) / TotalWidth, (CenterRect.Top + childSize.y) / TotalHeight);
+
+                //ID3D11ShaderResourceView* SRV = RHIDevice->GetSourceSRV(1);
+				ID3D11ShaderResourceView* SRV = RHIDevice->GetCurrentSourceSRV();
+				ImGui::Image((void*)SRV, ImVec2(childSize.x, childSize.y), uv0, uv1);
             }
             ImGui::EndChild();
 
