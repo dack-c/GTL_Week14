@@ -1308,6 +1308,114 @@ void D3D11RHI::PrepareShader(UShader* InVertexShader, UShader* InPixelShader)
 }
 
 // ──────────────────────────────────────────────────────
+// Compute Shader 지원
+// ──────────────────────────────────────────────────────
+
+void D3D11RHI::CSSetShader(ID3D11ComputeShader* ComputeShader)
+{
+    DeviceContext->CSSetShader(ComputeShader, nullptr, 0);
+}
+
+void D3D11RHI::CSSetShaderResources(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView* const* SRVs)
+{
+    DeviceContext->CSSetShaderResources(StartSlot, NumViews, SRVs);
+}
+
+void D3D11RHI::CSSetUnorderedAccessViews(UINT StartSlot, UINT NumUAVs, ID3D11UnorderedAccessView* const* UAVs, const UINT* InitialCounts)
+{
+    DeviceContext->CSSetUnorderedAccessViews(StartSlot, NumUAVs, UAVs, InitialCounts);
+}
+
+void D3D11RHI::CSSetConstantBuffers(UINT StartSlot, UINT NumBuffers, ID3D11Buffer* const* Buffers)
+{
+    DeviceContext->CSSetConstantBuffers(StartSlot, NumBuffers, Buffers);
+}
+
+void D3D11RHI::CSSetSamplers(UINT StartSlot, UINT NumSamplers, ID3D11SamplerState* const* Samplers)
+{
+    DeviceContext->CSSetSamplers(StartSlot, NumSamplers, Samplers);
+}
+
+void D3D11RHI::Dispatch(UINT ThreadGroupCountX, UINT ThreadGroupCountY, UINT ThreadGroupCountZ)
+{
+    DeviceContext->Dispatch(ThreadGroupCountX, ThreadGroupCountY, ThreadGroupCountZ);
+}
+
+HRESULT D3D11RHI::CreateUAVTexture2D(UINT Width, UINT Height, DXGI_FORMAT Format,
+    ID3D11Texture2D** OutTexture, ID3D11ShaderResourceView** OutSRV, ID3D11UnorderedAccessView** OutUAV)
+{
+    // 텍스처 생성 (SRV + UAV 바인딩 가능)
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = Width;
+    texDesc.Height = Height;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = Format;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.SampleDesc.Quality = 0;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+    texDesc.CPUAccessFlags = 0;
+    texDesc.MiscFlags = 0;
+
+    HRESULT hr = Device->CreateTexture2D(&texDesc, nullptr, OutTexture);
+    if (FAILED(hr))
+    {
+        UE_LOG("[error] CreateUAVTexture2D: Failed to create texture\n");
+        return hr;
+    }
+
+    // SRV 생성
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    hr = Device->CreateShaderResourceView(*OutTexture, &srvDesc, OutSRV);
+    if (FAILED(hr))
+    {
+        UE_LOG("[error] CreateUAVTexture2D: Failed to create SRV\n");
+        (*OutTexture)->Release();
+        *OutTexture = nullptr;
+        return hr;
+    }
+
+    // UAV 생성
+    D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.Format = Format;
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+    uavDesc.Texture2D.MipSlice = 0;
+
+    hr = Device->CreateUnorderedAccessView(*OutTexture, &uavDesc, OutUAV);
+    if (FAILED(hr))
+    {
+        UE_LOG("[error] CreateUAVTexture2D: Failed to create UAV\n");
+        (*OutSRV)->Release();
+        *OutSRV = nullptr;
+        (*OutTexture)->Release();
+        *OutTexture = nullptr;
+        return hr;
+    }
+
+    return S_OK;
+}
+
+void D3D11RHI::UnbindComputeResources()
+{
+    // SRV 언바인드
+    ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
+    DeviceContext->CSSetShaderResources(0, 8, nullSRVs);
+
+    // UAV 언바인드
+    ID3D11UnorderedAccessView* nullUAVs[8] = { nullptr };
+    DeviceContext->CSSetUnorderedAccessViews(0, 8, nullUAVs, nullptr);
+
+    // Compute Shader 언바인드
+    DeviceContext->CSSetShader(nullptr, nullptr, 0);
+}
+
+// ──────────────────────────────────────────────────────
 // Structured Buffer 관련 메서드 (타일 기반 라이트 컬링용)
 // ──────────────────────────────────────────────────────
 

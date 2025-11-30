@@ -95,7 +95,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     // 헤일로 방지: Sky Focus Distance (부드러운 전환)
     // 매우 먼 거리(하늘/빈 공간)는 블러 점진적 감소
-    const float skyFocusStart = FarClip * 0.6;   // 전환 시작 (50%)
+    const float skyFocusStart = FarClip * 0.5;   // 전환 시작 (50%)
     const float skyFocusEnd = FarClip * 0.9;     // 전환 끝 (90%)
 
     if (linearDepth > skyFocusStart && CoC > 0.0)
