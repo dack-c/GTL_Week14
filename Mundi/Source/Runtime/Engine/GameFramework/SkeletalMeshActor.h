@@ -26,6 +26,7 @@ public:
     // - 본 오버레이(뼈대 선) 시각화를 위한 라인 컴포넌트
     ULineComponent* GetBoneLineComponent() const { return BoneLineComponent; }
     ULineComponent* GetBodyLineComponent() const { return BodyLineComponent; }
+	ULineComponent* GetConstraintLineComponent() const { return ConstraintLineComponent; }
     UBoneAnchorComponent* GetBoneGizmoAnchor() const { return BoneAnchor; }
 
     // Convenience: forward to component
@@ -37,6 +38,8 @@ public:
 
     // Rebuild physics body line overlay from the current physics asset
     void RebuildBodyLines(bool& bChangedGeomNum, int32 SelectedBodyIndex);
+
+	void RebuildConstraintLines(int32 SelectedConstraintIndex);
 
     // Position the anchor
     void RepositionAnchorToBone(int32 BoneIndex);
@@ -60,6 +63,9 @@ protected:
     // Physics body 시각화를 위한 라인 컴포넌트
     ULineComponent* BodyLineComponent = nullptr;
 
+	// Constraint visualization line component
+	ULineComponent* ConstraintLineComponent = nullptr;
+
     // Anchor component used for gizmo selection/transform at a bone
     UBoneAnchorComponent* BoneAnchor = nullptr;
 
@@ -80,6 +86,12 @@ protected:
         TArray<ULine*> ConvexLines;       // Lines for convex collision shapes
     };
 
+    // Constraint line cache (avoid ClearLines every frame)
+    struct FConstraintDebugLines
+    {
+        ULine* ConnectionLine = nullptr;  // Line connecting two bones
+    };
+
     bool bBoneLinesInitialized = false;
     int32 CachedSegments = 4;
     int32 CachedSelected = -1;
@@ -91,15 +103,22 @@ protected:
     UPhysicsAsset* CachedPhysicsAsset = nullptr;
     int32 CachedSelectedBody = -1;
 
+    bool bConstraintLinesInitialized = false;
+    TArray<FConstraintDebugLines> ConstraintLinesCache; // size == Constraints count
+    int32 CachedSelectedConstraint = -1;
+
     float BoneJointRadius = 0.02f;
     float BoneBaseRadius = 0.03f;
 
     void BuildBoneLinesCache();
     void BuildBodyLinesCache();
+    void BuildConstraintLinesCache();
     void UpdateBoneSubtreeTransforms(int32 BoneIndex);
     void UpdateBoneSelectionHighlight(int32 SelectedBoneIndex);
     void UpdateBodySelectionHighlight(int32 SelectedBodyIndex);
+    void UpdateConstraintSelectionHighlight(int32 SelectedConstraintIndex);
     void UpdateBodyTransforms();
+    void UpdateConstraintTransforms();
 
     // Lazily create viewer-only components (BoneLineComponent, BodyLineComponent, BoneAnchor) if in preview world
     void EnsureViewerComponents();
