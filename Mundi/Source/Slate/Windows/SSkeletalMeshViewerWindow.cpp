@@ -114,7 +114,7 @@ namespace
 }
 SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
 {
-    PhysicsAssetPath = std::filesystem::path(GDataDir) / "PhysicsAsset";
+    PhysicsAssetPath = std::filesystem::path(GDataDir) / "Physics";
 
     CenterRect = FRect(0, 0, 0, 0);
     
@@ -2736,6 +2736,16 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                 ImGui::Spacing();
 
                 const FString& SavePath = State->CurrentPhysicsAsset->GetFilePath();
+                if (!SavePath.empty())
+                {
+                    std::filesystem::path DisplayPath(SavePath);
+                    FString FileName = DisplayPath.filename().string();
+                    if (!FileName.empty())
+                    {
+                        State->CurrentPhysicsAsset->SetName(FName(FileName.c_str()));
+                    }
+                }
+
                 ImGui::Text("Active Physics Asset: %s", State->CurrentPhysicsAsset->GetName().ToString().c_str());
                 ImGui::Text("Save Path: %s", SavePath.empty() ? "<None>" : SavePath.c_str());
 
@@ -2774,7 +2784,7 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                     ImGui::OpenPopup("ShapeTypePopup");
                 }
 
-                auto CreatePhysicsAssetWithShape = [&](EAggCollisionShapeType ShapeType)
+                auto RebuildPhysicsAssetWithShape = [&](EAggCollisionShapeType ShapeType)
                     {
                         if (!State->CurrentMesh)
                         {
@@ -2782,51 +2792,34 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                             return;
                         }
 
-                        UPhysicsAsset* NewAsset = NewObject<UPhysicsAsset>();
-                        if (!NewAsset)
-                        {
-                            UE_LOG("Failed to create new UPhysicsAsset");
-                            return;
-                        }
-
-                        NewAsset->SetName("Default");
-
-                        FString AssetNameStr = NewAsset->GetName().ToString();
-                        UResourceManager::GetInstance().Add<UPhysicsAsset>(AssetNameStr, NewAsset);
-
-                        NewAsset->CreateGenerateAllBodySetup(
+                        State->CurrentPhysicsAsset->CreateGenerateAllBodySetup(
                             ShapeType,
                             State->CurrentMesh->GetSkeleton()
                         );
 
-                        State->CurrentPhysicsAsset = NewAsset;
                         State->CurrentPhysicsAsset->SetFilePath(FString()); // 아직 파일 없음
-
-                        State->CurrentMesh->PhysicsAsset = NewAsset;
-
-                        UE_LOG("Created new PhysicsAsset: %s", NewAsset->GetName().ToString().c_str());
                     };
 
                 if (ImGui::BeginPopup("ShapeTypePopup"))
                 {
                     if (ImGui::Selectable("Sphere"))
                     {
-                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Sphere);
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Sphere);
                         ImGui::CloseCurrentPopup();
                     }
                     if (ImGui::Selectable("Box"))
                     {
-                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Box);
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Box);
                         ImGui::CloseCurrentPopup();
                     }
                     if (ImGui::Selectable("Sphyl"))
                     {
-                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Sphyl);
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Sphyl);
                         ImGui::CloseCurrentPopup();
                     }
                     if (ImGui::Selectable("Convex"))
                     {
-                        CreatePhysicsAssetWithShape(EAggCollisionShapeType::Convex);
+                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Convex);
                         ImGui::CloseCurrentPopup();
                     }
 
@@ -2836,4 +2829,5 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
         }
     }
 }
+
 
