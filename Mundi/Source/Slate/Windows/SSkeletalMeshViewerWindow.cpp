@@ -852,7 +852,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                 {
                     ImGui::GetIO().WantCaptureMouse = false;
                 }
-                
+
                 ImVec2 childPos = ImGui::GetWindowPos();
                 ImVec2 childSize = ImGui::GetWindowSize();
                 ImVec2 rectMin = childPos;
@@ -863,15 +863,24 @@ void SSkeletalMeshViewerWindow::OnRender()
                 D3D11RHI* RHIDevice = CurrentRenderer->GetRHIDevice();
 
                 uint32 TotalWidth = RHIDevice->GetViewportWidth();
-				uint32 TotalHeight = RHIDevice->GetViewportHeight();
+                uint32 TotalHeight = RHIDevice->GetViewportHeight();
 
-                ImVec2 uv0(CenterRect.Left / TotalWidth, CenterRect.Top / TotalHeight);
-                ImVec2 uv1((CenterRect.Left + childSize.x) / TotalWidth, (CenterRect.Top + childSize.y) / TotalHeight);
+                // UV 좌표를 정확하게 계산: 정확한 본 피킹을 위해 (자식 윈도우의 실제 콘텐츠 영역 사용)
+                ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
+                ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
 
-                //ID3D11ShaderResourceView* SRV = RHIDevice->GetSourceSRV(1);
-				ID3D11ShaderResourceView* SRV = RHIDevice->GetCurrentSourceSRV();
-				//ImGui::Image((void*)SRV, ImVec2(childSize.x, childSize.y), uv0, uv1);
-				ImGui::Image((void*)SRV, ImVec2(childSize.x, childSize.y), uv0, uv1);
+                // 실제 렌더링 영역의 UV 계산
+                float actualLeft = CenterRect.Left + contentMin.x;
+                float actualTop = CenterRect.Top + contentMin.y;
+
+                ImVec2 uv0(actualLeft / TotalWidth, actualTop / TotalHeight);
+                ImVec2 uv1((actualLeft + (contentMax.x - contentMin.x)) / TotalWidth,
+                    (actualTop + (contentMax.y - contentMin.y)) / TotalHeight);
+
+                ID3D11ShaderResourceView* SRV = RHIDevice->GetCurrentSourceSRV();
+
+                // ImGui::Image 사용 이유: 뷰포트가 Imgui 메뉴를 가려버리는 경우 방지 위함.
+                ImGui::Image((void*)SRV, ImVec2(contentMax.x - contentMin.x, contentMax.y - contentMin.y), uv0, uv1);
             }
             ImGui::EndChild();
 
