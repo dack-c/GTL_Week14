@@ -219,7 +219,7 @@ FKSphereElem UPhysicsAsset::FitSphereToBone(const FSkeleton* Skeleton, int32 Bon
 
     FKSphereElem Elem;
     Elem.Center = Point.End;
-    Elem.Radius = FMath::Max(BoneLen * 0.5f, 1.0f);
+    Elem.Radius = FMath::Max(BoneLen * 0.5f, 10.0f);
 
     return Elem;
 }
@@ -243,8 +243,8 @@ FKBoxElem UPhysicsAsset::FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex
     }
 
     const FVector Center = (Point.Start + Point.End) * 0.5f;
-    const float HalfDepth = FMath::Max(BoneLen * 0.5f, 1.0f);
-    const float HalfWidth = FMath::Max(BoneLen * 0.15f, 1.0f);
+    const float HalfDepth = FMath::Max(BoneLen * 0.5f, 10.0f);
+    const float HalfWidth = FMath::Max(BoneLen * 0.15f, 10.0f);
 
     const FVector BoxAxis(0, 0, 1);
     const FQuat Rot = FQuat::FindBetweenNormals(BoxAxis, DirNorm);
@@ -277,7 +277,7 @@ FKSphylElem UPhysicsAsset::FitCapsuleToBone(const FSkeleton* Skeleton, int32 Bon
 
     const FVector Center = (Point.Start + Point.End) * 0.5f;
 
-    const float Radius = FMath::Max(BoneLen * 0.25f, 1.0f);
+    const float Radius = FMath::Max(BoneLen * 0.25f, 10.0f);
     const float HalfLength = FMath::Max((BoneLen * 0.5f) - Radius, 0.0f);
 
     const FVector CapsuleAxis(0, 0, 1);
