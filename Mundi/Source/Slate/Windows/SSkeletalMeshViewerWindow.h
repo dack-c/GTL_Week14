@@ -38,7 +38,7 @@ private:
     void OpenNewTab(const char* Name = "Viewer");
     void CloseTab(int Index);
     
-    // viwer를 닫을 때 자동으로 Notifies 정보 저장
+    // viewer를 닫을 때 자동으로 Notifies 정보 저장
     void SaveAllNotifiesOnClose();
 
 
