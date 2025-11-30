@@ -48,7 +48,7 @@ void ASkeletalMeshActor::SetSkeletalMesh(const FString& PathFileName)
 void ASkeletalMeshActor::EnsureViewerComponents()
 {
     // Only create viewer components if they don't exist and we're in a preview world
-    if (BoneLineComponent && BoneAnchor && BodyLineComponent)
+    if (BoneLineComponent && BoneAnchor && BodyLineComponent && ConstraintLineComponent)
     {
         return;
     }
@@ -84,6 +84,20 @@ void ASkeletalMeshActor::EnsureViewerComponents()
             BodyLineComponent->SetAlwaysOnTop(true);
             AddOwnedComponent(BodyLineComponent);
             BodyLineComponent->RegisterComponent(World);
+        }
+    }
+
+    // Create constraint line component for physics constraint visualization
+    if (!ConstraintLineComponent)
+    {
+        ConstraintLineComponent = NewObject<ULineComponent>();
+        if (ConstraintLineComponent && RootComponent)
+        {
+            ConstraintLineComponent->ObjectName = "ConstraintLines";
+            ConstraintLineComponent->SetupAttachment(RootComponent, EAttachmentRule::KeepRelative);
+            ConstraintLineComponent->SetAlwaysOnTop(true);
+            AddOwnedComponent(ConstraintLineComponent);
+            ConstraintLineComponent->RegisterComponent(World);
         }
     }
 
@@ -225,6 +239,10 @@ void ASkeletalMeshActor::DuplicateSubObjects()
             {
                 BodyLineComponent = Comp;
             }
+            else if (Comp->ObjectName == FName("ConstraintLines"))
+            {
+                ConstraintLineComponent = Comp;
+        }
         }
         else if (auto* Comp = Cast<UBoneAnchorComponent>(Component))
         {
@@ -711,6 +729,64 @@ void ASkeletalMeshActor::RebuildBodyLines(bool& bChangedGeomNum, int32 SelectedB
 
 	// Update transforms only(body들은 그대로고 트랜스폼만 바뀌는 경우)
     UpdateBodyTransforms();
+}
+
+void ASkeletalMeshActor::RebuildConstraintLines(int32 SelectedConstraintIndex)
+{
+    // Ensure viewer components exist before using them
+    EnsureViewerComponents();
+
+    if (!ConstraintLineComponent || !SkeletalMeshComponent)
+    {
+        return;
+    }
+
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
+    if (!SkeletalMesh || !SkeletalMesh->PhysicsAsset)
+    {
+        if (bConstraintLinesInitialized)
+        {
+            ConstraintLineComponent->ClearLines();
+            ConstraintLinesCache.Empty();
+            bConstraintLinesInitialized = false;
+        }
+        return;
+    }
+
+    const FSkeletalMeshData* Data = SkeletalMesh->GetSkeletalMeshData();
+    if (!Data)
+    {
+        if (bConstraintLinesInitialized)
+        {
+            ConstraintLineComponent->ClearLines();
+            ConstraintLinesCache.Empty();
+            bConstraintLinesInitialized = false;
+        }
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAsset = SkeletalMesh->PhysicsAsset;
+
+    // Initialize cache once per physics asset or rebuild if physics asset changed
+    if (!bConstraintLinesInitialized || CachedPhysicsAsset != PhysicsAsset || 
+        ConstraintLinesCache.Num() != PhysicsAsset->Constraints.Num())
+    {
+        ConstraintLineComponent->ClearLines();
+        BuildConstraintLinesCache();
+        bConstraintLinesInitialized = true;
+        CachedPhysicsAsset = PhysicsAsset;
+        CachedSelectedConstraint = -1;
+    }
+
+    // Update selection highlight only when changed
+    if (CachedSelectedConstraint != SelectedConstraintIndex)
+    {
+        UpdateConstraintSelectionHighlight(SelectedConstraintIndex);
+        CachedSelectedConstraint = SelectedConstraintIndex;
+    }
+
+    // Update transforms for all constraints (they follow bone transforms)
+    UpdateConstraintTransforms();
 }
 
 void ASkeletalMeshActor::BuildBodyLinesCache()
@@ -1225,5 +1301,156 @@ void ASkeletalMeshActor::UpdateBodyTransforms()
                 ++LineIndex;
             }
         }
+    }
+}
+
+void ASkeletalMeshActor::BuildConstraintLinesCache()
+{
+    if (!SkeletalMeshComponent || !ConstraintLineComponent)
+    {
+        return;
+    }
+
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
+    if (!SkeletalMesh || !SkeletalMesh->PhysicsAsset)
+    {
+        return;
+    }
+
+    const FSkeletalMeshData* Data = SkeletalMesh->GetSkeletalMeshData();
+    if (!Data)
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAsset = SkeletalMesh->PhysicsAsset;
+    const FSkeleton* Skeleton = &Data->Skeleton;
+
+    // Yellow color for normal constraints
+    const FVector4 ConstraintColor(1.0f, 1.0f, 0.0f, 1.0f);
+
+    ConstraintLinesCache.Empty();
+    ConstraintLinesCache.resize(PhysicsAsset->Constraints.Num());
+
+    const FMatrix WorldInv = GetWorldMatrix().InverseAffine();
+
+    // Build lines for each constraint
+    for (int32 ConstraintIdx = 0; ConstraintIdx < PhysicsAsset->Constraints.Num(); ++ConstraintIdx)
+    {
+        const FPhysicsConstraintSetup& Constraint = PhysicsAsset->Constraints[ConstraintIdx];
+        FConstraintDebugLines& CDL = ConstraintLinesCache[ConstraintIdx];
+
+        // Find bone indices for both bodies
+        int32 BoneIndexA = Skeleton->FindBoneIndex(Constraint.BodyNameA);
+        int32 BoneIndexB = Skeleton->FindBoneIndex(Constraint.BodyNameB);
+
+        if (BoneIndexA == INDEX_NONE || BoneIndexB == INDEX_NONE)
+        {
+            continue;
+        }
+
+        // Get bone transforms in local (actor) space
+        FTransform BoneWorldTransformA = SkeletalMeshComponent->GetBoneWorldTransform(BoneIndexA);
+        FTransform BoneWorldTransformB = SkeletalMeshComponent->GetBoneWorldTransform(BoneIndexB);
+
+        FMatrix BoneLocalMatrixA = BoneWorldTransformA.ToMatrix() * WorldInv;
+        FMatrix BoneLocalMatrixB = BoneWorldTransformB.ToMatrix() * WorldInv;
+
+        FVector LocalPosA(BoneLocalMatrixA.M[3][0], BoneLocalMatrixA.M[3][1], BoneLocalMatrixA.M[3][2]);
+        FVector LocalPosB(BoneLocalMatrixB.M[3][0], BoneLocalMatrixB.M[3][1], BoneLocalMatrixB.M[3][2]);
+
+        // Create a line connecting the two bones
+        CDL.ConnectionLine = ConstraintLineComponent->AddLine(LocalPosA, LocalPosB, ConstraintColor);
+    }
+}
+
+void ASkeletalMeshActor::UpdateConstraintSelectionHighlight(int32 SelectedConstraintIndex)
+{
+    if (!SkeletalMeshComponent)
+    {
+        return;
+    }
+
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
+    if (!SkeletalMesh || !SkeletalMesh->PhysicsAsset)
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAsset = SkeletalMesh->PhysicsAsset;
+    const int32 ConstraintCount = PhysicsAsset->Constraints.Num();
+
+    const FVector4 SelectedColor(1.0f, 0.0f, 0.0f, 1.0f);   // Red for selected constraint
+    const FVector4 NormalColor(1.0f, 1.0f, 0.0f, 1.0f);     // Yellow for normal constraint
+
+    for (int32 i = 0; i < ConstraintCount && i < ConstraintLinesCache.Num(); ++i)
+    {
+        const bool bSelected = (i == SelectedConstraintIndex);
+        const FVector4 Color = bSelected ? SelectedColor : NormalColor;
+        FConstraintDebugLines& CDL = ConstraintLinesCache[i];
+
+        if (CDL.ConnectionLine)
+        {
+            CDL.ConnectionLine->SetColor(Color);
+        }
+    }
+}
+
+void ASkeletalMeshActor::UpdateConstraintTransforms()
+{
+    if (!SkeletalMeshComponent || !ConstraintLineComponent)
+    {
+        return;
+    }
+
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
+    if (!SkeletalMesh || !SkeletalMesh->PhysicsAsset)
+    {
+        return;
+    }
+
+    const FSkeletalMeshData* Data = SkeletalMesh->GetSkeletalMeshData();
+    if (!Data)
+    {
+        return;
+    }
+
+    UPhysicsAsset* PhysicsAsset = SkeletalMesh->PhysicsAsset;
+    const FSkeleton* Skeleton = &Data->Skeleton;
+
+    const FMatrix WorldInv = GetWorldMatrix().InverseAffine();
+
+    // Update each constraint's line endpoints
+    for (int32 ConstraintIdx = 0; ConstraintIdx < PhysicsAsset->Constraints.Num() && ConstraintIdx < ConstraintLinesCache.Num(); ++ConstraintIdx)
+    {
+        const FPhysicsConstraintSetup& Constraint = PhysicsAsset->Constraints[ConstraintIdx];
+        FConstraintDebugLines& CDL = ConstraintLinesCache[ConstraintIdx];
+
+        if (!CDL.ConnectionLine)
+        {
+            continue;
+        }
+
+        // Find bone indices for both bodies
+        int32 BoneIndexA = Skeleton->FindBoneIndex(Constraint.BodyNameA);
+        int32 BoneIndexB = Skeleton->FindBoneIndex(Constraint.BodyNameB);
+
+        if (BoneIndexA == INDEX_NONE || BoneIndexB == INDEX_NONE)
+        {
+            continue;
+        }
+
+        // Get bone transforms in local (actor) space
+        FTransform BoneWorldTransformA = SkeletalMeshComponent->GetBoneWorldTransform(BoneIndexA);
+        FTransform BoneWorldTransformB = SkeletalMeshComponent->GetBoneWorldTransform(BoneIndexB);
+
+        FMatrix BoneLocalMatrixA = BoneWorldTransformA.ToMatrix() * WorldInv;
+        FMatrix BoneLocalMatrixB = BoneWorldTransformB.ToMatrix() * WorldInv;
+
+        FVector LocalPosA(BoneLocalMatrixA.M[3][0], BoneLocalMatrixA.M[3][1], BoneLocalMatrixA.M[3][2]);
+        FVector LocalPosB(BoneLocalMatrixB.M[3][0], BoneLocalMatrixB.M[3][1], BoneLocalMatrixB.M[3][2]);
+
+        // Update the line endpoints
+        CDL.ConnectionLine->SetLine(LocalPosA, LocalPosB);
     }
 }

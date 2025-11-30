@@ -975,8 +975,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                             if (ImGui::TreeNodeEx((void*)(intptr_t)si, ImGuiTreeNodeFlags_DefaultOpen, "Sphere [%d]", si))
                             {
                                 //ImGui::PushItemWidth(-1);
-                                ImGui::DragFloat3("Center", &S.Center.X, 0.1f, -10000.0f, 10000.0f, "%.2f");
-                                ImGui::DragFloat("Radius", &S.Radius, 0.1f, 0.1f, 10000.0f, "%.2f");
+                                ImGui::DragFloat3("Center", &S.Center.X, 0.01f, -10000.0f, 10000.0f, "%.2f");
+                                ImGui::DragFloat("Radius", &S.Radius, 0.01f, 0.01f, 10000.0f, "%.2f");
                                 //ImGui::PopItemWidth();
                                 
                                 if (ImGui::Button("Remove Sphere"))
@@ -997,7 +997,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                         {
                             FKSphereElem NewSphere;
                             NewSphere.Center = FVector::Zero();
-                            NewSphere.Radius = 50.0f;
+                            NewSphere.Radius = 0.5f;
                             Body->AggGeom.SphereElements.Add(NewSphere);
                             ActiveState->bChangedGeomNum = true;
                         }
@@ -1020,8 +1020,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                             if (ImGui::TreeNodeEx((void*)(intptr_t)bi, ImGuiTreeNodeFlags_DefaultOpen, "Box [%d]", bi))
                             {
                                 //ImGui::PushItemWidth(-1);
-                                ImGui::DragFloat3("Center", &B.Center.X, 0.1f, -10000.0f, 10000.0f, "%.2f");
-                                ImGui::DragFloat3("Extents", &B.Extents.X, 0.1f, 0.1f, 10000.0f, "%.2f");
+                                ImGui::DragFloat3("Center", &B.Center.X, 0.01f, -10000.0f, 10000.0f, "%.2f");
+                                ImGui::DragFloat3("Extents", &B.Extents.X, 0.01f, 0.01f, 10000.0f, "%.2f");
                                 
 
                                 // Rotation as Euler angles
@@ -1050,7 +1050,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                         {
                             FKBoxElem NewBox;
                             NewBox.Center = FVector::Zero();
-                            NewBox.Extents = FVector(50.0f, 50.0f, 50.0f);
+                            NewBox.Extents = FVector(0.5f, 0.5f, 0.5f);
                             NewBox.Rotation = FQuat::Identity();
                             Body->AggGeom.BoxElements.Add(NewBox);
                             ActiveState->bChangedGeomNum = true;
@@ -1074,9 +1074,9 @@ void SSkeletalMeshViewerWindow::OnRender()
                             if (ImGui::TreeNodeEx((void*)(intptr_t)si, ImGuiTreeNodeFlags_DefaultOpen, "Capsule [%d]", si))
                             {
                                 //ImGui::PushItemWidth(-1);
-                                ImGui::DragFloat3("Center", &S.Center.X, 0.1f, -10000.0f, 10000.0f, "%.2f");
-                                ImGui::DragFloat("Radius", &S.Radius, 0.1f, 0.1f, 10000.0f, "%.2f");
-                                ImGui::DragFloat("Half Length", &S.HalfLength, 0.1f, 0.1f, 10000.0f, "%.2f");
+                                ImGui::DragFloat3("Center", &S.Center.X, 0.01f, -10000.0f, 10000.0f, "%.2f");
+                                ImGui::DragFloat("Radius", &S.Radius, 0.01f, 0.01f, 10000.0f, "%.2f");
+                                ImGui::DragFloat("Half Length", &S.HalfLength, 0.01f, 0.01f, 10000.0f, "%.2f");
                                 
                                 // Rotation as Euler angles
                                 FVector EulerDeg = S.Rotation.ToEulerZYXDeg();
@@ -1104,8 +1104,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                         {
                             FKSphylElem NewSphyl;
                             NewSphyl.Center = FVector::Zero();
-                            NewSphyl.Radius = 30.0f;
-                            NewSphyl.HalfLength = 50.0f;
+                            NewSphyl.Radius = 0.3f;
+                            NewSphyl.HalfLength = 0.5f;
                             NewSphyl.Rotation = FQuat::Identity();
                             Body->AggGeom.SphylElements.Add(NewSphyl);
                             ActiveState->bChangedGeomNum = true;
@@ -1591,21 +1591,28 @@ void SSkeletalMeshViewerWindow::OnRenderViewport()
         {
             ActiveState->bBoneLinesDirty = true;
         }
-        if (ActiveState->bShowBones && ActiveState->PreviewActor && ActiveState->CurrentMesh && ActiveState->bBoneLinesDirty)
+        if (ActiveState->PreviewActor && ActiveState->CurrentMesh)
         {
-            if (ULineComponent* LineComp = ActiveState->PreviewActor->GetBoneLineComponent())
+            if (ActiveState->bShowBones && ActiveState->bBoneLinesDirty)
             {
-                LineComp->SetLineVisible(true);
+                if (ULineComponent* LineComp = ActiveState->PreviewActor->GetBoneLineComponent())
+                {
+                    LineComp->SetLineVisible(true);
+                }
+                ActiveState->PreviewActor->RebuildBoneLines(ActiveState->SelectedBoneIndex);
+                ActiveState->bBoneLinesDirty = false;
             }
-            ActiveState->PreviewActor->RebuildBoneLines(ActiveState->SelectedBoneIndex);
-            ActiveState->bBoneLinesDirty = false;
+            
+			// Rebuild physics body lines and constraint lines if needed
+            if (ActiveState->CurrentMesh->PhysicsAsset)
+            {
+                ActiveState->PreviewActor->RebuildBodyLines(ActiveState->bChangedGeomNum, ActiveState->SelectedBodyIndex);
+
+                ActiveState->PreviewActor->RebuildConstraintLines(ActiveState->SelectedConstraintIndex);
+            }
         }
 
-        // Rebuild physics body lines when physics asset changes
-        if (ActiveState->PreviewActor && ActiveState->CurrentMesh && ActiveState->CurrentMesh->PhysicsAsset)
-        {
-            ActiveState->PreviewActor->RebuildBodyLines(ActiveState->bChangedGeomNum, ActiveState->SelectedBodyIndex);
-        }
+        
 
         // 뷰포트 렌더링 (ImGui보다 먼저)
         ActiveState->Viewport->Render();
@@ -2625,6 +2632,18 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                     if (AssetName.empty())
                     {
                         AssetName = "Unnamed Physics Asset";
+                    }
+
+                    const FString& AssetPath = PhysAsset->GetFilePath();
+                    if (!AssetPath.empty())
+                    {
+                        std::filesystem::path DisplayPath(AssetPath);
+                        FString FileName = DisplayPath.filename().string();
+                        if (!FileName.empty())
+                        {
+                            PhysAsset->SetName(FName(FileName.c_str()));
+                            AssetName = FileName;
+                        }
                     }
 
                     bool bIsSelected = (State->CurrentPhysicsAsset == PhysAsset);
