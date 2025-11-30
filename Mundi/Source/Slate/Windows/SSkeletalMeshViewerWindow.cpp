@@ -2627,6 +2627,18 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                         AssetName = "Unnamed Physics Asset";
                     }
 
+                    const FString& AssetPath = PhysAsset->GetFilePath();
+                    if (!AssetPath.empty())
+                    {
+                        std::filesystem::path DisplayPath(AssetPath);
+                        FString FileName = DisplayPath.filename().string();
+                        if (!FileName.empty())
+                        {
+                            PhysAsset->SetName(FName(FileName.c_str()));
+                            AssetName = FileName;
+                        }
+                    }
+
                     bool bIsSelected = (State->CurrentPhysicsAsset == PhysAsset);
                     // Rename mode is per-state boolean; check it's active and refers to this asset
                     bool bIsRenamingThis = (State->bIsRenaming && bIsSelected);
