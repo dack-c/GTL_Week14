@@ -399,6 +399,34 @@ void SSkeletalMeshViewerWindow::OnRender()
                     ActiveState->bBoneLinesDirty = true;
                 }
             }
+
+			/*ImGui::SameLine();*/
+            if (ImGui::Checkbox("Show Bodies", &ActiveState->bShowBodies))
+            {
+                if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetBodyLineComponent())
+                {
+                    ActiveState->PreviewActor->GetBodyLineComponent()->SetLineVisible(ActiveState->bShowBodies);
+                }
+            }
+
+            /*ImGui::SameLine();*/
+            if (ImGui::Checkbox("Show Constraints line", &ActiveState->bShowConstraintLines))
+            {
+                if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetConstraintLineComponent())
+                {
+                    ActiveState->PreviewActor->GetConstraintLineComponent()->SetLineVisible(ActiveState->bShowConstraintLines);
+                }
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Checkbox("Show Constraints limits", &ActiveState->bShowConstraintLimits))
+            {
+                if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetConstraintLimitLineComponent())
+                {
+                    ActiveState->PreviewActor->GetConstraintLimitLineComponent()->SetLineVisible(ActiveState->bShowConstraintLimits);
+                }
+            }
+
             ImGui::PopStyleColor(2);
             ImGui::EndGroup();           
 

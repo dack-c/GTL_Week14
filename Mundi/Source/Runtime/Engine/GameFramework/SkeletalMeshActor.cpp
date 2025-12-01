@@ -1536,7 +1536,7 @@ void ASkeletalMeshActor::BuildConstraintLimitLinesCache()
     const FVector4 TwistLimitColor(1.0f, 0.5f, 0.0f, 0.8f);  // Orange for twist limits
     const FVector4 SwingLimitColor(0.0f, 1.0f, 0.5f, 0.6f);  // Cyan for swing limits
     constexpr int NumSegments = 32;
-    constexpr float LimitRadius = 0.2f;  // Visual radius for limit shapes
+    constexpr float LimitRadius = 0.01f;  // Visual radius for limit shapes
 
     ConstraintLimitLinesCache.Empty();
     ConstraintLimitLinesCache.resize(PhysicsAsset->Constraints.Num());
@@ -1665,7 +1665,7 @@ void ASkeletalMeshActor::UpdateConstraintLimitTransforms()
 
     const FSkeleton* Skeleton = &Data->Skeleton;
 
-    constexpr float LimitRadius = 0.2f;
+    constexpr float LimitRadius = 0.1f;
     const FMatrix WorldInv = GetWorldMatrix().InverseAffine();
 
     // Update each constraint's limit lines
