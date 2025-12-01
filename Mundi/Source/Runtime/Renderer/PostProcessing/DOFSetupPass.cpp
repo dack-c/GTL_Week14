@@ -33,7 +33,7 @@ void FDOFSetupPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D
     RHIDevice->GetDeviceContext()->RSSetViewports(1, &halfViewport);
 
     // 3) Clear RTV (검은색)
-    float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.01f };
     RHIDevice->GetDeviceContext()->ClearRenderTargetView(DOFRTVs[0], ClearColor);
     RHIDevice->GetDeviceContext()->ClearRenderTargetView(DOFRTVs[1], ClearColor);
 
