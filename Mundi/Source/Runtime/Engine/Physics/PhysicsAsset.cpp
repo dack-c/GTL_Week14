@@ -84,6 +84,37 @@ int32 UPhysicsAsset::FindConstraintIndex(FName BodyA, FName BodyB) const
 	return INDEX_NONE;
 }
 
+TArray<const FPhysicsConstraintSetup*> UPhysicsAsset::GetConstraintsForBody(FName BodyName) const
+{
+    TArray<const FPhysicsConstraintSetup*> Result;
+
+    for (const FPhysicsConstraintSetup& Constraint : Constraints)
+    {
+        if (Constraint.BodyNameA == BodyName || Constraint.BodyNameB == BodyName)
+        {
+            Result.Add(&Constraint);
+        }
+    }
+
+    return Result;
+}
+
+TArray<int32> UPhysicsAsset::GetConstraintIndicesForBody(FName BodyName) const
+{
+    TArray<int32> Indices;
+    
+    for (int32 i = 0; i < Constraints.Num(); ++i)
+    {
+        const auto& C = Constraints[i];
+        if (C.BodyNameA == BodyName || C.BodyNameB == BodyName)
+        {
+            Indices.Add(i);
+        }
+    }
+
+    return Indices;
+}
+
 void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton, USkeletalMeshComponent* SkeletalComponent)
 {
     if (!Skeleton)

@@ -650,6 +650,12 @@ void SSkeletalMeshViewerWindow::OnRender()
                                 }
                                 ImGui::PopStyleColor();
 
+                                UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
+                                FName CurrentBodyName = MatchedBody->BoneName;
+								//TArray<const FPhysicsConstraintSetup*> ConnectedConstraints = ActiveState->CurrentPhysicsAsset->GetConstraintsForBody(CurrentBodyName);
+								TArray<int32> ConnectedConstraintIndices = ActiveState->CurrentPhysicsAsset->GetConstraintIndicesForBody(CurrentBodyName);
+                                
+
                                 // ===== 바디 UI 우클릭 이벤트 =======
                                 if (ImGui::BeginPopupContextItem("BodyContextMenu"))
                                 {
@@ -723,58 +729,50 @@ void SSkeletalMeshViewerWindow::OnRender()
 
 								// =========== Constraint UI ============
                                 ImGui::Indent(14.0f);
-                                // Display constraints connected to this body
-                                UPhysicsAsset* Phys = ActiveState->CurrentPhysicsAsset;
-                                FName CurrentBodyName = MatchedBody->BoneName;
-
-                                // Find all constraints involving this body
-                                for (int32 ConstraintIdx = 0; ConstraintIdx < Phys->Constraints.Num(); ++ConstraintIdx)
+                                
+                                for (int32 ConstraintIdx : ConnectedConstraintIndices)
                                 {
                                     const FPhysicsConstraintSetup& Constraint = Phys->Constraints[ConstraintIdx];
 
-                                    // Check if this constraint involves the current body
-                                    if (Constraint.BodyNameA == CurrentBodyName || Constraint.BodyNameB == CurrentBodyName)
+                                    // Determine the "other" body name
+                                    FName OtherBodyName = (Constraint.BodyNameA == CurrentBodyName) ? Constraint.BodyNameB : Constraint.BodyNameA;
+
+                                    char ConstraintLabel[256];
+                                    snprintf(ConstraintLabel, sizeof(ConstraintLabel), "  %s <-> %s", CurrentBodyName.ToString().c_str(), OtherBodyName.ToString().c_str());
+
+                                    bool bConstraintSelected = (ActiveState->SelectedConstraintIndex == ConstraintIdx);
+
+                                    // ======= Constraint UI 좌클릭 이벤트 =======
+                                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.85f, 0.85f, 1.0f));
+                                    if (ImGui::Selectable(ConstraintLabel, bConstraintSelected))
                                     {
-                                        // Determine the "other" body name
-                                        FName OtherBodyName = (Constraint.BodyNameA == CurrentBodyName) ? Constraint.BodyNameB : Constraint.BodyNameA;
+                                        // Select this constraint
+                                        ActiveState->SelectedConstraintIndex = ConstraintIdx;
 
-                                        char ConstraintLabel[256];
-                                        snprintf(ConstraintLabel, sizeof(ConstraintLabel), "  %s <-> %s", CurrentBodyName.ToString().c_str(), OtherBodyName.ToString().c_str());
+                                        ActiveState->SelectedBoneIndex = -1; // Clear bone selection when constraint is selected
 
-                                        bool bConstraintSelected = (ActiveState->SelectedConstraintIndex == ConstraintIdx);
+                                        // Clear body selection when constraint is selected
+                                        ActiveState->SelectedBodySetup = nullptr;
+                                        ActiveState->SelectedBodyIndex = -1;
+                                    }
+                                    ImGui::PopStyleColor();
 
-                                        // ======= Constraint UI 좌클릭 이벤트 =======
-                                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.85f, 0.85f, 1.0f));
-                                        if (ImGui::Selectable(ConstraintLabel, bConstraintSelected))
+                                    // ======= Constraint UI 우클릭 이벤트 =======
+                                    if (ImGui::BeginPopupContextItem())
+                                    {
+                                        if (ImGui::MenuItem("Delete Constraint"))
                                         {
-                                            // Select this constraint
-                                            ActiveState->SelectedConstraintIndex = ConstraintIdx;
-
-											ActiveState->SelectedBoneIndex = -1; // Clear bone selection when constraint is selected
-
-                                            // Clear body selection when constraint is selected
-                                            ActiveState->SelectedBodySetup = nullptr;
-                                            ActiveState->SelectedBodyIndex = -1;
-                                        }
-                                        ImGui::PopStyleColor();
-
-                                        // ======= Constraint UI 우클릭 이벤트 =======
-                                        if (ImGui::BeginPopupContextItem())
-                                        {
-                                            if (ImGui::MenuItem("Delete Constraint"))
+                                            Phys->Constraints.RemoveAt(ConstraintIdx);
+                                            if (ActiveState->SelectedConstraintIndex == ConstraintIdx)
                                             {
-                                                Phys->Constraints.RemoveAt(ConstraintIdx);
-                                                if (ActiveState->SelectedConstraintIndex == ConstraintIdx)
-                                                {
-                                                    ActiveState->SelectedConstraintIndex = -1;
-                                                }
-                                                else if (ActiveState->SelectedConstraintIndex > ConstraintIdx)
-                                                {
-                                                    ActiveState->SelectedConstraintIndex--;
-                                                }
+                                                ActiveState->SelectedConstraintIndex = -1;
                                             }
-                                            ImGui::EndPopup();
+                                            else if (ActiveState->SelectedConstraintIndex > ConstraintIdx)
+                                            {
+                                                ActiveState->SelectedConstraintIndex--;
+                                            }
                                         }
+                                        ImGui::EndPopup();
                                     }
                                 }
                                 ImGui::Unindent(14.0f);
