@@ -338,17 +338,26 @@ void UPhysicsAsset::GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, c
         }
 
         // 조인트 프레임 설정
-        // PxD6Joint 축 정의: X축 = Twist, Y축 = Swing1, Z축 = Swing2
-        // 본의 로컬 Z축이 본 길이 방향이므로, 조인트 X축(Twist)을 본 Z축에 맞춤
-        // Z축 → X축 회전: Y축 기준 -90도 회전
+        // PxD6Joint 축 정의: X축 = Twist, Y축 = Swing1(Twist 0도 기준), Z축 = Swing2
+        //
+        // 목표:
+        // - 조인트 X축(Twist 회전축) = 본의 Z축 (본 길이 방향)
+        // - 조인트 Y축(Twist 0도 기준) = 본의 X축
+        // - 조인트 Z축 = 본의 -Y축
+        //
+        // 변환 과정:
+        // 1) ZToX: Y축 기준 -90도 → 본 Z축을 조인트 X축으로 맞춤
+        // 2) TwistRef: X축 기준 -90도 → 조인트 Y축을 본 X축 방향으로 (Twist 0도 기준을 +X로)
         FQuat ZToX = FQuat::FromAxisAngle(FVector(0, 1, 0), -XM_PIDIV2);
+        FQuat TwistRef = FQuat::FromAxisAngle(FVector(1, 0, 0), -XM_PIDIV2);
+        FQuat JointFrameRotation = ZToX * TwistRef;
 
         // LocalFrameA: Parent Body 기준, Child 위치에서 축 보정
         FTransform RelativeTransform = ParentWorldTransform.GetRelativeTransform(ChildWorldTransform);
-        Setup.LocalFrameA = FTransform(RelativeTransform.Translation, RelativeTransform.Rotation * ZToX, FVector(1, 1, 1));
+        Setup.LocalFrameA = FTransform(RelativeTransform.Translation, RelativeTransform.Rotation * JointFrameRotation, FVector(1, 1, 1));
 
         // LocalFrameB: Child Body 기준, 원점에서 축 보정
-        Setup.LocalFrameB = FTransform(FVector::Zero(), ZToX, FVector(1, 1, 1));
+        Setup.LocalFrameB = FTransform(FVector::Zero(), JointFrameRotation, FVector(1, 1, 1));
 
         Setup.TwistLimitMin = DegreesToRadians(-45.0f);
         Setup.TwistLimitMax = DegreesToRadians(45.0f);
