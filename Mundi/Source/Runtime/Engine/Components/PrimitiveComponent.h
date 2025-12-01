@@ -26,7 +26,7 @@ public:
     GENERATED_REFLECTION_BODY();
 
     UPrimitiveComponent();
-    virtual ~UPrimitiveComponent() = default;
+    virtual ~UPrimitiveComponent();
 
     void OnRegister(UWorld* InWorld) override;
     void OnUnregister() override;

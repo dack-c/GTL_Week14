@@ -3,10 +3,22 @@
 #include "SceneComponent.h"
 #include "Actor.h"
 #include "WorldPartitionManager.h"
+#include "../Physics/BodyInstance.h"
+
+
 // IMPLEMENT_CLASS is now auto-generated in .generated.cpp
 UPrimitiveComponent::UPrimitiveComponent() : bGenerateOverlapEvents(true)
 {
 	CollisionEnabled = (ECollisionState)CollisionEnabled_Internal;
+}
+
+UPrimitiveComponent::~UPrimitiveComponent()
+{
+    if (BodyInstance)
+    {
+        delete BodyInstance;
+        BodyInstance = nullptr;
+    }
 }
 
 void UPrimitiveComponent::OnRegister(UWorld* InWorld)
