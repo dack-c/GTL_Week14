@@ -9,8 +9,8 @@ void FDOFRecombinePass::Execute(const FPostProcessModifier& M, FSceneView* View,
 {
     if (!IsApplicable(M)) return;
 
-    // FSwapGuard: SceneColor 읽기/쓰기 자동 처리 + SRV 0~3 자동 언바인드
-    FSwapGuard SwapGuard(RHIDevice, 0, 4);
+    // FSwapGuard: SceneColor 읽기/쓰기 자동 처리 + SRV 0~4 자동 언바인드
+    FSwapGuard SwapGuard(RHIDevice, 0, 5);
 
     // 1) RTV 설정: SceneColor Target
     RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithoutDepth);
@@ -31,7 +31,7 @@ void FDOFRecombinePass::Execute(const FPostProcessModifier& M, FSceneView* View,
 
     RHIDevice->PrepareShader(FullScreenVS, RecombinePS);
 
-    // 4) SRV 바인딩 (t0~t3)
+    // 4) SRV 바인딩 (t0~t4)
     ID3D11ShaderResourceView* SceneSRV = RHIDevice->GetSRV(RHI_SRV_Index::SceneColorSource);
     ID3D11ShaderResourceView* DepthSRV = RHIDevice->GetSRV(RHI_SRV_Index::SceneDepth);
     ID3D11ShaderResourceView* FarSRV = RHIDevice->GetSRV(RHI_SRV_Index::DOFFar);
@@ -45,6 +45,11 @@ void FDOFRecombinePass::Execute(const FPostProcessModifier& M, FSceneView* View,
 
     ID3D11ShaderResourceView* InputSRVs[4] = { SceneSRV, DepthSRV, FarSRV, NearSRV };
     RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 4, InputSRVs);
+
+    // t4: Scatter SRV (Near Field Scatter 결과)
+    // ScatterSRV가 없으면 null 바인딩 (이전 리소스 클리어)
+    ID3D11ShaderResourceView* scatterSRVToBind = ScatterSRV ? ScatterSRV : nullptr;
+    RHIDevice->GetDeviceContext()->PSSetShaderResources(4, 1, &scatterSRVToBind);
 
     // 5) Sampler 바인딩
     ID3D11SamplerState* LinearClamp = RHIDevice->GetSamplerState(RHI_Sampler_Index::LinearClamp);
