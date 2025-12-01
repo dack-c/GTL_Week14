@@ -22,7 +22,9 @@ static PxFilterFlags RagdollFilterShader(
     // 트리거 처리 (기존 로직 유지)
     if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
     {
-        pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
+        pairFlags = PxPairFlag::eTRIGGER_DEFAULT
+                  | PxPairFlag::eNOTIFY_TOUCH_FOUND
+                  | PxPairFlag::eNOTIFY_TOUCH_LOST;
         return PxFilterFlag::eDEFAULT;
     }
 
@@ -34,7 +36,10 @@ static PxFilterFlags RagdollFilterShader(
     }
 
     // 기본 충돌 처리
-    pairFlags = PxPairFlag::eCONTACT_DEFAULT;
+    pairFlags = PxPairFlag::eCONTACT_DEFAULT
+              | PxPairFlag::eNOTIFY_TOUCH_FOUND
+              | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
+              | PxPairFlag::eNOTIFY_TOUCH_LOST;
     return PxFilterFlag::eDEFAULT;
 }
 
