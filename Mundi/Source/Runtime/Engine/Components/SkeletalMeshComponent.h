@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SkinnedMeshComponent.h"
 #include "USkeletalMeshComponent.generated.h"
 // Include for FPendingAnimNotify and FAnimNotifyEvent types
@@ -27,12 +27,13 @@ public:
     GENERATED_REFLECTION_BODY()
     
     USkeletalMeshComponent();
-    ~USkeletalMeshComponent() override = default;
+    ~USkeletalMeshComponent() = default;
 
 public:
     void BeginPlay() override;
     void TickComponent(float DeltaTime) override;
-    
+    void EndPlay() override;
+
     // Serialize to persist AnimGraphPath and reuse base behavior
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
 
@@ -294,10 +295,17 @@ private:
     /////////////////////////////////////////////////////////////
 private:
     EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::AnimationDriven;
-    //EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::PhysicsDriven;
+    // EPhysicsAnimationState PhysicsState = EPhysicsAnimationState::PhysicsDriven;
     float BlendWeight;
     float BlendTime;
 
 public:
     void SetPhysicsAnimationState(EPhysicsAnimationState NewState, float InBlendTime = 0.2f) { PhysicsState = NewState; BlendTime = InBlendTime; };
+
+    // Event Call Back Test
+    void OnRegiDebug();
+    void OnUnregiDebug();
+    void GameLogicTest(FContactHit ContactHit);
+
+    FDelegateHandle TestContactHit{};
 };
