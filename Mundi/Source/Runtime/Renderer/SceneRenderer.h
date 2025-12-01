@@ -9,7 +9,6 @@
 #include "PostProcessing/DOFSetupPass.h"
 #include "PostProcessing/DOFTilePass.h"
 #include "PostProcessing/DOFBlurPass.h"
-#include "PostProcessing/DOFScatterPass.h"
 #include "PostProcessing/DOFRecombinePass.h"
 
 // 전방 선언 (헤더 파일 의존성 최소화)
@@ -166,6 +165,5 @@ private:
 	FDOFSetupPass DOFSetupPass;
 	FDOFTilePass DOFTilePass;
 	FDOFBlurPass DOFBlurPass;
-	FDOFScatterPass DOFScatterPass;
 	FDOFRecombinePass DOFRecombinePass;
 };

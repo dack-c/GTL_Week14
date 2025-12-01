@@ -70,98 +70,59 @@ void FDOFBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D1
         static_cast<float>(dofTexHeight),
         1.0f / static_cast<float>(dofTexWidth),
         1.0f / static_cast<float>(dofTexHeight)
-    );
+);
     RHIDevice->SetAndUpdateConstantBuffer(ViewportCB);
 
-    // Blur Radius (MaxBlurSize from DOF params)
+    // Blur Radius
     float NearBlurRadius = M.Payload.Params1.Z;  // MaxNearBlurSize
     float FarBlurRadius = M.Payload.Params1.W;   // MaxFarBlurSize
 
     ID3D11ShaderResourceView* NullSRV = nullptr;
     float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+    // Input SRV: DOF[0] (혼합 텍스처, CoC 부호 있음)
+    ID3D11ShaderResourceView* inputSRV = RHIDevice->GetDOFSRV(0);
+
     // ===========================================
-    // Ring-based 2D Blur (1패스로 원형 보케 생성)
+    // Pass 1: Near (Foreground) Blur
+    // DOF[0] → DOF[1], IsFarField = 0 (CoC < 0 만 포함)
     // ===========================================
-
-    // 1. Far Field Blur
     {
-        // SRV 언바인드
         RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &NullSRV);
 
-        // RTV 설정: DOFTextures[2] (Temp - Far Field 블러 결과)
-        ID3D11RenderTargetView* tempRTV = RHIDevice->GetDOFRTV(2);
-        RHIDevice->OMSetCustomRenderTargets(1, &tempRTV, nullptr);
-        RHIDevice->GetDeviceContext()->ClearRenderTargetView(tempRTV, clearColor);
-
-        // SRV 바인딩: DOFTextures[0] (Far Field 원본)
-        ID3D11ShaderResourceView* farSRV = RHIDevice->GetSRV(RHI_SRV_Index::DOFFar);
-        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &farSRV);
-
-        // 상수 버퍼: Far Field
-        FDOFBlurBufferType blurCB;
-        blurCB.BlurDirection = FVector2D(0.0f, 0.0f);  // Ring은 방향 사용 안함
-        blurCB.BlurRadius = FarBlurRadius;
-        blurCB.IsFarField = 1;
-        RHIDevice->SetAndUpdateConstantBuffer(blurCB);
-
-        RHIDevice->DrawFullScreenQuad();
-        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &NullSRV);
-    }
-
-    // Far 결과를 DOFTextures[0]으로 복사 (Temp → Far)
-    {
-        ID3D11RenderTargetView* farRTV = RHIDevice->GetDOFRTV(0);
-        RHIDevice->OMSetCustomRenderTargets(1, &farRTV, nullptr);
-
-        ID3D11ShaderResourceView* tempSRV = RHIDevice->GetSRV(RHI_SRV_Index::DOFTempH);
-        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &tempSRV);
-
-        // 단순 복사 (블러 없이)
-        FDOFBlurBufferType blurCB;
-        blurCB.BlurDirection = FVector2D(0.0f, 0.0f);
-        blurCB.BlurRadius = 0.0f;  // 블러 없이 복사만
-        blurCB.IsFarField = 1;
-        RHIDevice->SetAndUpdateConstantBuffer(blurCB);
-
-        RHIDevice->DrawFullScreenQuad();
-        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &NullSRV);
-    }
-
-    // 2. Near Field Blur
-    {
-        // RTV 설정: DOFTextures[2] (Temp - Near Field 블러 결과)
-        ID3D11RenderTargetView* tempRTV = RHIDevice->GetDOFRTV(2);
-        RHIDevice->OMSetCustomRenderTargets(1, &tempRTV, nullptr);
-        RHIDevice->GetDeviceContext()->ClearRenderTargetView(tempRTV, clearColor);
-
-        // SRV 바인딩: DOFTextures[1] (Near Field 원본)
-        ID3D11ShaderResourceView* nearSRV = RHIDevice->GetSRV(RHI_SRV_Index::DOFNear);
-        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &nearSRV);
-
-        // 상수 버퍼: Near Field
-        FDOFBlurBufferType blurCB;
-        blurCB.BlurDirection = FVector2D(0.0f, 0.0f);
-        blurCB.BlurRadius = NearBlurRadius;
-        blurCB.IsFarField = 0;
-        RHIDevice->SetAndUpdateConstantBuffer(blurCB);
-
-        RHIDevice->DrawFullScreenQuad();
-        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &NullSRV);
-    }
-
-    // Near 결과를 DOFTextures[1]으로 복사 (Temp → Near)
-    {
         ID3D11RenderTargetView* nearRTV = RHIDevice->GetDOFRTV(1);
         RHIDevice->OMSetCustomRenderTargets(1, &nearRTV, nullptr);
+        RHIDevice->GetDeviceContext()->ClearRenderTargetView(nearRTV, clearColor);
 
-        ID3D11ShaderResourceView* tempSRV = RHIDevice->GetSRV(RHI_SRV_Index::DOFTempH);
-        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &tempSRV);
+        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &inputSRV);
 
         FDOFBlurBufferType blurCB;
         blurCB.BlurDirection = FVector2D(0.0f, 0.0f);
-        blurCB.BlurRadius = 0.0f;
-        blurCB.IsFarField = 0;
+        blurCB.BlurRadius = NearBlurRadius;  // Near용
+        blurCB.IsFarField = 0;  // Near (Foreground)
+        RHIDevice->SetAndUpdateConstantBuffer(blurCB);
+
+        RHIDevice->DrawFullScreenQuad();
+        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &NullSRV);
+    }
+
+    // ===========================================
+    // Pass 2: Far (Background) Blur
+    // DOF[0] → DOF[2], IsFarField = 1 (CoC >= 0 만 포함)
+    // ===========================================
+    {
+        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &NullSRV);
+
+        ID3D11RenderTargetView* farRTV = RHIDevice->GetDOFRTV(2);
+        RHIDevice->OMSetCustomRenderTargets(1, &farRTV, nullptr);
+        RHIDevice->GetDeviceContext()->ClearRenderTargetView(farRTV, clearColor);
+
+        RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &inputSRV);
+
+        FDOFBlurBufferType blurCB;
+        blurCB.BlurDirection = FVector2D(0.0f, 0.0f);
+        blurCB.BlurRadius = FarBlurRadius;  // Far용
+        blurCB.IsFarField = 1;  // Far (Background)
         RHIDevice->SetAndUpdateConstantBuffer(blurCB);
 
         RHIDevice->DrawFullScreenQuad();
