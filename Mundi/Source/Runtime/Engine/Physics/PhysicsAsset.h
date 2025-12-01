@@ -61,7 +61,9 @@ public:
     UBodySetup* FindBodySetup(FName BodyName) const;
     int32 FindConstraintIndex(FName BodyA, FName BodyB) const;
 
+    TArray<const FPhysicsConstraintSetup*> GetConstraintsForBody(FName BodyName) const;
 
+	TArray<int32>  GetConstraintIndicesForBody(FName BodyName) const;
 
     // ====================================
     // 뷰어, 자동 PhysicsAsset 관련 함수
