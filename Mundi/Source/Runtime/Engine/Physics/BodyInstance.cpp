@@ -4,6 +4,7 @@
 #include "PhysScene.h"          // FPhysScene 선언
 #include "PhysicsTypes.h"       // ToPx / FromPx (FVector/FTransform <-> Px 타입 변환)
 #include "PhysicalMaterial.h"   // UPhysicalMaterial
+#include "../Components/PrimitiveComponent.h"
 
 using namespace physx;
 
