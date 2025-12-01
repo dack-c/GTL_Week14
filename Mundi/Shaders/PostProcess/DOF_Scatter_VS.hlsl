@@ -65,7 +65,7 @@ VS_OUTPUT mainVS(VS_INPUT input)
     float3 color = texData.rgb;
     float coc = texData.a;  // 0~1 정규화
 
-#if DEBUG_FORCE_SCATTER
+#if DEBUG_FORCE_SCATTER 
     // ===== 디버그: 무조건 쿼드 그리기 =====
     // 매 200번째 픽셀만 그려서 성능 문제 방지
     if (pixelIndex % 200 != 0)
@@ -81,8 +81,8 @@ VS_OUTPUT mainVS(VS_INPUT input)
     float2 centerNDC = centerUV * 2.0 - 1.0;
     centerNDC.y = -centerNDC.y;
 
-    // 고정 크기 8픽셀 쿼드
-    float debugRadius = 8.0;
+    // 실제 CoC 기반 크기 (최소 4픽셀로 보이게)
+    float debugRadius = max(coc * MaxBlurRadius, 4.0);
     float2 radiusNDC = debugRadius * TexelSize * 2.0;
     float2 vertexNDC = centerNDC + QuadOffsets[cornerIndex] * radiusNDC;
 
