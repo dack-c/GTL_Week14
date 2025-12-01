@@ -1638,6 +1638,9 @@ void SSkeletalMeshViewerWindow::OnRenderViewport()
                 ActiveState->PreviewActor->RebuildBodyLines(ActiveState->bChangedGeomNum, ActiveState->SelectedBodyIndex);
 
                 ActiveState->PreviewActor->RebuildConstraintLines(ActiveState->SelectedConstraintIndex);
+
+                // Rebuild constraint angular limit visualization
+                ActiveState->PreviewActor->RebuildConstraintLimitLines(ActiveState->SelectedConstraintIndex);
             }
         }
 
