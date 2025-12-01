@@ -5,6 +5,7 @@ Texture2D    g_SceneColorTex : register(t0);  // Full Res
 Texture2D    g_SceneDepthTex : register(t1);  // Full Res
 Texture2D    g_FarFieldTex   : register(t2);  // 1/4 Res (Blurred)
 Texture2D    g_NearFieldTex  : register(t3);  // 1/4 Res (Blurred)
+Texture2D    g_ScatterTex    : register(t4);  // 1/4 Res (Near Scatter)
 
 SamplerState g_LinearClampSample : register(s0);
 SamplerState g_PointClampSample  : register(s1);
@@ -141,8 +142,31 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // Layer 2: Near Blur (전경) - nearField.a (블러된 CoC)로 Sharp 위에 덮기
     // 초점 영역(CoC=0)이라도 주변 Near가 번지면 적용해야 함 (Bleeding)
     float nearMask = nearField.a;  // 텍스처에서 온 CoC (블러되어 번짐)
-    nearMask = nearMask * nearMask * (3.0 - 2.0 * nearMask);  // Smoothstep
-    finalColor = lerp(finalColor, float4(nearField.rgb, 1.0), nearMask);
+
+    // Scatter 결과 샘플링
+    float4 scatter = g_ScatterTex.Sample(g_LinearClampSample, input.texCoord);
+
+    // Near + Scatter 합성 (에너지 보존)
+    float3 nearWithScatter = nearField.rgb;
+    float nearMaskWithScatter = nearMask;
+
+    if (scatter.a > 0.001)
+    {
+        // Scatter는 Near가 약한 곳에서만 기여 (엣지 확장 용도)
+        // Near가 이미 강하면 Scatter 기여 감소
+        float scatterOnly = saturate(scatter.a - nearMask * 0.5);
+
+        // Scatter 색상 복원 (면적 정규화 역산)
+        float3 scatterColor = scatter.rgb / max(scatter.a, 0.001);
+
+        // Near와 Scatter 블렌딩
+        nearWithScatter = lerp(nearField.rgb, scatterColor, scatterOnly);
+        nearMaskWithScatter = max(nearMask, scatter.a);
+    }
+
+    // Smoothstep 적용
+    nearMaskWithScatter = nearMaskWithScatter * nearMaskWithScatter * (3.0 - 2.0 * nearMaskWithScatter);
+    finalColor = lerp(finalColor, float4(nearWithScatter, 1.0), nearMaskWithScatter);
 
     output.Color = finalColor;
 

@@ -2,7 +2,7 @@
 // 이웃 타일로 Far/Near Min/Max CoC 확장
 
 #define TILE_SIZE 8
-#define DILATE_RADIUS 4  // 2 = 최대 16픽셀(2타일) 거리까지 확인
+#define DILATE_RADIUS 2  // 2 = 최대 16픽셀(2타일) 거리까지 확인
 
 Texture2D<float4> g_TileInput : register(t0);   // Flatten 결과 (x: FarMax, y: NearMax, z: FarMin, w: NearMin)
 RWTexture2D<float4> g_TileOutput : register(u0);
