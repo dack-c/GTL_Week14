@@ -1565,6 +1565,9 @@ void ASkeletalMeshActor::BuildConstraintLimitLinesCache()
         FMatrix BoneLocalMatrixA = BoneWorldTransformA.ToMatrix() * WorldInv;
         FTransform BoneLocalTransformA(BoneLocalMatrixA);
 
+        // physicsX에서 body가 속한 공간의 "스케일"은 아마? 무시하기 때문에, 스케일을 1로 고정
+        BoneLocalTransformA.Scale3D = FVector::One(); // Ignore scale for transform updates
+
         // Apply LocalFrameA to get constraint frame in parent bone's local space
         FTransform ConstraintFrameA = BoneLocalTransformA.GetWorldTransform(Constraint.LocalFrameA);
 
@@ -1687,6 +1690,9 @@ void ASkeletalMeshActor::UpdateConstraintLimitTransforms()
         FTransform BoneWorldTransformA = SkeletalMeshComponent->GetBoneWorldTransform(BoneIndexA);
         FMatrix BoneLocalMatrixA = BoneWorldTransformA.ToMatrix() * WorldInv;
         FTransform BoneLocalTransformA(BoneLocalMatrixA);
+
+        // physicsX에서 body가 속한 공간의 "스케일"은 아마? 무시하기 때문에, 스케일을 1로 고정
+        BoneLocalTransformA.Scale3D = FVector::One(); // Ignore scale for transform updates
 
         // Apply LocalFrameA to get constraint frame in parent bone's local space
         FTransform ConstraintFrameA = BoneLocalTransformA.GetWorldTransform(Constraint.LocalFrameA);
