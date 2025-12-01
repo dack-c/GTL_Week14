@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SkinnedMeshComponent.h"
 #include "USkeletalMeshComponent.generated.h"
 // Include for FPendingAnimNotify and FAnimNotifyEvent types
@@ -153,6 +153,9 @@ public:
 
     FString GetAnimGraphPath() { return AnimGraphPath; }
     void SetAnimGraphPath(FString InAnimGraphPath) { AnimGraphPath = InAnimGraphPath; }
+
+    UPhysicsAsset* GetPhysicsAsset() const { return PhysicsAsset; }
+	void SetPhysicsAsset(UPhysicsAsset* InPhysicsAsset) { PhysicsAsset = InPhysicsAsset; }
 
 protected:
     /**
