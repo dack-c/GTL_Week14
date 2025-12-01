@@ -5,6 +5,10 @@
 #include "../Components/PrimitiveComponent.h"
 #include "../Object/Actor.h"
 
+inline FVector PxToFVector(const PxVec3& V)
+{
+	return FVector(V.x, V.y, V.z);
+}
 
 FSimulationEventCallback::FSimulationEventCallback(FPhysScene* owner)
 	: OwnerScene(owner)
@@ -18,39 +22,71 @@ void FSimulationEventCallback::onContact(const PxContactPairHeader& PairHeader, 
 		return;
 	}
 
-	// 1. Get the low-level physx actors
+	// 1. 저수준 physx actor 가져옴
 	PxRigidActor* ActorA_px = PairHeader.actors[0];
 	PxRigidActor* ActorB_px = PairHeader.actors[1];
 
-	// 2. Retrieve the FBodyInstance from userData.
+	// 2. userData에서 BodyInstance 포인터를 찾아 매핑해줌 (BodyInstance에서 this로 정의해둠)
 	FBodyInstance* BodyInstA = static_cast<FBodyInstance*>(ActorA_px->userData);
 	FBodyInstance* BodyInstB = static_cast<FBodyInstance*>(ActorB_px->userData);
 
 	if (BodyInstA && BodyInstB)
 	{
-		// 3. Get the component that owns the body instance.
 		UPrimitiveComponent* PrimCompA = BodyInstA->OwnerComponent;
 		UPrimitiveComponent* PrimCompB = BodyInstB->OwnerComponent;
 
 		if (PrimCompA && PrimCompB)
 		{
-			// 4. Get the final game Actor that owns the component.
 			AActor* OwnerA = PrimCompA->GetOwner();
 			AActor* OwnerB = PrimCompB->GetOwner();
 
 			if (OwnerA && OwnerB)
 			{
-				// 5. Populate the FContactHit struct with the correct actors.
+				// 3. 충돌 정보 채우기 
 				FContactHit ContactHit;
 				ContactHit.ActorA = OwnerA;
 				ContactHit.ActorB = OwnerB;
-				// TODO: Fill Position, Normal, and Impulse from the PxContactPair data if needed.
-				// For now, we are just notifying that a contact happened.
+				ContactHit.Position = FVector(0, 0, 0);
+				ContactHit.Normal = FVector(0, 0, 1);
+				ContactHit.Impulse = FVector(0, 0, 0);
 
-				// 6. Execute the delegate.
-				// It's a single-cast delegate, so we use ExecuteIfBound.
+				for (PxU32 i = 0; i < NumPairs; ++i)
+				{
+					const PxContactPair& Pair = Pairs[i];
+
+					// 4. 실제로 contact가 있는 이벤트만 처리 (found/persists/ccd 등)
+					if (!(Pair.events & (PxPairFlag::eNOTIFY_TOUCH_FOUND |
+						PxPairFlag::eNOTIFY_TOUCH_PERSISTS |
+						PxPairFlag::eNOTIFY_TOUCH_CCD)))
+					{
+						continue;
+					}
+
+					PxContactPairPoint ContactPoints[16];
+					PxU32 NumContacts = Pair.extractContacts(ContactPoints, 16);
+					if (NumContacts == 0)
+					{
+						continue;
+					}
+
+					const PxContactPairPoint& CP = ContactPoints[0]; // 첫번째 지점만 사용
+
+					// 위치/법선은 월드 좌표 기준
+					ContactHit.Position = PxToFVector(CP.position);
+					ContactHit.Normal = PxToFVector(CP.normal);
+					ContactHit.Impulse = PxToFVector(CP.impulse);
+					
+					// 한 페어만 써도 충분하니 여기서 break
+					break;
+				}
+
 				OwnerScene->OnContactDelegate.Broadcast(ContactHit);
 			}
 		}
 	}
+}
+
+void FSimulationEventCallback::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
+{
+
 }

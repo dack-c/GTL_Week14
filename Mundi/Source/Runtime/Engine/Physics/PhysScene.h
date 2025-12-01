@@ -12,7 +12,7 @@ struct FContactHit
     AActor* ActorB = nullptr;
     FVector Position;
     FVector Normal;
-    float   ImpulseMagnitude = 0.0f;
+    FVector Impulse;
 };
 
 // PhysX Assert를 로그로 출력하는 커스텀 핸들러
@@ -42,6 +42,7 @@ public:
     };
 
     DECLARE_DELEGATE(OnContactDelegate, FContactHit);
+    DECLARE_DELEGATE(OnContactTrigger, FContactHit);
 
 public:
     FPhysScene();
