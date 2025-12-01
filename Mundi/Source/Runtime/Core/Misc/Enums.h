@@ -286,3 +286,10 @@ enum class EAggCollisionShapeType : int32
     Convex,
     Unknown
 };
+
+enum class ECollisionState : uint8
+{
+    NoCollision,
+    QueryOnly,
+    QueryAndPhysics
+};

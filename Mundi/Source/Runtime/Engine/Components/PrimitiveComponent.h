@@ -63,7 +63,10 @@ public:
     bool IsOverlappingActor(const AActor* Other) const;
     virtual const TArray<FOverlapInfo>& GetOverlapInfos() const { static TArray<FOverlapInfo> Empty; return Empty; }
 
-    //Delegate 
+    // BodySetup 설정을 무시하고 싶을 때    
+    bool bOverrideCollisionSetting = false;
+
+    ECollisionState CollisionEnabled = ECollisionState::QueryAndPhysics;
     
     // ───── 복사 관련 ────────────────────────────
     void DuplicateSubObjects() override;

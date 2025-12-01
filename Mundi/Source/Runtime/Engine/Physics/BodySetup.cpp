@@ -62,6 +62,10 @@ void UBodySetup::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         FJsonSerializer::ReadBool(InOutHandle,  "bSimulatePhysics", bSimulatePhysics, bSimulatePhysics, false);
         FJsonSerializer::ReadBool(InOutHandle,  "bEnableGravity",  bEnableGravity,  bEnableGravity,  false);
 
+        int32 IntCollisionState;
+        FJsonSerializer::ReadInt32(InOutHandle, "CollisionState", IntCollisionState, (int32)CollisionState, false);
+        CollisionState = (ECollisionState)IntCollisionState;
+
         AggGeom.Clear();
         if (InOutHandle.hasKey("Aggregate"))
         {
@@ -87,8 +91,9 @@ void UBodySetup::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         InOutHandle["Mass"] = Mass;
         InOutHandle["LinearDamping"] = LinearDamping;
         InOutHandle["AngularDamping"] = AngularDamping;
-        InOutHandle["SimulatePhysics"] = bSimulatePhysics;
-        InOutHandle["EnableGravity"] = bEnableGravity;
+        InOutHandle["CollisionState"] = (int32)CollisionState;
+        InOutHandle["bSimulatePhysics"] = bSimulatePhysics;
+        InOutHandle["bEnableGravity"] = bEnableGravity;
 
         JSON AggJson = JSON::Make(JSON::Class::Object);
         AggGeom.Serialize(false, AggJson);
