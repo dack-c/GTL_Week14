@@ -8,11 +8,18 @@ using namespace DirectX;
 class AActor;
 struct FContactHit
 {
-    AActor* ActorA = nullptr;
-    AActor* ActorB = nullptr;
+    AActor* ActorTo = nullptr;
+    AActor* ActorFrom = nullptr;
     FVector Position;
     FVector Normal;
-    FVector Impulse;
+    FVector ImpulseOnActorTo; // ImpulseOnActorFrom은 - 해주면 됨
+};
+
+struct FTriggerHit
+{
+    AActor* TriggerActor = nullptr; // Trigger 역할 하는 액터
+    AActor* OtherActor = nullptr;   // Trigger에 들어온 / 나간 액터
+    bool bIsEnter = false;
 };
 
 // PhysX Assert를 로그로 출력하는 커스텀 핸들러
@@ -42,7 +49,7 @@ public:
     };
 
     DECLARE_DELEGATE(OnContactDelegate, FContactHit);
-    DECLARE_DELEGATE(OnContactTrigger, FContactHit);
+    DECLARE_DELEGATE(OnTriggerDelegate, FTriggerHit);
 
 public:
     FPhysScene();

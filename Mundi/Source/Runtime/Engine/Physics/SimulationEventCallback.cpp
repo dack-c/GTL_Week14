@@ -88,5 +88,61 @@ void FSimulationEventCallback::onContact(const PxContactPairHeader& PairHeader, 
 
 void FSimulationEventCallback::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
 {
+	if (!OwnerScene)
+	{
+		return;
+	}
 
+	for (PxU32 i = 0; i < count; ++i)
+	{
+		const PxTriggerPair& Pair = pairs[i];
+
+		// 1. 저수준 physx actor 가져옴
+		PxRigidActor* TriggerActor_px = Pair.triggerActor;
+		PxRigidActor* OtherActor_px = Pair.otherActor;
+
+		// 2. userData에서 BodyInstance 포인터를 찾아 매핑
+		FBodyInstance* TriggerBodyInst = static_cast<FBodyInstance*>(TriggerActor_px->userData);
+		FBodyInstance* OtherBodyInst = static_cast<FBodyInstance*>(OtherActor_px->userData);
+
+		if (!TriggerBodyInst || !OtherBodyInst)
+		{
+			continue;
+		}
+
+		UPrimitiveComponent* TriggerComp = TriggerBodyInst->OwnerComponent;
+		UPrimitiveComponent* OtherComp = OtherBodyInst->OwnerComponent;
+
+		if (!TriggerComp || !OtherComp)
+		{
+			continue;
+		}
+
+		AActor* TriggerOwner = TriggerComp->GetOwner();
+		AActor* OtherOwner = OtherComp->GetOwner();
+
+		if (!TriggerOwner || !OtherOwner)
+		{
+			continue;
+		}
+
+		// 3. 트리거 정보 채우기
+		FTriggerHit TriggerHit;
+		TriggerHit.TriggerActor = TriggerOwner;
+		TriggerHit.OtherActor = OtherOwner;
+
+		// 4. Enter/Leave 이벤트 구분
+		if (Pair.status & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+		{
+			// Trigger Enter
+			TriggerHit.bIsEnter = true;
+			OwnerScene->OnTriggerDelegate.Broadcast(TriggerHit);
+		}
+		else if (Pair.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
+		{
+			// Trigger Leave
+			TriggerHit.bIsEnter = false;
+			OwnerScene->OnTriggerDelegate.Broadcast(TriggerHit);
+		}
+	}
 }
