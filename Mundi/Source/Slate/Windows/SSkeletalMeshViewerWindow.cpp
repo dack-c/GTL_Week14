@@ -1215,14 +1215,32 @@ void SSkeletalMeshViewerWindow::OnRender()
                         ImGui::Text("Constraint Limits:");
                         ImGui::Spacing();
 
+                        // Convert radians to degrees for editing
+                        float TwistMinDeg = RadiansToDegrees(Constraint.TwistLimitMin);
+                        float TwistMaxDeg = RadiansToDegrees(Constraint.TwistLimitMax);
+                        float SwingYDeg = RadiansToDegrees(Constraint.SwingLimitY);
+                        float SwingZDeg = RadiansToDegrees(Constraint.SwingLimitZ);
+
                         ImGui::Text("Twist Limits (X-axis):");
-                        ImGui::DragFloat("Min Twist##Twist", &Constraint.TwistLimitMin, 0.5f, -180.0f, Constraint.TwistLimitMax, "%.2f°");
-                        ImGui::DragFloat("Max Twist##Twist", &Constraint.TwistLimitMax, 0.5f, Constraint.TwistLimitMin, 180.0f, "%.2f°");
+                        if (ImGui::DragFloat("Min Twist##Twist", &TwistMinDeg, 0.5f, -180.0f, TwistMaxDeg, "%.2f°"))
+                        {
+                            Constraint.TwistLimitMin = DegreesToRadians(TwistMinDeg);
+                        }
+                        if (ImGui::DragFloat("Max Twist##Twist", &TwistMaxDeg, 0.5f, TwistMinDeg, 180.0f, "%.2f°"))
+                        {
+                            Constraint.TwistLimitMax = DegreesToRadians(TwistMaxDeg);
+                        }
 
                         ImGui::Spacing();
                         ImGui::Text("Swing Limits:");
-                        ImGui::DragFloat("Swing Y##Swing", &Constraint.SwingLimitY, 0.5f, 0.0f, 180.0f, "%.2f°");
-                        ImGui::DragFloat("Swing Z##Swing", &Constraint.SwingLimitZ, 0.5f, 0.0f, 180.0f, "%.2f°");
+                        if (ImGui::DragFloat("Swing Y##Swing", &SwingYDeg, 0.5f, 0.0f, 180.0f, "%.2f°"))
+                        {
+                            Constraint.SwingLimitY = DegreesToRadians(SwingYDeg);
+                        }
+                        if (ImGui::DragFloat("Swing Z##Swing", &SwingZDeg, 0.5f, 0.0f, 180.0f, "%.2f°"))
+                        {
+                            Constraint.SwingLimitZ = DegreesToRadians(SwingZDeg);
+                        }
 
                         ImGui::Spacing();
                         ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.45f, 0.55f, 0.70f, 0.5f));

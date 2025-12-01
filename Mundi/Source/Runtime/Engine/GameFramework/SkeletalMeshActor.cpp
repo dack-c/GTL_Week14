@@ -1619,12 +1619,12 @@ void ASkeletalMeshActor::BuildConstraintLimitLinesCache()
 
             // Cone opening varies by angle (elliptical cone)
             float radius1 = LimitRadius * std::sqrt(
-                std::pow(std::cos(angle1) * std::sin(SwingY), 2.0f) +
-                std::pow(std::sin(angle1) * std::sin(SwingZ), 2.0f)
+                std::pow(std::cos(angle1) * std::sin(SwingZ), 2.0f) +
+                std::pow(std::sin(angle1) * std::sin(SwingY), 2.0f)
             );
             float radius2 = LimitRadius * std::sqrt(
-                std::pow(std::cos(angle2) * std::sin(SwingY), 2.0f) +
-                std::pow(std::sin(angle2) * std::sin(SwingZ), 2.0f)
+                std::pow(std::cos(angle2) * std::sin(SwingZ), 2.0f) +
+                std::pow(std::sin(angle2) * std::sin(SwingY), 2.0f)
             );
 
             // Cone tip at constraint origin, opening along X axis
@@ -1754,12 +1754,12 @@ void ASkeletalMeshActor::UpdateConstraintLimitTransforms()
             float angle2 = 2.0f * PI * (float)(i + 1) / ConeSegments;
 
             float radius1 = LimitRadius * std::sqrt(
-                std::pow(std::cos(angle1) * std::sin(SwingY), 2.0f) +
-                std::pow(std::sin(angle1) * std::sin(SwingZ), 2.0f)
+                std::pow(std::cos(angle1) * std::sin(SwingZ), 2.0f) +
+                std::pow(std::sin(angle1) * std::sin(SwingY), 2.0f)
             );
             float radius2 = LimitRadius * std::sqrt(
-                std::pow(std::cos(angle2) * std::sin(SwingY), 2.0f) +
-                std::pow(std::sin(angle2) * std::sin(SwingZ), 2.0f)
+                std::pow(std::cos(angle2) * std::sin(SwingZ), 2.0f) +
+                std::pow(std::sin(angle2) * std::sin(SwingY), 2.0f)
             );
 
             FVector tipOffset = ConstraintAxisX * LimitRadius;
