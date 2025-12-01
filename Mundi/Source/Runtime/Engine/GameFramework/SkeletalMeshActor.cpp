@@ -1745,45 +1745,94 @@ void ASkeletalMeshActor::UpdateConstraintLimitTransforms()
         const float SwingY = Constraint.SwingLimitY;
         const float SwingZ = Constraint.SwingLimitZ;
 
-        const int ConeSegments = 24;
+        // Create 4 fixed vertices based on swing angles
+        // Vertex 1: +Y direction (SwingY angle)
+        FVector vertex1 = ConstraintOrigin +
+            ConstraintAxisX * (LimitRadius * std::cos(SwingY)) +
+            ConstraintAxisY * (LimitRadius * std::sin(SwingY));
+
+        // Vertex 2: -Y direction (SwingY angle)
+        FVector vertex2 = ConstraintOrigin +
+            ConstraintAxisX * (LimitRadius * std::cos(SwingY)) +
+            ConstraintAxisY * (-LimitRadius * std::sin(SwingY));
+
+        // Vertex 3: +Z direction (SwingZ angle)
+        FVector vertex3 = ConstraintOrigin +
+            ConstraintAxisX * (LimitRadius * std::cos(SwingZ)) +
+            ConstraintAxisZ * (LimitRadius * std::sin(SwingZ));
+
+        // Vertex 4: -Z direction (SwingZ angle)
+        FVector vertex4 = ConstraintOrigin +
+            ConstraintAxisX * (LimitRadius * std::cos(SwingZ)) +
+            ConstraintAxisZ * (-LimitRadius * std::sin(SwingZ));
+
+        // Draw elliptical curves connecting the 4 vertices
+        // We'll create 4 arcs: vertex1->vertex3, vertex3->vertex2, vertex2->vertex4, vertex4->vertex1
+        const int EllipseSegments = 8; // Segments per arc
         lineIdx = 0;
 
-        for (int i = 0; i < ConeSegments && lineIdx < CLDL.SwingConeLines.Num(); ++i)
-        {
-            float angle1 = 2.0f * PI * (float)i / ConeSegments;
-            float angle2 = 2.0f * PI * (float)(i + 1) / ConeSegments;
-
-            float radius1 = LimitRadius * std::sqrt(
-                std::pow(std::cos(angle1) * std::sin(SwingZ), 2.0f) +
-                std::pow(std::sin(angle1) * std::sin(SwingY), 2.0f)
-            );
-            float radius2 = LimitRadius * std::sqrt(
-                std::pow(std::cos(angle2) * std::sin(SwingZ), 2.0f) +
-                std::pow(std::sin(angle2) * std::sin(SwingY), 2.0f)
-            );
-
-            FVector tipOffset = ConstraintAxisX * LimitRadius;
-            FVector base1 = ConstraintOrigin + tipOffset + 
-                (ConstraintAxisY * std::cos(angle1) + ConstraintAxisZ * std::sin(angle1)) * radius1;
-            FVector base2 = ConstraintOrigin + tipOffset + 
-                (ConstraintAxisY * std::cos(angle2) + ConstraintAxisZ * std::sin(angle2)) * radius2;
-
-            // Update base circle
-            if (CLDL.SwingConeLines[lineIdx])
+        // Helper lambda to draw an elliptical arc between two vertices
+        auto DrawEllipticalArc = [&](const FVector& start, const FVector& end, int startIdx) -> int
             {
-                CLDL.SwingConeLines[lineIdx]->SetLine(base1, base2);
-            }
-            ++lineIdx;
+                // Calculate the center and axes for the ellipse segment
+                FVector midPoint = (start + end) * 0.5f;
 
-            // Update surface lines
-            if (i % 4 == 0 && lineIdx < CLDL.SwingConeLines.Num())
-            {
-                if (CLDL.SwingConeLines[lineIdx])
+                // Direction from origin to midpoint (defines the major axis direction)
+                FVector toMid = midPoint - ConstraintOrigin;
+                toMid.Normalize();
+
+                // Calculate arc points along the elliptical surface
+                for (int i = 0; i < EllipseSegments && startIdx < CLDL.SwingConeLines.Num(); ++i, ++startIdx)
                 {
-                    CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, base1);
+                    float t1 = (float)i / EllipseSegments;
+                    float t2 = (float)(i + 1) / EllipseSegments;
+
+                    // Interpolate along the arc using spherical interpolation
+                    // This creates a smooth curve on the cone surface
+                    float angle1 = t1 * PI * 0.5f; // 0 to PI/2 for quarter ellipse
+                    float angle2 = t2 * PI * 0.5f;
+
+                    // Blend between start and end using parametric equation
+                    FVector p1 = ConstraintOrigin + (start - ConstraintOrigin) * std::cos(angle1) +
+                        (end - ConstraintOrigin) * std::sin(angle1);
+                    FVector p2 = ConstraintOrigin + (start - ConstraintOrigin) * std::cos(angle2) +
+                        (end - ConstraintOrigin) * std::sin(angle2);
+
+                    if (CLDL.SwingConeLines[startIdx])
+                    {
+                        CLDL.SwingConeLines[startIdx]->SetLine(p1, p2);
+                    }
                 }
-                ++lineIdx;
-            }
+
+                return startIdx;
+            };
+
+        // Draw 4 elliptical arcs connecting the vertices
+        lineIdx = DrawEllipticalArc(vertex1, vertex3, lineIdx); // +Y to +Z
+        lineIdx = DrawEllipticalArc(vertex3, vertex2, lineIdx); // +Z to -Y
+        lineIdx = DrawEllipticalArc(vertex2, vertex4, lineIdx); // -Y to -Z
+        lineIdx = DrawEllipticalArc(vertex4, vertex1, lineIdx); // -Z to +Y
+
+        // Draw radial lines from origin to the 4 vertices
+        if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
+        {
+            CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex1);
+            ++lineIdx;
+        }
+        if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
+        {
+            CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex2);
+            ++lineIdx;
+        }
+        if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
+        {
+            CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex3);
+            ++lineIdx;
+        }
+        if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
+        {
+            CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex4);
+            ++lineIdx;
         }
     }
 }
