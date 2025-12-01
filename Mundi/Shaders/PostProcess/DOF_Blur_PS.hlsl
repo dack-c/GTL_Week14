@@ -18,7 +18,7 @@ cbuffer DOFBlurCB : register(b2)
 {
     float2 BlurDirection;      // (사용 안함 - Ring은 2D)
     float  BlurRadius;         // pixels (최대 블러 반경)
-    int    IsFarField;         // 1 = Far Field, 0 = Near Field
+    int    IsFarField;         // 0 = Near (Foreground), 1 = Far (Background)
 }
 
 cbuffer ViewportConstants : register(b10)
@@ -45,35 +45,24 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 1. 중앙 샘플 (자기 자신)
     float4 centerSample = g_InputTex.Sample(g_PointClampSample, input.texCoord);
     float3 centerColor = centerSample.rgb;
-    float centerCoc = centerSample.a;
+    float centerCocSigned = centerSample.a;  // Near: 음수, Far: 양수
+    float centerCoc = abs(centerCocSigned);  // 블러 크기는 절대값
 
-    // Early exit for copy pass (BlurRadius = 0)
-    if (BlurRadius < 0.01)
-    {
-        output.Color = centerSample;
-        return output;
-    }
-
-    // 2. Tile에서 Min/Max CoC 가져오기 (Point Sampling)
-    // tileData: x=FarMax, y=NearMax, z=FarMin, w=NearMin
+    // 2. Tile에서 Max CoC 가져오기 (Point Sampling)
+    // tileData: x=MaxCoC (Near/Far 통합), y=MinCoC, z,w=unused
     float2 pixelPos = input.texCoord * ScreenSize.xy;
     float2 tileCount = ScreenSize.xy / TILE_SIZE;
     int2 tileIdx = int2(pixelPos / TILE_SIZE);
     tileIdx = clamp(tileIdx, int2(0, 0), int2(tileCount) - 1);
     float4 tileData = g_TileTex.Load(int3(tileIdx, 0));
-    float tileMaxCoc = (IsFarField == 1) ? tileData.x : tileData.y;
-    float tileMinCoc = (IsFarField == 1) ? tileData.z : tileData.w;
+    float tileMaxCoc = tileData.x;  // Dilated Max CoC (절대값)
 
-    // 3. Early Out: 주변에 흐린 게 하나도 없으면 원본 리턴
-    if (centerCoc < 0.01 && tileMaxCoc < 0.01)
-    {
-        output.Color = centerSample;
-        return output;
-    }
+    // In-Focus 임계값 (이 이하는 선명 영역)
+    const float COC_THRESHOLD = 0.01;
 
     // 4. 검색 반경 결정
-    // CoC는 0~1 정규화
-    float halfBlurRadius = BlurRadius * 0.25;
+    // CoC는 0~1 정규화, BlurRadius는 Full Res 픽셀
+    float halfBlurRadius = BlurRadius * 0.5;  // Half Res로 변환
     float searchRadius = max(centerCoc, tileMaxCoc);  // 0~1 정규화
     float pixelRadius = searchRadius * halfBlurRadius;  // Half Res 픽셀
     pixelRadius = clamp(pixelRadius, 1.0, halfBlurRadius);
@@ -88,11 +77,27 @@ PS_OUTPUT mainPS(PS_INPUT input)
     const int MAX_RING = 5;  // Ring 0(중심) + Ring 1~5 = 121 샘플
 
     // Ring 0: 중심 (1 샘플)
+    // Area-based weight: 1 / (π × r²)
+    // 작은 CoC = 높은 weight (선명한 픽셀이 더 중요)
+    const float minRadiusPx = 0.25;  // 언리얼과 동일 (최대 weight ≈ 5.09)
+    const float minArea = PI * minRadiusPx * minRadiusPx;
     {
-        float weight = centerCoc + 0.01;  // 최소 가중치 보장
-        accColor += centerColor * weight;
-        accCoc += centerCoc * weight;
-        accWeight += weight;
+        // Layer Processing: 해당 레이어만 포함 (In-Focus 제외!)
+        // Near pass (IsFarField=0): CoC < -threshold (실제 Near만)
+        // Far pass (IsFarField=1): CoC > threshold (실제 Far만, In-Focus 제외)
+        bool isCorrectLayer = (IsFarField == 0)
+            ? (centerCocSigned < -COC_THRESHOLD)
+            : (centerCocSigned > COC_THRESHOLD);
+
+        if (isCorrectLayer)
+        {
+            float centerRadiusPx = max(centerCoc * halfBlurRadius, minRadiusPx);
+            float centerArea = PI * centerRadiusPx * centerRadiusPx;
+            float weight = 1.0 / max(centerArea, minArea);
+            accColor += centerColor * weight;
+            accCoc += centerCoc * weight;
+            accWeight += weight;
+        }
     }
 
     // Ring 1~MAX_RING: 원형 샘플링
@@ -112,7 +117,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
             float4 sampleVal = g_InputTex.Sample(g_LinearClampSample, sampleUV);
             float3 sampleColor = sampleVal.rgb;
-            float sampleCoc = sampleVal.a;
+            float sampleCocSigned = sampleVal.a;  // 부호 있음
+            float sampleCoc = abs(sampleCocSigned);  // 블러 크기는 절대값
 
             // Scatter-as-Gather: 샘플의 CoC가 현재 위치까지 도달하는지 검사
             // sampleCoc는 0~1 정규화, Half Res 픽셀로 변환
@@ -125,17 +131,77 @@ PS_OUTPUT mainPS(PS_INPUT input)
             float sigma = pixelRadius * 0.5;
             float distanceFalloff = exp(-(ringRadius * ringRadius) / (2.0 * sigma * sigma));
 
-            // 가중치 = Coverage * 거리감쇠 * CoC
-            float weight = coverage * distanceFalloff * sampleCoc;
+            // Layer Processing: 해당 레이어만 포함 (In-Focus 제외!)
+            // Near pass (IsFarField=0): CoC < -threshold (실제 Near만)
+            // Far pass (IsFarField=1): CoC > threshold (실제 Far만, In-Focus 제외)
+            bool isCorrectLayer = (IsFarField == 0)
+                ? (sampleCocSigned < -COC_THRESHOLD)
+                : (sampleCocSigned > COC_THRESHOLD);
+
+            if (!isCorrectLayer)
+            {
+                continue;  // In-Focus나 다른 레이어 샘플은 무시
+            }
+
+            // ========== 깊이 비교 (Color Leaking 방지) ==========
+            // CoC 부호로 상대적 깊이 판단 (Near: 음수, Far: 양수)
+            //
+            // Far 패스: 샘플이 나보다 앞(Near)이면 무시 → 후광(Halo) 방지
+            // Near 패스: 샘플이 나보다 뒤(Far)면 무시 → Color Leaking 방지
+            float depthWeight = 1.0;
+            if (IsFarField == 1)
+            {
+                // Far 패스: 샘플이 나보다 앞에 있으면 (더 Near면) 가중치 감소
+                // sampleCocSigned < centerCocSigned → 샘플이 더 Near
+                float depthDiff = centerCocSigned - sampleCocSigned;
+                depthWeight = saturate(1.0 - depthDiff * 2.0);
+            }
+            else
+            {
+                // Near 패스: 샘플이 나보다 뒤에 있으면 (더 Far면) 가중치 감소
+                // sampleCocSigned > centerCocSigned → 샘플이 더 Far
+                float depthDiff = sampleCocSigned - centerCocSigned;
+                depthWeight = saturate(1.0 - depthDiff * 2.0);
+            }
+
+            // Area-based weight: 1 / (π × r²)
+            // 큰 CoC = 에너지가 넓게 분산 = 낮은 weight
+            float sampleRadiusClamped = max(sampleRadiusPx, minRadiusPx);
+            float sampleArea = PI * sampleRadiusClamped * sampleRadiusClamped;
+            float areaWeight = 1.0 / max(sampleArea, minArea);
+
+            // 가중치 = Coverage * 거리감쇠 * AreaWeight * DepthWeight (물리 기반 + 깊이 비교)
+            float weight = coverage * distanceFalloff * areaWeight * depthWeight;
             accColor += sampleColor * weight;
             accCoc += sampleCoc * weight;  // CoC도 누적
             accWeight += weight;
         }
     }
 
-    // 6. 정규화 및 출력
-    output.Color.rgb = accColor / max(accWeight, 0.0001);
-    output.Color.a = accCoc / max(accWeight, 0.0001);  // 블러된 CoC (확산됨)
+    // 6. 출력
+    // 해당 레이어 샘플이 없으면 투명 출력
+    if (accWeight < 0.0001)
+    {
+        output.Color = float4(0, 0, 0, 0);
+        return output;
+    }
+
+    // 가중 평균 색상
+    float3 avgColor = accColor / accWeight;
+
+    // Alpha = 블러 커버리지 (블러가 이 픽셀을 얼마나 덮는지)
+    // blurredCoc는 평균 CoC (0~1), 이를 커버리지로 변환
+    // CoC > 임계값이면 완전히 블러된 것으로 간주
+    float blurredCoc = accCoc / accWeight;
+
+    // 커버리지 기반 alpha: CoC가 작아도 블러 영역이면 alpha = 1
+    // COC_THRESHOLD(0.01) 이상이면 블러 시작, 0.1에서 완전 블러
+    const float BLUR_ALPHA_START = 0.01;
+    const float BLUR_ALPHA_FULL = 0.15;
+    float alpha = saturate((blurredCoc - BLUR_ALPHA_START) / (BLUR_ALPHA_FULL - BLUR_ALPHA_START));
+
+    output.Color.rgb = avgColor;
+    output.Color.a = alpha;
 
     return output;
 }

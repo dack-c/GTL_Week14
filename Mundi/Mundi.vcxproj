@@ -476,7 +476,6 @@
     <ClCompile Include="Source\Runtime\Renderer\LightManager.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFBlurPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFRecombinePass.cpp" />
-    <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFScatterPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFSetupPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFTilePass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\GammaPass.cpp" />
@@ -997,7 +996,6 @@
     <ClInclude Include="Source\Runtime\Renderer\MeshBatchElement.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFBlurPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFRecombinePass.h" />
-    <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFScatterPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFSetupPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFTilePass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\GammaPass.h" />
