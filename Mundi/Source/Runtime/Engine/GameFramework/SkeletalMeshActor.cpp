@@ -1745,80 +1745,66 @@ void ASkeletalMeshActor::UpdateConstraintLimitTransforms()
         const float SwingY = Constraint.SwingLimitY;
         const float SwingZ = Constraint.SwingLimitZ;
 
-        // Create 4 fixed vertices based on swing angles
-        FVector vertex1 = ConstraintOrigin +
-            ConstraintAxisX * (LimitRadius * std::cos(SwingY)) +
-            ConstraintAxisY * (LimitRadius * std::sin(SwingY));
+        const float sinSwingY = std::sin(SwingY);
+        const float sinSwingZ = std::sin(SwingZ);
+        const float cosSwingY = std::cos(SwingY);
+        const float cosSwingZ = std::cos(SwingZ);
 
-        FVector vertex2 = ConstraintOrigin +
-            ConstraintAxisX * (LimitRadius * std::cos(SwingY)) +
-            ConstraintAxisY * (-LimitRadius * std::sin(SwingY));
+        // Lambda to calculate point on elliptical cone surface
+        auto GetEllipticalConePoint = [&](float angle) -> FVector
+            {
+                const float cosAngle = std::cos(angle);
+                const float sinAngle = std::sin(angle);
 
-        FVector vertex3 = ConstraintOrigin +
-            ConstraintAxisX * (LimitRadius * std::cos(SwingZ)) +
-            ConstraintAxisZ * (LimitRadius * std::sin(SwingZ));
+                // Calculate the radial distance in the YZ plane based on the angle
+                // Using the ellipse equation: (y/a)² + (z/b)² = 1
+                // where a = sin(SwingY), b = sin(SwingZ)
+                const float yRadius = sinSwingY;
+                const float zRadius = sinSwingZ;
 
-        FVector vertex4 = ConstraintOrigin +
-            ConstraintAxisX * (LimitRadius * std::cos(SwingZ)) +
-            ConstraintAxisZ * (-LimitRadius * std::sin(SwingZ));
+                // Parametric form: y = a*sin(θ), z = b*cos(θ)
+                const float yCoord = yRadius * sinAngle;
+                const float zCoord = zRadius * cosAngle;
 
-        // Draw continuous ellipse using parametric equation
-        // The ellipse is defined by varying radius in YZ plane based on angle
-        const int TotalEllipseSegments = 32; // Total segments for complete ellipse
+                // Calculate the radial distance from X axis
+                const float radialDist = std::sqrt(yCoord * yCoord + zCoord * zCoord);
+
+                // Calculate X coordinate based on the swing angle
+                // The cone equation: x² + (y²/sin²(SwingY) + z²/sin²(SwingZ)) * cos²(angle) = 1
+                // Simplified: at the cone surface, x = cos(swing_angle) where swing_angle varies with direction
+
+                // For a point at angle θ in YZ plane, the effective swing angle is:
+                // swing(θ) = atan(radialDist)
+                // But we want the cone to pass through our 4 key vertices
+
+                // Better approach: x coordinate is determined by the constraint that
+                // the point lies on the cone surface at the given swing limits
+                const float xCoord = std::sqrt(std::max(0.0f,
+                    cosSwingY * cosSwingY * (sinAngle * sinAngle) +
+                    cosSwingZ * cosSwingZ * (cosAngle * cosAngle)));
+
+                FVector point = ConstraintOrigin +
+                    ConstraintAxisX * (LimitRadius * xCoord) +
+                    ConstraintAxisY * (LimitRadius * yCoord) +
+                    ConstraintAxisZ * (LimitRadius * zCoord);
+
+                return point;
+            };
+
+        // Draw continuous ellipse
+        const int TotalEllipseSegments = 32;
         lineIdx = 0;
 
         for (int i = 0; i < TotalEllipseSegments && lineIdx < CLDL.SwingConeLines.Num(); ++i, ++lineIdx)
         {
-            float t1 = (float)i / TotalEllipseSegments;
-            float t2 = (float)(i + 1) / TotalEllipseSegments;
+            const float t1 = (float)i / TotalEllipseSegments;
+            const float t2 = (float)(i + 1) / TotalEllipseSegments;
 
-            // Parametric angle around the ellipse (0 to 2π)
-            float angle1 = t1 * TWO_PI;
-            float angle2 = t2 * TWO_PI;
+            const float angle1 = t1 * TWO_PI;
+            const float angle2 = t2 * TWO_PI;
 
-            // Calculate radius at this angle based on swing limits
-            // The ellipse is in the plane perpendicular to X axis
-            // Radius varies as: r(θ) = 1 / sqrt((cos²θ/a²) + (sin²θ/b²))
-            // where a = sin(SwingZ), b = sin(SwingY)
-
-            float sinSwingY = std::sin(SwingY);
-            float sinSwingZ = std::sin(SwingZ);
-            float cosSwingY = std::cos(SwingY);
-            float cosSwingZ = std::cos(SwingZ);
-
-            // Average cos value for X offset (cone tip distance from origin)
-            float avgCos = (cosSwingY + cosSwingZ) * 0.5f;
-
-            // Calculate points on ellipse
-            auto GetEllipsePoint = [&](float angle) -> FVector
-                {
-                    float cosAngle = std::cos(angle);
-                    float sinAngle = std::sin(angle);
-
-                    // Ellipse radius at this angle
-                    float radiusY = sinSwingY;
-                    float radiusZ = sinSwingZ;
-
-                    // Calculate distance from origin for this point on the ellipse
-                    float denominator = std::sqrt(
-                        (cosAngle * cosAngle) / (radiusZ * radiusZ + 1e-6f) +
-                        (sinAngle * sinAngle) / (radiusY * radiusY + 1e-6f)
-                    );
-                    float radius = 1.0f / (denominator + 1e-6f);
-
-                    // X offset varies with the ellipse radius
-                    float xOffset = std::sqrt(std::max(0.0f, 1.0f - radius * radius));
-
-                    FVector point = ConstraintOrigin +
-                        ConstraintAxisX * (LimitRadius * xOffset) +
-                        ConstraintAxisY * (LimitRadius * radius * sinAngle) +
-                        ConstraintAxisZ * (LimitRadius * radius * cosAngle);
-
-                    return point;
-                };
-
-            FVector p1 = GetEllipsePoint(angle1);
-            FVector p2 = GetEllipsePoint(angle2);
+            FVector p1 = GetEllipticalConePoint(angle1);
+            FVector p2 = GetEllipticalConePoint(angle2);
 
             if (CLDL.SwingConeLines[lineIdx])
             {
@@ -1826,24 +1812,28 @@ void ASkeletalMeshActor::UpdateConstraintLimitTransforms()
             }
         }
 
-        // Draw radial lines from origin to the 4 key vertices (for reference)
+        // Draw radial lines to 4 key vertices
         if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
         {
+            FVector vertex1 = GetEllipticalConePoint(PI * 0.5f);  // +Y direction
             CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex1);
             ++lineIdx;
         }
         if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
         {
+            FVector vertex2 = GetEllipticalConePoint(PI * 1.5f);  // -Y direction
             CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex2);
             ++lineIdx;
         }
         if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
         {
+            FVector vertex3 = GetEllipticalConePoint(0.0f);       // +Z direction
             CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex3);
             ++lineIdx;
         }
         if (lineIdx < CLDL.SwingConeLines.Num() && CLDL.SwingConeLines[lineIdx])
         {
+            FVector vertex4 = GetEllipticalConePoint(PI);         // -Z direction
             CLDL.SwingConeLines[lineIdx]->SetLine(ConstraintOrigin, vertex4);
             ++lineIdx;
         }
