@@ -27,13 +27,18 @@ public:
 
     FKAggregateGeom AggGeom;             // 이 Body가 가진 Primitive Collision 모음
 
+    // ===============================================
+    // Collision Setting
+    // ===============================================
     float Mass = 10.0f;                
-    float LinearDamping = 0.01f;  // 위치의 시간 당 변화량
-    float AngularDamping = 0.05f; // 회전의 시간 당 변화량
+    float LinearDamping = 0.01f;  // 위치의 시간 당 감쇠량
+    float AngularDamping = 0.05f; // 회전의 시간 당 감쇠량
 
     UPhysicalMaterial* PhysMaterial = nullptr;
 
-    // Collision Setting
+    // ===============================================
+    // Physics 적용 Setting
+    // ===============================================
     bool bSimulatePhysics = true; // false일 시 Static
     bool bEnableGravity = true;   // 위가 false면 의미없음
 
