@@ -44,11 +44,11 @@ void FSimulationEventCallback::onContact(const PxContactPairHeader& PairHeader, 
 			{
 				// 3. 충돌 정보 채우기 
 				FContactHit ContactHit;
-				ContactHit.ActorA = OwnerA;
-				ContactHit.ActorB = OwnerB;
+				ContactHit.ActorTo = OwnerA;
+				ContactHit.ActorFrom = OwnerB;
 				ContactHit.Position = FVector(0, 0, 0);
 				ContactHit.Normal = FVector(0, 0, 1);
-				ContactHit.Impulse = FVector(0, 0, 0);
+				ContactHit.ImpulseOnActorTo = FVector(0, 0, 0);
 
 				for (PxU32 i = 0; i < NumPairs; ++i)
 				{
@@ -74,7 +74,7 @@ void FSimulationEventCallback::onContact(const PxContactPairHeader& PairHeader, 
 					// 위치/법선은 월드 좌표 기준
 					ContactHit.Position = PxToFVector(CP.position);
 					ContactHit.Normal = PxToFVector(CP.normal);
-					ContactHit.Impulse = PxToFVector(CP.impulse);
+					ContactHit.ImpulseOnActorTo = PxToFVector(CP.impulse);
 					
 					// 한 페어만 써도 충분하니 여기서 break
 					break;

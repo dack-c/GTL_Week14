@@ -11,7 +11,7 @@
  * - word1: 충돌 마스크 (어떤 그룹과 충돌할지)
  * - word2: 예약
  * - word3: 예약
- *
+ * 
  * 같은 word0을 가진 바디들끼리는 충돌하지 않음 (Self-Collision 비활성화)
  */
 static PxFilterFlags RagdollFilterShader(
@@ -19,23 +19,26 @@ static PxFilterFlags RagdollFilterShader(
     PxFilterObjectAttributes attributes1, PxFilterData filterData1,
     PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
 {
-    // 트리거 처리 (기존 로직 유지)
-    if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
-    {
-        pairFlags = PxPairFlag::eTRIGGER_DEFAULT
-                  | PxPairFlag::eNOTIFY_TOUCH_FOUND
-                  | PxPairFlag::eNOTIFY_TOUCH_LOST;
-        return PxFilterFlag::eDEFAULT;
-    }
-
-    // word0이 같으면 같은 스켈레탈 메쉬의 바디들 → Self-Collision 비활성화
+    // 1) Self Collision 처리
+    // : word0이 같으면 같은 스켈레탈 메쉬의 바디들 → Self-Collision 비활성화
     // word0 == 0은 일반 오브젝트 (래그돌이 아님) → 서로 충돌함
     if (filterData0.word0 != 0 && filterData0.word0 == filterData1.word0)
     {
         return PxFilterFlag::eSUPPRESS;  // 충돌 무시
     }
 
-    // 기본 충돌 처리
+    // 2) 트리거 처리 
+    // : 물리 처리 없고, CallBack 등으로 Event 발생용
+    // Trigger가 Contact보다 우선 순위가 높다. 둘 중 하나만 Trigger라도 Contact 무시하고 Trigger 처리
+    if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
+    {
+        pairFlags = PxPairFlag::eTRIGGER_DEFAULT
+            | PxPairFlag::eNOTIFY_TOUCH_FOUND
+            | PxPairFlag::eNOTIFY_TOUCH_LOST;
+        return PxFilterFlag::eDEFAULT;
+    }
+
+    // 3) 기본 충돌 처리
     pairFlags = PxPairFlag::eCONTACT_DEFAULT
               | PxPairFlag::eNOTIFY_TOUCH_FOUND
               | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
