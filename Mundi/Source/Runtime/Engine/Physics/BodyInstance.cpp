@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "BodyInstance.h"
 #include "BodySetup.h"
 #include "PhysScene.h"          // FPhysScene 선언
@@ -99,7 +99,7 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
     // word0: OwnerID (같은 스켈레탈 메쉬 = 같은 ID → 서로 충돌 안 함)
     PxFilterData FilterData;
     FilterData.word0 = OwnerID;
-    FilterData.word1 = 0xFFFFFFFF;  // 모든 그룹과 충돌 (Self 제외)
+    FilterData.word1 = 0xFFFFFFFF; // TODO : 모든 그룹과 충돌 (Self 제외)
     FilterData.word2 = 0;
     FilterData.word3 = 0;
 

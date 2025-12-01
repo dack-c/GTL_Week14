@@ -637,7 +637,7 @@ void USkeletalMeshComponent::OnUnregiDebug()
 
 void USkeletalMeshComponent::GameLogicTest(FContactHit ContactHit)
 {
-    PhysicsState = EPhysicsAnimationState::PhysicsDriven;
+    // PhysicsState = EPhysicsAnimationState::PhysicsDriven;
 }
 
 // ============================================================
