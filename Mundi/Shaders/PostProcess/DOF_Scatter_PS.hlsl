@@ -1,6 +1,9 @@
 // DOF Scatter Pixel Shader
 // 보케 모양 렌더링 (원형)
 
+// 디버그 모드: VS와 동일하게 설정해야 함
+#define DEBUG_FORCE_SCATTER 0
+
 struct PS_INPUT
 {
     float4 Position : SV_POSITION;
@@ -38,6 +41,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 옵션: Gaussian이나 Ring 형태로 변경 가능
     float intensity = alpha;
 
+#if DEBUG_FORCE_SCATTER
+    // 디버그: 면적 정규화 없이 원본 색상 출력
+    output.Color.rgb = input.Color * intensity;
+    output.Color.a = intensity;
+#else
     // 면적 정규화: 큰 보케일수록 개별 픽셀 기여도 낮춤
     // 면적 = π * r² → 정규화 = 1 / (π * r²)
     float area = 3.14159 * input.CocRadius * input.CocRadius;
@@ -45,6 +53,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     output.Color.rgb = input.Color * intensity * areaNorm;
     output.Color.a = intensity * areaNorm;
+#endif
 
     return output;
 }
