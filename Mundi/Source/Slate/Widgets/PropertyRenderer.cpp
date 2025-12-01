@@ -1124,6 +1124,29 @@ bool UPropertyRenderer::RenderSkeletalMeshProperty(const FProperty& Prop, void* 
 	ImGui::Separator(); 
 	ImGui::Spacing();
 
+	UPhysicsAsset* PhysicsAsset = (*MeshPtr)->PhysicsAsset;
+	if (PhysicsAsset)
+	{
+		// PhysicsAsset 이름 표시
+		FString PhysicsAssetName = PhysicsAsset->GetName().ToString();
+		ImGui::Text("PhysicsAsset: %s", PhysicsAssetName.c_str());
+
+		// PhysicsAsset 파일 경로 표시
+		FString PhysicsAssetPath = PhysicsAsset->GetFilePath();
+		ImGui::Text("경로: %s", PhysicsAssetPath.c_str());
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+	}
+	else
+	{
+		ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "PhysicsAsset: None");
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+	}
+
 	UObject* Object = static_cast<UObject*>(Instance);
 	USkeletalMeshComponent* SkelComp = Cast<USkeletalMeshComponent>(Object);
 
