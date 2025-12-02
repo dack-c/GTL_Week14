@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SkinnedMeshComponent.h"
 #include "USkeletalMeshComponent.generated.h"
 // Include for FPendingAnimNotify and FAnimNotifyEvent types
@@ -27,7 +27,6 @@ public:
     GENERATED_REFLECTION_BODY()
     
     USkeletalMeshComponent();
-    ~USkeletalMeshComponent() = default;
 
 public:
     void BeginPlay() override;
@@ -158,7 +157,11 @@ public:
     void SetAnimGraphPath(FString InAnimGraphPath) { AnimGraphPath = InAnimGraphPath; }
 
     UPhysicsAsset* GetPhysicsAsset() const { return PhysicsAsset; }
-	void SetPhysicsAsset(UPhysicsAsset* InPhysicsAsset) { PhysicsAsset = InPhysicsAsset; }
+	void SetPhysicsAsset(UPhysicsAsset* InPhysicsAsset);
+	bool SetPhysicsAssetOverrideByPath(const FString& AssetPath);
+	void ClearPhysicsAssetOverride();
+	bool HasPhysicsAssetOverride() const { return !PhysicsAssetOverridePath.empty(); }
+	const FString& GetPhysicsAssetOverridePath() const { return PhysicsAssetOverridePath; }
 
 protected:
     /**
@@ -286,7 +289,10 @@ public:
 
 private:
     UPhysicsAsset*   PhysicsAsset = nullptr;   // 이 메쉬에 쓸 물리 에셋 (콜라이더/조인트 정의)
-    
+    UPhysicsAsset*   PhysicsAssetOverride = nullptr; // Instance-level override asset (if any)
+    FString          PhysicsAssetOverridePath;
+
+    void ApplyPhysicsAsset(UPhysicsAsset* InPhysicsAsset);    
     TArray<FBodyInstance*>       Bodies;       // 각 본(혹은 일부 본)에 대응하는 물리 바디 인스턴스
     TArray<FConstraintInstance*> Constraints;  // 바디들 사이를 묶는 조인트 인스턴스
 
