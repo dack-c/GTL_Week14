@@ -102,7 +102,7 @@ private:
     }
 
     // Helper to get unique pin ID for body connection
-    int32 GetBodyPinID(int32 BodyIndex) {
+    int32 GetBodyInputPinID(int32 BodyIndex) {
         return 2000000 + BodyIndex;
     }
 
@@ -118,6 +118,10 @@ private:
 
     int32 GetConstraintOutputPinID(int32 ConstraintIndex) {
         return 5000000 + ConstraintIndex;
+    }
+
+    int32 GetBodyOutputPinID(int32 BodyIndex) {
+        return 6000000 + BodyIndex;
     }
 
 private:

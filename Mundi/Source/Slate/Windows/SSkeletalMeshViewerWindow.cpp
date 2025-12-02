@@ -3110,27 +3110,31 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
 
 void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
 {
-    if (!State || !State->CurrentPhysicsAsset || !PhysicsGraphContext || !PhysicsGraphBuilder)
+    if (!State || !State->CurrentPhysicsAsset || !PhysicsGraphContext || !PhysicsGraphBuilder || State->SelectedBodyIndexForGraph == -1)
     {
         return;
     }
 
+    // 이후 로직에서는 더블 클릭을 무시
+    ImGui::GetIO().MouseClicked[0] = false;
+    ImGui::GetIO().MouseDoubleClicked[0] = false;
+
     //// SelectedBodyIndexForGraph가 변경되었는지 추적
-    //static int32 PrevSelectedBodyIndexForGraph = -1;
+    static int32 PrevSelectedBodyIndexForGraph = -1;
 
-    //if (State->SelectedBodyIndexForGraph != PrevSelectedBodyIndexForGraph)
-    //{
-    //    // 그래프 컨텍스트 재생성
-    //    if (PhysicsGraphContext)
-    //    {
-    //        ed::DestroyEditor(PhysicsGraphContext);
-    //    }
+    if (State->SelectedBodyIndexForGraph != PrevSelectedBodyIndexForGraph)
+    {
+        // 그래프 컨텍스트 재생성
+        if (PhysicsGraphContext)
+        {
+            ed::DestroyEditor(PhysicsGraphContext);
+        }
 
-    //    ed::Config PhysicsGraphConfig;
-    //    PhysicsGraphContext = ed::CreateEditor(&PhysicsGraphConfig);
+        ed::Config PhysicsGraphConfig;
+        PhysicsGraphContext = ed::CreateEditor(&PhysicsGraphConfig);
 
-    //    PrevSelectedBodyIndexForGraph = State->SelectedBodyIndexForGraph;
-    //}
+        PrevSelectedBodyIndexForGraph = State->SelectedBodyIndexForGraph;
+    }
 
     UPhysicsAsset* PhysAsset = State->CurrentPhysicsAsset;
 
@@ -3140,8 +3144,11 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
     ed::Begin("PhysicsConstraintGraph", availableRegion);
 
     // Track which bodies are connected to selected body
-    std::unordered_set<int32> ConnectedBodyIndices;
-    std::unordered_set<int32> RelevantConstraintIndices;
+    /*std::unordered_set<int32> ConnectedBodyIndices;
+    std::unordered_set<int32> RelevantConstraintIndices;*/
+
+    TArray<int32> ConnectedBodyIndices;
+    TArray<int32> RelevantConstraintIndices;
 
     if (State->SelectedBodyIndexForGraph >= 0 && State->SelectedBodyIndexForGraph < PhysAsset->BodySetups.Num())
     {
@@ -3155,14 +3162,14 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
 
             if (Constraint.BodyNameA == SelectedBodyName || Constraint.BodyNameB == SelectedBodyName)
             {
-                RelevantConstraintIndices.insert(ConstraintIdx);
+                RelevantConstraintIndices.Add(ConstraintIdx);
 
                 // Find the other body in this constraint
                 FName OtherBodyName = (Constraint.BodyNameA == SelectedBodyName) ? Constraint.BodyNameB : Constraint.BodyNameA;
                 int32 OtherBodyIndex = PhysAsset->FindBodyIndex(OtherBodyName);
                 if (OtherBodyIndex != INDEX_NONE)
                 {
-                    ConnectedBodyIndices.insert(OtherBodyIndex);
+                    ConnectedBodyIndices.Add(OtherBodyIndex);
                 }
             }
         }
@@ -3194,13 +3201,20 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         ImGui::Dummy(ImVec2(0, 28));
         PhysicsGraphBuilder->EndHeader();
 
+        // Output pin for connections
+        //ImGui::BeginDisabled(true);  // 핀 인터랙션 비활성화
+        PhysicsGraphBuilder->Output(ed::PinId(GetBodyOutputPinID(State->SelectedBodyIndexForGraph)));
+        PhysicsGraphBuilder->EndOutput();
+        //ImGui::EndDisabled();
+
+        PhysicsGraphBuilder->Input(ed::PinId(GetBodyInputPinID(State->SelectedBodyIndexForGraph)));
+        PhysicsGraphBuilder->EndInput();
+
         // Middle section with constraint info
         PhysicsGraphBuilder->Middle();
-        ImGui::Text("%d shape(s)", SelectedBody->GetTotalShapeCount());
-
-        // Output pin for connections
-        PhysicsGraphBuilder->Output(ed::PinId(GetBodyPinID(State->SelectedBodyIndexForGraph)));
-        PhysicsGraphBuilder->EndOutput();
+        //ImGui::Text("%d shape(s)", SelectedBody->GetTotalShapeCount());
+        FString Str = SelectedBody->GetTotalShapeCount() + " shape(s)";
+        ImGui::TextUnformatted(Str.c_str());
 
         PhysicsGraphBuilder->End();
     }
@@ -3241,11 +3255,15 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
 
         // Middle section with constraint info
         PhysicsGraphBuilder->Middle();
-        ImGui::Text("%d shape(s)", Body->GetTotalShapeCount());
+        //ImGui::Text("%d shape(s)", Body->GetTotalShapeCount());
+        FString Str = Body->GetTotalShapeCount() + " shape(s)";
+        ImGui::TextUnformatted(Str.c_str());
 
         // Input pin for connections
-        PhysicsGraphBuilder->Input(ed::PinId(GetBodyPinID(BodyIndex)));
+        //ImGui::BeginDisabled(true);  // 핀 인터랙션 비활성화
+        PhysicsGraphBuilder->Input(ed::PinId(GetBodyInputPinID(BodyIndex)));
         PhysicsGraphBuilder->EndInput();
+        //ImGui::EndDisabled();
 
         PhysicsGraphBuilder->End();
 
@@ -3292,27 +3310,31 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         ImGui::Dummy(ImVec2(0, 28));
         PhysicsGraphBuilder->EndHeader();
 
+        // Output pin to child body
+        //ImGui::BeginDisabled(true);  // 핀 인터랙션 비활성화
+        PhysicsGraphBuilder->Output(ed::PinId(GetConstraintOutputPinID(ConstraintIdx)));
+        PhysicsGraphBuilder->EndOutput();
+        //ImGui::EndDisabled();
+
         // Input pin from parent body
+        //ImGui::BeginDisabled(true);  // 핀 인터랙션 비활성화
         PhysicsGraphBuilder->Input(ed::PinId(GetConstraintInputPinID(ConstraintIdx)));
         PhysicsGraphBuilder->EndInput();
+        //ImGui::EndDisabled();
 
         // Middle section with constraint info
         PhysicsGraphBuilder->Middle();
-        ImGui::Text("%s -> %s",
+		FString Str = Constraint.BodyNameA.ToString() + " -> " + Constraint.BodyNameB.ToString();
+		ImGui::TextUnformatted(Str.c_str());
+        /*ImGui::Text("%s -> %s",
             Constraint.BodyNameA.ToString().c_str(),
-            Constraint.BodyNameB.ToString().c_str());
+            Constraint.BodyNameB.ToString().c_str());*/
         /*ImGui::Text("Twist: %.1f-%.1f",
             RadiansToDegrees(Constraint.TwistLimitMin),
             RadiansToDegrees(Constraint.TwistLimitMax));
         ImGui::Text("Swing: %.1f, %.1f",
             RadiansToDegrees(Constraint.SwingLimitY),
             RadiansToDegrees(Constraint.SwingLimitZ));*/
-
-        // Output pin to child body
-        //ImGui::BeginDisabled(true);  // 핀 인터랙션 비활성화
-        PhysicsGraphBuilder->Output(ed::PinId(GetConstraintOutputPinID(ConstraintIdx)));
-        PhysicsGraphBuilder->EndOutput();
-        //ImGui::EndDisabled();
 
         PhysicsGraphBuilder->End();
     }
@@ -3331,21 +3353,21 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         if (BodyAIndex == INDEX_NONE || BodyBIndex == INDEX_NONE)
             continue;
 
-        int32 InputBodyIndex = State->SelectedBodyIndexForGraph == BodyAIndex ? BodyAIndex : BodyBIndex;
-        int32 OutputBodyIndex = (InputBodyIndex == BodyAIndex) ? BodyBIndex : BodyAIndex;
+        int32 FromBodyIndex = State->SelectedBodyIndexForGraph == BodyAIndex ? BodyAIndex : BodyBIndex;
+        int32 ToBodyIndex = (FromBodyIndex == BodyAIndex) ? BodyBIndex : BodyAIndex;
 
         // Link from parent body to constraint input
-        uint64 LinkID_AtoConstraint = (uint64(GetBodyPinID(InputBodyIndex)) << 32) | uint64(GetConstraintInputPinID(ConstraintIdx));
+        uint64 LinkID_AtoConstraint = (1ULL << 56) | (uint64(ConstraintIdx) << 32) | uint64(FromBodyIndex);
         ed::Link(ed::LinkId(LinkID_AtoConstraint),
-            ed::PinId(GetBodyPinID(InputBodyIndex)),
+            ed::PinId(GetBodyOutputPinID(FromBodyIndex)),
             ed::PinId(GetConstraintInputPinID(ConstraintIdx)),
             ImColor(200, 200, 200), 2.0f);
 
         // Link from constraint output to child body
-        uint64 LinkID_ConstraintToB = (uint64(GetConstraintOutputPinID(ConstraintIdx)) << 32) | uint64(GetBodyPinID(OutputBodyIndex));
+        uint64 LinkID_ConstraintToB = (2ULL << 56) | (uint64(ConstraintIdx) << 32) | uint64(ToBodyIndex);
         ed::Link(ed::LinkId(LinkID_ConstraintToB),
             ed::PinId(GetConstraintOutputPinID(ConstraintIdx)),
-            ed::PinId(GetBodyPinID(OutputBodyIndex)),
+            ed::PinId(GetBodyInputPinID(ToBodyIndex)),
             ImColor(200, 200, 200), 2.0f);
 
         //// Link from constraint INPUT to parent body (역방향)
@@ -3363,6 +3385,13 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         //    ImColor(200, 200, 200), 2.0f);
     }
 
+    // Handle node selection
+    if (ed::BeginCreate())
+    {
+
+    }
+    // Disable link creation in this graph
+    ed::EndCreate();
 
     // ======== 핀 상태 정리 (중요!) ========
     ed::Suspend();  // 일시적으로 에디터 상태 저장
@@ -3386,13 +3415,20 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
     ed::NodeId ClickedNodeId = 0;
 
     // 더블클릭 감지
-    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+    //if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+    //{
+    //    ClickedNodeId = ed::GetDoubleClickedNode();
+    //    ClickedNodeId = ed::GetHoveredNode();
+    //    /*if (!ClickedNodeId)
+    //    {
+    //        ClickedNodeId = ed::GetDoubleClickedNode();
+    //    }*/
+    //}
+    //ClickedNodeId = ed::GetDoubleClickedNode();
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
     {
         ClickedNodeId = ed::GetHoveredNode();
-        if (!ClickedNodeId)
-        {
-            ClickedNodeId = ed::GetDoubleClickedNode();
-        }
     }
 
     if (ClickedNodeId)
@@ -3443,6 +3479,25 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
                         }
                     }
                 }
+
+                if (State->SelectedBodyIndex == State->SelectedBodyIndexForGraph)
+                {
+                    // Node Editor 종료
+                    ed::End();
+                    ed::SetCurrentEditor(nullptr);
+
+                    // 컨텍스트 재생성
+                    if (PhysicsGraphContext)
+                    {
+                        ed::DestroyEditor(PhysicsGraphContext);
+                    }
+
+                    ed::Config PhysicsGraphConfig;
+                    PhysicsGraphContext = ed::CreateEditor(&PhysicsGraphConfig);
+
+                    // 즉시 반환 (다음 프레임에서 깨끗한 상태로 다시 그림)
+                    return;
+                }
             }
         }
         // Check if it's a constraint node (3000000 ~ 3999999)
@@ -3473,31 +3528,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         // 선택 해제 확인
         int32 SelectedCount = ed::GetSelectedObjectCount();
         UE_LOG("Selected count after clear: %d", SelectedCount);
-
-        // Node Editor 종료
-        ed::End();
-        ed::SetCurrentEditor(nullptr);
-
-        // 컨텍스트 재생성
-        if (PhysicsGraphContext)
-        {
-            ed::DestroyEditor(PhysicsGraphContext);
-        }
-
-        ed::Config PhysicsGraphConfig;
-        PhysicsGraphContext = ed::CreateEditor(&PhysicsGraphConfig);
-
-        // 즉시 반환 (다음 프레임에서 깨끗한 상태로 다시 그림)
-        return;
     }
-
-    // Handle node selection
-    if (ed::BeginCreate())
-    {
-
-    }
-    // Disable link creation in this graph
-    ed::EndCreate();
 
     ed::End();
     ed::SetCurrentEditor(nullptr);
