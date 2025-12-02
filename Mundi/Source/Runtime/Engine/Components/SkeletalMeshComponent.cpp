@@ -14,6 +14,8 @@
 #include "Source/Editor/BlueprintGraph/AnimationGraph.h"
 #include "InputManager.h"
 
+#include "Source/Runtime/AssetManagement/ResourceManager.h"
+
 #include "PlatformTime.h"
 #include "USlateManager.h"
 #include "BlueprintGraph/AnimBlueprintCompiler.h"
@@ -216,12 +218,14 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
 {
     Super::SetSkeletalMesh(PathFileName);
 
-    // SkeletalMesh에 연결된 PhysicsAsset 참조
-    if (SkeletalMesh)
+    UPhysicsAsset* DefaultPhysicsAsset = SkeletalMesh ? SkeletalMesh->PhysicsAsset : nullptr;
+    UPhysicsAsset* AssetToApply = DefaultPhysicsAsset;
+    if (HasPhysicsAssetOverride() && PhysicsAssetOverride)
     {
-        PhysicsAsset = SkeletalMesh->PhysicsAsset;
+        AssetToApply = PhysicsAssetOverride;
     }
-
+    ApplyPhysicsAsset(AssetToApply);
+    
     if (SkeletalMesh && SkeletalMesh->GetSkeletalMeshData())
     {
         const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
@@ -263,6 +267,70 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
     }
 }
 
+void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
+{
+    PhysicsAssetOverridePath.clear();
+    PhysicsAssetOverride = nullptr;
+    ApplyPhysicsAsset(InPhysicsAsset);
+}
+
+bool USkeletalMeshComponent::SetPhysicsAssetOverrideByPath(const FString& AssetPath)
+{
+    if (AssetPath.empty())
+    {
+        ClearPhysicsAssetOverride();
+        return true;
+    }
+
+    UPhysicsAsset* LoadedAsset = UResourceManager::GetInstance().Load<UPhysicsAsset>(AssetPath);
+    if (!LoadedAsset)
+    {
+        UE_LOG("USkeletalMeshComponent: Failed to load PhysicsAsset override from %s", AssetPath.c_str());
+        return false;
+    }
+
+    PhysicsAssetOverridePath = AssetPath;
+    PhysicsAssetOverride = LoadedAsset;
+    ApplyPhysicsAsset(LoadedAsset);
+    return true;
+}
+
+void USkeletalMeshComponent::ClearPhysicsAssetOverride()
+{
+    PhysicsAssetOverridePath.clear();
+    PhysicsAssetOverride = nullptr;
+
+    UPhysicsAsset* DefaultPhysicsAsset = SkeletalMesh ? SkeletalMesh->PhysicsAsset : nullptr;
+    ApplyPhysicsAsset(DefaultPhysicsAsset);
+}
+
+void USkeletalMeshComponent::ApplyPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
+{
+    if (PhysicsAsset == InPhysicsAsset)
+    {
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    FPhysScene* PhysScene = World ? World->GetPhysScene() : nullptr;
+
+    if (PhysScene && (Bodies.Num() > 0 || Constraints.Num() > 0))
+    {
+        DestroyPhysicsAssetBodies(*PhysScene);
+    }
+    else if (!PhysScene)
+    {
+        Bodies.Empty();
+        Constraints.Empty();
+    }
+
+    PhysicsAsset = InPhysicsAsset;
+
+    if (PhysScene && PhysicsAsset)
+    {
+        InstantiatePhysicsAssetBodies(*PhysScene);
+    }
+}
 FAABB USkeletalMeshComponent::GetWorldAABB() const
 {
     return Super::GetWorldAABB();
@@ -1068,6 +1136,16 @@ void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandl
                 SetAnimGraph(NewGraph);
             }
         }
+        FString LoadedPhysicsOverride;
+        FJsonSerializer::ReadString(InOutHandle, "PhysicsAssetOverridePath", LoadedPhysicsOverride, "", false);
+        if (!LoadedPhysicsOverride.empty())
+        {
+            SetPhysicsAssetOverrideByPath(LoadedPhysicsOverride);
+        }
+        else
+        {
+            ClearPhysicsAssetOverride();
+        }
     }
     else
     {
@@ -1080,6 +1158,14 @@ void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandl
         {
             // Ensure key exists for clarity (optional)
             InOutHandle["AnimGraphPath"] = "";
+        }
+        if (!PhysicsAssetOverridePath.empty())
+        {
+            InOutHandle["PhysicsAssetOverridePath"] = PhysicsAssetOverridePath.c_str();
+        }
+        else
+        {
+            InOutHandle["PhysicsAssetOverridePath"] = "";
         }
     }
 }
