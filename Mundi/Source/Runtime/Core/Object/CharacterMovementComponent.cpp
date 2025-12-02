@@ -108,6 +108,36 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 	FHitResult FloorHit;
 	if (!CheckFloor(FloorHit))
 	{
+		// 경사면 내려가기: 더 긴 거리로 바닥 찾기
+		const float MaxStepDownHeight = 0.5f;
+		FVector StepDownStart = UpdatedComponent->GetWorldLocation();
+		FVector StepDownEnd = StepDownStart - FVector(0, 0, MaxStepDownHeight);
+
+		float Radius, HalfHeight;
+		GetCapsuleSize(Radius, HalfHeight);
+
+		FPhysScene* PhysScene = GetPhysScene();
+		FHitResult StepDownHit;
+
+		if (PhysScene && PhysScene->SweepCapsule(StepDownStart, StepDownEnd, Radius, HalfHeight, StepDownHit, CharacterOwner))
+		{
+			// 바닥 찾음 - 스냅 (경사면 내려가기)
+			if (StepDownHit.ImpactNormal.Z > 0.7f)
+			{
+				const float SkinWidth = 0.04f;
+				float SnapDistance = StepDownHit.Distance - SkinWidth;
+				if (SnapDistance > KINDA_SMALL_NUMBER)
+				{
+					FVector NewLoc = UpdatedComponent->GetWorldLocation();
+					NewLoc.Z -= SnapDistance;
+					UpdatedComponent->SetWorldLocation(NewLoc);
+				}
+				// Walking 유지
+				return;
+			}
+		}
+
+		// 바닥 못 찾음 - Falling
 		bIsFalling = true;
 	}
 }
