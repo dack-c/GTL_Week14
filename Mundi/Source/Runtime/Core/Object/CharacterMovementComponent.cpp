@@ -158,18 +158,18 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 	if (!bMoved && Hit.bBlockingHit)
 	{
 		// 바닥에 착지했는지 확인 (충돌 노말이 위를 향하면 바닥)
-		if (Hit.ImpactNormal.Z > 0.7f)
+		// 단, 상승 중(Velocity.Z > 0)에는 착지하지 않음 (경사면에서 점프 시)
+		if (Hit.ImpactNormal.Z > 0.7f && Velocity.Z <= 0.0f)
 		{
 			// 착지
 			Velocity.Z = 0.0f;
 			bIsFalling = false;
-
-			// 충돌 지점으로 위치 조정
-			UpdatedComponent->SetWorldLocation(Hit.Location);
+			// SafeMoveUpdatedComponent에서 이미 SkinWidth 적용된 위치로 설정됨
+			// Hit.Location으로 덮어쓰면 경사면에 박힘
 		}
 		else
 		{
-			// 벽에 부딪힘 - 슬라이딩
+			// 벽 또는 상승 중 경사면 충돌 - 슬라이딩
 			FVector SlideVector = SlideAlongSurface(DeltaLoc, Hit);
 			if (!SlideVector.IsZero())
 			{
