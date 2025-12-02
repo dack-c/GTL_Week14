@@ -87,8 +87,11 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
 
 		// W가 아닌 다른 방향키를 누르면 그 방향으로 회전
 		// (W만 누르면 현재 방향 유지, 다른 키 조합이면 회전)
+		// S를 누를 때(뒤로 갈 때)는 회전하지 않도록 함
 		bool bOnlyForward = (InputDir.X > 0.0f && InputDir.Y == 0.0f);
-		if (!bOnlyForward)
+		bool bIsMovingBackward = (InputDir.X < 0.0f);
+
+		if (!bOnlyForward && !bIsMovingBackward)
 		{
 			// 이동 방향으로 플레이어 회전
 			float TargetYaw = std::atan2(WorldDir.Y, WorldDir.X) * (180.0f / PI);
