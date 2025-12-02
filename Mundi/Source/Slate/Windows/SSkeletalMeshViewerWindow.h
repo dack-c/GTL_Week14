@@ -1,6 +1,14 @@
 ﻿#pragma once
 #include "SWindow.h"
 #include "Source/Runtime/Engine/SkeletalViewer/ViewerState.h"
+
+#include "imgui-node-editor/imgui_node_editor.h"
+#include "imgui-node-editor/utilities/builders.h"
+#include "imgui-node-editor/utilities/widgets.h"
+
+namespace ed = ax::NodeEditor;
+namespace util = ax::NodeEditor::Utilities;
+
 class UPhysicsAsset;
 
 class FViewport;
@@ -77,6 +85,40 @@ public:
     bool IsOpen() const { return bIsOpen; }
     void Close() { bIsOpen = false; }
     const FRect& GetViewportRect() const { return CenterRect; }
+
+// 피직스 그래프 관련
+private:
+    void DrawPhysicsConstraintGraph(ViewerState* State);
+
+    // Physics graph visualization
+    ed::EditorContext* PhysicsGraphContext = nullptr;
+    util::BlueprintNodeBuilder* PhysicsGraphBuilder = nullptr;
+    UTexture* PhysicsNodeHeaderBg = nullptr;
+
+    // Helper to get unique node ID for body
+    // Uses SelectedBodyIndex to create unique IDs even when BodyIndex repeats across different selections
+    int32 GetBodyNodeID(int32 SelectedBodyIndex, int32 BodyIndex) const {
+        return 1000000 + (SelectedBodyIndex * 10000) + BodyIndex;
+    }
+
+    // Helper to get unique pin ID for body connection
+    int32 GetBodyPinID(int32 SelectedBodyIndex, int32 BodyIndex) const {
+        return 2000000 + (SelectedBodyIndex * 10000) + BodyIndex;
+    }
+
+    // Helper to get unique node ID for constraint
+    int32 GetConstraintNodeID(int32 SelectedBodyIndex, int32 ConstraintIndex) const {
+        return 3000000 + (SelectedBodyIndex * 10000) + ConstraintIndex;
+    }
+
+    // Helper to get unique pin IDs for constraint pins
+    int32 GetConstraintInputPinID(int32 SelectedBodyIndex, int32 ConstraintIndex) const {
+        return 4000000 + (SelectedBodyIndex * 10000) + (ConstraintIndex * 2);
+    }
+
+    int32 GetConstraintOutputPinID(int32 SelectedBodyIndex, int32 ConstraintIndex) const {
+        return 4000000 + (SelectedBodyIndex * 10000) + (ConstraintIndex * 2) + 1;
+    }
 
 private:
     void UpdateBoneTransformFromSkeleton(ViewerState* State);
