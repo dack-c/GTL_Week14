@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Name.h"
 #include "ResourceBase.h"
 #include "FKShapeElem.h"

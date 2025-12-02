@@ -1013,6 +1013,17 @@ void SSkeletalMeshViewerWindow::OnRender()
                     //ImGui::PopItemWidth();
 
                     ImGui::Spacing();
+                    int CurrentIndex = static_cast<int>(Body->CollisionState);
+                    static const char* Items[] = {
+                        "NoCollision",
+                        "QueryOnly (Trigger)",
+                        "Query + Physics",
+                    };
+                    bool bChanged = ImGui::Combo("Collision Settings", &CurrentIndex, Items, 3);
+                    if (bChanged)
+                    {
+                        Body->CollisionState = static_cast<ECollisionState>(CurrentIndex);
+                    }
                     ImGui::Checkbox("Simulate Physics", &Body->bSimulatePhysics);
                     ImGui::Checkbox("Enable Gravity", &Body->bEnableGravity);
                     
@@ -2996,11 +3007,6 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                     if (ImGui::Selectable("Capsule"))
                     {
                         RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Capsule);
-                        ImGui::CloseCurrentPopup();
-                    }
-                    if (ImGui::Selectable("Convex"))
-                    {
-                        RebuildPhysicsAssetWithShape(EAggCollisionShapeType::Convex);
                         ImGui::CloseCurrentPopup();
                     }
 

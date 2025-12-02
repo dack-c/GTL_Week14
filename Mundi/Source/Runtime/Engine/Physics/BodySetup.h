@@ -39,6 +39,8 @@ public:
     // ===============================================
     // Physics 적용 Setting
     // ===============================================
+    ECollisionState CollisionState = ECollisionState::QueryAndPhysics; // 충돌 설정
+
     bool bSimulatePhysics = true; // false일 시 Static
     bool bEnableGravity = true;   // 위가 false면 의미없음
 

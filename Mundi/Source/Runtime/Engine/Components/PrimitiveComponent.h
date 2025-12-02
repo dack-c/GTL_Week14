@@ -26,7 +26,7 @@ public:
     GENERATED_REFLECTION_BODY();
 
     UPrimitiveComponent();
-    virtual ~UPrimitiveComponent() = default;
+    virtual ~UPrimitiveComponent();
 
     void OnRegister(UWorld* InWorld) override;
     void OnUnregister() override;
@@ -63,13 +63,17 @@ public:
     bool IsOverlappingActor(const AActor* Other) const;
     virtual const TArray<FOverlapInfo>& GetOverlapInfos() const { static TArray<FOverlapInfo> Empty; return Empty; }
 
-    //Delegate 
+    // BodySetup 설정을 무시하고 싶을 때
+    UPROPERTY(EditAnywhere, Category = "Collision")
+    bool bOverrideCollisionSetting = false;
+
+    ECollisionState CollisionEnabled = ECollisionState::QueryAndPhysics;
     
     // ───── 복사 관련 ────────────────────────────
     void DuplicateSubObjects() override;
 
     // Overlap event generation toggle API
-    void SetGenerateOverlapEvents(bool bEnable) { bGenerateOverlapEvents = bEnable; }
+    void SetGenerateOverlapEvents(bool bEnable) { bEnable ? bGenerateOverlapEvents = true : bGenerateOverlapEvents = false; }
     bool GetGenerateOverlapEvents() const { return bGenerateOverlapEvents; }
 
     // ───── 직렬화 ────────────────────────────
@@ -86,4 +90,8 @@ protected:
     bool bBlockComponent;
 
     FBodyInstance* BodyInstance;
+
+private:
+    UPROPERTY()
+    int32 CollisionEnabled_Internal = 2; // ECollisionState::QueryAndPhysics;
 };
