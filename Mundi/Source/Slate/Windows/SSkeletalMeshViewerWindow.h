@@ -1,6 +1,14 @@
 ﻿#pragma once
 #include "SWindow.h"
 #include "Source/Runtime/Engine/SkeletalViewer/ViewerState.h"
+
+#include "imgui-node-editor/imgui_node_editor.h"
+#include "imgui-node-editor/utilities/builders.h"
+#include "imgui-node-editor/utilities/widgets.h"
+
+namespace ed = ax::NodeEditor;
+namespace util = ax::NodeEditor::Utilities;
+
 class UPhysicsAsset;
 
 class FViewport;
@@ -77,6 +85,44 @@ public:
     bool IsOpen() const { return bIsOpen; }
     void Close() { bIsOpen = false; }
     const FRect& GetViewportRect() const { return CenterRect; }
+
+// 피직스 그래프 관련
+private:
+    void DrawPhysicsConstraintGraph(ViewerState* State);
+
+    // Physics graph visualization
+    ed::EditorContext* PhysicsGraphContext = nullptr;
+    util::BlueprintNodeBuilder* PhysicsGraphBuilder = nullptr;
+    UTexture* PhysicsNodeHeaderBg = nullptr;
+
+    // Helper to get unique node ID for body
+    // Uses SelectedBodyIndex to create unique IDs even when BodyIndex repeats across different selections
+    int32 GetBodyNodeID(int32 BodyIndex) {
+        return 1000000 + BodyIndex;
+    }
+
+    // Helper to get unique pin ID for body connection
+    int32 GetBodyInputPinID(int32 BodyIndex) {
+        return 2000000 + BodyIndex;
+    }
+
+    // Helper to get unique node ID for constraint
+    int32 GetConstraintNodeID(int32 ConstraintIndex) {
+        return 3000000 + ConstraintIndex;
+    }
+
+    // Helper to get unique pin IDs for constraint pins
+    int32 GetConstraintInputPinID(int32 ConstraintIndex) {
+        return 4000000 + ConstraintIndex;
+    }
+
+    int32 GetConstraintOutputPinID(int32 ConstraintIndex) {
+        return 5000000 + ConstraintIndex;
+    }
+
+    int32 GetBodyOutputPinID(int32 BodyIndex) {
+        return 6000000 + BodyIndex;
+    }
 
 private:
     void UpdateBoneTransformFromSkeleton(ViewerState* State);
