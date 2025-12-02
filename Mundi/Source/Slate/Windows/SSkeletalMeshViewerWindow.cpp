@@ -615,6 +615,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                             // Clear constraint selection when body is selected
                             ActiveState->SelectedConstraintIndex = -1;
 
+							ActiveState->SelectedBodyIndexForGraph = -1;
+
                             if (ActiveState->SelectedBoneIndex != Index)
                             {
                                 ActiveState->SelectedBoneIndex = Index;
@@ -658,6 +660,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                                     ActiveState->SelectedBodySetup = MatchedBody;
 
                                     ActiveState->SelectedBodyIndex = ActiveState->CurrentPhysicsAsset->FindBodyIndex(FName(Label));
+                                    
+                                    ActiveState->SelectedBodyIndexForGraph = ActiveState->CurrentPhysicsAsset->FindBodyIndex(FName(Label));
 
 
                                     // Clear constraint selection when body is selected
@@ -820,6 +824,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                                         ActiveState->SelectedConstraintIndex = ConstraintIdx;
 
                                         ActiveState->SelectedBoneIndex = -1; // Clear bone selection when constraint is selected
+
+										ActiveState->SelectedBodyIndexForGraph = -1;
 
                                         // Clear body selection when constraint is selected
                                         ActiveState->SelectedBodySetup = nullptr;
@@ -3120,9 +3126,9 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
     std::unordered_set<int32> ConnectedBodyIndices;
     std::unordered_set<int32> RelevantConstraintIndices;
 
-    if (State->SelectedBodyIndex >= 0 && State->SelectedBodyIndex < PhysAsset->BodySetups.Num())
+    if (State->SelectedBodyIndexForGraph >= 0 && State->SelectedBodyIndexForGraph < PhysAsset->BodySetups.Num())
     {
-        UBodySetup* SelectedBody = PhysAsset->BodySetups[State->SelectedBodyIndex];
+        UBodySetup* SelectedBody = PhysAsset->BodySetups[State->SelectedBodyIndexForGraph];
         FName SelectedBodyName = SelectedBody->BoneName;
 
         // Find all constraints connected to selected body
@@ -3148,10 +3154,10 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
     // === Render Body Nodes ===
 
     // Render selected body node (center)
-    if (State->SelectedBodyIndex >= 0 && State->SelectedBodyIndex < PhysAsset->BodySetups.Num())
+    if (State->SelectedBodyIndexForGraph >= 0 && State->SelectedBodyIndexForGraph < PhysAsset->BodySetups.Num())
     {
-        UBodySetup* SelectedBody = PhysAsset->BodySetups[State->SelectedBodyIndex];
-        int32 NodeID = GetBodyNodeID(State->SelectedBodyIndex, State->SelectedBodyIndex);
+        UBodySetup* SelectedBody = PhysAsset->BodySetups[State->SelectedBodyIndexForGraph];
+        int32 NodeID = GetBodyNodeID(State->SelectedBodyIndexForGraph, State->SelectedBodyIndexForGraph);
 
         //// Set initial position if not set
         //static bool bInitialPositionSet = false;
@@ -3176,7 +3182,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         ImGui::Text("%d shape(s)", SelectedBody->GetTotalShapeCount());
 
         // Output pin for connections
-        PhysicsGraphBuilder->Output(ed::PinId(GetBodyPinID(State->SelectedBodyIndex, State->SelectedBodyIndex)));
+        PhysicsGraphBuilder->Output(ed::PinId(GetBodyPinID(State->SelectedBodyIndexForGraph, State->SelectedBodyIndexForGraph)));
         PhysicsGraphBuilder->EndOutput();
 
         PhysicsGraphBuilder->End();
@@ -3194,7 +3200,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
             continue;
 
         UBodySetup* Body = PhysAsset->BodySetups[BodyIndex];
-        int32 NodeID = GetBodyNodeID(State->SelectedBodyIndex, BodyIndex);
+        int32 NodeID = GetBodyNodeID(State->SelectedBodyIndexForGraph, BodyIndex);
 
         // Fixed x position, increasing y position for each connected body
         ImVec2 Pos(FixedX, StartY + (ConnectedIdx * YSpacing));
@@ -3221,7 +3227,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         ImGui::Text("%d shape(s)", Body->GetTotalShapeCount());
 
         // Input pin for connections
-        PhysicsGraphBuilder->Input(ed::PinId(GetBodyPinID(State->SelectedBodyIndex, BodyIndex)));
+        PhysicsGraphBuilder->Input(ed::PinId(GetBodyPinID(State->SelectedBodyIndexForGraph, BodyIndex)));
         PhysicsGraphBuilder->EndInput();
 
         PhysicsGraphBuilder->End();
@@ -3235,7 +3241,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
             continue;
 
         const FPhysicsConstraintSetup& Constraint = PhysAsset->Constraints[ConstraintIdx];
-        int32 NodeID = GetConstraintNodeID(State->SelectedBodyIndex, ConstraintIdx);
+        int32 NodeID = GetConstraintNodeID(State->SelectedBodyIndexForGraph, ConstraintIdx);
 
         int32 BodyAIndex = PhysAsset->FindBodyIndex(Constraint.BodyNameA);
         int32 BodyBIndex = PhysAsset->FindBodyIndex(Constraint.BodyNameB);
@@ -3243,12 +3249,12 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         if (BodyAIndex == INDEX_NONE || BodyBIndex == INDEX_NONE)
             continue;
 
-        int32 InputBodyIndex = State->SelectedBodyIndex == BodyAIndex ? BodyAIndex : BodyBIndex;
+        int32 InputBodyIndex = State->SelectedBodyIndexForGraph == BodyAIndex ? BodyAIndex : BodyBIndex;
         int32 OutputBodyIndex = (InputBodyIndex == BodyAIndex) ? BodyBIndex : BodyAIndex;
 
         // Position constraint node between the two bodies
-        ImVec2 PosA = ed::GetNodePosition(ed::NodeId(GetBodyNodeID(State->SelectedBodyIndex, InputBodyIndex)));
-        ImVec2 PosB = ed::GetNodePosition(ed::NodeId(GetBodyNodeID(State->SelectedBodyIndex, OutputBodyIndex)));
+        ImVec2 PosA = ed::GetNodePosition(ed::NodeId(GetBodyNodeID(State->SelectedBodyIndexForGraph, InputBodyIndex)));
+        ImVec2 PosB = ed::GetNodePosition(ed::NodeId(GetBodyNodeID(State->SelectedBodyIndexForGraph, OutputBodyIndex)));
         ImVec2 MidPos((PosA.x + PosB.x) * 0.5f, PosB.y);
 
         /*static std::unordered_map<int32, bool> ConstraintPositionsSet;
@@ -3270,7 +3276,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         PhysicsGraphBuilder->EndHeader();
 
         // Input pin from parent body
-        PhysicsGraphBuilder->Input(ed::PinId(GetConstraintInputPinID(State->SelectedBodyIndex, ConstraintIdx)));
+        PhysicsGraphBuilder->Input(ed::PinId(GetConstraintInputPinID(State->SelectedBodyIndexForGraph, ConstraintIdx)));
         PhysicsGraphBuilder->EndInput();
 
         // Middle section with constraint info
@@ -3286,7 +3292,7 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
             RadiansToDegrees(Constraint.SwingLimitZ));*/
 
         // Output pin to child body
-        PhysicsGraphBuilder->Output(ed::PinId(GetConstraintOutputPinID(State->SelectedBodyIndex, ConstraintIdx)));
+        PhysicsGraphBuilder->Output(ed::PinId(GetConstraintOutputPinID(State->SelectedBodyIndexForGraph, ConstraintIdx)));
         PhysicsGraphBuilder->EndOutput();
 
         PhysicsGraphBuilder->End();
@@ -3306,21 +3312,21 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
         if (BodyAIndex == INDEX_NONE || BodyBIndex == INDEX_NONE)
             continue;
 
-		int32 InputBodyIndex = State->SelectedBodyIndex == BodyAIndex ? BodyAIndex : BodyBIndex;
+		int32 InputBodyIndex = State->SelectedBodyIndexForGraph == BodyAIndex ? BodyAIndex : BodyBIndex;
 		int32 OutputBodyIndex = (InputBodyIndex == BodyAIndex) ? BodyBIndex : BodyAIndex;
 
         // Link from parent body to constraint input
-        uint64 LinkID_AtoConstraint = (uint64(GetBodyPinID(State->SelectedBodyIndex, InputBodyIndex)) << 32) | uint64(GetConstraintInputPinID(State->SelectedBodyIndex, ConstraintIdx));
+        uint64 LinkID_AtoConstraint = (uint64(GetBodyPinID(State->SelectedBodyIndexForGraph, InputBodyIndex)) << 32) | uint64(GetConstraintInputPinID(State->SelectedBodyIndexForGraph, ConstraintIdx));
         ed::Link(ed::LinkId(LinkID_AtoConstraint),
-            ed::PinId(GetBodyPinID(State->SelectedBodyIndex, InputBodyIndex)),
-            ed::PinId(GetConstraintInputPinID(State->SelectedBodyIndex, ConstraintIdx)),
+            ed::PinId(GetBodyPinID(State->SelectedBodyIndexForGraph, InputBodyIndex)),
+            ed::PinId(GetConstraintInputPinID(State->SelectedBodyIndexForGraph, ConstraintIdx)),
             ImColor(200, 200, 200), 2.0f);
 
         // Link from constraint output to child body
-        uint64 LinkID_ConstraintToB = (uint64(GetConstraintOutputPinID(State->SelectedBodyIndex, ConstraintIdx)) << 32) | uint64(GetBodyPinID(State->SelectedBodyIndex, OutputBodyIndex));
+        uint64 LinkID_ConstraintToB = (uint64(GetConstraintOutputPinID(State->SelectedBodyIndexForGraph, ConstraintIdx)) << 32) | uint64(GetBodyPinID(State->SelectedBodyIndexForGraph, OutputBodyIndex));
         ed::Link(ed::LinkId(LinkID_ConstraintToB),
-            ed::PinId(GetConstraintOutputPinID(State->SelectedBodyIndex, ConstraintIdx)),
-            ed::PinId(GetBodyPinID(State->SelectedBodyIndex, OutputBodyIndex)),
+            ed::PinId(GetConstraintOutputPinID(State->SelectedBodyIndexForGraph, ConstraintIdx)),
+            ed::PinId(GetBodyPinID(State->SelectedBodyIndexForGraph, OutputBodyIndex)),
             ImColor(200, 200, 200), 2.0f);
     }
 
