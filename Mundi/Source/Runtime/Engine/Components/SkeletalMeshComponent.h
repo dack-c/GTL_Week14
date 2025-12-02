@@ -27,7 +27,6 @@ public:
     GENERATED_REFLECTION_BODY()
     
     USkeletalMeshComponent();
-    ~USkeletalMeshComponent();
 
 public:
     void BeginPlay() override;

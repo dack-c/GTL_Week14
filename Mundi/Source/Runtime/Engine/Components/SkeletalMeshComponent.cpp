@@ -46,21 +46,6 @@ USkeletalMeshComponent::USkeletalMeshComponent()
     SetSkeletalMesh("Data/James/James.fbx");
 }
 
-USkeletalMeshComponent::~USkeletalMeshComponent()
-{
-    if (PhysicsAssetOverride)
-    {
-        ObjectFactory::DeleteObject(PhysicsAssetOverride);
-        PhysicsAssetOverride = nullptr;
-    }
-
-    if (PhysicsAsset)
-    {
-        ObjectFactory::DeleteObject(PhysicsAsset);
-        PhysicsAsset = nullptr;
-    }
-}
-
 void USkeletalMeshComponent::BeginPlay()
 {
 	Super::BeginPlay();
