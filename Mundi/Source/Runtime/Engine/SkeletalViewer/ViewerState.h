@@ -74,6 +74,8 @@ public:
     // Selected Constraint (for showing constraint details / selection)
     int32 SelectedConstraintIndex = -1;
 
+	int32 SelectedBodyIndexForGraph = -1; // for physics graph visualization
+
     // Rename state for Physics Asset: use boolean (CurrentPhysicsAsset holds the asset being renamed)
     bool bIsRenaming = false;                          // true while inline-rename is active
     char PhysicsAssetNameBuffer[128] = { 0 };          // temporary editable b
