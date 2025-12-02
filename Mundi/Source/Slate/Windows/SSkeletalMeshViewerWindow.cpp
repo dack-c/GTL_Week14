@@ -3338,10 +3338,16 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
     {
         int32 NodeIDValue = (int32)(uintptr_t)ClickedNodeId.Get();
 
-        // Check if it's a body node
+        // Decompose the node ID to extract SelectedBodyIndex and actual index
+        // NodeID format: [Range][SelectedBodyIndex * 10000][Index]
+
+        // Check if it's a body node (1000000 ~ 1999999)
         if (NodeIDValue >= 1000000 && NodeIDValue < 2000000)
         {
-            int32 BodyIndex = NodeIDValue - 1000000;
+            int32 Offset = NodeIDValue - 1000000;
+            int32 EncodedSelectedBodyIndex = Offset / 10000;
+            int32 BodyIndex = Offset % 10000;
+
             if (BodyIndex >= 0 && BodyIndex < PhysAsset->BodySetups.Num())
             {
                 State->SelectedBodySetup = PhysAsset->BodySetups[BodyIndex];
@@ -3375,10 +3381,13 @@ void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
                 }
             }
         }
-        // Check if it's a constraint node
+        // Check if it's a constraint node (3000000 ~ 3999999)
         else if (NodeIDValue >= 3000000 && NodeIDValue < 4000000)
         {
-            int32 ConstraintIndex = NodeIDValue - 3000000;
+            int32 Offset = NodeIDValue - 3000000;
+            int32 EncodedSelectedBodyIndex = Offset / 10000;
+            int32 ConstraintIndex = Offset % 10000;
+
             if (ConstraintIndex >= 0 && ConstraintIndex < PhysAsset->Constraints.Num())
             {
                 State->SelectedConstraintIndex = ConstraintIndex;
