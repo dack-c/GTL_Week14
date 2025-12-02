@@ -80,7 +80,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         FarClip
     );
 
-    // 3. 원본 색상 + CoC 출력 (Scatter 마스킹 없음)
+    // 3. 원본 색상 + CoC 출력
     output.Color = float4(sceneColor.rgb, CoC);
 
     return output;

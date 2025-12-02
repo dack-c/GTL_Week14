@@ -64,10 +64,6 @@ struct PS_OUTPUT
     float4 Color : SV_Target0;
 };
 
-// 최대 CoC 반경 (화면 비율, 0~1 정규화된 CoC와 매칭)
-static const float MAX_RECOMBINE_COC_RADIUS = 1.0;
-
-
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
@@ -83,31 +79,32 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // 3. Depth 샘플링 및 CoC 계산
+    // 3. 현재 픽셀의 CoC 계산 (Far Blur 오클루전용)
     float rawDepth = g_SceneDepthTex.Sample(g_PointClampSample, input.texCoord).r;
     float viewDepth = LinearizeDepth(rawDepth, NearClip, FarClip, IsOrthographic2);
-
     float CoC = CalculateCoCWithSkyCheck(
-        viewDepth,
-        FocalDistance,
-        FocalRegion,
-        NearTransitionRegion,
-        FarTransitionRegion,
-        MaxNearBlurSize,
-        MaxFarBlurSize,
-        FarClip
+        viewDepth, FocalDistance, FocalRegion,
+        NearTransitionRegion, FarTransitionRegion,
+        MaxNearBlurSize, MaxFarBlurSize, FarClip
     );
 
-    // 4. 블러 텍스처 샘플링
+    // 4. 블러 텍스처 샘플링 (Premultiplied Alpha)
     float4 nearBlurred = g_NearBlurredTex.Sample(g_LinearClampSample, input.texCoord);
     float4 farBlurred = g_FarBlurredTex.Sample(g_LinearClampSample, input.texCoord);
 
     // 5. 레이어 합성
-    // Layer 1: Background (Far)
-    float3 finalColor = lerp(sceneColor.rgb, farBlurred.rgb, farBlurred.a);
 
-    // Layer 2: Foreground (Near)
-    finalColor = lerp(finalColor, nearBlurred.rgb, nearBlurred.a);
+    // [Layer 1] Background (Far Blur)
+    // Far Blur는 현재 픽셀이 Far 영역일 때만 완전히 적용
+    // Near 영역에서는 전경이 배경을 가리므로 Far Blur 차단
+    // In-Focus 영역에서는 약간의 보케 블리딩 허용 (부드러운 전환)
+    float farMask = smoothstep(-0.1, 0.3, CoC);
+    float4 maskedFarBlur = farBlurred * farMask;
+    float3 farColor = maskedFarBlur.rgb + sceneColor.rgb * (1.0 - maskedFarBlur.a);
+
+    // [Layer 2] Foreground (Near Blur)
+    // Near Blur는 항상 맨 위에 덮어씌움 (마스킹 없음)
+    float3 finalColor = nearBlurred.rgb + farColor * (1.0 - nearBlurred.a);
 
     output.Color = float4(finalColor, 1.0);
 

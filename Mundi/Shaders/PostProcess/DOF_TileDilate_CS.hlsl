@@ -2,7 +2,7 @@
 // 이웃 타일로 Max CoC 확장 (Near/Far 통합)
 
 #define TILE_SIZE 8
-#define DILATE_RADIUS 4  // 4 = 최대 32픽셀(4타일) 거리까지 확인
+#define DILATE_RADIUS 4  // 4타일 = 32픽셀 (TILE_SIZE=8)
 
 Texture2D<float4> g_TileInput : register(t0);   // Flatten 결과 (x: MaxCoC, y: MinCoC)
 RWTexture2D<float4> g_TileOutput : register(u0);
@@ -54,8 +54,8 @@ void mainCS(uint3 DTid : SV_DispatchThreadID)
                 float neighborMaxCoC = neighborTile.x;
                 float neighborMinCoC = neighborTile.y;
 
-                // 이웃의 CoC가 이 거리까지 도달할 수 있는지 체크
-                if (neighborMaxCoC * CocRadiusToTileScale > ringDistance)
+                // 이웃의 CoC가 이 거리까지 도달할 수 있는지 체크 (>= 로 경계 포함)
+                if (neighborMaxCoC * CocRadiusToTileScale >= ringDistance)
                 {
                     maxCoC = max(maxCoC, neighborMaxCoC);
                     // Min은 유효한 값만 (0보다 큰 경우)

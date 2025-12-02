@@ -30,6 +30,12 @@ cbuffer ViewportConstants : register(b10)
 #define TILE_SIZE 8
 #define PI 3.14159265359
 
+// 알파 스케일 팩터: normalizedCoverage를 0~1 범위로 조정
+// - 샘플의 일부만 해당 레이어에 속함 (layer filtering)
+// - coverage 값이 평균적으로 1.0보다 작음 (distance falloff, depth weight)
+// - 경험적으로 4.0이 대부분의 경우 적절한 블러 불투명도를 생성
+static const float ALPHA_SCALE_FACTOR = 4.0;
+
 // 출력
 struct PS_OUTPUT
 {
@@ -63,18 +69,21 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 4. 검색 반경 결정
     // CoC는 0~1 정규화, BlurRadius는 Full Res 픽셀
     float halfBlurRadius = BlurRadius * 0.5;  // Half Res로 변환
-    float searchRadius = max(centerCoc, tileMaxCoc);  // 0~1 정규화
+
+    // Edge bleeding: tileMaxCoc가 있으면 약간 더 넓게 검색 (1.2x)
+    float searchRadius = max(centerCoc, tileMaxCoc * 1.2);  // 0~1 정규화
     float pixelRadius = searchRadius * halfBlurRadius;  // Half Res 픽셀
     pixelRadius = clamp(pixelRadius, 1.0, halfBlurRadius);
 
     // 5. Ring-based 2D Gather
     float2 texelSize = ScreenSize.zw;
     float3 accColor = float3(0, 0, 0);
-    float accCoc = 0.0;  // CoC도 블러 (확산)
     float accWeight = 0.0;
+    float accCoverage = 0.0;    // Alpha용 (areaWeight 제외)
+    float validSampleCount = 0.0;  // 실제 기여한 샘플 수
 
     // Ring 설정
-    const int MAX_RING = 5;  // Ring 0(중심) + Ring 1~5 = 121 샘플
+    const int MAX_RING = 7;  // Ring 0(중심) + Ring 1~5 = 121 샘플
 
     // Ring 0: 중심 (1 샘플)
     // Area-based weight: 1 / (π × r²)
@@ -95,8 +104,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
             float centerArea = PI * centerRadiusPx * centerRadiusPx;
             float weight = 1.0 / max(centerArea, minArea);
             accColor += centerColor * weight;
-            accCoc += centerCoc * weight;
             accWeight += weight;
+            accCoverage += 1.0;  // 중심 샘플은 coverage = 1
+            validSampleCount += 1.0;
         }
     }
 
@@ -125,7 +135,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
             float sampleRadiusPx = sampleCoc * halfBlurRadius;
 
             // 샘플의 블러 반경이 현재 거리까지 도달하는 정도
-            float coverage = saturate((sampleRadiusPx - ringRadius + 1.0) / max(sampleRadiusPx, 0.01));
+            // +2.0 soft margin으로 엣지에서 더 부드럽게 전환
+            float coverageRange = max(sampleRadiusPx, 2.0);  // 최소 2픽셀
+            float coverage = saturate((coverageRange - ringRadius + 2.0) / coverageRange);
 
             // 거리 기반 Gaussian 감쇠 (부드러운 보케)
             float sigma = pixelRadius * 0.5;
@@ -144,24 +156,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
             }
 
             // ========== 깊이 비교 (Color Leaking 방지) ==========
-            // CoC 부호로 상대적 깊이 판단 (Near: 음수, Far: 양수)
-            //
-            // Far 패스: 샘플이 나보다 앞(Near)이면 무시 → 후광(Halo) 방지
-            // Near 패스: 샘플이 나보다 뒤(Far)면 무시 → Color Leaking 방지
             float depthWeight = 1.0;
             if (IsFarField == 1)
             {
-                // Far 패스: 샘플이 나보다 앞에 있으면 (더 Near면) 가중치 감소
-                // sampleCocSigned < centerCocSigned → 샘플이 더 Near
+                // Far 패스: 샘플이 나보다 앞에 있으면 가중치 감소
                 float depthDiff = centerCocSigned - sampleCocSigned;
-                depthWeight = saturate(1.0 - depthDiff * 2.0);
+                depthWeight = saturate(1.0 - depthDiff * 0.5);
             }
             else
             {
-                // Near 패스: 샘플이 나보다 뒤에 있으면 (더 Far면) 가중치 감소
-                // sampleCocSigned > centerCocSigned → 샘플이 더 Far
+                // Near 패스: 샘플이 나보다 뒤에 있으면 가중치 감소
                 float depthDiff = sampleCocSigned - centerCocSigned;
-                depthWeight = saturate(1.0 - depthDiff * 2.0);
+                depthWeight = saturate(1.0 - depthDiff * 0.5);
             }
 
             // Area-based weight: 1 / (π × r²)
@@ -173,8 +179,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
             // 가중치 = Coverage * 거리감쇠 * AreaWeight * DepthWeight (물리 기반 + 깊이 비교)
             float weight = coverage * distanceFalloff * areaWeight * depthWeight;
             accColor += sampleColor * weight;
-            accCoc += sampleCoc * weight;  // CoC도 누적
             accWeight += weight;
+
+            // Coverage 누적 (Alpha용 - areaWeight 제외)
+            float coverageWeight = coverage * distanceFalloff * depthWeight;
+            accCoverage += coverageWeight;
+            validSampleCount += 1.0;
         }
     }
 
@@ -186,22 +196,22 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
 
-    // 가중 평균 색상
+    // RGB: 가중 평균 (에너지 보존)
     float3 avgColor = accColor / accWeight;
 
-    // Alpha = 블러 커버리지 (블러가 이 픽셀을 얼마나 덮는지)
-    // blurredCoc는 평균 CoC (0~1), 이를 커버리지로 변환
-    // CoC > 임계값이면 완전히 블러된 것으로 간주
-    float blurredCoc = accCoc / accWeight;
+    // Alpha: Coverage 기반 (실제 기여한 샘플 수로 정규화)
+    // validSampleCount: 레이어 필터를 통과한 실제 샘플 수
+    // accCoverage: coverage * distanceFalloff * depthWeight 누적값
+    float normalizedCoverage = (validSampleCount > 0.0)
+        ? (accCoverage / validSampleCount)
+        : 0.0;
 
-    // 커버리지 기반 alpha: CoC가 작아도 블러 영역이면 alpha = 1
-    // COC_THRESHOLD(0.01) 이상이면 블러 시작, 0.1에서 완전 블러
-    const float BLUR_ALPHA_START = 0.01;
-    const float BLUR_ALPHA_FULL = 0.15;
-    float alpha = saturate((blurredCoc - BLUR_ALPHA_START) / (BLUR_ALPHA_FULL - BLUR_ALPHA_START));
+    // 샘플 밀도 보정: 많은 샘플이 기여할수록 더 불투명
+    float densityFactor = saturate(validSampleCount / 32.0);  // 32개 이상이면 포화
+    float finalAlpha = saturate(normalizedCoverage * densityFactor * 2.0);
 
-    output.Color.rgb = avgColor;
-    output.Color.a = alpha;
+    // Premultiplied Alpha 변환
+    output.Color = float4(avgColor * finalAlpha, finalAlpha);
 
     return output;
 }
