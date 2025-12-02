@@ -61,16 +61,20 @@ void UPrimitiveComponent::DuplicateSubObjects()
 
 void UPrimitiveComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
-	if (!bInIsLoading)
-	{
-		CollisionEnabled_Internal = (int32)CollisionEnabled;
-	}
-
     Super::Serialize(bInIsLoading, InOutHandle);
 
-	if (bInIsLoading)
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadBool(InOutHandle, "bOverrideCollisionSetting", bOverrideCollisionSetting, bOverrideCollisionSetting, false);
+        FJsonSerializer::ReadInt32(InOutHandle, "CollisionEnabled_Internal", CollisionEnabled_Internal, CollisionEnabled_Internal, false);
+        CollisionEnabled = (ECollisionState)CollisionEnabled_Internal;
+    }
+
+	if (!bInIsLoading)
 	{
-		CollisionEnabled = (ECollisionState)CollisionEnabled_Internal;
+        InOutHandle["bOverrideCollisionSetting"] = bOverrideCollisionSetting;
+        CollisionEnabled_Internal = (int32)CollisionEnabled;
+        InOutHandle["CollisionEnabled_Internal"] = CollisionEnabled_Internal;
 	}
 }
 
