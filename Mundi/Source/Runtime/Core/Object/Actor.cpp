@@ -565,20 +565,20 @@ bool AActor::IsOverlappingActor(const AActor* Other) const
     return false;
 }
 
-void AActor::OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp)
+void AActor::OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const FTriggerHit* Trigger)
 {
 	if (OtherComp->GetOwner()->Tag == "player")
 		UE_LOG("On Begin Overlap");
 	
 }
 
-void AActor::OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp)
+void AActor::OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const FTriggerHit* Trigger)
 {
 	if (OtherComp->GetOwner()->Tag == "player")
 		UE_LOG("On End Overlap");
 }
 
-void AActor::OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp)
+void AActor::OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const FContactHit* Trigger)
 {
 	UE_LOG("On Hit");
 } 

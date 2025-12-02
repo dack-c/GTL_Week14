@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <PxPhysicsAPI.h>
 #include "Delegates.h"
 
@@ -6,23 +6,6 @@ struct FHitResult;
 
 using namespace physx;
 using namespace DirectX;
-
-class AActor;
-struct FContactHit
-{
-    AActor* ActorTo = nullptr;
-    AActor* ActorFrom = nullptr;
-    FVector Position;
-    FVector Normal;
-    FVector ImpulseOnActorTo; // ImpulseOnActorFrom은 - 해주면 됨
-};
-
-struct FTriggerHit
-{
-    AActor* TriggerActor = nullptr; // Trigger 역할 하는 액터
-    AActor* OtherActor = nullptr;   // Trigger에 들어온 / 나간 액터
-    bool bIsEnter = false;
-};
 
 // 물리 데이터 접근 시 Thread-Safe Lock 매크로
 #define SCOPED_PHYSX_READ_LOCK(scene) PxSceneReadLock scopedReadLock(scene)
@@ -53,9 +36,6 @@ public:
 
         //void UpdateFromPhysics();
     };
-
-    DECLARE_DELEGATE(OnContactDelegate, FContactHit);
-    DECLARE_DELEGATE(OnTriggerDelegate, FTriggerHit);
 
 public:
     FPhysScene();

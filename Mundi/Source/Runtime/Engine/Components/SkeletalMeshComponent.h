@@ -307,11 +307,4 @@ private:
 
 public:
     void SetPhysicsAnimationState(EPhysicsAnimationState NewState, float InBlendTime = 0.2f) { PhysicsState = NewState; BlendTime = InBlendTime; };
-
-    // Event Call Back Test
-    void OnRegiDebug();
-    void OnUnregiDebug();
-    void GameLogicTest(FContactHit ContactHit);
-
-    FDelegateHandle TestContactHit{};
 };

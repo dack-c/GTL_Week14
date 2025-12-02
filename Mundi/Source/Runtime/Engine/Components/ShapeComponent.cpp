@@ -113,19 +113,21 @@ void UShapeComponent::TickComponent(float DeltaSeconds)
             }
 
             // 양방향 호출 
-            Owner->OnComponentBeginOverlap.Broadcast(this, Comp);
+            const AActor::FTriggerHit Trigger = AActor::FTriggerHit();
+            Owner->OnComponentBeginOverlap.Broadcast(this, Comp, &Trigger);
             if (AActor* OtherOwner = Comp->GetOwner())
             {
-                OtherOwner->OnComponentBeginOverlap.Broadcast(Comp, this);
+                OtherOwner->OnComponentBeginOverlap.Broadcast(Comp, this, &Trigger);
             }
 
             // Hit호출 
-            Owner->OnComponentHit.Broadcast(this, Comp);
+            const AActor::FContactHit Contact = AActor::FContactHit();
+            Owner->OnComponentHit.Broadcast(this, Comp, &Contact);
             if (bBlockComponent)
             {
                 if (AActor* OtherOwner = Comp->GetOwner())
                 {
-                    OtherOwner->OnComponentHit.Broadcast(Comp, this);
+                    OtherOwner->OnComponentHit.Broadcast(Comp, this, &Contact);
                 }
             }
         }
@@ -151,10 +153,11 @@ void UShapeComponent::TickComponent(float DeltaSeconds)
             }
 
             // 양방향 호출
-            Owner->OnComponentEndOverlap.Broadcast(this, Comp);
+            const AActor::FTriggerHit Trigger = AActor::FTriggerHit();
+            Owner->OnComponentEndOverlap.Broadcast(this, Comp, &Trigger);
             if (AActor* OtherOwner = Comp->GetOwner())
             {
-                OtherOwner->OnComponentEndOverlap.Broadcast(Comp, this);
+                OtherOwner->OnComponentEndOverlap.Broadcast(Comp, this, &Trigger);
             }
         }
     }

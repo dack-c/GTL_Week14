@@ -20,10 +20,32 @@ class AActor : public UObject
 {
 public:
     GENERATED_REFLECTION_BODY()
+    
+    class FContactHit
+    {
+    public:
+        AActor* ActorTo = nullptr;
+        AActor* ActorFrom = nullptr;
+        FVector Position;
+        FVector Normal;
+        FVector ImpulseOnActorTo; // ImpulseOnActorFrom은 - 해주면 됨
 
-    DECLARE_DELEGATE(OnComponentBeginOverlap, UPrimitiveComponent*, UPrimitiveComponent*);
-    DECLARE_DELEGATE(OnComponentEndOverlap, UPrimitiveComponent*, UPrimitiveComponent*);
-    DECLARE_DELEGATE(OnComponentHit, UPrimitiveComponent*, UPrimitiveComponent*);
+        FContactHit() {}
+    };
+
+    class FTriggerHit
+    {
+    public:
+        AActor* TriggerActor = nullptr; // Trigger 역할 하는 액터
+        AActor* OtherActor = nullptr;   // Trigger에 들어온 / 나간 액터
+        bool bIsEnter = false;
+
+        FTriggerHit() {}
+    };
+
+    DECLARE_DELEGATE(OnComponentBeginOverlap, UPrimitiveComponent*, UPrimitiveComponent*, const FTriggerHit*);
+    DECLARE_DELEGATE(OnComponentEndOverlap, UPrimitiveComponent*, UPrimitiveComponent*, const FTriggerHit*);
+    DECLARE_DELEGATE(OnComponentHit, UPrimitiveComponent*, UPrimitiveComponent*, const FContactHit*);
 
     AActor(); 
 
@@ -147,9 +169,9 @@ public:
     bool CanEverTick() const { return bCanEverTick; }
     
     // ───── 충돌 관련 ─────────────────────────  
-    void OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
-    void OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
-    void OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
+    void OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const FTriggerHit* Trigger);
+    void OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const FTriggerHit* Trigger);
+    void OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const FContactHit* Contact);
      
     bool IsOverlappingActor(const AActor* Other) const;
 

@@ -101,7 +101,6 @@ void USkeletalMeshComponent::BeginPlay()
 	if (World && World->GetPhysScene() && PhysicsAsset)
 	{
 		InstantiatePhysicsAssetBodies(*World->GetPhysScene());
-		OnRegiDebug();
 	}
 }
 
@@ -226,7 +225,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
 void USkeletalMeshComponent::EndPlay()
 {
-    OnUnregiDebug();
     if (UWorld* World = GetWorld())
     {
         if (FPhysScene* PhysScene = World->GetPhysScene())
@@ -730,24 +728,6 @@ int32 USkeletalMeshComponent::GetBoneIndexByName(const FName& BoneName) const
     
     const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
     return Skeleton.FindBoneIndex(BoneName);
-}
-
-void USkeletalMeshComponent::OnRegiDebug()
-{
-    TestContactHit = GetWorld()->GetPhysScene()->OnContactDelegate.AddDynamic(this, &USkeletalMeshComponent::GameLogicTest);
-}
-
-void USkeletalMeshComponent::OnUnregiDebug()
-{
-    if (TestContactHit && GetWorld() && GetWorld()->GetPhysScene())
-    {
-        GetWorld()->GetPhysScene()->OnContactDelegate.Remove(TestContactHit);
-    }
-}
-
-void USkeletalMeshComponent::GameLogicTest(FContactHit ContactHit)
-{
-    // PhysicsState = EPhysicsAnimationState::PhysicsDriven;
 }
 
 // ============================================================
