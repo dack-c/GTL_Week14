@@ -108,6 +108,16 @@ void UBodySetup::Serialize(const bool bInIsLoading, JSON& InOutHandle)
     }
 }
 
+uint32 UBodySetup::GetTotalShapeCount() const
+{
+	uint32 Total = 0;
+	Total += static_cast<uint32>(AggGeom.SphereElements.size());
+	Total += static_cast<uint32>(AggGeom.BoxElements.size());
+	Total += static_cast<uint32>(AggGeom.CapsuleElements.size());
+	Total += static_cast<uint32>(AggGeom.ConvexElements.size());
+	return Total;
+}
+
 void FKAggregateGeom::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 {
     auto SerializeArray = [&](const char* Key, auto& Array, auto&& ToJson, auto&& FromJson)

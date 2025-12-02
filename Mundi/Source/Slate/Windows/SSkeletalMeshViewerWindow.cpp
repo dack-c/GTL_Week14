@@ -131,10 +131,36 @@ SSkeletalMeshViewerWindow::SSkeletalMeshViewerWindow()
     IconRecordActive = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsRecord.png");
     IconLoop = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsLooping.png");
     IconNoLoop = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/PlayControlsNoLooping.png");
+
+    // Initialize physics constraint graph editor
+    ed::Config PhysicsGraphConfig;
+    PhysicsGraphContext = ed::CreateEditor(&PhysicsGraphConfig);
+
+    PhysicsNodeHeaderBg = UResourceManager::GetInstance().Load<UTexture>("Data/Icon/BlueprintBackground.png");
+    int32 TexWidth = PhysicsNodeHeaderBg ? PhysicsNodeHeaderBg->GetWidth() : 0;
+    int32 TexHeight = PhysicsNodeHeaderBg ? PhysicsNodeHeaderBg->GetHeight() : 0;
+    PhysicsGraphBuilder = new util::BlueprintNodeBuilder(
+        reinterpret_cast<ImTextureID>(PhysicsNodeHeaderBg ? PhysicsNodeHeaderBg->GetShaderResourceView() : nullptr),
+        TexWidth,
+        TexHeight
+    );
 }
 
 SSkeletalMeshViewerWindow::~SSkeletalMeshViewerWindow()
 {
+    // Clean up physics graph resources
+    if (PhysicsGraphBuilder)
+    {
+        delete PhysicsGraphBuilder;
+        PhysicsGraphBuilder = nullptr;
+    }
+
+    if (PhysicsGraphContext)
+    {
+        ed::DestroyEditor(PhysicsGraphContext);
+        PhysicsGraphContext = nullptr;
+    }
+
     // 닫을 때, Notifies를 저장 
     SaveAllNotifiesOnClose();
 
@@ -328,7 +354,7 @@ void SSkeletalMeshViewerWindow::OnRender()
                 auto widePath = FPlatformProcess::OpenLoadFileDialog(UTF8ToWide(GDataDir), L"fbx", L"FBX Files");
                 if (!widePath.empty())
                 {
-                    std::string s = widePath.string();
+                    FString s = WideToUTF8(widePath.wstring());
                     strncpy_s(ActiveState->MeshPathBuffer, s.c_str(), sizeof(ActiveState->MeshPathBuffer) - 1);
                 }
             }
@@ -457,8 +483,16 @@ void SSkeletalMeshViewerWindow::OnRender()
                 }
                 else
                 {
+                    // Calculate height for bone tree view - reserve space for physics graph below
+                    float availableHeight = ImGui::GetContentRegionAvail().y;
+                    float reservedForGraph = 250.0f; // Reserve at least 250px for physics graph
+                    float boneTreeHeight = availableHeight - reservedForGraph;
+
+                    // Ensure minimum height for bone tree
+                    boneTreeHeight = std::max(boneTreeHeight, 200.0f);
+
                     // Scrollable tree view
-                    ImGui::BeginChild("BoneTreeView", ImVec2(0, 0), true);
+                    ImGui::BeginChild("BoneTreeView", ImVec2(0, boneTreeHeight), true);
                     const TArray<FBone>& Bones = Skeleton->Bones;
                     TArray<TArray<int32>> Children;
                     Children.resize(Bones.size());
@@ -581,6 +615,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                             // Clear constraint selection when body is selected
                             ActiveState->SelectedConstraintIndex = -1;
 
+							ActiveState->SelectedBodyIndexForGraph = -1;
+
                             if (ActiveState->SelectedBoneIndex != Index)
                             {
                                 ActiveState->SelectedBoneIndex = Index;
@@ -624,6 +660,8 @@ void SSkeletalMeshViewerWindow::OnRender()
                                     ActiveState->SelectedBodySetup = MatchedBody;
 
                                     ActiveState->SelectedBodyIndex = ActiveState->CurrentPhysicsAsset->FindBodyIndex(FName(Label));
+                                    
+                                    ActiveState->SelectedBodyIndexForGraph = ActiveState->CurrentPhysicsAsset->FindBodyIndex(FName(Label));
 
 
                                     // Clear constraint selection when body is selected
@@ -787,6 +825,8 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                                         ActiveState->SelectedBoneIndex = -1; // Clear bone selection when constraint is selected
 
+										ActiveState->SelectedBodyIndexForGraph = -1;
+
                                         // Clear body selection when constraint is selected
                                         ActiveState->SelectedBodySetup = nullptr;
                                         ActiveState->SelectedBodyIndex = -1;
@@ -893,6 +933,25 @@ void SSkeletalMeshViewerWindow::OnRender()
 
                     ImGui::EndChild();
                 }
+            }
+
+            ImGui::Spacing();
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.35f, 0.45f, 0.60f, 0.7f));
+            ImGui::Separator();
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+
+            // Physics Constraint Graph Section
+            if (ActiveState->CurrentPhysicsAsset && ActiveState->CurrentPhysicsAsset->BodySetups.Num() > 0)
+            {
+                ImGui::Text("Physics Constraint Graph:");
+                ImGui::Spacing();
+
+                // Graph visualization area - use remaining space instead of fixed height
+                float remainingHeight = ImGui::GetContentRegionAvail().y;
+                ImGui::BeginChild("PhysicsGraphView", ImVec2(0, remainingHeight), true);
+                DrawPhysicsConstraintGraph(ActiveState);
+                ImGui::EndChild();
             }
         }
         else
@@ -1841,7 +1900,7 @@ bool SSkeletalMeshViewerWindow::SavePhysicsAsset(ViewerState* State)
     if (TargetPath.empty())
     {
         FWideString Initial = UTF8ToWide(GDataDir) + L"/NewPhysicsAsset.phys";
-        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"physics", L"Physics Asset (*.phys)");
+        std::filesystem::path Selected = FPlatformProcess::OpenSaveFileDialog(Initial, L"phys", L"Physics Asset (*.phys)");
         if (Selected.empty())
         {
             return false;
@@ -2757,7 +2816,8 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
 				int32 TotalBodies = 0; // 전체 바디 수
 				int32 MatchedBodies = 0; // 스켈레탈 메시의 본과 매칭되는 바디 수
 
-                for (UBodySetup* Body : PhysAsset->BodySetups)
+                const TArray<UBodySetup*> LocalBodySetups = PhysAsset->BodySetups;
+                for (UBodySetup* Body : LocalBodySetups)
                 {
                     if (!Body) continue;
                     TotalBodies++;
@@ -2979,14 +3039,47 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
 				ImGui::SameLine(0.0f, 20.0f);
                 if(ImGui::Button("Apply to Current Mesh"))
                 {
-                    if (State->CurrentMesh)
+                    if (State->CurrentMesh && State->CurrentPhysicsAsset)
                     {
+                        // 1. 현재 Mesh에 적용
                         State->CurrentMesh->PhysicsAsset = State->CurrentPhysicsAsset;
                         UE_LOG("Applied PhysicsAsset to current SkeletalMesh");
+
+                        // 2. 메타파일에 저장
+                        FString meshPath = State->CurrentMesh->GetPathFileName();
+                        if (!meshPath.empty())
+                        {
+                            FString metaPath = meshPath + ".meta.json";
+                            JSON metaJson = JSON::Make(JSON::Class::Object);
+                            metaJson["DefaultPhysicsAsset"] = State->CurrentPhysicsAsset->GetFilePath().c_str();
+
+                            std::ofstream outFile(metaPath, std::ios::out);
+                            if (outFile.is_open())
+                            {
+                                outFile << metaJson.dump(4); // Pretty print
+                                outFile.close();
+                                UE_LOG("Saved SkeletalMesh metadata to: %s", metaPath.c_str());
+                            }
+                            else
+                            {
+                                UE_LOG("Failed to open metadata file for writing: %s", metaPath.c_str());
+                            }
+                        }
+                        else
+                        {
+                            UE_LOG("Cannot save metadata: SkeletalMesh path is empty.");
+                        }
                     }
                     else
                     {
-                        UE_LOG("No SkeletalMesh loaded to apply PhysicsAsset to");
+                        if (!State->CurrentMesh)
+                        {
+                            UE_LOG("No SkeletalMesh loaded to apply PhysicsAsset to");
+                        }
+                        if (!State->CurrentPhysicsAsset)
+                        {
+                            UE_LOG("No PhysicsAsset selected to apply");
+                        }
                     }
                 }
 
@@ -3049,4 +3142,314 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
     }
 }
 
+void SSkeletalMeshViewerWindow::DrawPhysicsConstraintGraph(ViewerState* State)
+{
+    if (!State || !State->CurrentPhysicsAsset || !PhysicsGraphContext || !PhysicsGraphBuilder || State->SelectedBodyIndexForGraph == -1)
+    {
+        return;
+    }
 
+    // SelectedBodyIndexForGraph가 변경되었는지 추적
+    static int32 PrevSelectedBodyIndexForGraph = -1;
+    if (State->SelectedBodyIndexForGraph != PrevSelectedBodyIndexForGraph)
+    {
+        // 그래프 컨텍스트 재생성
+        if (PhysicsGraphContext)
+        {
+            ed::DestroyEditor(PhysicsGraphContext);
+        }
+
+        ed::Config PhysicsGraphConfig;
+        PhysicsGraphContext = ed::CreateEditor(&PhysicsGraphConfig);
+
+        PrevSelectedBodyIndexForGraph = State->SelectedBodyIndexForGraph;
+    }
+
+    UPhysicsAsset* PhysAsset = State->CurrentPhysicsAsset;
+
+    ed::SetCurrentEditor(PhysicsGraphContext);
+
+    ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+    ed::Begin("PhysicsConstraintGraph", availableRegion);
+
+    TArray<int32> ConnectedBodyIndices;
+    TArray<int32> RelevantConstraintIndices;
+
+    if (State->SelectedBodyIndexForGraph >= 0 && State->SelectedBodyIndexForGraph < PhysAsset->BodySetups.Num())
+    {
+        UBodySetup* SelectedBody = PhysAsset->BodySetups[State->SelectedBodyIndexForGraph];
+        FName SelectedBodyName = SelectedBody->BoneName;
+
+        // Find all constraints connected to selected body
+        for (int32 ConstraintIdx = 0; ConstraintIdx < PhysAsset->Constraints.Num(); ++ConstraintIdx)
+        {
+            const FPhysicsConstraintSetup& Constraint = PhysAsset->Constraints[ConstraintIdx];
+
+            if (Constraint.BodyNameA == SelectedBodyName || Constraint.BodyNameB == SelectedBodyName)
+            {
+                RelevantConstraintIndices.Add(ConstraintIdx);
+
+                // Find the other body in this constraint
+                FName OtherBodyName = (Constraint.BodyNameA == SelectedBodyName) ? Constraint.BodyNameB : Constraint.BodyNameA;
+                int32 OtherBodyIndex = PhysAsset->FindBodyIndex(OtherBodyName);
+                if (OtherBodyIndex != INDEX_NONE)
+                {
+                    ConnectedBodyIndices.Add(OtherBodyIndex);
+                }
+            }
+        }
+    }
+
+    // === Render Body Nodes ===
+
+    // Render selected body node (center)
+    if (State->SelectedBodyIndexForGraph >= 0 && State->SelectedBodyIndexForGraph < PhysAsset->BodySetups.Num())
+    {
+        UBodySetup* SelectedBody = PhysAsset->BodySetups[State->SelectedBodyIndexForGraph];
+        int32 NodeID = GetBodyNodeID(State->SelectedBodyIndexForGraph);
+
+        ed::SetNodePosition(ed::NodeId(NodeID), ImVec2(100, 150));
+
+        PhysicsGraphBuilder->Begin(ed::NodeId(NodeID));
+
+        // Header with body color
+        bool bIsSelected = (State->SelectedBodyIndex == State->SelectedBodyIndexForGraph);
+        PhysicsGraphBuilder->Header(bIsSelected ? ImColor(255, 200, 100) : ImColor(150, 180, 255));
+        ImGui::TextUnformatted(SelectedBody->BoneName.ToString().c_str());
+        ImGui::Dummy(ImVec2(0, 28));
+        PhysicsGraphBuilder->EndHeader();
+
+        PhysicsGraphBuilder->Output(ed::PinId(GetBodyOutputPinID(State->SelectedBodyIndexForGraph)));
+        PhysicsGraphBuilder->EndOutput();
+
+        PhysicsGraphBuilder->Input(ed::PinId(GetBodyInputPinID(State->SelectedBodyIndexForGraph)));
+        PhysicsGraphBuilder->EndInput();
+
+        // Middle section with constraint info
+        PhysicsGraphBuilder->Middle();
+        FString Str = std::to_string(SelectedBody->GetTotalShapeCount()) + " shape(s)";
+        ImGui::TextUnformatted(Str.c_str());
+
+        PhysicsGraphBuilder->End();
+    }
+
+    // Render connected body nodes (arranged around selected body)
+    int32 ConnectedIdx = 0;
+    float FixedX = 100 + 500.0f; // Fixed x position (center x + radius)
+	float StartY = 150.0f - ((ConnectedBodyIndices.size() - 1) * 50.0f); // Start y position
+    float YSpacing = 100.0f; // Vertical spacing between nodes
+
+    for (int32 BodyIndex : ConnectedBodyIndices)
+    {
+        if (BodyIndex < 0 || BodyIndex >= PhysAsset->BodySetups.Num())
+            continue;
+
+        UBodySetup* Body = PhysAsset->BodySetups[BodyIndex];
+        int32 NodeID = GetBodyNodeID(BodyIndex);
+
+        // Fixed x position, increasing y position for each connected body
+        ImVec2 Pos(FixedX, StartY + (ConnectedIdx * YSpacing));
+
+        ed::SetNodePosition(ed::NodeId(NodeID), Pos);
+
+        PhysicsGraphBuilder->Begin(ed::NodeId(NodeID));
+
+		bool bIsSelected = (State->SelectedBodyIndex == BodyIndex);
+
+        // Header with different color for connected bodies
+        PhysicsGraphBuilder->Header(bIsSelected ? ImColor(255, 200, 100) : ImColor(150, 180, 255));
+        ImGui::TextUnformatted(Body->BoneName.ToString().c_str());
+        ImGui::Dummy(ImVec2(0, 28));
+        PhysicsGraphBuilder->EndHeader();
+
+        // Middle section with constraint info
+        PhysicsGraphBuilder->Middle();
+        FString Str = std::to_string(Body->GetTotalShapeCount()) + " shape(s)";
+        ImGui::TextUnformatted(Str.c_str());
+
+        PhysicsGraphBuilder->Input(ed::PinId(GetBodyInputPinID(BodyIndex)));
+        PhysicsGraphBuilder->EndInput();
+
+        PhysicsGraphBuilder->End();
+
+        ConnectedIdx++;
+    }
+    // === Render Constraint Nodes (between bodies) ===
+    for (int32 ConstraintIdx : RelevantConstraintIndices)
+    {
+        if (ConstraintIdx < 0 || ConstraintIdx >= PhysAsset->Constraints.Num())
+            continue;
+
+        const FPhysicsConstraintSetup& Constraint = PhysAsset->Constraints[ConstraintIdx];
+        int32 NodeID = GetConstraintNodeID(ConstraintIdx);
+
+        int32 BodyAIndex = PhysAsset->FindBodyIndex(Constraint.BodyNameA);
+        int32 BodyBIndex = PhysAsset->FindBodyIndex(Constraint.BodyNameB);
+
+        if (BodyAIndex == INDEX_NONE || BodyBIndex == INDEX_NONE)
+            continue;
+
+        int32 InputBodyIndex = State->SelectedBodyIndexForGraph == BodyAIndex ? BodyAIndex : BodyBIndex;
+        int32 OutputBodyIndex = (InputBodyIndex == BodyAIndex) ? BodyBIndex : BodyAIndex;
+
+        // Position constraint node between the two bodies
+        ImVec2 PosA = ed::GetNodePosition(ed::NodeId(GetBodyNodeID(InputBodyIndex)));
+        ImVec2 PosB = ed::GetNodePosition(ed::NodeId(GetBodyNodeID(OutputBodyIndex)));
+        ImVec2 MidPos((PosA.x + PosB.x) * 0.5f, PosB.y);
+
+        ed::SetNodePosition(ed::NodeId(NodeID), MidPos);
+
+        PhysicsGraphBuilder->Begin(ed::NodeId(NodeID));
+
+        // Header with constraint color
+        bool bIsSelected = (State->SelectedConstraintIndex == ConstraintIdx);
+        PhysicsGraphBuilder->Header(bIsSelected ? ImColor(255, 150, 150) : ImColor(100, 255, 200));
+        ImGui::TextUnformatted("Constraint");
+        ImGui::Dummy(ImVec2(0, 28));
+        PhysicsGraphBuilder->EndHeader();
+
+        // Output pin to child body
+        PhysicsGraphBuilder->Output(ed::PinId(GetConstraintOutputPinID(ConstraintIdx)));
+        PhysicsGraphBuilder->EndOutput();
+
+        // Input pin from parent body
+        PhysicsGraphBuilder->Input(ed::PinId(GetConstraintInputPinID(ConstraintIdx)));
+        PhysicsGraphBuilder->EndInput();
+
+        // Middle section with constraint info
+        PhysicsGraphBuilder->Middle();
+		FString Str = Constraint.BodyNameA.ToString() + " -> " + Constraint.BodyNameB.ToString();
+		ImGui::TextUnformatted(Str.c_str());
+
+        PhysicsGraphBuilder->End();
+    }
+
+    // === Render Links between Bodies and Constraints ===
+    for (int32 ConstraintIdx : RelevantConstraintIndices)
+    {
+        if (ConstraintIdx < 0 || ConstraintIdx >= PhysAsset->Constraints.Num())
+            continue;
+
+        const FPhysicsConstraintSetup& Constraint = PhysAsset->Constraints[ConstraintIdx];
+
+        int32 BodyAIndex = PhysAsset->FindBodyIndex(Constraint.BodyNameA);
+        int32 BodyBIndex = PhysAsset->FindBodyIndex(Constraint.BodyNameB);
+
+        if (BodyAIndex == INDEX_NONE || BodyBIndex == INDEX_NONE)
+            continue;
+
+        int32 FromBodyIndex = State->SelectedBodyIndexForGraph == BodyAIndex ? BodyAIndex : BodyBIndex;
+        int32 ToBodyIndex = (FromBodyIndex == BodyAIndex) ? BodyBIndex : BodyAIndex;
+
+        // Link from parent body to constraint input
+        uint64 LinkID_AtoConstraint = (1ULL << 56) | (uint64(ConstraintIdx) << 32) | uint64(FromBodyIndex);
+        ed::Link(ed::LinkId(LinkID_AtoConstraint),
+            ed::PinId(GetBodyOutputPinID(FromBodyIndex)),
+            ed::PinId(GetConstraintInputPinID(ConstraintIdx)),
+            ImColor(200, 200, 200), 2.0f);
+
+        // Link from constraint output to child body
+        uint64 LinkID_ConstraintToB = (2ULL << 56) | (uint64(ConstraintIdx) << 32) | uint64(ToBodyIndex);
+        ed::Link(ed::LinkId(LinkID_ConstraintToB),
+            ed::PinId(GetConstraintOutputPinID(ConstraintIdx)),
+            ed::PinId(GetBodyInputPinID(ToBodyIndex)),
+            ImColor(200, 200, 200), 2.0f);
+    }
+
+    // Handle node selection
+    if (ed::BeginCreate())
+    {
+
+    }
+    // Disable link creation in this graph
+    ed::EndCreate();
+
+    // Handle node selection - 개선된 버전
+    ed::NodeId ClickedNodeId = 0;
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    {
+        ClickedNodeId = ed::GetHoveredNode();
+    }
+
+    if (ClickedNodeId)
+    {
+        int32 NodeIDValue = (int32)(uintptr_t)ClickedNodeId.Get();
+
+        // Check if it's a body node (1000000 ~ 1999999)
+        if (NodeIDValue >= 1000000 && NodeIDValue < 2000000)
+        {
+            int32 BodyIndex = NodeIDValue - 1000000;
+            UE_LOG("Double-clicked Body node index: %d", BodyIndex);
+
+            if (BodyIndex >= 0 && BodyIndex < PhysAsset->BodySetups.Num())
+            {
+                State->SelectedBodySetup = PhysAsset->BodySetups[BodyIndex];
+                State->SelectedBodyIndex = BodyIndex;
+                State->SelectedConstraintIndex = -1;
+
+                // Also select the corresponding bone
+                if (State->CurrentMesh)
+                {
+                    const FSkeleton* Skeleton = State->CurrentMesh->GetSkeleton();
+                    if (Skeleton)
+                    {
+                        int32 BoneIndex = Skeleton->FindBoneIndex(PhysAsset->BodySetups[BodyIndex]->BoneName);
+                        if (BoneIndex != INDEX_NONE)
+                        {
+                            State->SelectedBoneIndex = BoneIndex;
+                            State->bBoneLinesDirty = true;
+                            ExpandToSelectedBone(State, BoneIndex);
+
+                            if (State->PreviewActor && State->World)
+                            {
+                                State->PreviewActor->RepositionAnchorToBone(BoneIndex);
+                                if (USceneComponent* Anchor = State->PreviewActor->GetBoneGizmoAnchor())
+                                {
+                                    State->World->GetSelectionManager()->SelectActor(State->PreviewActor);
+                                    State->World->GetSelectionManager()->SelectComponent(Anchor);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 이 경우에는 아래 처리를 안하면, 호버링에 다음과 같은 버그가 생김: 아래 조건에 해당하는 노드 클릭 후, 마지막 constraint 노드에 호버링하면, 이 노드가 하이라이트 되버림
+                if (State->SelectedBodyIndex == State->SelectedBodyIndexForGraph)
+                {
+                    // Node Editor 종료
+                    ed::End();
+                    ed::SetCurrentEditor(nullptr);
+
+                    // 컨텍스트 재생성
+                    if (PhysicsGraphContext)
+                    {
+                        ed::DestroyEditor(PhysicsGraphContext);
+                    }
+
+                    ed::Config PhysicsGraphConfig;
+                    PhysicsGraphContext = ed::CreateEditor(&PhysicsGraphConfig);
+
+                    // 즉시 반환 (다음 프레임에서 깨끗한 상태로 다시 그림)
+                    return;
+                }
+            }
+        }
+        // Check if it's a constraint node (3000000 ~ 3999999)
+        else if (NodeIDValue >= 3000000 && NodeIDValue < 4000000)
+        {
+            int32 ConstraintIndex = NodeIDValue - 3000000;
+            UE_LOG("Double-clicked ConstraintIndex: %d", ConstraintIndex);
+
+            if (ConstraintIndex >= 0 && ConstraintIndex < PhysAsset->Constraints.Num())
+            {
+                State->SelectedConstraintIndex = ConstraintIndex;
+                State->SelectedBodySetup = nullptr;
+                State->SelectedBodyIndex = -1;
+                State->SelectedBoneIndex = -1;
+            }
+        }
+    }
+
+    ed::End();
+    ed::SetCurrentEditor(nullptr);
+}
