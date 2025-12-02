@@ -1,6 +1,9 @@
 ﻿#include "pch.h"
 #include "PhysScene.h"
 #include "SimulationEventCallback.h"
+#include "ObjectIterator.h"
+#include "StaticMesh.h"
+#include "BodySetup.h"
 #include <Windows.h>
 
 /**
@@ -241,6 +244,18 @@ void FPhysScene::Shutdown()
     {
         DefaultMaterial->release();
         DefaultMaterial = nullptr;
+    }
+
+    for (TObjectIterator<UStaticMesh> It; It; ++It)
+    {
+        UStaticMesh* Mesh = *It;
+        if (Mesh && Mesh->BodySetup)
+        {
+            for (FKConvexElem& Convex : Mesh->BodySetup->AggGeom.ConvexElements)
+            {
+                Convex.ConvexMesh = nullptr;
+            }
+        }
     }
 
     if (Physics)
