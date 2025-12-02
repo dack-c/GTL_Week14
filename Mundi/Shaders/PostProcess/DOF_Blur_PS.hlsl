@@ -64,8 +64,15 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // CoC는 0~1 정규화, BlurRadius는 Full Res 픽셀
     float halfBlurRadius = BlurRadius * 0.5;  // Half Res로 변환
 
+    // BlurRadius가 0이면 블러 없음
+    if (halfBlurRadius < 0.5)
+    {
+        output.Color = float4(centerColor, centerCoc);
+        return output;
+    }
+
     // Edge bleeding
-    float searchRadius = max(centerCoc, tileMaxCoc); 
+    float searchRadius = max(centerCoc, tileMaxCoc);
     float pixelRadius = searchRadius * halfBlurRadius;  // Half Res 픽셀
     pixelRadius = clamp(pixelRadius, 1.0, halfBlurRadius);
 
@@ -121,10 +128,29 @@ PS_OUTPUT mainPS(PS_INPUT input)
                 continue;
             }
 
-            // 단순 CoC 기반 가중치
-            float weight = saturate(sampleCoc);
-            accColor += sampleColor * weight;
-            accWeight += weight;
+            // 깊이 체크: 샘플이 나한테 번질 수 있는 방향인지
+            // Near: 샘플이 나보다 앞에 있어야 (CoC 더 음수)
+            // Far: 샘플이 나보다 뒤에 있어야 (CoC 더 양수)
+            bool canBleedToMe = (IsFarField == 0)
+                ? (sampleCocSigned <= centerCocSigned)  // Near: 더 음수 = 더 앞
+                : (sampleCocSigned >= centerCocSigned); // Far: 더 양수 = 더 뒤
+
+            if (!canBleedToMe)
+            {
+                continue;
+            }
+
+            // Scatter-as-Gather: 샘플의 블러가 현재 거리까지 도달하는지 체크
+            float sampleRadiusPx = sampleCoc * halfBlurRadius;
+            float coverage = saturate((sampleRadiusPx - ringRadius + 1.0) / max(sampleRadiusPx, 1.0));
+
+            if (coverage < 0.01)
+            {
+                continue;  // 도달 못하면 스킵
+            }
+
+            accColor += sampleColor * coverage;
+            accWeight += coverage;
             validSampleCount += 1.0;
         }
     }
