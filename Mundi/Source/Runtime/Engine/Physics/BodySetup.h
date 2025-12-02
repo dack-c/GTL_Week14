@@ -52,4 +52,9 @@ public:
 
     void BuildCachedData();
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
+    // ===============================================
+    // 유틸리티
+    // ===============================================
+	uint32 GetTotalShapeCount() const;
 };
