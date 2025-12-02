@@ -63,44 +63,61 @@ USkeletalMeshComponent::~USkeletalMeshComponent()
 
 void USkeletalMeshComponent::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
 
-    // Team2AnimInstance를 사용한 상태머신 기반 애니메이션 시스템
-    // AnimationBlueprint 모드로 전환
-    SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	if (!PhysicsAssetOverridePath.empty())
+	{
+		PhysicsAssetOverride = UResourceManager::GetInstance().Load<UPhysicsAsset>(PhysicsAssetOverridePath);
+	}
 
-    // Team2AnimInstance 생성 및 설정
-    // UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
-    // SetAnimInstance(Team2AnimInst);
+	UPhysicsAsset* AssetToUse = nullptr;
+	if (PhysicsAssetOverride)
+	{
+		AssetToUse = PhysicsAssetOverride;
+	}
+	else if (SkeletalMesh)
+	{
+		AssetToUse = SkeletalMesh->PhysicsAsset;
+	}
 
-    AnimInstance = NewObject<UAnimInstance>();
-    SetAnimInstance(AnimInstance);
+	PhysicsAsset = AssetToUse;
 
-    UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
-    AnimInstance->SetStateMachine(StateMachine);
+	// Team2AnimInstance를 사용한 상태머신 기반 애니메이션 시스템
+	// AnimationBlueprint 모드로 전환
+	SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
-    if (AnimGraph)
-    {
-        FAnimBlueprintCompiler::Compile(
-            AnimGraph,
-            AnimInstance,
-            StateMachine
-        );
-    }
+	// Team2AnimInstance 생성 및 설정
+	// UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
+	// SetAnimInstance(Team2AnimInst);
 
-    UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
-    UE_LOG("Use SetMovementSpeed() to control animation transitions");
-    UE_LOG("  Speed < 0.1: Idle animation");
-    UE_LOG("  Speed 0.1 ~ 5.0: Walk animation");
-    UE_LOG("  Speed >= 5.0: Run animation");
+	AnimInstance = NewObject<UAnimInstance>();
+	SetAnimInstance(AnimInstance);
 
-    // PhysicsAsset이 있으면 물리 바디 생성
-    UWorld* World = GetWorld();
-    if (World && World->GetPhysScene() && PhysicsAsset)
-    {
-        InstantiatePhysicsAssetBodies(*World->GetPhysScene());
-        OnRegiDebug();
-    }
+	UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
+	AnimInstance->SetStateMachine(StateMachine);
+
+	if (AnimGraph)
+	{
+		FAnimBlueprintCompiler::Compile(
+			AnimGraph,
+			AnimInstance,
+			StateMachine
+		);
+	}
+
+	UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
+	UE_LOG("Use SetMovementSpeed() to control animation transitions");
+	UE_LOG("  Speed < 0.1: Idle animation");
+	UE_LOG("  Speed 0.1 ~ 5.0: Walk animation");
+	UE_LOG("  Speed >= 5.0: Run animation");
+
+	// PhysicsAsset이 있으면 물리 바디 생성
+	UWorld* World = GetWorld();
+	if (World && World->GetPhysScene() && PhysicsAsset)
+	{
+		InstantiatePhysicsAssetBodies(*World->GetPhysScene());
+		OnRegiDebug();
+	}
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
@@ -562,8 +579,10 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
     // 같은 스켈레탈 메쉬의 모든 바디는 같은 OwnerID를 가짐
     uint32 OwnerID = static_cast<uint32>(reinterpret_cast<uintptr_t>(this) & 0xFFFFFFFF);
 
-    // 1) BodySetups -> FBodyInstance 생성
-    for (UBodySetup* Setup : PhysicsAsset->BodySetups)
+	// 비동기 이슈로 인한 스냅샷 복사본으로 순회
+    // - 루프 도중 다른 스레드에서 BodySetups 배열이 수정되어 iterator가 깨지는 걸 방지
+	const TArray<UBodySetup*> LocalBodySetups = PhysicsAsset->BodySetups;
+	for (UBodySetup* Setup : LocalBodySetups)
     {
         if (!Setup)
             continue;
@@ -588,9 +607,9 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
 
         Bodies.Add(BI);
     }
-
-    // 2) Constraints -> FConstraintInstance 생성
-    for (const FPhysicsConstraintSetup& CSetup : PhysicsAsset->Constraints)
+	
+	const TArray<FPhysicsConstraintSetup> LocalConstraints = PhysicsAsset->Constraints;
+	for (const FPhysicsConstraintSetup& CSetup : LocalConstraints)
     {
         // 본 이름을 기반으로 BodyInstance 찾기
         FBodyInstance* BodyA = FindBodyInstanceByName(Bodies, CSetup.BodyNameA);
