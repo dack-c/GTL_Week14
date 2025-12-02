@@ -358,8 +358,8 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 	bool bHit = PhysScene->SweepCapsule(Start, End, Radius, HalfHeight, OutHit, OwnerActor);
 
 	// 디버깅 로그
-	UE_LOG("[CharacterMovement] CheckFloor: Capsule(R=%.2f, H=%.2f), Start=(%.2f, %.2f, %.2f), Hit=%s",
-		Radius, HalfHeight, Start.X, Start.Y, Start.Z, bHit ? "YES" : "NO");
+	/*UE_LOG("[CharacterMovement] CheckFloor: Capsule(R=%.2f, H=%.2f), Start=(%.2f, %.2f, %.2f), Hit=%s",
+		Radius, HalfHeight, Start.X, Start.Y, Start.Z, bHit ? "YES" : "NO");*/
 
 	// 바닥으로 인정하려면 노말이 위를 향해야 함
 	if (bHit && OutHit.ImpactNormal.Z > 0.7f)
