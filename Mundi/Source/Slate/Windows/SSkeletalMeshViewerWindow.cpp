@@ -1305,24 +1305,56 @@ void SSkeletalMeshViewerWindow::OnRender()
                         // Local Frame editing (advanced)
                         if (ImGui::CollapsingHeader("Local Frames (Advanced)"))
                         {
+                            // Joint 축 방향 (LocalFrameB.Rotation = JointFrameRotation)
+                            // LocalFrameA.Rotation = RelativeTransform.Rotation * JointFrameRotation
+                            // 따라서: JointFrameRotation = RelativeTransform.Rotation.Inverse() * LocalFrameA.Rotation
+
+                            // RelativeTransform 계산을 위해 본 정보 가져오기
+                            FQuat RelativeRotation = FQuat::Identity();
+                            if (ActiveState->PreviewActor && ActiveState->PreviewActor->GetSkeletalMeshComponent())
+                            {
+                                const FSkeleton* Skel = ActiveState->CurrentMesh ? ActiveState->CurrentMesh->GetSkeleton() : nullptr;
+                                if (Skel)
+                                {
+                                    int32 ParentBoneIdx = Skel->FindBoneIndex(Constraint.BodyNameA.ToString());
+                                    int32 ChildBoneIdx = Skel->FindBoneIndex(Constraint.BodyNameB.ToString());
+
+                                    if (ParentBoneIdx != INDEX_NONE && ChildBoneIdx != INDEX_NONE)
+                                    {
+                                        FTransform ParentWT = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ParentBoneIdx);
+                                        FTransform ChildWT = ActiveState->PreviewActor->GetSkeletalMeshComponent()->GetBoneWorldTransform(ChildBoneIdx);
+                                        ParentWT.Scale3D = FVector(1, 1, 1);
+                                        ChildWT.Scale3D = FVector(1, 1, 1);
+                                        FTransform RelT = ParentWT.GetRelativeTransform(ChildWT);
+                                        RelativeRotation = RelT.Rotation;
+                                    }
+                                }
+                            }
+
                             ImGui::Text("Local Frame A (Parent):");
-                            ImGui::DragFloat3("Position A", &Constraint.LocalFrameA.Translation.X, 0.1f, -1000.0f, 1000.0f, "%.2f");
-                            
+                            ImGui::DragFloat3("Position A", &Constraint.LocalFrameA.Translation.X, 0.01f, -1000.0f, 1000.0f, "%.3f");
+
                             FVector EulerA = Constraint.LocalFrameA.Rotation.ToEulerZYXDeg();
                             if (ImGui::DragFloat3("Rotation A", &EulerA.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
                             {
-                                Constraint.LocalFrameA.Rotation = FQuat::MakeFromEulerZYX(EulerA);
+                                FQuat NewRotationA = FQuat::MakeFromEulerZYX(EulerA);
+                                Constraint.LocalFrameA.Rotation = NewRotationA;
+
+                                // LocalFrameB도 동기화: JointFrameRotation = RelativeRotation.Inverse() * NewRotationA
+                                FQuat NewJointFrameRotation = RelativeRotation.Inverse() * NewRotationA;
+                                Constraint.LocalFrameB.Rotation = NewJointFrameRotation;
                             }
 
                             ImGui::Spacing();
                             ImGui::Text("Local Frame B (Child):");
-                            ImGui::DragFloat3("Position B", &Constraint.LocalFrameB.Translation.X, 0.1f, -1000.0f, 1000.0f, "%.2f");
-                            
+                            ImGui::DragFloat3("Position B", &Constraint.LocalFrameB.Translation.X, 0.01f, -1000.0f, 1000.0f, "%.3f");
+
+                            // LocalFrameB (JointFrameRotation) 표시 - 읽기 전용으로 변경
                             FVector EulerB = Constraint.LocalFrameB.Rotation.ToEulerZYXDeg();
-                            if (ImGui::DragFloat3("Rotation B", &EulerB.X, 0.5f, -180.0f, 180.0f, "%.2f°"))
-                            {
-                                Constraint.LocalFrameB.Rotation = FQuat::MakeFromEulerZYX(EulerB);
-                            }
+                            ImGui::BeginDisabled(true);
+                            ImGui::DragFloat3("Rotation B (Synced)", &EulerB.X, 0.5f, -180.0f, 180.0f, "%.2f°");
+                            ImGui::EndDisabled();
+                            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(Auto-synced with Rotation A)");
                         }
                     }
                 }
