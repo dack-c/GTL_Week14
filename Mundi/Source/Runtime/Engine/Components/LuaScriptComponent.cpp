@@ -3,6 +3,7 @@
 #include "PrimitiveComponent.h"
 #include <sol/state.hpp>
 #include <sol/coroutine.hpp>
+#include "LuaPhysicsTypes.h"
 
 #include "CameraActor.h"
 #include "LuaManager.h"
@@ -77,6 +78,7 @@ void ULuaScriptComponent::BeginPlay()
 	FuncTick      = FLuaManager::GetFunc(Env, "Tick");
 	FuncOnBeginOverlap = FLuaManager::GetFunc(Env, "OnBeginOverlap");
 	FuncOnEndOverlap = FLuaManager::GetFunc(Env, "OnEndOverlap");
+	FuncOnHit = FLuaManager::GetFunc(Env, "OnHit");
 	FuncEndPlay		  =	FLuaManager::GetFunc(Env, "EndPlay");
 	
 	if (FuncBeginPlay.valid()) {
@@ -98,25 +100,23 @@ void ULuaScriptComponent::OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitive
 {
 	if (FuncOnBeginOverlap.valid())
 	{
-		FGameObject* OtherGameObject = nullptr;
+		LuaTriggerInfo LuaInfo;
 		if (OtherComp)
 		{
 			if (AActor* OtherActor = OtherComp->GetOwner())
 			{
-				OtherGameObject = OtherActor->GetGameObject();
+				LuaInfo.OtherActor = OtherActor;
+				LuaInfo.bIsEnter = true; // Assuming this is begin overlap
 			}
 		}
 
-		if (OtherGameObject)
+		auto Result = FuncOnBeginOverlap(LuaInfo);
+		if (!Result.valid())
 		{
-			auto Result = FuncOnBeginOverlap(OtherGameObject);
-			if (!Result.valid())
-			{
-				sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
+			sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
 #ifdef _EDITOR
-				GEngine.EndPIE();
+			GEngine.EndPIE();
 #endif
-			}
 		}
 	}
 }
@@ -125,26 +125,23 @@ void ULuaScriptComponent::OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveCo
 {
 	if (FuncOnEndOverlap.valid())
 	{
-		FGameObject* OtherGameObject = nullptr;
+		LuaTriggerInfo LuaInfo;
 		if (OtherComp)
 		{
 			if (AActor* OtherActor = OtherComp->GetOwner())
 			{
-				OtherActor->GetGameObject();
-				OtherGameObject = OtherActor->GetGameObject();
+				LuaInfo.OtherActor = OtherActor;
+				LuaInfo.bIsEnter = false; // Assuming this is end overlap
 			}
 		}
 
-		if (OtherGameObject)
+		auto Result = FuncOnEndOverlap(LuaInfo);
+		if (!Result.valid())
 		{
-			auto Result = FuncOnEndOverlap(OtherGameObject);
-			if (!Result.valid())
-			{
 				sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
 #ifdef _EDITOR
 				GEngine.EndPIE();
 #endif
-			}
 		}
 	}
 }
@@ -153,25 +150,29 @@ void ULuaScriptComponent::OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent
 {
 	if (FuncOnHit.valid())
 	{
-		FGameObject* OtherGameObject = nullptr;
+		LuaContactInfo LuaInfo;
 		if (OtherComp)
 		{
 			if (AActor* OtherActor = OtherComp->GetOwner())
 			{
-				OtherGameObject = OtherActor->GetGameObject();
+				LuaInfo.OtherActor = OtherActor;
 			}
 		}
 
-		if (OtherGameObject)
+		if (ContactHit)
 		{
-			auto Result = FuncOnHit(OtherGameObject);
-			if (!Result.valid())
-			{
-				sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
+			LuaInfo.Position = ContactHit->Position;
+			LuaInfo.Normal = ContactHit->Normal;
+			LuaInfo.Impulse = ContactHit->ImpulseOnActorTo;
+		}
+
+		auto Result = FuncOnHit(LuaInfo);
+		if (!Result.valid())
+		{
+			sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
 #ifdef _EDITOR
-				GEngine.EndPIE();
+			GEngine.EndPIE();
 #endif
-			}
 		}
 	}
 }
