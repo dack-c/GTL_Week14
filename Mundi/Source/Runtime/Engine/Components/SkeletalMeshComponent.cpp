@@ -14,6 +14,8 @@
 #include "Source/Editor/BlueprintGraph/AnimationGraph.h"
 #include "InputManager.h"
 
+#include "Source/Runtime/AssetManagement/ResourceManager.h"
+
 #include "PlatformTime.h"
 #include "USlateManager.h"
 #include "BlueprintGraph/AnimBlueprintCompiler.h"
@@ -39,53 +41,83 @@ static FBodyInstance* FindBodyInstanceByName(const TArray<FBodyInstance*>& Bodie
     return nullptr;
 }
 
-
-
 USkeletalMeshComponent::USkeletalMeshComponent()
 { 
     SetSkeletalMesh("Data/James/James.fbx");
 }
 
+USkeletalMeshComponent::~USkeletalMeshComponent()
+{
+    if (PhysicsAssetOverride)
+    {
+        ObjectFactory::DeleteObject(PhysicsAssetOverride);
+        PhysicsAssetOverride = nullptr;
+    }
+
+    if (PhysicsAsset)
+    {
+        ObjectFactory::DeleteObject(PhysicsAsset);
+        PhysicsAsset = nullptr;
+    }
+}
+
 void USkeletalMeshComponent::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
 
-    // Team2AnimInstance를 사용한 상태머신 기반 애니메이션 시스템
-    // AnimationBlueprint 모드로 전환
-    SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	if (!PhysicsAssetOverridePath.empty())
+	{
+		PhysicsAssetOverride = UResourceManager::GetInstance().Load<UPhysicsAsset>(PhysicsAssetOverridePath);
+	}
 
-    // Team2AnimInstance 생성 및 설정
-    // UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
-    // SetAnimInstance(Team2AnimInst);
+	UPhysicsAsset* AssetToUse = nullptr;
+	if (PhysicsAssetOverride)
+	{
+		AssetToUse = PhysicsAssetOverride;
+	}
+	else if (SkeletalMesh)
+	{
+		AssetToUse = SkeletalMesh->PhysicsAsset;
+	}
 
-    AnimInstance = NewObject<UAnimInstance>();
-    SetAnimInstance(AnimInstance);
+	PhysicsAsset = AssetToUse;
 
-    UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
-    AnimInstance->SetStateMachine(StateMachine);
+	// Team2AnimInstance를 사용한 상태머신 기반 애니메이션 시스템
+	// AnimationBlueprint 모드로 전환
+	SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
-    if (AnimGraph)
-    {
-        FAnimBlueprintCompiler::Compile(
-            AnimGraph,
-            AnimInstance,
-            StateMachine
-        );
-    }
+	// Team2AnimInstance 생성 및 설정
+	// UTeam2AnimInstance* Team2AnimInst = NewObject<UTeam2AnimInstance>();
+	// SetAnimInstance(Team2AnimInst);
 
-    UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
-    UE_LOG("Use SetMovementSpeed() to control animation transitions");
-    UE_LOG("  Speed < 0.1: Idle animation");
-    UE_LOG("  Speed 0.1 ~ 5.0: Walk animation");
-    UE_LOG("  Speed >= 5.0: Run animation");
+	AnimInstance = NewObject<UAnimInstance>();
+	SetAnimInstance(AnimInstance);
 
-    // PhysicsAsset이 있으면 물리 바디 생성
-    UWorld* World = GetWorld();
-    if (World && World->GetPhysScene() && PhysicsAsset)
-    {
-        InstantiatePhysicsAssetBodies(*World->GetPhysScene());
-        OnRegiDebug();
-    }
+	UAnimationStateMachine* StateMachine = NewObject<UAnimationStateMachine>();
+	AnimInstance->SetStateMachine(StateMachine);
+
+	if (AnimGraph)
+	{
+		FAnimBlueprintCompiler::Compile(
+			AnimGraph,
+			AnimInstance,
+			StateMachine
+		);
+	}
+
+	UE_LOG("Team2AnimInstance initialized - Idle/Walk/Run state machine ready");
+	UE_LOG("Use SetMovementSpeed() to control animation transitions");
+	UE_LOG("  Speed < 0.1: Idle animation");
+	UE_LOG("  Speed 0.1 ~ 5.0: Walk animation");
+	UE_LOG("  Speed >= 5.0: Run animation");
+
+	// PhysicsAsset이 있으면 물리 바디 생성
+	UWorld* World = GetWorld();
+	if (World && World->GetPhysScene() && PhysicsAsset)
+	{
+		InstantiatePhysicsAssetBodies(*World->GetPhysScene());
+		OnRegiDebug();
+	}
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
@@ -210,18 +242,27 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 void USkeletalMeshComponent::EndPlay()
 {
     OnUnregiDebug();
+    if (UWorld* World = GetWorld())
+    {
+        if (FPhysScene* PhysScene = World->GetPhysScene())
+        {
+            DestroyPhysicsAssetBodies(*PhysScene);
+        }
+    }
 }
 
 void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
 {
     Super::SetSkeletalMesh(PathFileName);
 
-    // SkeletalMesh에 연결된 PhysicsAsset 참조
-    if (SkeletalMesh)
+    UPhysicsAsset* DefaultPhysicsAsset = SkeletalMesh ? SkeletalMesh->PhysicsAsset : nullptr;
+    UPhysicsAsset* AssetToApply = DefaultPhysicsAsset;
+    if (HasPhysicsAssetOverride() && PhysicsAssetOverride)
     {
-        PhysicsAsset = SkeletalMesh->PhysicsAsset;
+        AssetToApply = PhysicsAssetOverride;
     }
-
+    ApplyPhysicsAsset(AssetToApply);
+    
     if (SkeletalMesh && SkeletalMesh->GetSkeletalMeshData())
     {
         const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
@@ -263,6 +304,77 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
     }
 }
 
+void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
+{
+    PhysicsAssetOverridePath.clear();
+    PhysicsAssetOverride = nullptr;
+    ApplyPhysicsAsset(InPhysicsAsset);
+}
+
+bool USkeletalMeshComponent::SetPhysicsAssetOverrideByPath(const FString& AssetPath)
+{
+    if (AssetPath.empty())
+    {
+        ClearPhysicsAssetOverride();
+        return true;
+    }
+
+    UPhysicsAsset* LoadedAsset = UResourceManager::GetInstance().Load<UPhysicsAsset>(AssetPath);
+    if (!LoadedAsset)
+    {
+        UE_LOG("USkeletalMeshComponent: Failed to load PhysicsAsset override from %s", AssetPath.c_str());
+        return false;
+    }
+
+    PhysicsAssetOverridePath = AssetPath;
+    PhysicsAssetOverride = LoadedAsset;
+    ApplyPhysicsAsset(LoadedAsset);
+    return true;
+}
+
+void USkeletalMeshComponent::ClearPhysicsAssetOverride()
+{
+    PhysicsAssetOverridePath.clear();
+    PhysicsAssetOverride = nullptr;
+
+    UPhysicsAsset* DefaultPhysicsAsset = SkeletalMesh ? SkeletalMesh->PhysicsAsset : nullptr;
+    ApplyPhysicsAsset(DefaultPhysicsAsset);
+}
+
+void USkeletalMeshComponent::ApplyPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
+{
+    if (PhysicsAsset == InPhysicsAsset)
+    {
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    FPhysScene* PhysScene = World ? World->GetPhysScene() : nullptr;
+
+    // Thread 충돌 방지, Main Thread애서 physx 비동기 Thread 기다림
+    // - PA의 물리 시뮬레이션이 완료될 때까지 기다린 다음, BodyInstance를 삭제시킨다. 
+	if (PhysScene)
+	{
+		PhysScene->WaitForSimulation();
+	}
+
+    if (PhysScene && (Bodies.Num() > 0 || Constraints.Num() > 0))
+    {
+        DestroyPhysicsAssetBodies(*PhysScene);
+    }
+    else if (!PhysScene)
+    {
+        Bodies.Empty();
+        Constraints.Empty();
+    }
+
+    PhysicsAsset = InPhysicsAsset;
+
+    if (PhysScene && PhysicsAsset)
+    {
+        InstantiatePhysicsAssetBodies(*PhysScene);
+    }
+}
 FAABB USkeletalMeshComponent::GetWorldAABB() const
 {
     return Super::GetWorldAABB();
@@ -467,8 +579,10 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
     // 같은 스켈레탈 메쉬의 모든 바디는 같은 OwnerID를 가짐
     uint32 OwnerID = static_cast<uint32>(reinterpret_cast<uintptr_t>(this) & 0xFFFFFFFF);
 
-    // 1) BodySetups -> FBodyInstance 생성
-    for (UBodySetup* Setup : PhysicsAsset->BodySetups)
+	// 비동기 이슈로 인한 스냅샷 복사본으로 순회
+    // - 루프 도중 다른 스레드에서 BodySetups 배열이 수정되어 iterator가 깨지는 걸 방지
+	const TArray<UBodySetup*> LocalBodySetups = PhysicsAsset->BodySetups;
+	for (UBodySetup* Setup : LocalBodySetups)
     {
         if (!Setup)
             continue;
@@ -493,9 +607,9 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
 
         Bodies.Add(BI);
     }
-
-    // 2) Constraints -> FConstraintInstance 생성
-    for (const FPhysicsConstraintSetup& CSetup : PhysicsAsset->Constraints)
+	
+	const TArray<FPhysicsConstraintSetup> LocalConstraints = PhysicsAsset->Constraints;
+	for (const FPhysicsConstraintSetup& CSetup : LocalConstraints)
     {
         // 본 이름을 기반으로 BodyInstance 찾기
         FBodyInstance* BodyA = FindBodyInstanceByName(Bodies, CSetup.BodyNameA);
@@ -1068,6 +1182,16 @@ void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandl
                 SetAnimGraph(NewGraph);
             }
         }
+        FString LoadedPhysicsOverride;
+        FJsonSerializer::ReadString(InOutHandle, "PhysicsAssetOverridePath", LoadedPhysicsOverride, "", false);
+        if (!LoadedPhysicsOverride.empty())
+        {
+            SetPhysicsAssetOverrideByPath(LoadedPhysicsOverride);
+        }
+        else
+        {
+            ClearPhysicsAssetOverride();
+        }
     }
     else
     {
@@ -1080,6 +1204,14 @@ void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandl
         {
             // Ensure key exists for clarity (optional)
             InOutHandle["AnimGraphPath"] = "";
+        }
+        if (!PhysicsAssetOverridePath.empty())
+        {
+            InOutHandle["PhysicsAssetOverridePath"] = PhysicsAssetOverridePath.c_str();
+        }
+        else
+        {
+            InOutHandle["PhysicsAssetOverridePath"] = "";
         }
     }
 }

@@ -124,7 +124,7 @@ bool FPhysScene::Initialize()
 
     // 3) Default Material
     // 기본 표면 성질
-    DefaultMaterial = Physics->createMaterial(0.5f, 0.4f, 0.0f);
+    DefaultMaterial = Physics->createMaterial(0.5f, 0.4f, 0.5f);
 
     if (!DefaultMaterial)
     {
@@ -196,6 +196,12 @@ bool FPhysScene::Initialize()
 
 void FPhysScene::Shutdown()
 {
+    // 콜백 객체에 우리가 셧다운 중임을 알림
+    if (SimulationEventCallback)
+    {
+        SimulationEventCallback->OnPreShutdown();
+    }
+
     // 테스트용 오브젝트 리스트 비우기
     Objects.clear();
 
@@ -212,6 +218,8 @@ void FPhysScene::Shutdown()
     // SimulationEventCallback보다 Scene을 먼저 해제해야 함
     if (Scene)
     {
+        Scene->setSimulationEventCallback(nullptr); // Call Back 연결 해제
+
         Scene->release();
         Scene = nullptr;
     }
