@@ -282,6 +282,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Gamma.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.cpp" />
@@ -866,6 +867,7 @@
     <ClInclude Include="Source\Editor\BlueprintGraph\K2Node_Misc.h" />
     <ClInclude Include="Source\Editor\Clipboard\ClipboardManager.h" />
     <ClInclude Include="Source\Editor\FBX\BlendSpace\BlendSpace1D.h" />
+    <ClInclude Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.h" />
     <ClInclude Include="Source\Editor\FBX\FBXAnimationCache.h" />
     <ClInclude Include="Source\Editor\FBX\FBXAnimationLoader.h" />
     <ClInclude Include="Source\Editor\FBX\FbxLoader.h" />
