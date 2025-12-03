@@ -48,9 +48,17 @@ static void SetupWheelsSimulationData(
         wheelData.mMaxBrakeTorque = 1500.0f;
         WheelsSimData->setWheelData(i, wheelData);
         
-        // Create tire data with proper defaults
+        // Create tire data with PROPER friction values for better traction
         PxVehicleTireData tireData;
         tireData.mType = 0;
+        // 타이어 마찰력 개선 - 기본 마찰 곡선만 설정
+        // 마찰 곡선 개선 - 슬립에 따른 마찰력 변화
+        tireData.mFrictionVsSlipGraph[0][0] = 0.0f;   // 슬립 0%에서 마찰력 100%
+        tireData.mFrictionVsSlipGraph[0][1] = 1.0f;   
+        tireData.mFrictionVsSlipGraph[1][0] = 0.1f;   // 슬립 10%에서 마찰력 100% 유지
+        tireData.mFrictionVsSlipGraph[1][1] = 1.0f;   
+        tireData.mFrictionVsSlipGraph[2][0] = 1.0f;   // 슬립 100%에서 마찰력 80%
+        tireData.mFrictionVsSlipGraph[2][1] = 0.8f;
         WheelsSimData->setTireData(i, tireData);
         
         // Create suspension data with proper defaults
@@ -73,8 +81,8 @@ static void SetupWheelsSimulationData(
         // Set suspension force application point offset - Z-up에서 Z축 위쪽으로 오프셋
         WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z + 0.3f));
         
-        // Set tire force application point offset - Z-up에서 Z축 아래쪽으로 오프셋
-        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z - 0.3f));
+        // Set tire force application point offset - 바퀴 중심에서 약간 아래쪽으로 설정
+        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z - 0.1f));
     }
 }
 
@@ -184,21 +192,26 @@ void AMyCar::InitializeVehiclePhysics()
     batchQueryDesc.preFilterShader = nullptr;
     BatchQuery = PxScenePtr->createBatchQuery(batchQueryDesc);
 
-    // Friction Pairs 생성
+    // Friction Pairs 생성 - 더 많은 타이어 타입과 표면 타입 지원
+    const PxU32 numTireTypes = 1;
+    const PxU32 numSurfaceTypes = 1;
+    
     PxVehicleDrivableSurfaceType surfaceTypes[1];
     surfaceTypes[0].mType = 0;
 
     const PxMaterial* surfaceMaterials[1];
     surfaceMaterials[0] = Material;
 
-    FrictionPairs = PxVehicleDrivableSurfaceToTireFrictionPairs::allocate(1, 1);
-    FrictionPairs->setup(1, 1, surfaceMaterials, surfaceTypes);
+    FrictionPairs = PxVehicleDrivableSurfaceToTireFrictionPairs::allocate(numTireTypes, numSurfaceTypes);
+    FrictionPairs->setup(numTireTypes, numSurfaceTypes, surfaceMaterials, surfaceTypes);
 
-    for (PxU32 i = 0; i < 1; i++)
+    // 마찰력 강화 - 타이어와 도로 간 마찰력 증가
+    for (PxU32 i = 0; i < numTireTypes; i++)
     {
-        for (PxU32 j = 0; j < 1; j++)
+        for (PxU32 j = 0; j < numSurfaceTypes; j++)
         {
-            FrictionPairs->setTypePairFriction(i, j, 1.0f);
+            // 마찰력을 1.5로 증가시켜 더 나은 트랙션 제공
+            FrictionPairs->setTypePairFriction(i, j, 1.5f);
         }
     }
     
@@ -323,8 +336,11 @@ void AMyCar::CreateVehicle4W()
     
     // Setup engine with torque curve using PxFixedSizeLookupTable
     PxVehicleEngineData Engine;
-    Engine.mPeakTorque = 500.0f;
-    Engine.mMaxOmega = 600.0f;
+    Engine.mPeakTorque = 800.0f;  // 토크 증가
+    Engine.mMaxOmega = 800.0f;    // 최대 RPM 증가
+    Engine.mDampingRateFullThrottle = 0.15f;  // 풀스로틀 시 댐핑
+    Engine.mDampingRateZeroThrottleClutchEngaged = 2.0f;  // 클러치 연결 시 댐핑
+    Engine.mDampingRateZeroThrottleClutchDisengaged = 0.35f;  // 클러치 분리 시 댐핑
     
     // Define torque curve points (normalized RPM -> normalized torque)
     // This creates a realistic engine torque curve
@@ -338,13 +354,31 @@ void AMyCar::CreateVehicle4W()
     
     DriveSimData.setEngineData(Engine);
     
-    // Setup gears
+    // Setup gears with better gear ratios
     PxVehicleGearsData Gears;
-    Gears.mSwitchTime = 0.5f;
+    Gears.mSwitchTime = 0.3f;  // 변속 시간 단축
+    Gears.mNbRatios = 6;  // 기어 수 증가
+    Gears.mRatios[PxVehicleGearsData::eREVERSE] = -4.0f;
+    Gears.mRatios[PxVehicleGearsData::eNEUTRAL] = 0.0f;
+    Gears.mRatios[PxVehicleGearsData::eFIRST] = 4.0f;
+    Gears.mRatios[PxVehicleGearsData::eSECOND] = 2.0f;
+    Gears.mRatios[PxVehicleGearsData::eTHIRD] = 1.5f;
+    Gears.mRatios[PxVehicleGearsData::eFOURTH] = 1.1f;
+    Gears.mRatios[PxVehicleGearsData::eFIFTH] = 1.0f;
+    Gears.mFinalRatio = 4.0f;  // 최종 기어비 증가로 더 강한 출력
     DriveSimData.setGearsData(Gears);
     
-    // Setup auto-box
+    // Setup auto-box with improved settings
     PxVehicleAutoBoxData AutoBox;
+    AutoBox.mUpRatios[PxVehicleGearsData::eFIRST] = 0.65f;
+    AutoBox.mUpRatios[PxVehicleGearsData::eSECOND] = 0.65f;
+    AutoBox.mUpRatios[PxVehicleGearsData::eTHIRD] = 0.65f;
+    AutoBox.mUpRatios[PxVehicleGearsData::eFOURTH] = 0.65f;
+    AutoBox.mDownRatios[PxVehicleGearsData::eFIRST] = 0.5f;
+    AutoBox.mDownRatios[PxVehicleGearsData::eSECOND] = 0.5f;
+    AutoBox.mDownRatios[PxVehicleGearsData::eTHIRD] = 0.5f;
+    AutoBox.mDownRatios[PxVehicleGearsData::eFOURTH] = 0.5f;
+    AutoBox.mDownRatios[PxVehicleGearsData::eFIFTH] = 0.5f;
     DriveSimData.setAutoBoxData(AutoBox);
     
     // Create the vehicle - 마지막 매개변수를 0으로 수정
@@ -369,6 +403,9 @@ void AMyCar::CreateVehicle4W()
     VehicleDrive4W->setToRestState();
     VehicleDrive4W->mDriveDynData.forceGearChange(PxVehicleGearsData::eFIRST);
     VehicleDrive4W->mDriveDynData.setUseAutoGears(true);
+    
+    // 초기 엔진 회전수 설정
+    VehicleDrive4W->mDriveDynData.setEngineRotationSpeed(100.0f);
     
     // Free simulation data
     WheelsSimData->free();
@@ -535,7 +572,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     
     // 4. Update vehicle physics
     const PxVec3 grav = PxScenePtr->getGravity();
-    PxVehicleUpdates(DeltaTime, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
+    PxVehicleUpdates(DeltaTime/* * 100000*/, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
     
     // Check if vehicle is in air
     bIsVehicleInAir = VehicleDrive4W->getRigidDynamicActor()->isSleeping() 
