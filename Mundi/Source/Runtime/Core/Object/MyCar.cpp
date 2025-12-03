@@ -25,15 +25,15 @@ static void SetupWheelsSimulationData(
 
     // Front wheels - 앞쪽이 +Y 방향 (Z-up 왼손좌표계)
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eFRONT_LEFT] =
-        PxVec3(-2.0f, 1.5f, 0.4f);  // 좌측 앞바퀴: X-, Y+, Z-
+        PxVec3(-1.0f, 1.4f, 0.35f);  // 좌측 앞바퀴
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eFRONT_RIGHT] =
-        PxVec3(2.0f, 1.5f, 0.4f);   // 우측 앞바퀴: X+, Y+, Z-
+        PxVec3(1.0f, 1.4f, 0.35f);   // 우측 앞바퀴
 
     // Rear wheels - 뒤쪽이 -Y 방향 (Z-up 왼손좌표계)
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eREAR_LEFT] =
-        PxVec3(-2.0f, -1.5f, 0.4f); // 좌측 뒷바퀴: X-, Y-, Z-
+        PxVec3(-1.0f, -1.4f, 0.35f); // 좌측 뒷바퀴
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eREAR_RIGHT] =
-        PxVec3(2.0f, -1.5f, 0.4f);  // 우측 뒷바퀴: X+, Y-, Z-
+        PxVec3(1.0f, -1.4f, 0.35f);  // 우측 뒷바퀴
 
     // CRITICAL: Get chassis mass and calculate sprung mass per wheel
     const float ChassisMass = InChassisMass;
@@ -55,33 +55,33 @@ static void SetupWheelsSimulationData(
         wheelData.mMaxBrakeTorque = 1500.0f;
         WheelsSimData->setWheelData(i, wheelData);
 
-        // Create tire data with PROPER friction values for better traction
+        // IMPROVED: Create tire data with better friction curve for traction
         PxVehicleTireData tireData;
         tireData.mType = 0;
-        // 타이어 마찰력 개선 - 기본 마찰 곡선만 설정
-        // 마찰 곡선 개선 - 슬립에 따른 마찰력 변화
-        tireData.mFrictionVsSlipGraph[0][0] = 0.0f;   // 슬립 0%에서 마찰력 100%
-        tireData.mFrictionVsSlipGraph[0][1] = 1.0f;
-        tireData.mFrictionVsSlipGraph[1][0] = 0.1f;   // 슬립 10%에서 마찰력 100% 유지
-        tireData.mFrictionVsSlipGraph[1][1] = 1.0f;
-        tireData.mFrictionVsSlipGraph[2][0] = 1.0f;   // 슬립 100%에서 마찰력 80%
-        tireData.mFrictionVsSlipGraph[2][1] = 0.8f;
+        
+        // 개선된 종방향 마찰 곡선 (longitudinal)
+        tireData.mFrictionVsSlipGraph[0][0] = 0.0f;   // 슬립 0%
+        tireData.mFrictionVsSlipGraph[0][1] = 1.0f;   // 마찰력 100%
+        tireData.mFrictionVsSlipGraph[1][0] = 0.1f;   // 슬립 10%
+        tireData.mFrictionVsSlipGraph[1][1] = 1.2f;   // 마찰력 120% (피크)
+        tireData.mFrictionVsSlipGraph[2][0] = 1.0f;   // 슬립 100%
+        tireData.mFrictionVsSlipGraph[2][1] = 0.9f;   // 마찰력 90%
+        
         WheelsSimData->setTireData(i, tireData);
 
-        // Create suspension data with MANUAL sprung mass setting
+        // IMPROVED: Create suspension data with better spring settings
         PxVehicleSuspensionData suspData;
-        suspData.mMaxCompression = 0.6f;
-        suspData.mMaxDroop = 0.3f;
-        suspData.mSpringStrength = 25000.0f;
-        suspData.mSpringDamperRate = 3500.0f;
+        suspData.mMaxCompression = 0.6f;    // 최대 압축 (더 큰 값)
+        suspData.mMaxDroop = 0.4f;          // 최대 신장 (더 큰 값)
+        suspData.mSpringStrength = 35000.0f; // 스프링 강성 증가
+        suspData.mSpringDamperRate = 4500.0f; // 댐핑 증가
 
-        // CRITICAL: Manually set the sprung mass since setChassisMass() isn't working properly
+        // CRITICAL: Manually set the sprung mass
         suspData.mSprungMass = SprungMassPerWheel;
 
         UE_LOG("[SetupWheelsSimulationData] Wheel %d: Setting sprung mass to %.2f", i, suspData.mSprungMass);
 
         WheelsSimData->setSuspensionData(i, suspData);
-
         WheelsSimData->setWheelShapeMapping(i, i + 1);
 
         // Set wheel center offset
@@ -90,14 +90,11 @@ static void SetupWheelsSimulationData(
         // Z-up 좌표계에서 서스펜션 이동 방향은 -Z (아래쪽)
         WheelsSimData->setSuspTravelDirection(i, PxVec3(0, 0, -1));
 
-        // Set suspension force application point offset - Z-up에서 Z축 위쪽으로 오프셋
-        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, -0.3f));
-
-        // Set tire force application point offset - 바퀴 중심에서 약간 아래쪽으로 설정
-        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, -0.3f));
+        // IMPROVED: Better suspension and tire force application points
+        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, -0.2f));
+        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, -0.2f));
 
         // CRITICAL: Set scene query filter data to prevent vehicle from hitting itself
-        // 차량 서스펜션 레이캐스트용 필터 데이터 설정
         PxFilterData suspensionFilterData;
         suspensionFilterData.word0 = 0;    // 레이캐스트 자체는 특별한 그룹 없음
         suspensionFilterData.word1 = ~SURFACE_TYPE_VEHICLE;   // 차량 표면은 제외
@@ -196,8 +193,9 @@ void AMyCar::InitializeVehiclePhysics()
         return;
     }
     
-    // Set basis vectors (Z-up coordinate system)
-    PxVehicleSetBasisVectors(PxVec3(0, 0, 1), PxVec3(1, 0, 0));
+    // CRITICAL: Set proper basis vectors for Z-up coordinate system
+    // Forward = +Y, Right = +X, Up = +Z in Z-up left-handed coordinate system
+    PxVehicleSetBasisVectors(PxVec3(0, 0, 1), PxVec3(0, 1, 0));  // Up vector, Forward vector
     
     // Set update mode
     PxVehicleSetUpdateMode(PxVehicleUpdateMode::eVELOCITY_CHANGE);
@@ -406,37 +404,38 @@ void AMyCar::CreateVehicle4W()
     Diff.mRearBias = 1.3f;               // Rear differential bias
     DriveSimData.setDiffData(Diff);
 
-    // Setup engine with PROPER INITIALIZATION
+    // IMPROVED: Setup engine with higher torque and better curve
     PxVehicleEngineData Engine;
     // Initialize all fields first
-    Engine.mPeakTorque = 800.0f;
-    Engine.mMaxOmega = 800.0f;
+    Engine.mPeakTorque = 1200.0f;        // 증가된 피크 토크
+    Engine.mMaxOmega = 600.0f;           // 최대 회전수
     Engine.mDampingRateFullThrottle = 0.15f;
     Engine.mDampingRateZeroThrottleClutchEngaged = 2.0f;
     Engine.mDampingRateZeroThrottleClutchDisengaged = 0.35f;
 
-    // CRITICAL: Clear and setup torque curve properly
+    // CRITICAL: Clear and setup torque curve properly with better low-end torque
     Engine.mTorqueCurve.clear();
-    Engine.mTorqueCurve.addPair(0.0f, 0.8f);   // Idle
-    Engine.mTorqueCurve.addPair(0.33f, 1.0f);  // Peak torque at 33% RPM
-    Engine.mTorqueCurve.addPair(0.5f, 0.95f);  // Mid-range
-    Engine.mTorqueCurve.addPair(0.7f, 0.85f);  // High RPM falloff
-    Engine.mTorqueCurve.addPair(1.0f, 0.7f);   // Max RPM
+    Engine.mTorqueCurve.addPair(0.0f, 0.9f);   // 아이들에서 높은 토크
+    Engine.mTorqueCurve.addPair(0.2f, 1.0f);   // 피크 토크를 낮은 RPM에서
+    Engine.mTorqueCurve.addPair(0.4f, 0.98f);  // 중간 범위 유지
+    Engine.mTorqueCurve.addPair(0.6f, 0.9f);   // 고RPM에서 감소
+    Engine.mTorqueCurve.addPair(0.8f, 0.8f);   // 더 큰 감소
+    Engine.mTorqueCurve.addPair(1.0f, 0.7f);   // 최대 RPM
 
     DriveSimData.setEngineData(Engine);
 
-    // Setup gears with PROPER INITIALIZATION
+    // IMPROVED: Setup gears with better ratios for acceleration
     PxVehicleGearsData Gears;
-    Gears.mSwitchTime = 0.3f;
+    Gears.mSwitchTime = 0.5f;
     Gears.mNbRatios = 6;
-    Gears.mRatios[PxVehicleGearsData::eREVERSE] = -4.0f;
+    Gears.mRatios[PxVehicleGearsData::eREVERSE] = -4.5f; // 후진 기어비 증가
     Gears.mRatios[PxVehicleGearsData::eNEUTRAL] = 0.0f;
-    Gears.mRatios[PxVehicleGearsData::eFIRST] = 4.0f;
-    Gears.mRatios[PxVehicleGearsData::eSECOND] = 2.0f;
-    Gears.mRatios[PxVehicleGearsData::eTHIRD] = 1.5f;
-    Gears.mRatios[PxVehicleGearsData::eFOURTH] = 1.1f;
+    Gears.mRatios[PxVehicleGearsData::eFIRST] = 5.0f;    // 1단 기어비 증가 (가속력 향상)
+    Gears.mRatios[PxVehicleGearsData::eSECOND] = 3.0f;   // 2단 기어비 증가
+    Gears.mRatios[PxVehicleGearsData::eTHIRD] = 2.0f;    // 3단 기어비 증가
+    Gears.mRatios[PxVehicleGearsData::eFOURTH] = 1.5f;
     Gears.mRatios[PxVehicleGearsData::eFIFTH] = 1.0f;
-    Gears.mFinalRatio = 4.0f;
+    Gears.mFinalRatio = 4.5f;                            // 파이널 기어비 증가
     DriveSimData.setGearsData(Gears);
 
     // Setup clutch with proper initialization
@@ -479,18 +478,21 @@ void AMyCar::CreateVehicle4W()
     // Add actor to scene
     PxScenePtr->addActor(*VehicleActor);
 
-    // Set to rest state and first gear
+    // IMPROVED: Better initialization
     VehicleDrive4W->setToRestState();
     VehicleDrive4W->mDriveDynData.forceGearChange(PxVehicleGearsData::eFIRST);
     VehicleDrive4W->mDriveDynData.setUseAutoGears(true);
 
-    // 초기 엔진 회전수 설정
-    VehicleDrive4W->mDriveDynData.setEngineRotationSpeed(100.0f);
-
+    // 초기 엔진 회전수를 높게 설정하여 즉시 토크 생성
+    VehicleDrive4W->mDriveDynData.setEngineRotationSpeed(200.0f);
+    
+    // CRITICAL: Wake up the vehicle to ensure it's not sleeping
+    VehicleActor->wakeUp();
+    
     // Free simulation data
     WheelsSimData->free();
 
-    UE_LOG("[MyCarComponent] Vehicle 4W created successfully");
+    UE_LOG("[MyCarComponent] Vehicle 4W created successfully with improved settings");
 }
 
 void AMyCar::ProcessKeyboardInput(float DeltaTime)
@@ -579,13 +581,27 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     if (!VehicleDrive4W || !BatchQuery)
         return;
 
-    PxTransform PxTrans = VehicleDrive4W->getRigidDynamicActor()->getGlobalPose();
+    // CRITICAL: Check if vehicle is sleeping and wake it up if input is provided
+    PxRigidDynamic* VehicleActor = VehicleDrive4W->getRigidDynamicActor();
+    if (VehicleActor && VehicleActor->isSleeping())
+    {
+        // Wake up vehicle if there's any input
+        if (VehicleInput.AnalogAccel > 0.01f || 
+            VehicleInput.AnalogBrake > 0.01f || 
+            FMath::Abs(VehicleInput.AnalogSteer) > 0.01f ||
+            VehicleInput.AnalogHandbrake > 0.01f)
+        {
+            VehicleActor->wakeUp();
+            UE_LOG("[MyCarComponent] Vehicle woken up due to input");
+        }
+    }
 
+    // Update actor transform first
+    PxTransform PxTrans = VehicleActor->getGlobalPose();
     FTransform NewTransform;
     NewTransform.Translation = FVector(PxTrans.p.x, PxTrans.p.y, PxTrans.p.z);
     NewTransform.Rotation = FQuat(PxTrans.q.x, PxTrans.q.y, PxTrans.q.z, PxTrans.q.w);
     NewTransform.Scale3D = FVector(1, 1, 1);
-
     SetActorTransform(NewTransform);
 
     UWorld* World = GetWorld();
@@ -598,7 +614,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     if (!PxScenePtr)
         return;
     
-    // 1. Apply input
+    // 1. Apply input with better responsiveness
     VehicleDrive4W->mDriveDynData.setAnalogInput(
         PxVehicleDrive4WControl::eANALOG_INPUT_ACCEL, 
         VehicleInput.AnalogAccel);
@@ -632,23 +648,24 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     PxWheelQueryResult wheelQueryResults[PX_MAX_NB_WHEELS];
     const PxU32 numWheels = VehicleDrive4W->mWheelsSimData.getNbWheels();
 
-    // 레이캐스트 결과 디버깅 추가
+    // ENHANCED: 레이캐스트 결과 디버깅과 문제 진단
+    int32 wheelContactCount = 0;
     for (PxU32 i = 0; i < numWheels; i++)
     {
-        UE_LOG("[MyCarComponent] Wheel %d: Raycast hits = %d", i, raycastResults[i].getNbAnyHits());
-
         if (raycastResults[i].getNbAnyHits() > 0)
         {
+            wheelContactCount++;
             const PxRaycastHit& hit = raycastResults[i].getAnyHit(0);
-            UE_LOG("[MyCarComponent] Wheel %d: Hit distance = %.3f", i, hit.distance);
-            UE_LOG("[MyCarComponent] Wheel %d: Hit position = (%.2f, %.2f, %.2f)",
-                i, hit.position.x, hit.position.y, hit.position.z);
+            UE_LOG("[MyCarComponent] Wheel %d: Hit distance = %.3f, Normal = (%.2f, %.2f, %.2f)",
+                i, hit.distance, hit.normal.x, hit.normal.y, hit.normal.z);
         }
         else
         {
-            UE_LOG("[MyCarComponent] Wheel %d: NO HITS!", i);
+            UE_LOG("[MyCarComponent] Wheel %d: NO CONTACT - wheel may be in air", i);
         }
     }
+    
+    UE_LOG("[MyCarComponent] Wheels in contact: %d/4", wheelContactCount);
     
     PxVehicleWheelQueryResult vehicleQueryResults[1] = {
         {wheelQueryResults, numWheels}
@@ -656,30 +673,46 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     
     // 4. Update vehicle physics
     const PxVec3 grav = PxScenePtr->getGravity();
-    
     const float FixedTimeStep = 1.0f / 60.0f;
+    
     PxVehicleUpdates(FixedTimeStep, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
 
-    // Check if vehicle is in air
-	bool bIsSleeping = VehicleDrive4W->getRigidDynamicActor()->isSleeping();
-
+    // ENHANCED: Detailed vehicle state debugging
+    bool bIsSleeping = VehicleActor->isSleeping();
     bIsVehicleInAir = PxVehicleIsInAir(vehicleQueryResults[0]);
     
-	/*PhysScene->StepSimulation(1.0 / 60.0f);
-    PhysScene->WaitForSimulation();*/
-
-    // 5. Sync transform
-    if (VehicleDrive4W->getRigidDynamicActor())
+    float forwardSpeed = VehicleDrive4W->computeForwardSpeed();
+    float engineRotationSpeed = VehicleDrive4W->mDriveDynData.getEngineRotationSpeed();
+    PxU32 currentGear = VehicleDrive4W->mDriveDynData.getCurrentGear();
+    
+    // Check tire forces and suspension forces
+    for (PxU32 i = 0; i < numWheels; i++)
     {
-		UE_LOG("[MyCarComponent] Vehicle Sleeping: %s", bIsSleeping ? "Yes" : "No");
-		UE_LOG("[MyCarComponent] Vehicle In Air: %s", bIsVehicleInAir ? "Yes" : "No");
-
-        UE_LOG("[MyCarComponent] Vehicle Speed: %.2f m/s", VehicleDrive4W->computeForwardSpeed());
-        UE_LOG("[MyCarComponent] Vehicle Position: X=%.2f Y=%.2f Z=%.2f",
-            VehicleDrive4W->getRigidDynamicActor()->getGlobalPose().p.x,
-            VehicleDrive4W->getRigidDynamicActor()->getGlobalPose().p.y,
-            VehicleDrive4W->getRigidDynamicActor()->getGlobalPose().p.z);
+        // PhysX Vehicle SDK에서 지원하는 함수들로 교체
+        const PxVehicleSuspensionData& suspData = VehicleDrive4W->mWheelsSimData.getSuspensionData(i);
+        float sprungMass = suspData.mSprungMass;
+        
+        UE_LOG("[MyCarComponent] Wheel %d: SprungMass=%.1f", i, sprungMass);
     }
+
+    // 5. Enhanced logging
+    static int32 LogCounter = 0;
+    if (LogCounter % 60 == 0) // Log every second at 60 FPS
+    {
+        UE_LOG("[MyCarComponent] === Vehicle State ===");
+        UE_LOG("[MyCarComponent] Sleeping: %s | InAir: %s | Gear: %d",
+            bIsSleeping ? "YES" : "NO", 
+            bIsVehicleInAir ? "YES" : "NO", 
+            currentGear);
+        UE_LOG("[MyCarComponent] Speed: %.2f m/s | Engine RPM: %.1f",
+            forwardSpeed, engineRotationSpeed);
+        UE_LOG("[MyCarComponent] Input - Accel: %.2f | Brake: %.2f | Steer: %.2f",
+            VehicleInput.AnalogAccel, VehicleInput.AnalogBrake, VehicleInput.AnalogSteer);
+        UE_LOG("[MyCarComponent] Position: (%.2f, %.2f, %.2f)",
+            PxTrans.p.x, PxTrans.p.y, PxTrans.p.z);
+        UE_LOG("[MyCarComponent] =====================");
+    }
+    LogCounter++;
 }
 
 void AMyCar::CleanupVehiclePhysics()
