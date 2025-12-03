@@ -1000,6 +1000,9 @@
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFSetupPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\DOFTilePass.cpp" />
   <ClCompile Include="Generated\USpringArmComponent.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
+    <ClCompile Include="SnippetVehicle4W.cpp" />
+    <ClCompile Include="Source\Runtime\Core\Object\MyCarComponent.cpp" />
+  <ClCompile Include="Generated\AMyCarComponent.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\AMyCar.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimationGraph.h">
@@ -2071,6 +2074,8 @@
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFSetupPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFTilePass.h" />
   <ClInclude Include="Generated\USpringArmComponent.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
+    <ClInclude Include="Source\Runtime\Core\Object\MyCarComponent.h" />
+  <ClInclude Include="Generated\AMyCarComponent.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\AMyCar.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
   <ItemGroup>
     <None Include="Tools\CodeGenerator\generate.py">
       <Filter>Tools\CodeGenerator</Filter>

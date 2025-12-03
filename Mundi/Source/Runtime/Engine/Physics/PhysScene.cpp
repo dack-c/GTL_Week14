@@ -10,9 +10,100 @@
 #include "StaticMesh.h"
 #include <Windows.h>
 
+/**
+ * @brief 차량 서스펜션 레이캐스트용 Pre-Filter 셰이더
+ * 
+ * 차량의 레이캐스트가 자기 자신을 감지하지 않고, 
+ * 운전 가능한 표면만 감지하도록 하는 필터링 함수
+ */
+PxQueryHitType::Enum VehicleWheelRaycastPreFilter(
+    PxFilterData filterData0, // 레이캐스트의 필터 데이터
+    PxFilterData filterData1, // 충돌 대상 Shape의 필터 데이터  
+    const void* constantBlock, 
+    PxU32 constantBlockSize,
+    PxHitFlags& queryFlags)
+{
+    PX_UNUSED(constantBlockSize);
+    PX_UNUSED(constantBlock);
+    PX_UNUSED(filterData0);
+    PX_UNUSED(queryFlags);
+
+    // 차량 자체의 Shape는 무시 (word3에서 SURFACE_TYPE_VEHICLE 체크)
+    if (filterData1.word3 & SURFACE_TYPE_VEHICLE)
+    {
+        return PxQueryHitType::eNONE;
+    }
+
+    // 운전 가능한 표면만 블록으로 처리 (바퀴가 감지해야 하는 표면)
+    if (filterData1.word3 & SURFACE_TYPE_DRIVABLE)
+    {
+        return PxQueryHitType::eBLOCK;
+    }
+
+    // 운전 불가능한 표면도 블록으로 처리 (벽 등과 충돌)
+    if (filterData1.word3 & SURFACE_TYPE_UNDRIVABLE)
+    {
+        return PxQueryHitType::eBLOCK;
+    }
+
+    // 알 수 없는 표면은 무시
+    return PxQueryHitType::eBLOCK;
+}
+
+/**
+ * @brief PhysX 에러 콜백을 UE_LOG로 출력하는 커스텀 에러 핸들러 구현
+ */
+void FPhysXCustomErrorCallback::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)
+{
+    const char* errorType = GetErrorTypeString(code);
+    
+    // 에러 코드별로 다른 로그 레벨 적용
+    switch (code)
+    {
+    case PxErrorCode::eNO_ERROR:
+        UE_LOG("[PhysX][info] %s: %s (File: %s, Line: %d)", errorType, message, file, line);
+        break;
+        
+    case PxErrorCode::eDEBUG_INFO:
+    case PxErrorCode::eDEBUG_WARNING:
+        UE_LOG("[PhysX][warning] %s: %s (File: %s, Line: %d)", errorType, message, file, line);
+        break;
+        
+    case PxErrorCode::eINVALID_PARAMETER:
+    case PxErrorCode::eINVALID_OPERATION:
+    case PxErrorCode::eOUT_OF_MEMORY:
+    case PxErrorCode::eINTERNAL_ERROR:
+    case PxErrorCode::eABORT:
+    case PxErrorCode::ePERF_WARNING:
+        UE_LOG("[PhysX][error] %s: %s (File: %s, Line: %d)", errorType, message, file, line);
+        break;
+        
+    default:
+        UE_LOG("[PhysX][error] UNKNOWN_ERROR: %s (File: %s, Line: %d)", message, file, line);
+        break;
+    }
+}
+
+const char* FPhysXCustomErrorCallback::GetErrorTypeString(PxErrorCode::Enum code)
+{
+    switch (code)
+    {
+    case PxErrorCode::eNO_ERROR:       return "NO_ERROR";
+    case PxErrorCode::eDEBUG_INFO:     return "DEBUG_INFO";
+    case PxErrorCode::eDEBUG_WARNING:  return "DEBUG_WARNING";
+    case PxErrorCode::eINVALID_PARAMETER: return "INVALID_PARAMETER";
+    case PxErrorCode::eINVALID_OPERATION:  return "INVALID_OPERATION";
+    case PxErrorCode::eOUT_OF_MEMORY:      return "OUT_OF_MEMORY";
+    case PxErrorCode::eINTERNAL_ERROR:     return "INTERNAL_ERROR";
+    case PxErrorCode::eABORT:              return "ABORT";
+    case PxErrorCode::ePERF_WARNING:       return "PERF_WARNING";
+    default:                               return "UNKNOWN_ERROR";
+    }
+}
+
 // ===== FPhysXSharedResources Static Members =====
 PxDefaultAllocator FPhysXSharedResources::Allocator;
-PxDefaultErrorCallback FPhysXSharedResources::ErrorCallback;
+FPhysXCustomErrorCallback FPhysXSharedResources::ErrorCallback;  // 커스텀 에러 콜백 사용
 FPhysXAssertHandler FPhysXSharedResources::AssertHandler;
 PxFoundation* FPhysXSharedResources::Foundation = nullptr;
 PxPvd* FPhysXSharedResources::Pvd = nullptr;
@@ -22,6 +113,10 @@ PxDefaultCpuDispatcher* FPhysXSharedResources::Dispatcher = nullptr;
 PxMaterial* FPhysXSharedResources::DefaultMaterial = nullptr;
 int32 FPhysXSharedResources::RefCount = 0;
 bool FPhysXSharedResources::bInitialized = false;
+
+// 차량용 공유 리소스
+PxVehicleDrivableSurfaceToTireFrictionPairs* FPhysXSharedResources::VehicleFrictionPairs = nullptr;
+TArray<PxBatchQuery*> FPhysXSharedResources::ActiveBatchQueries;
 
 bool FPhysXSharedResources::Initialize()
 {
@@ -103,15 +198,30 @@ bool FPhysXSharedResources::Initialize()
         return false;
     }
 
+    // Initialize PhysX Vehicle SDK
+    if (!PxInitVehicleSDK(*Physics))
+    {
+        UE_LOG("[MyCarComponent] Failed to initialize PhysX Vehicle SDK");
+        return false;
+    }
+
+    // 차량용 공유 리소스 초기화
+    InitializeVehicleResources();
+
     bInitialized = true;
     UE_LOG("[PhysXSharedResources] Initialized successfully (Workers: %d)", numWorkerThreads);
     return true;
+
+
 }
 
 void FPhysXSharedResources::Shutdown()
 {
     if (!bInitialized)
         return;
+
+    // 차량용 공유 리소스 정리
+    ShutdownVehicleResources();
 
     if (Dispatcher)
     {
@@ -130,6 +240,8 @@ void FPhysXSharedResources::Shutdown()
         PxCloseExtensions();
         Physics->release();
         Physics = nullptr;
+
+        PxCloseVehicleSDK();
     }
 
     if (Pvd)
@@ -173,6 +285,48 @@ void FPhysXSharedResources::Release()
         Shutdown();
         RefCount = 0;
     }
+}
+
+// ===== Helper Functions for Surface Setup =====
+
+/**
+ * @brief 운전 가능한 표면 설정 (도로, 지면 등)
+ */
+void SetupDrivableSurface(PxFilterData& filterData)
+{
+    filterData.word0 = COLLISION_GROUP_DRIVABLE_SURFACE;
+    filterData.word1 = ~0; // 모든 것과 충돌
+    filterData.word2 = 0;
+    filterData.word3 = SURFACE_TYPE_DRIVABLE;
+}
+
+/**
+ * @brief 운전 불가능한 표면 설정 (벽, 장애물 등)  
+ */
+void SetupUndrivableSurface(PxFilterData& filterData)
+{
+    filterData.word0 = COLLISION_GROUP_UNDRIVABLE_SURFACE;
+    filterData.word1 = ~0; // 모든 것과 충돌
+    filterData.word2 = 0;
+    filterData.word3 = SURFACE_TYPE_UNDRIVABLE;
+}
+
+/**
+ * @brief 차량 표면 설정
+ */
+void SetupVehicleSurface(PxFilterData& filterData, bool bIsChassis)
+{
+    if (bIsChassis)
+    {
+        filterData.word0 = COLLISION_GROUP_VEHICLE_CHASSIS;
+    }
+    else
+    {
+        filterData.word0 = COLLISION_GROUP_VEHICLE_WHEEL;
+    }
+    filterData.word1 = ~(COLLISION_GROUP_VEHICLE_CHASSIS | COLLISION_GROUP_VEHICLE_WHEEL); // 차량끼리는 충돌 안함
+    filterData.word2 = 0;
+    filterData.word3 = SURFACE_TYPE_VEHICLE;
 }
 
 /**
@@ -310,9 +464,9 @@ static PxFilterFlags RagdollFilterShader(
 
     // 3) 기본 충돌 처리
     pairFlags = PxPairFlag::eCONTACT_DEFAULT
-              | PxPairFlag::eNOTIFY_TOUCH_FOUND
-              | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
-              | PxPairFlag::eNOTIFY_TOUCH_LOST;
+        | PxPairFlag::eNOTIFY_TOUCH_FOUND
+        | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
+        | PxPairFlag::eNOTIFY_TOUCH_LOST;
 
     // 5) Dynamic 바디가 포함된 모든 충돌에 Contact Modify 활성화
     // Kinematic 플래그는 런타임에 변경될 수 있으므로, 콜백에서 실시간으로 체크
@@ -361,9 +515,9 @@ bool FPhysScene::Initialize()
     // simulate() 호출 시, 이 Dispatcher에 등록된 워커 스레드가 병렬로 처리함
     sceneDesc.cpuDispatcher = FPhysXSharedResources::GetDispatcher();
 
-    // 충돌 필터링 로직을 담당하는 함수포인터
+    // 업데이트된 충돌 필터링 로직을 담당하는 함수포인터
     // actor/shape의 PxFilterData를 보고 "이 둘을 충돌시킬지? 트리거로 볼지?"를 결정
-    // 한줄요약 : Dispatcher : "이 씬의 물리 계산을 몇 개의 쓰레드에서 돌릴지"  filterShader : "어떤 객체들 끼리 충돌을 계산/무시 할지 결정"
+    // 차량 표면 타입도 고려하는 필터 셰이더 사용
     sceneDesc.filterShader = RagdollFilterShader;
 
     // Scene 생성
@@ -395,7 +549,7 @@ bool FPhysScene::Initialize()
         }
     }
 
-    UE_LOG("[PhysScene] Initialized successfully");
+    UE_LOG("[PhysScene] Initialized successfully with vehicle surface filtering");
     return true;
 }
 
@@ -813,4 +967,152 @@ bool FPhysScene::SweepSphere(
     }
 
     return false;
+}
+
+// ===== Vehicle Surface Setup Functions =====
+
+void FPhysScene::SetupActorAsDrivableSurface(PxRigidActor* actor)
+{
+    if (!actor) return;
+
+    // 액터의 모든 Shape에 운전 가능한 표면 필터 적용
+    PxU32 numShapes = actor->getNbShapes();
+    PxShape** shapes = new PxShape*[numShapes];
+    actor->getShapes(shapes, numShapes);
+
+    for (PxU32 i = 0; i < numShapes; i++)
+    {
+        PxFilterData filterData;
+        SetupDrivableSurface(filterData);
+        shapes[i]->setSimulationFilterData(filterData);
+        shapes[i]->setQueryFilterData(filterData);
+    }
+
+    delete[] shapes;
+    UE_LOG("[PhysScene] Actor set up as drivable surface");
+}
+
+void FPhysScene::SetupActorAsUndrivableSurface(PxRigidActor* actor)
+{
+    if (!actor) return;
+
+    // 액터의 모든 Shape에 운전 불가능한 표면 필터 적용
+    PxU32 numShapes = actor->getNbShapes();
+    PxShape** shapes = new PxShape*[numShapes];
+    actor->getShapes(shapes, numShapes);
+
+    for (PxU32 i = 0; i < numShapes; i++)
+    {
+        PxFilterData filterData;
+        SetupUndrivableSurface(filterData);
+        shapes[i]->setSimulationFilterData(filterData);
+        shapes[i]->setQueryFilterData(filterData);
+    }
+
+    delete[] shapes;
+    UE_LOG("[PhysScene] Actor set up as undrivable surface");
+}
+
+// ===== 차량용 공유 리소스 관리 함수들 =====
+
+void FPhysXSharedResources::InitializeVehicleResources()
+{
+    if (!Physics)
+    {
+        UE_LOG("[PhysXSharedResources] Cannot initialize vehicle resources: Physics not initialized");
+        return;
+    }
+
+    PxMaterial* DefaultMaterial = GetDefaultMaterial();
+    if (!DefaultMaterial)
+    {
+        UE_LOG("[PhysXSharedResources] Cannot initialize vehicle resources: Default material not found");
+        return;
+    }
+
+    // Friction Pairs 생성 - 더 많은 타이어 타입과 표면 타입 지원
+    const PxU32 numTireTypes = 1;
+    const PxU32 numSurfaceTypes = 1;
+    
+    PxVehicleDrivableSurfaceType surfaceTypes[1];
+    surfaceTypes[0].mType = 0;
+
+    const PxMaterial* surfaceMaterials[1];
+    surfaceMaterials[0] = DefaultMaterial;
+
+    VehicleFrictionPairs = PxVehicleDrivableSurfaceToTireFrictionPairs::allocate(numTireTypes, numSurfaceTypes);
+    VehicleFrictionPairs->setup(numTireTypes, numSurfaceTypes, surfaceMaterials, surfaceTypes);
+
+    // 마찰력 강화 - 타이어와 도로 간 마찰력 증가
+    for (PxU32 i = 0; i < numTireTypes; i++)
+    {
+        for (PxU32 j = 0; j < numSurfaceTypes; j++)
+        {
+            // 마찰력을 1.5로 증가시켜 더 나은 트랙션 제공
+            VehicleFrictionPairs->setTypePairFriction(i, j, 1.5f);
+        }
+    }
+
+    UE_LOG("[PhysXSharedResources] Vehicle resources initialized successfully");
+}
+
+void FPhysXSharedResources::ShutdownVehicleResources()
+{
+    // 활성 BatchQuery들 정리
+    for (PxBatchQuery* BatchQuery : ActiveBatchQueries)
+    {
+        if (BatchQuery)
+        {
+            BatchQuery->release();
+        }
+    }
+    ActiveBatchQueries.Empty();
+
+    // FrictionPairs 정리
+    if (VehicleFrictionPairs)
+    {
+        VehicleFrictionPairs->release();
+        VehicleFrictionPairs = nullptr;
+    }
+
+    UE_LOG("[PhysXSharedResources] Vehicle resources shutdown complete");
+}
+
+PxBatchQuery* FPhysXSharedResources::CreateVehicleBatchQuery(PxScene* Scene, PxBatchQueryDesc& queryDesc)
+{
+    if (!Scene)
+    {
+        UE_LOG("[PhysXSharedResources] CreateVehicleBatchQuery: Scene is null");
+        return nullptr;
+    }
+
+    // Create batch query for vehicle raycasts with vehicle pre-filter
+    queryDesc.preFilterShader = VehicleWheelRaycastPreFilter;  // 차량용 pre-filter 사용
+    
+    PxBatchQuery* BatchQuery = Scene->createBatchQuery(queryDesc);
+    if (BatchQuery)
+    {
+        ActiveBatchQueries.Add(BatchQuery);
+        UE_LOG("[PhysXSharedResources] Vehicle BatchQuery created (NumWheels: %d)", queryDesc.queryMemory.raycastTouchBufferSize);
+    }
+    else
+    {
+        UE_LOG("[PhysXSharedResources] Failed to create vehicle BatchQuery");
+    }
+
+    return BatchQuery;
+}
+
+void FPhysXSharedResources::ReleaseVehicleBatchQuery(PxBatchQuery* BatchQuery)
+{
+    if (!BatchQuery)
+        return;
+
+    // 활성 목록에서 제거 - 직접적인 Remove 사용
+    if (!ActiveBatchQueries.empty())
+    {
+        ActiveBatchQueries.Remove(BatchQuery);
+        BatchQuery->release();
+        UE_LOG("[PhysXSharedResources] Vehicle BatchQuery released");
+    }
 }

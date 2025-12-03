@@ -1546,7 +1546,7 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 					}
 					else
 					{
-						UE_LOG("[SceneRenderer] Failed to get Diffuse texture!");
+						//UE_LOG("[SceneRenderer] Failed to get Diffuse texture!");
 					}
 				}
 				if (!MaterialInfo.NormalTextureFileName.empty())

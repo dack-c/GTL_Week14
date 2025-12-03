@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "PropertyRenderer.h"
 #include "ImGui/imgui.h"
 #include "Vector.h"
@@ -1127,10 +1127,9 @@ bool UPropertyRenderer::RenderSkeletalMeshComponentDetails(USkeletalMeshComponen
 
 	USkeletalMesh* Mesh = Component->GetSkeletalMesh();
 	UPhysicsAsset* DefaultAsset = Mesh ? Mesh->PhysicsAsset : nullptr;
-	FString PhysicsAssetPath = DefaultAsset->GetFilePath();
-
 	if (DefaultAsset)
 	{
+		FString PhysicsAssetPath = DefaultAsset->GetFilePath();
 		ImGui::Text("Mesh Default: %s", PhysicsAssetPath.c_str());
 	}
 	else
