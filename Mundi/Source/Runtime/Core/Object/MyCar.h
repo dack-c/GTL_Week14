@@ -22,6 +22,7 @@ struct FVehicleInputData
     float AnalogBrake = 0.0f;
     float AnalogSteer = 0.0f;
     float AnalogHandbrake = 0.0f;
+    bool bReverse = false; // 후진 상태 추가
 
     void Reset()
     {
@@ -29,6 +30,7 @@ struct FVehicleInputData
         AnalogBrake = 0.0f;
         AnalogSteer = 0.0f;
         AnalogHandbrake = 0.0f;
+        bReverse = false;
     }
 };
 
@@ -70,6 +72,8 @@ protected:
     void ApplySteering(float Value);
     void ApplyBrake(float Value);
     void ApplyHandbrake(float Value);
+    void ApplyReverse(bool bInReverse); // 후진 제어 함수 추가
+    bool IsVehicleInReverse() const { return VehicleInput.bReverse; } // 후진 상태 조회 함수
 
     // Wheel bone animation
     void FindWheelBones();
@@ -94,7 +98,7 @@ protected:
     float ChassisMass = 1500.0f;
     
     UPROPERTY(EditAnywhere, Category = "Vehicle")
-    FVector ChassisDimensions = FVector(2.5f, 2.0f, 5.0f);
+    FVector ChassisDimensions = FVector(2.5f, 4.0f, 2.0f);
     
     UPROPERTY(EditAnywhere, Category = "Vehicle")
     float WheelRadius = 0.5f;
@@ -126,6 +130,7 @@ protected:
 
     // State tracking
     bool bIsVehicleInAir = false;
+    bool bIsReversing = false; // 후진 상태 추가
     float CurrentSteerInput = 0.0f;
     float CurrentThrottleInput = 0.0f;
     float CurrentBrakeInput = 0.0f;
