@@ -86,8 +86,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // Near: CoC < 0일 때 alpha = |CoC|, 아니면 0
     // Far: CoC > 0일 때 alpha = CoC, 아니면 0
     // Focus 영역도 색상은 있음 (블러가 번질 때 참조용)
-    output.Near = float4(sceneColor.rgb, saturate(-CoC));
-    output.Far = float4(sceneColor.rgb, saturate(CoC));
+    //
+    // ※ saturate 제거! Raw CoC 저장 (정렬용 깊이 정보 보존)
+    // 텍스처 포맷이 R16G16B16A16_FLOAT여야 1.0 초과 값 저장 가능
+    output.Near = float4(sceneColor.rgb, max(-CoC, 0.0));  // Near: 음수 CoC → 양수로
+    output.Far = float4(sceneColor.rgb, max(CoC, 0.0));    // Far: 양수 CoC 그대로
 
     return output;
 }

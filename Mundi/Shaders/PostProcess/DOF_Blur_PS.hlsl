@@ -41,7 +41,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 1. 중앙 샘플 (소스가 이미 Near/Far 분리됨)
     float4 centerSample = g_InputTex.Sample(g_PointClampSample, input.texCoord);
     float3 centerColor = centerSample.rgb;
-    float centerCoc = centerSample.a;  // 이미 양수 (절대값)
+    float centerCocRaw = centerSample.a;      // Raw CoC (1.0 초과 가능, 정렬용)
+    float centerCoc = saturate(centerCocRaw); // Clamped CoC (크기 계산용)
 
     // 2. 검색 반경 결정
     float halfBlurRadius = BlurRadius * 0.5;
@@ -102,7 +103,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
             float4 sampleVal = g_InputTex.Sample(g_LinearClampSample, sampleUV);
             float3 sampleColor = sampleVal.rgb;
-            float sampleCoc = sampleVal.a;
+            float sampleCocRaw = sampleVal.a;           // Raw (정렬용)
+            float sampleCoc = saturate(sampleCocRaw);   // Clamped (크기용)
 
             // 소스가 이미 분리되어 있으므로 CoC > 0이면 유효한 샘플
             if (sampleCoc < COC_THRESHOLD)
@@ -110,13 +112,15 @@ PS_OUTPUT mainPS(PS_INPUT input)
                 continue;
             }
 
-            // 깊이 체크: 샘플의 CoC가 나보다 크거나 같아야 번질 수 있음
-            if (sampleCoc < centerCoc - 0.05)
+            // 깊이 체크: Raw CoC로 비교 (앞뒤 구분)
+            // 샘플이 나보다 더 앞(CoC 더 큼)이거나 비슷해야 번질 수 있음
+            if (sampleCocRaw < centerCocRaw - 0.05)
             {
                 continue;
             }
 
             // Scatter-as-Gather: 샘플의 블러가 현재 거리까지 도달하는지
+            // 크기 계산은 Clamped 값 사용
             float sampleRadiusPx = sampleCoc * halfBlurRadius;
             float coverage = saturate((sampleRadiusPx - ringRadius + 1.0) / max(sampleRadiusPx, 1.0));
 
