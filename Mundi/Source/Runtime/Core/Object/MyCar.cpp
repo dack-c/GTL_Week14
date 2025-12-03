@@ -110,13 +110,14 @@ void AMyCar::InitializeVehiclePhysics()
     FPhysScene* PhysScene = World->GetPhysScene();
     PxScene* PxScenePtr = PhysScene->GetScene();
     PxPhysics* Physics = PhysScene->GetPhysics();
+    PxMaterial* Material = PhysScene->GetDefaultMaterial();
     
-    if (!PxScenePtr || !Physics)
+    if (!PxScenePtr || !Physics || !Material)
     {
         UE_LOG("[MyCarComponent] Failed to initialize: Invalid PhysX scene");
         return;
     }
-    
+
     // Initialize PhysX Vehicle SDK
     if (!PxInitVehicleSDK(*Physics))
     {
@@ -125,11 +126,32 @@ void AMyCar::InitializeVehiclePhysics()
     }
     
     // Set basis vectors (Z-up coordinate system)
-    //PxVehicleSetBasisVectors(PxVec3(0, 1, 0), PxVec3(0, 0, 1));
     PxVehicleSetBasisVectors(PxVec3(0, 0, 1), PxVec3(1, 0, 0));
     
     // Set update mode
     PxVehicleSetUpdateMode(PxVehicleUpdateMode::eVELOCITY_CHANGE);
+
+    // 레이캐스트 결과 버퍼 초기화
+    RaycastResults.SetNum(NumWheels);
+    RaycastHitBuffer.SetNum(NumWheels);
+
+    // Friction Pairs 생성
+    PxVehicleDrivableSurfaceType surfaceTypes[1];
+    surfaceTypes[0].mType = 0;
+
+    const PxMaterial* surfaceMaterials[1];
+    surfaceMaterials[0] = Material;
+
+    FrictionPairs = PxVehicleDrivableSurfaceToTireFrictionPairs::allocate(1, 1);
+    FrictionPairs->setup(1, 1, surfaceMaterials, surfaceTypes);
+
+    for (PxU32 i = 0; i < 1; i++)
+    {
+        for (PxU32 j = 0; j < 1; j++)
+        {
+            FrictionPairs->setTypePairFriction(i, j, 1.0f);
+        }
+    }
     
     // Create the vehicle
     CreateVehicle4W();
@@ -363,19 +385,105 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     if (!PxScenePtr)
         return;
     
-    // Apply smoothed inputs
-    VehicleDrive4W->mDriveDynData.setAnalogInput(PxVehicleDrive4WControl::eANALOG_INPUT_ACCEL, 
-                                                  VehicleInput.AnalogAccel);
-    VehicleDrive4W->mDriveDynData.setAnalogInput(PxVehicleDrive4WControl::eANALOG_INPUT_BRAKE, 
-                                                  VehicleInput.AnalogBrake);
-    VehicleDrive4W->mDriveDynData.setAnalogInput(PxVehicleDrive4WControl::eANALOG_INPUT_STEER_LEFT, 
-                                                  FMath::Max(0.0f, -VehicleInput.AnalogSteer));
-    VehicleDrive4W->mDriveDynData.setAnalogInput(PxVehicleDrive4WControl::eANALOG_INPUT_STEER_RIGHT, 
-                                                  FMath::Max(0.0f, VehicleInput.AnalogSteer));
-    VehicleDrive4W->mDriveDynData.setAnalogInput(PxVehicleDrive4WControl::eANALOG_INPUT_HANDBRAKE, 
-                                                  VehicleInput.AnalogHandbrake);
+    // 1. 입력 적용
+    VehicleDrive4W->mDriveDynData.setAnalogInput(
+        PxVehicleDrive4WControl::eANALOG_INPUT_ACCEL, 
+        VehicleInput.AnalogAccel);
+    VehicleDrive4W->mDriveDynData.setAnalogInput(
+        PxVehicleDrive4WControl::eANALOG_INPUT_BRAKE, 
+        VehicleInput.AnalogBrake);
+    VehicleDrive4W->mDriveDynData.setAnalogInput(
+        PxVehicleDrive4WControl::eANALOG_INPUT_STEER_LEFT, 
+        FMath::Max(0.0f, -VehicleInput.AnalogSteer));
+    VehicleDrive4W->mDriveDynData.setAnalogInput(
+        PxVehicleDrive4WControl::eANALOG_INPUT_STEER_RIGHT, 
+        FMath::Max(0.0f, VehicleInput.AnalogSteer));
+    VehicleDrive4W->mDriveDynData.setAnalogInput(
+        PxVehicleDrive4WControl::eANALOG_INPUT_HANDBRAKE, 
+        VehicleInput.AnalogHandbrake);
     
-    // Get vehicle transform from PhysX
+    // 2. 서스펜션 레이캐스트 수동 수행
+    PxVehicleWheels* vehicles[1] = {VehicleDrive4W};
+    const PxU32 numWheels = VehicleDrive4W->mWheelsSimData.getNbWheels();
+    
+    // 각 바퀴마다 레이캐스트
+    for (PxU32 i = 0; i < numWheels; i++)
+    {
+        // 바퀴 위치 계산
+        const PxVec3 wheelOffset = VehicleDrive4W->mWheelsSimData.getWheelCentreOffset(i);
+        const PxTransform vehicleTransform = VehicleDrive4W->getRigidDynamicActor()->getGlobalPose();
+        const PxVec3 wheelWorldPos = vehicleTransform.transform(wheelOffset);
+        
+        // 서스펜션 방향
+        const PxVec3 suspDir = VehicleDrive4W->mWheelsSimData.getSuspTravelDirection(i);
+        const PxVec3 suspWorldDir = vehicleTransform.rotate(suspDir);
+        
+        // 최대 서스펜션 거리
+        const PxF32 maxSuspTravel = VehicleDrive4W->mWheelsSimData.getSuspensionData(i).mMaxDroop 
+                                   + VehicleDrive4W->mWheelsSimData.getSuspensionData(i).mMaxCompression;
+        
+        // 레이캐스트 수행
+        PxRaycastBuffer hit;
+        PxQueryFilterData filterData;
+        filterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC;
+        
+        bool hasHit = PxScenePtr->raycast(
+            wheelWorldPos, 
+            suspWorldDir, 
+            maxSuspTravel + WheelRadius,
+            hit,
+            PxHitFlag::eDEFAULT,
+            filterData
+        );
+        
+        // 결과 저장 (PxRaycastBuffer를 직접 사용)
+        if (hasHit && hit.hasBlock)
+        {
+            RaycastHitBuffer[i] = hit.block;
+        }
+        else
+        {
+            RaycastHitBuffer[i] = PxRaycastHit();  // 빈 hit로 초기화
+        }
+    }
+    
+    // 3. 차량 업데이트 (레이캐스트 결과 사용)
+    PxWheelQueryResult wheelQueryResults[PX_MAX_NB_WHEELS];
+    for (PxU32 i = 0; i < numWheels; i++)
+    {
+        wheelQueryResults[i].isInAir = true;
+        wheelQueryResults[i].tireSurfaceMaterial = nullptr;
+        wheelQueryResults[i].tireSurfaceType = 0;
+        wheelQueryResults[i].localPose = PxTransform(PxIdentity);
+        
+        // 히트가 있으면 정보 설정
+        if (RaycastHitBuffer[i].shape)
+        {
+            wheelQueryResults[i].isInAir = false;
+            wheelQueryResults[i].tireSurfaceMaterial = RaycastHitBuffer[i].shape->getMaterialFromInternalFaceIndex(RaycastHitBuffer[i].faceIndex);
+            wheelQueryResults[i].tireSurfaceType = 0;
+            
+            // 로컬 포즈 계산
+            const PxTransform vehicleTransform = VehicleDrive4W->getRigidDynamicActor()->getGlobalPose();
+            const PxVec3 wheelOffset = VehicleDrive4W->mWheelsSimData.getWheelCentreOffset(i);
+            wheelQueryResults[i].localPose = PxTransform(wheelOffset);
+        }
+    }
+    
+    PxVehicleWheelQueryResult vehicleQueryResults[1] = {
+        {wheelQueryResults, numWheels}
+    };
+    
+    // 차량 물리 업데이트
+    const PxVec3 grav = PxScenePtr->getGravity();
+    PxVehicleUpdates(DeltaTime, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
+    
+    // 공중 여부 확인
+    bIsVehicleInAir = VehicleDrive4W->getRigidDynamicActor()->isSleeping() 
+        ? false 
+        : PxVehicleIsInAir(vehicleQueryResults[0]);
+    
+    // 4. 트랜스폼 동기화
     if (VehicleDrive4W->getRigidDynamicActor())
     {
         PxTransform PxTrans = VehicleDrive4W->getRigidDynamicActor()->getGlobalPose();
@@ -412,6 +520,12 @@ void AMyCar::CleanupVehiclePhysics()
         // Free vehicle
         VehicleDrive4W->free();
         VehicleDrive4W = nullptr;
+    }
+    
+    if (FrictionPairs)
+    {
+        FrictionPairs->release();
+        FrictionPairs = nullptr;
     }
     
     // Cleanup PhysX Vehicle SDK

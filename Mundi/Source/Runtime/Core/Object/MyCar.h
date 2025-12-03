@@ -8,9 +8,10 @@ class FPhysScene;
 namespace physx {
     class PxVehicleDrive4W;
     class PxVehicleWheels;
-    class PxBatchQuery;
     struct PxVehicleWheelQueryResult;
     struct PxWheelQueryResult;
+    struct PxRaycastHit;
+    class PxVehicleDrivableSurfaceToTireFrictionPairs;
 }
 
 // Vehicle input data structure
@@ -61,7 +62,6 @@ protected:
 
     // Input processing
     void ProcessKeyboardInput(float DeltaTime);
-    //void UpdateVehicleInputs(float DeltaTime);
 
     // Vehicle control
     void ApplyThrottle(float Value);
@@ -76,8 +76,12 @@ protected:
 
     // PhysX vehicle data
     physx::PxVehicleDrive4W* VehicleDrive4W = nullptr;
-    physx::PxBatchQuery* BatchQuery = nullptr;
-    
+    physx::PxVehicleDrivableSurfaceToTireFrictionPairs* FrictionPairs = nullptr;
+
+    // 레이캐스트 결과 버퍼 (PxRaycastQueryResult 대신 PxRaycastHit 사용)
+    TArray<physx::PxRaycastHit> RaycastHitBuffer;
+    TArray<int32> RaycastResults;  // 단순 상태 플래그용
+
     // Vehicle input
     FVehicleInputData VehicleInput;
     
