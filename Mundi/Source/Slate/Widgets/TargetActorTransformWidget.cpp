@@ -648,7 +648,7 @@ void UTargetActorTransformWidget::RenderDOFSettings(APlayerCameraManager* CamMgr
 			// Max Near Blur
 			ImGui::Text("Max Near Blur");
 			ImGui::SetNextItemWidth(-1);
-			ImGui::DragFloat("##MaxNearBlur", &DOF->MaxNearBlurSize, 0.5f, 0.0f, 128.0f, "%.1f");
+			ImGui::DragFloat("##MaxNearBlur", &DOF->MaxNearBlurSize, 0.5f, 0.0f, 16.0f, "%.1f");
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::SetTooltip("Maximum blur radius for near (foreground) objects in pixels");
@@ -657,7 +657,7 @@ void UTargetActorTransformWidget::RenderDOFSettings(APlayerCameraManager* CamMgr
 			// Max Far Blur
 			ImGui::Text("Max Far Blur");
 			ImGui::SetNextItemWidth(-1);
-			ImGui::DragFloat("##MaxFarBlur", &DOF->MaxFarBlurSize, 0.5f, 0.0f, 128.0f, "%.1f");
+			ImGui::DragFloat("##MaxFarBlur", &DOF->MaxFarBlurSize, 0.5f, 0.0f, 16.0f, "%.1f");
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::SetTooltip("Maximum blur radius for far (background) objects in pixels");
@@ -677,133 +677,6 @@ void UTargetActorTransformWidget::RenderSelectedComponentDetails(UActorComponent
 	if (SelectedComponent)
 	{
 		UPropertyRenderer::RenderAllPropertiesWithInheritance(SelectedComponent);
-	}
-
-	if (UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(SelectedComponent))
-	{
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Text("Collision Settings");
-
-		ImGui::Checkbox("Use Collision Override", &PrimitiveComponent->bOverrideCollisionSetting);
-		int CurrentIndex = static_cast<int>(PrimitiveComponent->CollisionEnabled);
-		static const char* CollisionItems[] = {
-			"NoCollision",
-			"QueryOnly (Trigger)",
-			"Query + Physics",
-		};
-		if (ImGui::Combo("Collision Settings", &CurrentIndex, CollisionItems, IM_ARRAYSIZE(CollisionItems)))
-		{
-			PrimitiveComponent->CollisionEnabled = static_cast<ECollisionState>(CurrentIndex);
-		}
-	}
-
-	if (USkeletalMeshComponent* SkeletalComponent = Cast<USkeletalMeshComponent>(SelectedComponent))
-	{
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Text("Physics Asset Override");
-
-		USkeletalMesh* Mesh = SkeletalComponent->GetSkeletalMesh();
-		UPhysicsAsset* DefaultAsset = Mesh ? Mesh->PhysicsAsset : nullptr;
-		if (DefaultAsset)
-		{
-			ImGui::Text("Mesh Default: %s", DefaultAsset->GetName().ToString().c_str());
-		}
-		else
-		{
-			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Mesh Default: None");
-		}
-
-		UPhysicsAsset* ActiveAsset = SkeletalComponent->GetPhysicsAsset();
-		if (ActiveAsset)
-		{
-			ImGui::Text("Active Asset: %s", ActiveAsset->GetName().ToString().c_str());
-		}
-		else
-		{
-			ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Active Asset: None");
-		}
-
-		const bool bHasOverride = SkeletalComponent->HasPhysicsAssetOverride();
-		const FString& OverridePath = SkeletalComponent->GetPhysicsAssetOverridePath();
-		if (bHasOverride)
-		{
-			ImGui::Text("Override Path: %s", OverridePath.empty() ? "<unsaved>" : OverridePath.c_str());
-		}
-		else
-		{
-			ImGui::Text("Override Path: (Using mesh default)");
-		}
-
-		TArray<FString> AvailablePaths = UResourceManager::GetInstance().GetAllFilePaths<UPhysicsAsset>();
-		TArray<FString> ComboPaths;
-		ComboPaths.push_back("");
-		TArray<FString> ComboLabels;
-		ComboLabels.push_back("Use Mesh Default");
-
-		for (const FString& Path : AvailablePaths)
-		{
-			ComboPaths.push_back(Path);
-			std::filesystem::path PathView(Path);
-			FString Label = PathView.filename().string();
-			if (Label.empty())
-			{
-				Label = Path;
-			}
-			ComboLabels.push_back(Label);
-		}
-
-		int SelectedIndex = 0;
-		bool bOverrideMissing = false;
-		if (bHasOverride)
-		{
-			for (int32 Index = 1; Index < ComboPaths.Num(); ++Index)
-			{
-				if (ComboPaths[Index] == OverridePath)
-				{
-					SelectedIndex = Index;
-					break;
-				}
-			}
-			if (SelectedIndex == 0 && !OverridePath.empty())
-			{
-				bOverrideMissing = true;
-			}
-		}
-
-		const char* CurrentLabel = ComboLabels[SelectedIndex].c_str();
-		ImGui::SetNextItemWidth(-1);
-		if (ImGui::BeginCombo("##PhysicsAssetOverrideCombo", CurrentLabel))
-		{
-			for (int32 Index = 0; Index < ComboLabels.Num(); ++Index)
-			{
-				bool bSelected = (SelectedIndex == Index);
-				if (ImGui::Selectable(ComboLabels[Index].c_str(), bSelected))
-				{
-					if (Index == 0)
-					{
-						SkeletalComponent->ClearPhysicsAssetOverride();
-						SelectedIndex = 0;
-					}
-					else if (Index < ComboPaths.Num())
-					{
-						SkeletalComponent->SetPhysicsAssetOverrideByPath(ComboPaths[Index]);
-						SelectedIndex = Index;
-					}
-				}
-				if (bSelected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
-			}
-			ImGui::EndCombo();
-		}
-
-		if (bOverrideMissing)
-		{
-			ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Override asset missing on disk");
-		}
 	}
 }
 

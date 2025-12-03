@@ -308,10 +308,12 @@ private:
 public:
     void SetPhysicsAnimationState(EPhysicsAnimationState NewState, float InBlendTime = 0.2f) { PhysicsState = NewState; BlendTime = InBlendTime; };
 
-    // Event Call Back Test
-    void OnRegiDebug();
-    void OnUnregiDebug();
-    void GameLogicTest(FContactHit ContactHit);
+    // Physics Bodies accessor
+    const TArray<FBodyInstance*>& GetBodies() const { return Bodies; }
+    int32 GetNumBodies() const { return Bodies.Num(); }
 
-    FDelegateHandle TestContactHit{};
+    /**
+     * @brief 본 포즈를 원래 바인드 포즈로 리셋
+     */
+    void ResetToBindPose();
 };

@@ -1,10 +1,179 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "PhysScene.h"
 #include "SimulationEventCallback.h"
+#include "Source/Runtime/Engine/Collision/Collision.h"
+#include "Source/Runtime/Engine/Physics/BodyInstance.h"
+#include "Source/Runtime/Engine/Components/PrimitiveComponent.h"
+#include "Actor.h"
 #include "ObjectIterator.h"
 #include "StaticMesh.h"
 #include "BodySetup.h"
 #include <Windows.h>
+
+// ===== FPhysXSharedResources Static Members =====
+PxDefaultAllocator FPhysXSharedResources::Allocator;
+PxDefaultErrorCallback FPhysXSharedResources::ErrorCallback;
+FPhysXAssertHandler FPhysXSharedResources::AssertHandler;
+PxFoundation* FPhysXSharedResources::Foundation = nullptr;
+PxPvd* FPhysXSharedResources::Pvd = nullptr;
+PxPvdTransport* FPhysXSharedResources::PvdTransport = nullptr;
+PxPhysics* FPhysXSharedResources::Physics = nullptr;
+PxDefaultCpuDispatcher* FPhysXSharedResources::Dispatcher = nullptr;
+PxMaterial* FPhysXSharedResources::DefaultMaterial = nullptr;
+int32 FPhysXSharedResources::RefCount = 0;
+bool FPhysXSharedResources::bInitialized = false;
+
+bool FPhysXSharedResources::Initialize()
+{
+    if (bInitialized)
+        return true;
+
+    // 커스텀 Assert 핸들러 등록
+    PxSetAssertHandler(AssertHandler);
+
+    // 1) Foundation - PhysX SDK의 최상위 루트 객체
+    Foundation = PxCreateFoundation(PX_PHYSICS_VERSION, Allocator, ErrorCallback);
+    if (!Foundation)
+    {
+        UE_LOG("[PhysXSharedResources] PxCreateFoundation failed!");
+        return false;
+    }
+
+    // 2) PVD (PhysX Visual Debugger) 연결
+    Pvd = PxCreatePvd(*Foundation);
+    if (Pvd)
+    {
+        PvdTransport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
+        if (PvdTransport)
+        {
+            bool bConnected = Pvd->connect(*PvdTransport, PxPvdInstrumentationFlag::eALL);
+            if (bConnected)
+            {
+                UE_LOG("[PhysXSharedResources] PVD connected successfully");
+            }
+            else
+            {
+                UE_LOG("[PhysXSharedResources] PVD connection failed (PVD application not running?)");
+                Pvd->release();
+                Pvd = nullptr;
+                PvdTransport->release();
+                PvdTransport = nullptr;
+            }
+        }
+        else
+        {
+            Pvd->release();
+            Pvd = nullptr;
+        }
+    }
+
+    // 3) Physics - 모든 물리 객체를 생성하는 팩토리
+    Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, PxTolerancesScale(), true, Pvd);
+    if (!Physics)
+    {
+        UE_LOG("[PhysXSharedResources] PxCreatePhysics failed!");
+        return false;
+    }
+
+    // Extensions 초기화 (Joint, Character Controller 등)
+    if (!PxInitExtensions(*Physics, Pvd))
+    {
+        UE_LOG("[PhysXSharedResources] PxInitExtensions failed!");
+        return false;
+    }
+
+    // 4) Default Material
+    DefaultMaterial = Physics->createMaterial(0.5f, 0.4f, 0.5f);
+    if (!DefaultMaterial)
+    {
+        UE_LOG("[PhysXSharedResources] createMaterial failed!");
+        return false;
+    }
+
+    // 5) CPU Dispatcher - 멀티쓰레드 물리 계산용
+    SYSTEM_INFO sysInfo{};
+    GetSystemInfo(&sysInfo);
+    int numCores = sysInfo.dwNumberOfProcessors;
+    int numWorkerThreads = std::max(1, numCores - 1);
+
+    Dispatcher = PxDefaultCpuDispatcherCreate(numWorkerThreads);
+    if (!Dispatcher)
+    {
+        UE_LOG("[PhysXSharedResources] PxDefaultCpuDispatcherCreate failed!");
+        return false;
+    }
+
+    bInitialized = true;
+    UE_LOG("[PhysXSharedResources] Initialized successfully (Workers: %d)", numWorkerThreads);
+    return true;
+}
+
+void FPhysXSharedResources::Shutdown()
+{
+    if (!bInitialized)
+        return;
+
+    if (Dispatcher)
+    {
+        Dispatcher->release();
+        Dispatcher = nullptr;
+    }
+
+    if (DefaultMaterial)
+    {
+        DefaultMaterial->release();
+        DefaultMaterial = nullptr;
+    }
+
+    if (Physics)
+    {
+        PxCloseExtensions();
+        Physics->release();
+        Physics = nullptr;
+    }
+
+    if (Pvd)
+    {
+        if (Pvd->isConnected())
+            Pvd->disconnect();
+        Pvd->release();
+        Pvd = nullptr;
+    }
+
+    if (PvdTransport)
+    {
+        PvdTransport->release();
+        PvdTransport = nullptr;
+    }
+
+    if (Foundation)
+    {
+        Foundation->release();
+        Foundation = nullptr;
+    }
+
+    bInitialized = false;
+    UE_LOG("[PhysXSharedResources] Shutdown complete");
+}
+
+void FPhysXSharedResources::AddRef()
+{
+    if (RefCount == 0)
+    {
+        Initialize();
+    }
+    RefCount++;
+}
+
+void FPhysXSharedResources::Release()
+{
+    RefCount--;
+    if (RefCount <= 0)
+    {
+        Shutdown();
+        RefCount = 0;
+    }
+}
 
 /**
  * @brief 래그돌용 커스텀 충돌 필터 셰이더
@@ -60,128 +229,52 @@ FPhysScene::~FPhysScene()
 
 bool FPhysScene::Initialize()
 {
-    // 0) 커스텀 Assert 핸들러 등록 - PhysX Debug 빌드에서 어떤 assertion이 실패하는지 로그로 출력
-    PxSetAssertHandler(AssertHandler);
+    // 공유 리소스 초기화 (참조 카운트 증가)
+    // Foundation, Physics, Dispatcher 등은 FPhysXSharedResources에서 관리
+    FPhysXSharedResources::AddRef();
 
-    // 1) Foundation
-    // PhysX SDK의 최상위 루트 객체
-    Foundation = PxCreateFoundation(PX_PHYSICS_VERSION, Allocator, ErrorCallback);
-
-    if (!Foundation)
+    if (!FPhysXSharedResources::IsInitialized())
     {
+        UE_LOG("[PhysScene] Shared resources initialization failed!");
         return false;
     }
 
-    // 2) PVD (PhysX Visual Debugger) 연결
-    // PVD 프로그램이 실행 중이면 자동 연결, 없으면 무시
-    Pvd = PxCreatePvd(*Foundation);
-    if (Pvd)
-    {
-        PvdTransport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
-        if (PvdTransport)
-        {
-            bool bConnected = Pvd->connect(*PvdTransport, PxPvdInstrumentationFlag::eALL);
-            if (bConnected)
-            {
-                UE_LOG("[PhysScene] PVD connected successfully");
-            }
-            else
-            {
-                UE_LOG("[PhysScene] PVD connection failed (PVD application not running?)");
-                // 연결 실패 시 PVD 해제
-                Pvd->release();
-                Pvd = nullptr;
-                PvdTransport->release();
-                PvdTransport = nullptr;
-            }
-        }
-        else
-        {
-            // Transport 생성 실패 시 PVD 해제
-            Pvd->release();
-            Pvd = nullptr;
-        }
-    }
+    PxPhysics* Physics = FPhysXSharedResources::GetPhysics();
 
-    // 3) Physics
-    // PhysX SDK의 메인 엔트리 포인트, 앞으로 우리가 만드는 모든 물리 객체는 Physics를 통해 생성됨.
-    // PxTolerancesScale()은 길이/질량/속도 스케일 과 같은 기본값을 넘겨주는 구조체
-    // SceneDesc, joint limit, contact offset 같은 곳에 "이 게임 세계의 단위가 어느 정도냐"를 추정할 때 사용
-    // 한줄요약 : "씬, 머티리얼, 쉐이프 같은 물리 객체를 전부 찍어내는 공장(Factory)"
-    // PVD 연결 성공 시에만 전달, 실패 시 nullptr
-    Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, PxTolerancesScale(), true, Pvd);
-
-    if (!Physics)
-    {
-        return false;
-    }
-
-    // ★ Extensions 초기화 (Joint, Character Controller 등 사용 시 필수)
-    // PVD가 연결된 상태에서 Joint를 만들려면 반드시 PxInitExtensions를 호출해야 함
-    // 그렇지 않으면 PVD가 Joint 인스턴스를 인식하지 못해 isInstanceValid Assert 발생
-    if (!PxInitExtensions(*Physics, Pvd))
-    {
-        UE_LOG("[PhysScene] PxInitExtensions failed!");
-        return false;
-    }
-
-    // 3) Default Material
-    // 기본 표면 성질
-    DefaultMaterial = Physics->createMaterial(0.5f, 0.4f, 0.5f);
-
-    if (!DefaultMaterial)
-    {
-        return false;
-    }
-
-    // 4) SceneDesc Setting
+    // SceneDesc Setting
     // PxSceneDesc는 PxScene을 만들기 위한 설정 구조체
     // 중요한요소 : gravity, CpuDispatcher, filterShader(충돌 필터링/마스크)
     // 한줄요약 : 이 Scene은 Z-up월드고, 중력은 -Z방향으로 9.81m/s^2로 떨어진다라고 PhysX에게 알려주는 단계
     PxSceneDesc sceneDesc(Physics->getTolerancesScale());
     sceneDesc.gravity = PxVec3(0, 0, -9.81); // LH Z-up이기 때문에 중력처리는 Z축에서 진행
 
-	// Create and set the simulation event callback
-	SimulationEventCallback = new FSimulationEventCallback(this);
-	sceneDesc.simulationEventCallback = SimulationEventCallback;
+    // Create and set the simulation event callback
+    SimulationEventCallback = new FSimulationEventCallback(this);
+    sceneDesc.simulationEventCallback = SimulationEventCallback;
 
-
-    // 5) CPU Thread Setting
-    // PhysX용 워커 쓰레드 풀
+    // CPU Thread Setting
+    // PhysX용 워커 쓰레드 풀 (공유 Dispatcher 사용)
     // simulate() 호출 시, 이 Dispatcher에 등록된 워커 스레드가 병렬로 처리함
-    SYSTEM_INFO sysInfo{};
-    GetSystemInfo(&sysInfo);
-    int numCores = sysInfo.dwNumberOfProcessors;
-
-    // 메인 쓰레드는 게임/렌더용으로 남겨두고 나머지 코어는 물리작업시키겠다는 의도
-    // TODO : 하지만 이 엔진에서는 파티클에 비동기를 적용하므로 -2가 되어야할 수도 있음. 이거는 나중에 고민하고 일단은 -1로
-    int numWorkerTreads = std::max(1, numCores - 1); 
-
-    Dispatcher = PxDefaultCpuDispatcherCreate(numWorkerTreads);
-
-    if (!Dispatcher)
-    {
-        return false;
-    }
-
-    sceneDesc.cpuDispatcher = Dispatcher;
+    sceneDesc.cpuDispatcher = FPhysXSharedResources::GetDispatcher();
 
     // 충돌 필터링 로직을 담당하는 함수포인터
     // actor/shape의 PxFilterData를 보고 "이 둘을 충돌시킬지? 트리거로 볼지?"를 결정
     // 한줄요약 : Dispatcher : "이 씬의 물리 계산을 몇 개의 쓰레드에서 돌릴지"  filterShader : "어떤 객체들 끼리 충돌을 계산/무시 할지 결정"
     sceneDesc.filterShader = RagdollFilterShader;
 
-    // 6) Scene 생성
+    // Scene 생성
     // PxScene = 실제 물리 시뮬레이션 월드하나
     // 모든 RigidDynamic, PxRigidStatic, PxShape(Collider), PxJoint(Joint), 중력, 시뮬레이션 옵션, 콜백
     // 한줄요약 : 월드 안에서 물리만 전담하는 UWorld같은 개념
     Scene = Physics->createScene(sceneDesc);
     if (!Scene)
     {
+        UE_LOG("[PhysScene] createScene failed!");
         return false;
     }
 
-    // 7) PVD Scene 클라이언트 설정
+    // PVD Scene 클라이언트 설정
+    PxPvd* Pvd = FPhysXSharedResources::GetPvd();
     if (Pvd && Pvd->isConnected())
     {
         PxPvdSceneClient* PvdClient = Scene->getScenePvdClient();
@@ -193,8 +286,8 @@ bool FPhysScene::Initialize()
         }
     }
 
+    UE_LOG("[PhysScene] Initialized successfully");
     return true;
-    
 }
 
 void FPhysScene::Shutdown()
@@ -222,7 +315,6 @@ void FPhysScene::Shutdown()
     if (Scene)
     {
         Scene->setSimulationEventCallback(nullptr); // Call Back 연결 해제
-
         Scene->release();
         Scene = nullptr;
     }
@@ -289,6 +381,8 @@ void FPhysScene::Shutdown()
         Foundation->release();
         Foundation = nullptr;
     }
+    // 공유 리소스 참조 해제 (마지막 사용자면 자동으로 Shutdown됨)
+    FPhysXSharedResources::Release();
 }
 
 void FPhysScene::StepSimulation(float dt)
@@ -330,6 +424,9 @@ FPhysScene::GameObject& FPhysScene::CreateBox(const PxVec3& pos, const PxVec3& h
 {
     GameObject obj;
 
+    PxPhysics* Physics = FPhysXSharedResources::GetPhysics();
+    PxMaterial* DefaultMaterial = FPhysXSharedResources::GetDefaultMaterial();
+
     PxTransform pose(pos);
     obj.rigidBody = Physics->createRigidDynamic(pose);
 
@@ -369,8 +466,7 @@ std::vector<FPhysScene::GameObject>& FPhysScene::GetObjects()
 
 PxPhysics* FPhysScene::GetPhysics() const
 {
-    return Physics;
-
+    return FPhysXSharedResources::GetPhysics();
 }
 
 PxScene* FPhysScene::GetScene() const
@@ -380,10 +476,275 @@ PxScene* FPhysScene::GetScene() const
 
 PxMaterial* FPhysScene::GetDefaultMaterial() const
 {
-    return DefaultMaterial;
+    return FPhysXSharedResources::GetDefaultMaterial();
 }
 
 PxDefaultCpuDispatcher* FPhysScene::GetDispatcher() const
 {
-    return Dispatcher;
+    return FPhysXSharedResources::GetDispatcher();
+}
+
+// ===== Sweep Query Helper =====
+namespace
+{
+    // PhysX PxSweepHit을 FHitResult로 변환
+    void ConvertPxSweepHitToHitResult(
+        const PxSweepHit& PxHit,
+        const FVector& Start,
+        const FVector& End,
+        const FVector& Direction,
+        float TotalDistance,
+        FHitResult& OutHit)
+    {
+        OutHit.bHit = true;
+        OutHit.bBlockingHit = true;
+        OutHit.Time = PxHit.distance / TotalDistance;
+        OutHit.Distance = PxHit.distance;
+        OutHit.Location = Start + Direction * PxHit.distance;
+        OutHit.ImpactPoint = FVector(PxHit.position.x, PxHit.position.y, PxHit.position.z);
+        OutHit.ImpactNormal = FVector(PxHit.normal.x, PxHit.normal.y, PxHit.normal.z);
+        OutHit.TraceStart = Start;
+        OutHit.TraceEnd = End;
+
+        // Actor/Component 정보 추출
+        if (PxHit.actor)
+        {
+            void* UserData = PxHit.actor->userData;
+            if (UserData)
+            {
+                // BodyInstance에서 Owner 추출
+                FBodyInstance* BodyInst = static_cast<FBodyInstance*>(UserData);
+                if (BodyInst && BodyInst->OwnerComponent)
+                {
+                    OutHit.HitComponent = Cast<UPrimitiveComponent>(BodyInst->OwnerComponent);
+                    if (OutHit.HitComponent)
+                    {
+                        OutHit.HitActor = OutHit.HitComponent->GetOwner();
+                    }
+                }
+            }
+        }
+    }
+
+    // Static 콜라이더만 대상으로 하는 필터 콜백
+    class FSweepQueryFilterCallback : public PxQueryFilterCallback
+    {
+    public:
+        AActor* IgnoreActor = nullptr;
+
+        FSweepQueryFilterCallback(AActor* InIgnoreActor)
+            : IgnoreActor(InIgnoreActor)
+        {
+        }
+
+        virtual PxQueryHitType::Enum preFilter(
+            const PxFilterData& filterData,
+            const PxShape* shape,
+            const PxRigidActor* actor,
+            PxHitFlags& queryFlags) override
+        {
+            // Static 액터만 대상으로 함
+            if (actor->getType() != PxActorType::eRIGID_STATIC)
+            {
+                return PxQueryHitType::eNONE;
+            }
+
+            // IgnoreActor 처리
+            if (IgnoreActor && actor->userData)
+            {
+                FBodyInstance* BodyInst = static_cast<FBodyInstance*>(actor->userData);
+                if (BodyInst && BodyInst->OwnerComponent)
+                {
+                    AActor* HitActor = BodyInst->OwnerComponent->GetOwner();
+                    if (HitActor == IgnoreActor)
+                    {
+                        return PxQueryHitType::eNONE;
+                    }
+                }
+            }
+
+            return PxQueryHitType::eBLOCK;
+        }
+
+        virtual PxQueryHitType::Enum postFilter(
+            const PxFilterData& filterData,
+            const PxQueryHit& hit) override
+        {
+            return PxQueryHitType::eBLOCK;
+        }
+    };
+}
+
+bool FPhysScene::SweepCapsule(
+    const FVector& Start,
+    const FVector& End,
+    float Radius,
+    float HalfHeight,
+    FHitResult& OutHit,
+    AActor* IgnoreActor) const
+{
+    OutHit.Reset();
+
+    if (!Scene)
+        return false;
+
+    FVector Direction = End - Start;
+    float TotalDistance = Direction.Size();
+
+    if (TotalDistance < KINDA_SMALL_NUMBER)
+        return false;
+
+    Direction = Direction / TotalDistance; // Normalize
+
+    // PhysX Capsule Geometry (PhysX 캡슐은 X축 방향이 기본)
+    // 우리 캡슐은 Z축 방향이므로 회전 필요
+    // PhysX의 halfHeight는 원통 부분만의 반높이 (반구 제외)
+    // 전체 캡슐 높이 = 2 * (cylinderHalfHeight + radius)
+    float CylinderHalfHeight = FMath::Max(0.0f, HalfHeight - Radius);
+    PxCapsuleGeometry CapsuleGeom(Radius, CylinderHalfHeight);
+
+    // 캡슐 방향 설정 (Z-up으로 회전)
+    PxQuat CapsuleRotation(PxHalfPi, PxVec3(0, 1, 0)); // Y축 기준 90도 회전
+    PxTransform StartPose(PxVec3(Start.X, Start.Y, Start.Z), CapsuleRotation);
+
+    PxVec3 PxDirection(Direction.X, Direction.Y, Direction.Z);
+
+    // Sweep 쿼리 설정
+    PxSweepBuffer HitBuffer;
+    PxHitFlags HitFlags = PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDEFAULT;
+
+    // Static만 대상으로 하는 필터
+    FSweepQueryFilterCallback FilterCallback(IgnoreActor);
+    PxQueryFilterData FilterData;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER;
+
+    // Read Lock 필요 (시뮬레이션과 동시 접근 방지)
+    SCOPED_PHYSX_READ_LOCK(*Scene);
+
+    bool bHit = Scene->sweep(
+        CapsuleGeom,
+        StartPose,
+        PxDirection,
+        TotalDistance,
+        HitBuffer,
+        HitFlags,
+        FilterData,
+        &FilterCallback
+    );
+
+    if (bHit && HitBuffer.hasBlock)
+    {
+        ConvertPxSweepHitToHitResult(HitBuffer.block, Start, End, Direction, TotalDistance, OutHit);
+        return true;
+    }
+
+    return false;
+}
+
+bool FPhysScene::SweepBox(
+    const FVector& Start,
+    const FVector& End,
+    const FVector& HalfExtents,
+    const FQuat& Rotation,
+    FHitResult& OutHit,
+    AActor* IgnoreActor) const
+{
+    OutHit.Reset();
+
+    if (!Scene)
+        return false;
+
+    FVector Direction = End - Start;
+    float TotalDistance = Direction.Size();
+
+    if (TotalDistance < KINDA_SMALL_NUMBER)
+        return false;
+
+    Direction = Direction / TotalDistance;
+
+    PxBoxGeometry BoxGeom(HalfExtents.X, HalfExtents.Y, HalfExtents.Z);
+    PxQuat PxRot(Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+    PxTransform StartPose(PxVec3(Start.X, Start.Y, Start.Z), PxRot);
+    PxVec3 PxDirection(Direction.X, Direction.Y, Direction.Z);
+
+    PxSweepBuffer HitBuffer;
+    PxHitFlags HitFlags = PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDEFAULT;
+
+    FSweepQueryFilterCallback FilterCallback(IgnoreActor);
+    PxQueryFilterData FilterData;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER;
+
+    SCOPED_PHYSX_READ_LOCK(*Scene);
+
+    bool bHit = Scene->sweep(
+        BoxGeom,
+        StartPose,
+        PxDirection,
+        TotalDistance,
+        HitBuffer,
+        HitFlags,
+        FilterData,
+        &FilterCallback
+    );
+
+    if (bHit && HitBuffer.hasBlock)
+    {
+        ConvertPxSweepHitToHitResult(HitBuffer.block, Start, End, Direction, TotalDistance, OutHit);
+        return true;
+    }
+
+    return false;
+}
+
+bool FPhysScene::SweepSphere(
+    const FVector& Start,
+    const FVector& End,
+    float Radius,
+    FHitResult& OutHit,
+    AActor* IgnoreActor) const
+{
+    OutHit.Reset();
+
+    if (!Scene)
+        return false;
+
+    FVector Direction = End - Start;
+    float TotalDistance = Direction.Size();
+
+    if (TotalDistance < KINDA_SMALL_NUMBER)
+        return false;
+
+    Direction = Direction / TotalDistance;
+
+    PxSphereGeometry SphereGeom(Radius);
+    PxTransform StartPose(PxVec3(Start.X, Start.Y, Start.Z));
+    PxVec3 PxDirection(Direction.X, Direction.Y, Direction.Z);
+
+    PxSweepBuffer HitBuffer;
+    PxHitFlags HitFlags = PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDEFAULT;
+
+    FSweepQueryFilterCallback FilterCallback(IgnoreActor);
+    PxQueryFilterData FilterData;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER;
+
+    SCOPED_PHYSX_READ_LOCK(*Scene);
+
+    bool bHit = Scene->sweep(
+        SphereGeom,
+        StartPose,
+        PxDirection,
+        TotalDistance,
+        HitBuffer,
+        HitFlags,
+        FilterData,
+        &FilterCallback
+    );
+
+    if (bHit && HitBuffer.hasBlock)
+    {
+        ConvertPxSweepHitToHitResult(HitBuffer.block, Start, End, Direction, TotalDistance, OutHit);
+        return true;
+    }
+
+    return false;
 }

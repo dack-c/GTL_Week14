@@ -5,6 +5,7 @@
 // Forward declarations
 class UAnimSequence;
 class UBlendSpace1D;
+class UBlendSpace2D;
 
 // ----------------------------------------------------------------
 //	블루프린트 표현식(Expression)용 구조체
@@ -21,7 +22,8 @@ using FBlueprintValueType = std::variant<
     float,
     bool,
     UAnimSequence*,
-    UBlendSpace1D*
+    UBlendSpace1D*,
+    UBlendSpace2D*
 >;
 
 /**

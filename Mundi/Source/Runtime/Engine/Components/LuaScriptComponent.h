@@ -9,7 +9,7 @@ namespace sol { class state; }
 using state = sol::state;
 
 class USceneComponent;
-
+class AActor;
 UCLASS(DisplayName="Lua 스크립트 컴포넌트", Description="Lua 스크립트를 실행하는 컴포넌트입니다")
 class ULuaScriptComponent : public UActorComponent
 {
@@ -25,9 +25,9 @@ public:
 	void TickComponent(float DeltaTime) override;       // 매 프레임
 	void EndPlay() override;							// 파괴/월드 제거 시
 
-	void OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
-	void OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
-	void OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp);
+	void OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const AActor::FTriggerHit* TriggerHit);
+	void OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const AActor::FTriggerHit* TriggerHit);
+	void OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const AActor::FContactHit* ContactHit);
 
 	bool Call(const char* FuncName, sol::variadic_args VarArgs); // 다른 클래스가 날 호출할 때 씀
 
@@ -50,6 +50,7 @@ protected:
 
 	FDelegateHandle BeginHandleLua{};
 	FDelegateHandle EndHandleLua{};
+	FDelegateHandle HitHandleLua{};
 	
 	bool bIsLuaCleanedUp = false;
 };

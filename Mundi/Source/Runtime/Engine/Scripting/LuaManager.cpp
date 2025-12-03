@@ -3,6 +3,7 @@
 #include "LuaComponentProxy.h"
 #include "GameObject.h"
 #include "ObjectIterator.h"
+#include "LuaPhysicsTypes.h"
 #include "CameraActor.h"
 #include "CameraComponent.h"
 #include "PlayerCameraManager.h"
@@ -160,6 +161,21 @@ FLuaManager::FLuaManager()
             UE_LOG("[Lua] (%f, %f, %f)\n", Vector.X, Vector.Y, Vector.Z); 
         }                                                                 
     ));
+
+    // Physics types
+    Lua->new_usertype<LuaContactInfo>("ContactInfo",
+        sol::no_constructor,
+        "OtherActor", sol::readonly(&LuaContactInfo::OtherActor),
+        "Position", sol::readonly(&LuaContactInfo::Position),
+        "Normal", sol::readonly(&LuaContactInfo::Normal),
+        "Impulse", sol::readonly(&LuaContactInfo::Impulse)
+    );
+
+    Lua->new_usertype<LuaTriggerInfo>("TriggerInfo",
+        sol::no_constructor,
+        "OtherActor", sol::readonly(&LuaTriggerInfo::OtherActor),
+        "IsEnter", sol::readonly(&LuaTriggerInfo::bIsEnter)
+    );
     
     // GlobalConfig는 전역 table
     SharedLib["GlobalConfig"] = Lua->create_table(); 

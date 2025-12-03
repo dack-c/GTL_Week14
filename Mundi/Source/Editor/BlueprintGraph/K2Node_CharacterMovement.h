@@ -66,6 +66,30 @@ public:
 };
 
 // ----------------------------------------------------------------
+//	[GetLocalVelocity] 로컬 좌표계 이동 속도 벡터 반환 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Get Local Velocity", Description = "캐릭터가 바라보는 방향 기준 로컬 속도 벡터를 반환합니다. Blend Space 2D에 사용하기 적합합니다.")
+class UK2Node_GetLocalVelocity : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetLocalVelocity, UK2Node);
+
+public:
+    UK2Node_GetLocalVelocity();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Get Local Velocity"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "캐릭터 무브먼트"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+// ----------------------------------------------------------------
 //	[GetSpeed] 이동 속력(Scalar) 반환 노드
 // ----------------------------------------------------------------
 UCLASS(DisplayName = "Get Speed", Description = "캐릭터의 현재 이동 속력(Speed)을 반환한다.")

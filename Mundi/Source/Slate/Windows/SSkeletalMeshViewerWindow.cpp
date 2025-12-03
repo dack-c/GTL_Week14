@@ -284,6 +284,81 @@ void SSkeletalMeshViewerWindow::OnRender()
             }
             ImGui::EndTabBar();
         }
+
+        // ===== 래그돌 시뮬레이션 토글 버튼 (상단 툴바) =====
+        if (ActiveState)
+        {
+            ImGui::Spacing();
+
+            // 토글 버튼 스타일 설정
+            if (ActiveState->bSimulatePhysics)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));        // 활성: 녹색
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.5f, 0.1f, 1.0f));
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.2f, 0.2f, 1.0f));        // 비활성: 빨강
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.3f, 0.3f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.1f, 0.1f, 1.0f));
+            }
+
+            const char* buttonLabel = ActiveState->bSimulatePhysics ? "Simulate: ON" : "Simulate: OFF";
+            if (ImGui::Button(buttonLabel, ImVec2(120, 0)))
+            {
+                // PhysicsAsset이 있는지 확인
+                USkeletalMeshComponent* SkelComp = ActiveState->PreviewActor ?
+                    ActiveState->PreviewActor->GetSkeletalMeshComponent() : nullptr;
+
+                bool bHasPhysicsAsset = SkelComp && SkelComp->GetPhysicsAsset();
+                bool bHasPhysicsBodies = SkelComp && SkelComp->GetNumBodies() > 0;
+
+                if (!bHasPhysicsAsset)
+                {
+                    UE_LOG("[Viewer] Cannot enable simulation: No PhysicsAsset loaded!");
+                }
+                else if (!bHasPhysicsBodies)
+                {
+                    // PhysicsAsset은 있지만 Body가 생성되지 않은 경우 - 다시 생성 시도
+                    UE_LOG("[Viewer] PhysicsAsset exists but no bodies. Re-applying...");
+                    SkelComp->SetPhysicsAsset(SkelComp->GetPhysicsAsset());
+                    bHasPhysicsBodies = SkelComp->GetNumBodies() > 0;
+                }
+
+                if (bHasPhysicsAsset && bHasPhysicsBodies)
+                {
+                    ActiveState->bSimulatePhysics = !ActiveState->bSimulatePhysics;
+
+                    // PhysicsState 전환 (SkeletalMeshComponent)
+                    if (SkelComp)
+                    {
+                        if (ActiveState->bSimulatePhysics)
+                        {
+                            SkelComp->SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
+                            UE_LOG("[Viewer] Ragdoll simulation enabled (Bodies: %d)", SkelComp->GetNumBodies());
+                        }
+                        else
+                        {
+                            SkelComp->SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
+                            SkelComp->ResetToBindPose();  // 원래 포즈로 리셋
+                            UE_LOG("[Viewer] Ragdoll simulation disabled");
+                        }
+                    }
+                }
+            }
+            ImGui::PopStyleColor(3);
+
+            ImGui::SameLine();
+            ImGui::TextDisabled("(?)");
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("Toggle physics simulation for ragdoll.\nWhen ON, the skeleton will be driven by physics.\nWhen OFF, the skeleton follows animation.");
+            }
+
+            ImGui::Separator();
+        }
+
         ImVec2 pos = ImGui::GetWindowPos();
         ImVec2 size = ImGui::GetWindowSize();
         Rect.Left = pos.x; Rect.Top = pos.y; Rect.Right = pos.x + size.x; Rect.Bottom = pos.y + size.y; Rect.UpdateMinMax();
@@ -1583,11 +1658,26 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
     {
         if (ActiveState->World)
         {
+            // 물리 시뮬레이션이 활성화된 경우, PhysScene을 별도로 Tick
+            FPhysScene* PhysScene = ActiveState->World->GetPhysScene();
+            if (PhysScene && ActiveState->bSimulatePhysics)
+            {
+                // 물리 결과 수확 (이전 프레임의 시뮬레이션 결과)
+                PhysScene->WaitForSimulation();
+            }
+
             ActiveState->World->Tick(DeltaSeconds);
+
+            // 물리 시뮬레이션 시작 (non-blocking)
+            if (PhysScene && ActiveState->bSimulatePhysics)
+            {
+                PhysScene->StepSimulation(DeltaSeconds);
+            }
+
             if (ActiveState->World->GetGizmoActor())
                 ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
         }
-        
+
         if(ActiveState->bTimeChanged)
         {
              ActiveState->bTimeChanged = false;
@@ -1673,7 +1763,23 @@ void SSkeletalMeshViewerWindow::OnUpdate(float DeltaSeconds)
 
     if (ActiveState->World)
     {
+        // 물리 시뮬레이션이 활성화된 경우, PhysScene을 별도로 Tick
+        // World->Tick()은 bPie 플래그로 물리를 제어하지만, 뷰어는 별도로 관리
+        FPhysScene* PhysScene = ActiveState->World->GetPhysScene();
+        if (PhysScene && ActiveState->bSimulatePhysics)
+        {
+            // 물리 결과 수확 (이전 프레임의 시뮬레이션 결과)
+            PhysScene->WaitForSimulation();
+        }
+
         ActiveState->World->Tick(DeltaSeconds);
+
+        // 물리 시뮬레이션 시작 (non-blocking)
+        if (PhysScene && ActiveState->bSimulatePhysics)
+        {
+            PhysScene->StepSimulation(DeltaSeconds);
+        }
+
         if (ActiveState->World->GetGizmoActor())
             ActiveState->World->GetGizmoActor()->ProcessGizmoModeSwitch();
     }
@@ -3041,11 +3147,20 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                 {
                     if (State->CurrentMesh && State->CurrentPhysicsAsset)
                     {
-                        // 1. 현재 Mesh에 적용
+                        // 1. 현재 Mesh 리소스에 적용
                         State->CurrentMesh->PhysicsAsset = State->CurrentPhysicsAsset;
                         UE_LOG("Applied PhysicsAsset to current SkeletalMesh");
 
-                        // 2. 메타파일에 저장
+                        // 2. SkeletalMeshComponent에도 적용 (물리 바디 생성)
+                        USkeletalMeshComponent* SkelComp = State->PreviewActor ?
+                            State->PreviewActor->GetSkeletalMeshComponent() : nullptr;
+                        if (SkelComp)
+                        {
+                            SkelComp->SetPhysicsAsset(State->CurrentPhysicsAsset);
+                            UE_LOG("Applied PhysicsAsset to SkeletalMeshComponent (Bodies: %d)", SkelComp->GetNumBodies());
+                        }
+
+                        // 3. 메타파일에 저장
                         FString meshPath = State->CurrentMesh->GetPathFileName();
                         if (!meshPath.empty())
                         {

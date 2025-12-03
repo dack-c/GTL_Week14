@@ -3,6 +3,7 @@
 #include "PrimitiveComponent.h"
 #include <sol/state.hpp>
 #include <sol/coroutine.hpp>
+#include "LuaPhysicsTypes.h"
 
 #include "CameraActor.h"
 #include "LuaManager.h"
@@ -35,7 +36,7 @@ void ULuaScriptComponent::BeginPlay()
 	{
 		BeginHandleLua = Owner->OnComponentBeginOverlap.AddDynamic(this, &ULuaScriptComponent::OnBeginOverlap);
 		EndHandleLua = Owner->OnComponentEndOverlap.AddDynamic(this, &ULuaScriptComponent::OnEndOverlap);
-		//FDelegateHandle HitHandleLua = Owner->OnComponentHit.AddDynamic(this, ULuaScriptComponent::OnHit);
+		HitHandleLua = Owner->OnComponentHit.AddDynamic(this, &ULuaScriptComponent::OnHit);
 	}
 
 	auto LuaVM = GetWorld()->GetLuaManager();
@@ -77,6 +78,7 @@ void ULuaScriptComponent::BeginPlay()
 	FuncTick      = FLuaManager::GetFunc(Env, "Tick");
 	FuncOnBeginOverlap = FLuaManager::GetFunc(Env, "OnBeginOverlap");
 	FuncOnEndOverlap = FLuaManager::GetFunc(Env, "OnEndOverlap");
+	FuncOnHit = FLuaManager::GetFunc(Env, "OnHit");
 	FuncEndPlay		  =	FLuaManager::GetFunc(Env, "EndPlay");
 	
 	if (FuncBeginPlay.valid()) {
@@ -93,84 +95,84 @@ void ULuaScriptComponent::BeginPlay()
 	bIsLuaCleanedUp = false;
 }
 
-void ULuaScriptComponent::OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp)
+
+void ULuaScriptComponent::OnBeginOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const AActor::FTriggerHit* TriggerHit)
 {
 	if (FuncOnBeginOverlap.valid())
 	{
-		FGameObject* OtherGameObject = nullptr;
+		LuaTriggerInfo LuaInfo;
 		if (OtherComp)
 		{
 			if (AActor* OtherActor = OtherComp->GetOwner())
 			{
-				OtherGameObject = OtherActor->GetGameObject();
+				LuaInfo.OtherActor = OtherActor;
+				LuaInfo.bIsEnter = true; // Assuming this is begin overlap
 			}
 		}
 
-		if (OtherGameObject)
+		auto Result = FuncOnBeginOverlap(LuaInfo);
+		if (!Result.valid())
 		{
-			auto Result = FuncOnBeginOverlap(OtherGameObject);
-			if (!Result.valid())
-			{
-				sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
+			sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
 #ifdef _EDITOR
-				GEngine.EndPIE();
+			GEngine.EndPIE();
 #endif
-			}
 		}
 	}
 }
 
-void ULuaScriptComponent::OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp)
+void ULuaScriptComponent::OnEndOverlap(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const AActor::FTriggerHit* TriggerHit)
 {
 	if (FuncOnEndOverlap.valid())
 	{
-		FGameObject* OtherGameObject = nullptr;
+		LuaTriggerInfo LuaInfo;
 		if (OtherComp)
 		{
 			if (AActor* OtherActor = OtherComp->GetOwner())
 			{
-				OtherActor->GetGameObject();
-				OtherGameObject = OtherActor->GetGameObject();
+				LuaInfo.OtherActor = OtherActor;
+				LuaInfo.bIsEnter = false; // Assuming this is end overlap
 			}
 		}
 
-		if (OtherGameObject)
+		auto Result = FuncOnEndOverlap(LuaInfo);
+		if (!Result.valid())
 		{
-			auto Result = FuncOnEndOverlap(OtherGameObject);
-			if (!Result.valid())
-			{
 				sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
 #ifdef _EDITOR
 				GEngine.EndPIE();
 #endif
-			}
 		}
 	}
 }
 
-void ULuaScriptComponent::OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp)
+void ULuaScriptComponent::OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent* OtherComp, const AActor::FContactHit* ContactHit)
 {
 	if (FuncOnHit.valid())
 	{
-		FGameObject* OtherGameObject = nullptr;
+		LuaContactInfo LuaInfo;
 		if (OtherComp)
 		{
 			if (AActor* OtherActor = OtherComp->GetOwner())
 			{
-				OtherGameObject = OtherActor->GetGameObject();
+				LuaInfo.OtherActor = OtherActor;
 			}
 		}
 
-		if (OtherGameObject)
+		if (ContactHit)
 		{
-			auto Result = FuncOnHit(OtherGameObject);
-			if (!Result.valid())
-			{
-				sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
+			LuaInfo.Position = ContactHit->Position;
+			LuaInfo.Normal = ContactHit->Normal;
+			LuaInfo.Impulse = ContactHit->ImpulseOnActorTo;
+		}
+
+		auto Result = FuncOnHit(LuaInfo);
+		if (!Result.valid())
+		{
+			sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what());
 #ifdef _EDITOR
-				GEngine.EndPIE();
+			GEngine.EndPIE();
 #endif
-			}
 		}
 	}
 }
@@ -208,6 +210,7 @@ void ULuaScriptComponent::EndPlay()
 	// 모든 Lua 관련 리소스 정리
 	CleanupLuaResources();
 }
+
 
 void ULuaScriptComponent::CleanupLuaResources()
 {

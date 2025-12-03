@@ -135,7 +135,90 @@ void UK2Node_GetVelocity::GetMenuActions(FBlueprintActionDatabaseRegistrar& Acti
 }
 
 // ----------------------------------------------------------------
-//	[GetSpeed] 
+//	[GetLocalVelocity]
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetLocalVelocity)
+
+UK2Node_GetLocalVelocity::UK2Node_GetLocalVelocity()
+{
+    TitleColor = ImColor(100, 200, 100);
+}
+
+void UK2Node_GetLocalVelocity::AllocateDefaultPins()
+{
+    // X: 좌우 (Right 방향 내적), Y: 앞뒤 (Forward 방향 내적), Z: 위아래 (Up 방향 내적)
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "X");
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "Y");
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "Z");
+}
+
+FBlueprintValue UK2Node_GetLocalVelocity::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    auto* MoveComp = GetMovementFromContext(Context);
+
+    if (!MoveComp)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    // 월드 velocity 가져오기
+    FVector WorldVelocity = MoveComp->GetVelocity();
+
+    // Owner Actor에서 Forward/Right 벡터 가져오기
+    UAnimInstance* AnimInstance = Cast<UAnimInstance>(Context->SourceObject);
+    if (!AnimInstance)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    USkeletalMeshComponent* MeshComp = AnimInstance->GetOwningComponent();
+    if (!MeshComp)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    auto* OwnerActor = MeshComp->GetOwner();
+    if (!OwnerActor)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    FVector Forward = OwnerActor->GetActorForward();
+    FVector Right = OwnerActor->GetActorRight();
+    FVector Up = OwnerActor->GetActorUp();
+
+    // 월드 -> 로컬 변환 (내적)
+    float LocalX = FVector::Dot(WorldVelocity, Right);    // 좌우
+    float LocalY = FVector::Dot(WorldVelocity, Forward);  // 앞뒤
+    float LocalZ = FVector::Dot(WorldVelocity, Up);       // 위아래
+
+    if (OutputPin->PinName == "X")
+    {
+        return FBlueprintValue(LocalX);
+    }
+    else if (OutputPin->PinName == "Y")
+    {
+        return FBlueprintValue(LocalY);
+    }
+    else if (OutputPin->PinName == "Z")
+    {
+        return FBlueprintValue(LocalZ);
+    }
+
+    return FBlueprintValue(0.0f);
+}
+
+void UK2Node_GetLocalVelocity::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
+//	[GetSpeed]
 // ----------------------------------------------------------------
 
 IMPLEMENT_CLASS(UK2Node_GetSpeed)

@@ -131,6 +131,6 @@ extern UWorld* GWorld;
 #pragma comment(lib, "PhysXCooking_static_64.lib") 
 #endif
 
-#pragma comment(lib, "NvCloth_x64.lib")
+//#pragma comment(lib, "NvCloth_x64.lib")
 
 #include <PxPhysicsAPI.h>

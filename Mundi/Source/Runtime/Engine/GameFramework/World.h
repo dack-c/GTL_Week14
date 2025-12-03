@@ -100,6 +100,9 @@ public:
     FLuaManager* GetLuaManager() const { return LuaManager.get(); }
     FPhysScene* GetPhysScene() { return PhysScene.get(); }
 
+    /** 뷰어 등 별도의 물리 시뮬레이션이 필요한 월드에서 호출 */
+    void InitializePhysScene();
+
     class UCameraComponent* GetWorldCamera(); 
     ACameraActor* GetEditorCameraActor() { return MainEditorCameraActor; }
     void SetEditorCameraActor(ACameraActor* InCamera);

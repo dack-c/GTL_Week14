@@ -49,7 +49,7 @@ void FSimulationEventCallback::onContact(const PxContactPairHeader& PairHeader, 
 			if (OwnerA && OwnerB)
 			{
 				// 3. 충돌 정보 채우기 
-				FContactHit ContactHit;
+				AActor::FContactHit ContactHit;
 				ContactHit.ActorTo = OwnerA;
 				ContactHit.ActorFrom = OwnerB;
 				ContactHit.Position = FVector(0, 0, 0);
@@ -86,7 +86,8 @@ void FSimulationEventCallback::onContact(const PxContactPairHeader& PairHeader, 
 					break;
 				}
 
-				OwnerScene->OnContactDelegate.Broadcast(ContactHit);
+				OwnerA->OnComponentHit.Broadcast(PrimCompA, PrimCompB, &ContactHit);
+				OwnerB->OnComponentHit.Broadcast(PrimCompA, PrimCompB, &ContactHit);
 			}
 		}
 	}
@@ -133,7 +134,7 @@ void FSimulationEventCallback::onTrigger(physx::PxTriggerPair* pairs, physx::PxU
 		}
 
 		// 3. 트리거 정보 채우기
-		FTriggerHit TriggerHit;
+		AActor::FTriggerHit TriggerHit;
 		TriggerHit.TriggerActor = TriggerOwner;
 		TriggerHit.OtherActor = OtherOwner;
 
@@ -142,13 +143,18 @@ void FSimulationEventCallback::onTrigger(physx::PxTriggerPair* pairs, physx::PxU
 		{
 			// Trigger Enter
 			TriggerHit.bIsEnter = true;
-			OwnerScene->OnTriggerDelegate.Broadcast(TriggerHit);
+			
+			TriggerOwner->OnComponentBeginOverlap.Broadcast(TriggerComp, OtherComp, &TriggerHit);
+			OtherOwner->OnComponentBeginOverlap.Broadcast(TriggerComp, OtherComp, &TriggerHit);
+
 		}
 		else if (Pair.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
 		{
 			// Trigger Leave
 			TriggerHit.bIsEnter = false;
-			OwnerScene->OnTriggerDelegate.Broadcast(TriggerHit);
+
+			TriggerOwner->OnComponentEndOverlap.Broadcast(TriggerComp, OtherComp, &TriggerHit);
+			OtherOwner->OnComponentEndOverlap.Broadcast(TriggerComp, OtherComp, &TriggerHit);
 		}
 	}
 }

@@ -28,6 +28,7 @@ protected:
 
 public:
 	void BeginPlay() override;
+	void EndPlay() override;
 	void TickComponent(float DeltaTime) override;
 
 	void OnStaticMeshReleased(UStaticMesh* ReleasedMesh);
@@ -56,11 +57,11 @@ protected:
 	UStaticMesh* StaticMesh = nullptr;
 
 	// Physics 설정
-	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Enable physics simulation for this mesh")
-	bool bSimulatePhysics = false;
+	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Enable collision for this mesh (creates static collider)")
+	bool bEnableCollision = true;
 
-	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="If true, this is a static collider (immovable). If false, it's dynamic (affected by gravity/forces)")
-	bool bIsStaticPhysics = true;
+	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Enable physics simulation (dynamic body with gravity/forces)")
+	bool bSimulatePhysics = false;
 
 	// Physics Material Override 설정
 	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Mass in kg")
@@ -82,6 +83,13 @@ protected:
 	ECombineMode RestitutionCombineModeOverride = ECombineMode::Multiply;
 
 public:
+	// Collision/Physics simulation toggles
+	bool IsCollisionEnabled() const { return bEnableCollision; }
+	void SetEnableCollision(bool bEnable) { bEnableCollision = bEnable; }
+
+	bool IsSimulatingPhysics() const { return bSimulatePhysics; }
+	void SetSimulatePhysics(bool bSimulate) { bSimulatePhysics = bSimulate; }
+
 	// Getters/Setters for physics properties
 	float GetMassOverride() const { return MassOverride; }
 	void SetMassOverride(float InMass) { MassOverride = InMass; }
