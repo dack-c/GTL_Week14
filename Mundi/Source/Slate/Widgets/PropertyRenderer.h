@@ -40,7 +40,6 @@ private:
 	static bool RenderSpotLightShadowMap(class FLightManager* LightManager, class ULightComponent* LightComp, ID3D11ShaderResourceView* AtlasSRV);
 	static bool RenderPrimitiveComponentDetails(class UPrimitiveComponent* Component);
 	static bool RenderSkeletalMeshComponentDetails(class USkeletalMeshComponent* Component);
-	static void RenderStaticMeshComponentDetails(class UStaticMeshComponent* Component);
 	static bool RenderSkeletalMeshProperty(const FProperty& Prop, void* Instance);
 	static bool RenderStaticMeshProperty(const FProperty& Prop, void* Instance);
 	static bool RenderMaterialProperty(const FProperty& Prop, void* Instance);
@@ -59,6 +58,7 @@ private:
 	// Physics 관련 프로퍼티 렌더링 함수
 	static bool RenderPhysMaterialPresetProperty(const FProperty& Prop, void* Instance);
 	static bool RenderCombineModeProperty(const FProperty& Prop, void* Instance);
+	static bool RenderCollisionShapeTypeProperty(const FProperty& Prop, void* Instance);
 
 	static void CacheResources();	// 필요할 때 리소스 목록을 멤버 변수에 캐시합니다.
 	static void ClearResourcesCache();	// 렌더링 패스가 끝날 때 캐시를 비웁니다.

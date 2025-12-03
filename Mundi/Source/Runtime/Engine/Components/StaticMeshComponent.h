@@ -32,6 +32,7 @@ public:
 	void TickComponent(float DeltaTime) override;
 	
 	void OnCollisionShapeChanged();
+	void InitCollisionShape();
 
 	void OnStaticMeshReleased(UStaticMesh* ReleasedMesh);
 
@@ -60,11 +61,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Static Mesh", Tooltip="Static mesh asset to render")
 	UStaticMesh* StaticMesh = nullptr;
 
-	// --- Collision ---
-	// NOTE: These properties are now manually rendered in PropertyRenderer.cpp
-	UPROPERTY()
-	uint8 CollisionType = static_cast<uint8>(ECollisionShapeType::Box);
-
 	UPROPERTY()
 	FVector BoxExtent = FVector(50.f);
 
@@ -78,10 +74,10 @@ protected:
 	float CapsuleHalfHeight = 44.f;
 
 	UPROPERTY()
-	FVector CollisionOffset = FVector::ZeroVector;
+	FVector CollisionOffset = FVector::Zero();
 
 	UPROPERTY()
-	FRotator CollisionRotation = FRotator::ZeroRotator;
+	FQuat CollisionRotation = FQuat::Identity();
 
 	UPROPERTY(Transient)
 	class UBodySetup* BodySetupOverride = nullptr;
@@ -111,6 +107,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Restitution combine mode")
 	ECombineMode RestitutionCombineModeOverride = ECombineMode::Multiply;
+
+	UPROPERTY(EditAnywhere, Category = "Physics", Tooltip = "Collision type")
+	EAggCollisionShapeType CollisionType = EAggCollisionShapeType::Box;
 
 public:
 	// Collision/Physics simulation toggles
