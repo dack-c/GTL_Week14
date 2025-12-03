@@ -30,6 +30,8 @@ public:
 	void BeginPlay() override;
 	void EndPlay() override;
 	void TickComponent(float DeltaTime) override;
+	
+	void OnCollisionShapeChanged();
 
 	void OnStaticMeshReleased(UStaticMesh* ReleasedMesh);
 
@@ -47,7 +49,9 @@ public:
 
 	void InitPhysics(FPhysScene& PhysScene);
 
-	class UBodySetup* GetBodySetup() const;
+	class UBodySetup* GetBodySetup();
+
+	void RecreateBodySetup();
 
 protected:
 	void OnTransformUpdated() override;
@@ -55,6 +59,32 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category="Static Mesh", Tooltip="Static mesh asset to render")
 	UStaticMesh* StaticMesh = nullptr;
+
+	// --- Collision ---
+	// NOTE: These properties are now manually rendered in PropertyRenderer.cpp
+	UPROPERTY()
+	uint8 CollisionType = static_cast<uint8>(ECollisionShapeType::Box);
+
+	UPROPERTY()
+	FVector BoxExtent = FVector(50.f);
+
+	UPROPERTY()
+	float SphereRadius = 50.f;
+
+	UPROPERTY()
+	float CapsuleRadius = 22.f;
+
+	UPROPERTY()
+	float CapsuleHalfHeight = 44.f;
+
+	UPROPERTY()
+	FVector CollisionOffset = FVector::ZeroVector;
+
+	UPROPERTY()
+	FRotator CollisionRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(Transient)
+	class UBodySetup* BodySetupOverride = nullptr;
 
 	// Physics 설정
 	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Enable collision for this mesh (creates static collider)")

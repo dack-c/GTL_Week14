@@ -323,6 +323,97 @@ void UPropertyRenderer::RenderAllPropertiesWithInheritance(UObject* Object)
 	{
 		RenderSkeletalMeshComponentDetails(Skel);
 	}
+	if (UStaticMeshComponent* SMC = Cast<UStaticMeshComponent>(Object))
+	{
+		RenderStaticMeshComponentDetails(SMC);
+	}
+}
+
+void UPropertyRenderer::RenderStaticMeshComponentDetails(UStaticMeshComponent* Component)
+{
+	if (!Component)
+	{
+		return;
+	}
+
+	bool bChanged = false;
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text("Collision");
+
+	// --- Collision Type Dropdown ---
+	static const char* shapeTypeNames[] = { "Box", "Sphere", "Capsule", "Convex" };
+	int currentShapeType = Component->CollisionType;
+	const char* previewText = (currentShapeType >= 0 && currentShapeType < 4) ? shapeTypeNames[currentShapeType] : "Unknown";
+
+	ImGui::SetNextItemWidth(150.f);
+	if (ImGui::BeginCombo("Collision Type", previewText))
+	{
+		for (int i = 0; i < IM_ARRAYSIZE(shapeTypeNames); ++i)
+		{
+			const bool is_selected = (currentShapeType == i);
+			if (ImGui::Selectable(shapeTypeNames[i], is_selected))
+			{
+				if (currentShapeType != i)
+				{
+					Component->CollisionType = static_cast<uint8>(i);
+					bChanged = true;
+				}
+			}
+			if (is_selected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	// --- Conditional Property Rendering ---
+	ECollisionShapeType shapeType = static_cast<ECollisionShapeType>(Component->CollisionType);
+
+	if (shapeType == ECollisionShapeType::Box)
+	{
+		if (ImGui::DragFloat3("Box Extent", &Component->BoxExtent.X, 0.1f))
+		{
+			bChanged = true;
+		}
+	}
+	else if (shapeType == ECollisionShapeType::Sphere)
+	{
+		if (ImGui::DragFloat("Sphere Radius", &Component->SphereRadius, 0.1f, 0.0f))
+		{
+			bChanged = true;
+		}
+	}
+	else if (shapeType == ECollisionShapeType::Capsule)
+	{
+		if (ImGui::DragFloat("Capsule Radius", &Component->CapsuleRadius, 0.1f, 0.0f))
+		{
+			bChanged = true;
+		}
+		if (ImGui::DragFloat("Capsule Half Height", &Component->CapsuleHalfHeight, 0.1f, 0.0f))
+		{
+			bChanged = true;
+		}
+	}
+
+	if (shapeType != ECollisionShapeType::Convex)
+	{
+		if (ImGui::DragFloat3("Collision Offset", &Component->CollisionOffset.X, 0.1f))
+		{
+			bChanged = true;
+		}
+		if (ImGui::DragFloat3("Collision Rotation", &Component->CollisionRotation.Pitch, 1.0f))
+		{
+			bChanged = true;
+		}
+	}
+	
+	if (bChanged)
+	{
+		Component->OnCollisionShapeChanged();
+	}
 }
 
 // ===== 리소스 캐싱 =====
