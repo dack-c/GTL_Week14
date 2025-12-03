@@ -306,7 +306,7 @@ private:
     float BlendTime;
 
 public:
-    void SetPhysicsAnimationState(EPhysicsAnimationState NewState, float InBlendTime = 0.2f) { PhysicsState = NewState; BlendTime = InBlendTime; };
+    void SetPhysicsAnimationState(EPhysicsAnimationState NewState, float InBlendTime = 0.2f);
 
     // Physics Bodies accessor
     const TArray<FBodyInstance*>& GetBodies() const { return Bodies; }
