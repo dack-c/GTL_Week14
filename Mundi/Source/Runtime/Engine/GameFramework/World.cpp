@@ -117,6 +117,23 @@ void UWorld::Initialize()
 	InitializeGizmo();
 }
 
+void UWorld::InitializePhysScene()
+{
+	// 이미 생성되어 있으면 무시
+	if (PhysScene)
+	{
+		return;
+	}
+
+	// 물리 씬 초기화
+	PhysScene = std::make_unique<FPhysScene>();
+	if (!PhysScene->Initialize())
+	{
+		UE_LOG("[World] PhysScene initialization failed!");
+		PhysScene.reset();
+	}
+}
+
 void UWorld::InitializeGrid()
 {
 	GridActor = NewObject<AGridActor>();

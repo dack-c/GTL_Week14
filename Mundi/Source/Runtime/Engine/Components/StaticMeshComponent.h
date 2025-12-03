@@ -28,6 +28,7 @@ protected:
 
 public:
 	void BeginPlay() override;
+	void EndPlay() override;
 	void TickComponent(float DeltaTime) override;
 
 	void OnStaticMeshReleased(UStaticMesh* ReleasedMesh);
@@ -82,6 +83,13 @@ protected:
 	ECombineMode RestitutionCombineModeOverride = ECombineMode::Multiply;
 
 public:
+	// Collision/Physics simulation toggles
+	bool IsCollisionEnabled() const { return bEnableCollision; }
+	void SetEnableCollision(bool bEnable) { bEnableCollision = bEnable; }
+
+	bool IsSimulatingPhysics() const { return bSimulatePhysics; }
+	void SetSimulatePhysics(bool bSimulate) { bSimulatePhysics = bSimulate; }
+
 	// Getters/Setters for physics properties
 	float GetMassOverride() const { return MassOverride; }
 	void SetMassOverride(float InMass) { MassOverride = InMass; }

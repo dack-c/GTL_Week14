@@ -85,4 +85,7 @@ public:
 	bool bShowBodies = true;
 	bool bShowConstraintLines = true;
 	bool bShowConstraintLimits = true;
+
+	// ======== 래그돌 시뮬레이션 관련 ==========
+	bool bSimulatePhysics = false;  // 물리 시뮬레이션 활성화 여부 (래그돌 토글)
 };

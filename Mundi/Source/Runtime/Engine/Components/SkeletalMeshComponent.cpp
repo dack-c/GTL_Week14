@@ -193,11 +193,15 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
         // Sync physics bodies to match animation
         UWorld* World = GetWorld();
+        FPhysScene* PhysScene = World ? World->GetPhysScene() : nullptr;
         switch (PhysicsState)
         {
             case EPhysicsAnimationState::AnimationDriven:
                 AnimInstance->NativeUpdateAnimation(DeltaTime);
-                SyncBodiesFromAnimation(*World->GetPhysScene());
+                if (PhysScene)
+                {
+                    SyncBodiesFromAnimation(*PhysScene);
+                }
                 break;
 
             case EPhysicsAnimationState::PhysicsDriven:
@@ -210,14 +214,31 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         }
 
        /* GatherNotifiesFromRange(PrevAnimationTime, CurrentAnimationTime);
-         
+
         DispatchAnimNotifies();*/
     }
     else
     {
-        // 레거시 경로: AnimInstance 없이 직접 애니메이션 업데이트
-        // (호환성 유지를 위해 남겨둠, 추후 제거 예정)
-        TickAnimation(DeltaTime);
+        // AnimInstance 없이도 PhysicsDriven 상태면 래그돌 업데이트
+        UWorld* World = GetWorld();
+        FPhysScene* PhysScene = World ? World->GetPhysScene() : nullptr;
+
+        if (PhysicsState == EPhysicsAnimationState::PhysicsDriven)
+        {
+            SyncAnimationFromBodies();
+        }
+        else if (PhysicsState == EPhysicsAnimationState::AnimationDriven && PhysScene)
+        {
+            // 레거시 경로: AnimInstance 없이 직접 애니메이션 업데이트
+            TickAnimation(DeltaTime);
+            SyncBodiesFromAnimation(*PhysScene);
+        }
+        else
+        {
+            // 레거시 경로: AnimInstance 없이 직접 애니메이션 업데이트
+            // (호환성 유지를 위해 남겨둠, 추후 제거 예정)
+            TickAnimation(DeltaTime);
+        }
     }
 
     PrevAnimationTime = CurrentAnimationTime; 
@@ -287,6 +308,38 @@ void USkeletalMeshComponent::SetSkeletalMesh(const FString& PathFileName)
     }
 }
 
+void USkeletalMeshComponent::ResetToBindPose()
+{
+    if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshData())
+        return;
+
+    const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+    const int32 NumBones = Skeleton.Bones.Num();
+
+    if (CurrentLocalSpacePose.Num() != NumBones)
+        return;
+
+    for (int32 i = 0; i < NumBones; ++i)
+    {
+        const FBone& ThisBone = Skeleton.Bones[i];
+        const int32 ParentIndex = ThisBone.ParentIndex;
+        FMatrix LocalBindMatrix;
+
+        if (ParentIndex == -1) // 루트 본
+        {
+            LocalBindMatrix = ThisBone.BindPose;
+        }
+        else // 자식 본
+        {
+            const FMatrix& ParentInverseBindPose = Skeleton.Bones[ParentIndex].InverseBindPose;
+            LocalBindMatrix = ThisBone.BindPose * ParentInverseBindPose;
+        }
+        CurrentLocalSpacePose[i] = FTransform(LocalBindMatrix);
+    }
+
+    ForceRecomputePose();
+}
+
 void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
 {
     PhysicsAssetOverridePath.clear();
@@ -334,8 +387,12 @@ void USkeletalMeshComponent::ApplyPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
     UWorld* World = GetWorld();
     FPhysScene* PhysScene = World ? World->GetPhysScene() : nullptr;
 
+    // 디버그 로그
+    UE_LOG("[SkeletalMeshComponent] ApplyPhysicsAsset: World=%p, PhysScene=%p, PhysicsAsset=%p",
+           World, PhysScene, InPhysicsAsset);
+
     // Thread 충돌 방지, Main Thread애서 physx 비동기 Thread 기다림
-    // - PA의 물리 시뮬레이션이 완료될 때까지 기다린 다음, BodyInstance를 삭제시킨다. 
+    // - PA의 물리 시뮬레이션이 완료될 때까지 기다린 다음, BodyInstance를 삭제시킨다.
 	if (PhysScene)
 	{
 		PhysScene->WaitForSimulation();
@@ -356,6 +413,11 @@ void USkeletalMeshComponent::ApplyPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
     if (PhysScene && PhysicsAsset)
     {
         InstantiatePhysicsAssetBodies(*PhysScene);
+        UE_LOG("[SkeletalMeshComponent] Bodies created: %d", Bodies.Num());
+    }
+    else if (!PhysScene && PhysicsAsset)
+    {
+        UE_LOG("[SkeletalMeshComponent] WARNING: PhysScene is null, cannot create physics bodies!");
     }
 }
 FAABB USkeletalMeshComponent::GetWorldAABB() const

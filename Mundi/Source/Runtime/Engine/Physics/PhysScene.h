@@ -26,6 +26,42 @@ public:
 };
 
 class FSimulationEventCallback;
+
+/**
+ * @brief PhysX 공유 리소스 관리자
+ *
+ * Foundation, Physics, Dispatcher 등은 프로세스당 하나만 존재해야 하므로
+ * static으로 관리하고 참조 카운트로 생성/해제를 제어합니다.
+ */
+class FPhysXSharedResources
+{
+public:
+    static bool Initialize();
+    static void Shutdown();
+    static void AddRef();
+    static void Release();
+
+    static PxFoundation* GetFoundation() { return Foundation; }
+    static PxPhysics* GetPhysics() { return Physics; }
+    static PxPvd* GetPvd() { return Pvd; }
+    static PxDefaultCpuDispatcher* GetDispatcher() { return Dispatcher; }
+    static PxMaterial* GetDefaultMaterial() { return DefaultMaterial; }
+    static bool IsInitialized() { return bInitialized; }
+
+private:
+    static PxDefaultAllocator Allocator;
+    static PxDefaultErrorCallback ErrorCallback;
+    static FPhysXAssertHandler AssertHandler;
+    static PxFoundation* Foundation;
+    static PxPvd* Pvd;
+    static PxPvdTransport* PvdTransport;
+    static PxPhysics* Physics;
+    static PxDefaultCpuDispatcher* Dispatcher;
+    static PxMaterial* DefaultMaterial;
+    static int32 RefCount;
+    static bool bInitialized;
+};
+
 class FPhysScene
 {
 public:
@@ -41,8 +77,8 @@ public:
     FPhysScene();
     ~FPhysScene();
 
-    bool Initialize();         // PhysX 초기화
-    void Shutdown();           // PhysX 리소스 해제
+    bool Initialize();         // PxScene 생성 (공유 리소스는 자동 초기화)
+    void Shutdown();           // PxScene 해제
 
     /*
      * @brief physX 내부의 진짜 물리엔진 씬 = PxScene* Scene
@@ -109,16 +145,8 @@ public:
     ) const;
 
 private:
-    PxDefaultAllocator      Allocator;
-    PxDefaultErrorCallback  ErrorCallback;
-    FPhysXAssertHandler     AssertHandler;  // 커스텀 Assert 핸들러
-    PxFoundation*           Foundation      = nullptr;
-    PxPvd*                  Pvd             = nullptr;  // PhysX Visual Debugger
-    PxPvdTransport*         PvdTransport    = nullptr;
-    PxPhysics*              Physics         = nullptr;
+    // Per-Scene 리소스 (인스턴스별로 고유)
     PxScene*                Scene           = nullptr;
-    PxMaterial*             DefaultMaterial = nullptr;
-    PxDefaultCpuDispatcher* Dispatcher      = nullptr;
 
     std::vector<GameObject> Objects; // 간단 테스트용
 

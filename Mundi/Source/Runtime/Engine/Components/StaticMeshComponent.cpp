@@ -48,6 +48,23 @@ void UStaticMeshComponent::BeginPlay()
 	}
 }
 
+void UStaticMeshComponent::EndPlay()
+{
+	// 물리 바디 정리 (PhysScene이 아직 유효할 때)
+	if (BodyInstance && BodyInstance->RigidActor)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (FPhysScene* PhysScene = World->GetPhysScene())
+			{
+				BodyInstance->Terminate(*PhysScene);
+			}
+		}
+	}
+
+	Super::EndPlay();
+}
+
 void UStaticMeshComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);
