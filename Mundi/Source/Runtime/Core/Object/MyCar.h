@@ -77,7 +77,7 @@ protected:
 
     // Wheel bone animation
     void FindWheelBones();
-    void UpdateWheelBoneRotations();
+    void UpdateWheelBoneRotations(const PxVehicleWheelQueryResult& Result);
 protected:
     USkeletalMeshComponent* VehicleMesh = nullptr;
 
@@ -98,7 +98,7 @@ protected:
     float ChassisMass = 1500.0f;
     
     UPROPERTY(EditAnywhere, Category = "Vehicle")
-    FVector ChassisDimensions = FVector(2.5f, 4.0f, 2.0f);
+    FVector ChassisDimensions = FVector(2.5f, 5.2f, 2.0f);
     
     UPROPERTY(EditAnywhere, Category = "Vehicle")
     float WheelRadius = 0.5f;
