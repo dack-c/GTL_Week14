@@ -180,3 +180,62 @@ public:
 private:
     void RebuildBlendSpace();
 };
+
+// ----------------------------------------------------------------
+//	[BlendSpace2D] 2D 블렌드 스페이스 노드
+// ----------------------------------------------------------------
+
+class UBlendSpace2D;
+
+UCLASS(DisplayName = "UK2Node_BlendSpace2D", Description = "2D 블렌드 스페이스를 정의합니다. X(Direction), Y(Speed) 파라미터에 따라 여러 애니메이션을 블렌딩합니다.")
+class UK2Node_BlendSpace2D : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_BlendSpace2D, UK2Node);
+
+public:
+    UK2Node_BlendSpace2D();
+
+    /** 블렌드 스페이스 데이터 */
+    UBlendSpace2D* BlendSpace = nullptr;
+
+    /** X축 (Direction) 범위 */
+    float MinX = -100.0f;
+    float MaxX = 100.0f;
+
+    /** Y축 (Speed) 범위 */
+    float MinY = -100.0f;
+    float MaxY = 100.0f;
+
+    /** 샘플 애니메이션들 (UI용) */
+    TArray<UAnimSequence*> SampleAnimations;
+    TArray<FVector2D> SamplePositions;
+
+    /** 수동 삼각형 인덱스 (UI용, A*1000000 + B*1000 + C 형태로 저장) */
+    TArray<int32> TriangleIndicesA;
+    TArray<int32> TriangleIndicesB;
+    TArray<int32> TriangleIndicesC;
+
+    /** 현재 선택된 점 인덱스 (삼각형 생성용) */
+    TArray<int32> SelectedIndices;
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Blend Space 2D"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+
+    /** UI 데이터를 BlendSpace 객체에 동기화 */
+    void RebuildBlendSpace();
+
+private:
+    void DrawTriangles(ImDrawList* DrawList, ImVec2 CanvasMin, float CanvasSize);
+};

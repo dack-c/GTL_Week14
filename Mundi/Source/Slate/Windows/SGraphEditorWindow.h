@@ -9,6 +9,9 @@ class UEdGraph;
 class UEdGraphNode;
 class UEdGraphPin;
 struct FEdGraphPinType;
+class BlendSpacePreviewWindow;
+class UWorld;
+struct ID3D11Device;
 
 namespace ed = ax::NodeEditor;
 namespace util = ax::NodeEditor::Utilities;
@@ -37,15 +40,29 @@ public:
     // ----------------------------------------------------------------
     //	SGraphEditorWindow 인터페이스
     // ----------------------------------------------------------------
-public:    
+public:
     /** @brief 에디터를 초기화하고 편집할 그래프를 설정한다. */
-    bool Initialize(UEdGraph* InGraphToEdit);
+    bool Initialize(UEdGraph* InGraphToEdit, UWorld* InWorld = nullptr, ID3D11Device* InDevice = nullptr);
 
     /** @brief 창이 열려있는지 확인한다. */
     bool IsOpen() const { return bIsOpen; }
 
     /** @brief 창을 닫는다. */
     void Close() { bIsOpen = false; }
+
+    /** @brief BlendSpace 프리뷰 창 렌더링 (열려있는 경우) */
+    void RenderBlendSpacePreview();
+
+    /** @brief BlendSpace 프리뷰 뷰포트 렌더링 (씬 렌더링 전 호출) */
+    void RenderBlendSpacePreviewViewport();
+
+    /** @brief 마우스 이벤트 처리 (BlendSpace 프리뷰 카메라 조작용) */
+    void OnMouseDown(FVector2D MousePos, uint32 Button);
+    void OnMouseUp(FVector2D MousePos, uint32 Button);
+    void OnMouseMove(FVector2D MousePos);
+
+    /** @brief 마우스가 BlendSpace 프리뷰 뷰포트 위에 있는지 확인 */
+    bool IsMouseInBlendSpaceViewport(const FVector2D& MousePos) const;
 
 private:
     /** @brief 메뉴바 렌더링 */
@@ -68,6 +85,9 @@ private:
 
     /** @brief 노드/링크 삭제 처리 */
     void HandleDeletion();
+
+    /** @brief 노드 더블클릭 처리 (BlendSpace 프리뷰 등) */
+    void HandleDoubleClick();
 
     /** @brief 우클릭 컨텍스트 메뉴 렌더링 (노드 스폰) */
     void RenderContextMenu();
@@ -96,4 +116,13 @@ private:
 
     /** @brief 창 열림 여부 */
     bool bIsOpen = false;
+
+    /** @brief BlendSpace 프리뷰 창 (더블클릭 시 생성) */
+    BlendSpacePreviewWindow* BlendSpacePreview = nullptr;
+
+    /** @brief 월드 (BlendSpace 프리뷰용) */
+    UWorld* World = nullptr;
+
+    /** @brief D3D 디바이스 (BlendSpace 프리뷰용) */
+    ID3D11Device* Device = nullptr;
 };

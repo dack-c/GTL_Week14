@@ -23,6 +23,7 @@
 #include "BlueprintGraph/BlueprintActionDatabase.h"
 #include "BlueprintGraph/EdGraph.h"
 #include "Windows/AnimGraph/SAnimGraphEditorWindow.h"
+#include "Windows/SGraphEditorWindow.h"
 
 IMPLEMENT_CLASS(USlateManager)
 
@@ -83,6 +84,7 @@ USlateManager::~USlateManager()
 // 뷰포트 윈도우 체크 전역 함수 (InputManager 콜백용)
 static SSkeletalMeshViewerWindow* g_SkeletalViewerWindow = nullptr;
 static SParticleViewerWindow* g_ParticleViewerWindow = nullptr;
+static SGraphEditorWindow* g_AnimationGraphEditorWindow = nullptr;
 
 static bool IsMouseInViewportWindow(const FVector2D& MousePos)
 {
@@ -98,6 +100,12 @@ static bool IsMouseInViewportWindow(const FVector2D& MousePos)
     {
         // GetViewportRect()으로 뷰포트 영역 가져오기
         return g_ParticleViewerWindow->GetViewportRect().Contains(MousePos);
+    }
+
+    // BlendSpace 프리뷰 뷰포트 영역 체크
+    if (g_AnimationGraphEditorWindow && g_AnimationGraphEditorWindow->IsMouseInBlendSpaceViewport(MousePos))
+    {
+        return true;
     }
 
     return false;
@@ -277,12 +285,13 @@ void USlateManager::OpenAnimationGraphEditor(UAnimationGraph* AnimGraph)
     }
 
     AnimationGraphEditorWindow = new SGraphEditorWindow();
+    g_AnimationGraphEditorWindow = AnimationGraphEditorWindow;  // 전역 포인터 업데이트
 
     if (!AnimGraph)
     {
         AnimGraph = NewObject<UAnimationGraph>();
     }
-    AnimationGraphEditorWindow->Initialize(AnimGraph);
+    AnimationGraphEditorWindow->Initialize(AnimGraph, World, Device);
 }
 
 void USlateManager::CloseSkeletalMeshViewer()
@@ -359,6 +368,7 @@ void USlateManager::CloseAnimationGraphEditor()
     }
     delete AnimationGraphEditorWindow;
     AnimationGraphEditorWindow = nullptr;
+    g_AnimationGraphEditorWindow = nullptr;  // 전역 포인터 업데이트
 }
 
 void USlateManager::SwitchLayout(EViewportLayoutMode NewMode)
@@ -573,6 +583,7 @@ void USlateManager::Render()
 
     if (AnimationGraphEditorWindow)
     {
+        AnimationGraphEditorWindow->RenderBlendSpacePreviewViewport();
         AnimationGraphEditorWindow->OnRender();
     }
 }
@@ -614,6 +625,11 @@ void USlateManager::Update(float DeltaSeconds)
         {
             CloseParticleViewer();
         }
+    }
+
+    if (AnimationGraphEditorWindow)
+    {
+        AnimationGraphEditorWindow->OnUpdate(DeltaSeconds);
     }
 
     // 콘솔 애니메이션 업데이트
@@ -765,6 +781,12 @@ void USlateManager::OnMouseMove(FVector2D MousePos)
         return;
     }
 
+    // BlendSpace 프리뷰 뷰포트로 라우팅
+    if (AnimationGraphEditorWindow)
+    {
+        AnimationGraphEditorWindow->OnMouseMove(MousePos);
+    }
+
     if (ActiveViewport)
     {
         ActiveViewport->OnMouseMove(MousePos);
@@ -786,6 +808,13 @@ void USlateManager::OnMouseDown(FVector2D MousePos, uint32 Button)
     if (ParticleViewerWindow && ParticleViewerWindow->Rect.Contains(MousePos))
     {
         ParticleViewerWindow->OnMouseDown(MousePos, Button);
+        return;
+    }
+
+    // BlendSpace 프리뷰 뷰포트로 라우팅
+    if (AnimationGraphEditorWindow && AnimationGraphEditorWindow->IsMouseInBlendSpaceViewport(MousePos))
+    {
+        AnimationGraphEditorWindow->OnMouseDown(MousePos, Button);
         return;
     }
 
@@ -834,6 +863,13 @@ void USlateManager::OnMouseUp(FVector2D MousePos, uint32 Button)
     {
         // 뷰포트 밖에서 마우스를 놓아도 드래그가 해제되도록 항상 처리
         ParticleViewerWindow->OnMouseUp(MousePos, Button);
+        // do not return; still allow panels to finish mouse up
+    }
+
+    // BlendSpace 프리뷰 - 뷰포트 밖에서 마우스를 놓아도 드래그가 해제되도록 항상 처리
+    if (AnimationGraphEditorWindow)
+    {
+        AnimationGraphEditorWindow->OnMouseUp(MousePos, Button);
         // do not return; still allow panels to finish mouse up
     }
 
@@ -908,6 +944,7 @@ void USlateManager::Shutdown()
     {
         delete AnimationGraphEditorWindow;
         AnimationGraphEditorWindow = nullptr;
+        g_AnimationGraphEditorWindow = nullptr;
     }
 
     if (ParticleViewerWindow)
