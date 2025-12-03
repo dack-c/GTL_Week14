@@ -115,9 +115,6 @@ float USpringArmComponent::CalculateArmLengthWithCollision(const FVector& Origin
         OwnerActor
     );
 
-    UE_LOG("[SpringArm] Sweep: Origin(%.2f, %.2f, %.2f) -> End(%.2f, %.2f, %.2f), bHit=%d",
-        Origin.X, Origin.Y, Origin.Z, DesiredEnd.X, DesiredEnd.Y, DesiredEnd.Z, bHit);
-
     if (bHit && HitResult.bBlockingHit)
     {
         // 충돌 시 암 길이를 충돌 지점까지로 줄임
@@ -126,10 +123,6 @@ float USpringArmComponent::CalculateArmLengthWithCollision(const FVector& Origin
 
         // 최소 거리 보장 (너무 가까워지지 않도록)
         const float MinArmLength = ProbeSize * 2.0f;
-
-        UE_LOG("[SpringArm] Hit! Time=%.3f, HitArmLength=%.2f, Result=%.2f",
-            HitResult.Time, HitArmLength, FMath::Max(HitArmLength, MinArmLength));
-
         return FMath::Max(HitArmLength, MinArmLength);
     }
 
