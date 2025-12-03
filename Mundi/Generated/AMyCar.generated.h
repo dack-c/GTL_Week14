@@ -14,11 +14,11 @@
 // Define class-specific body macro
 #define A_MY_CAR_BODY \
 public: \
-    using Super = APawn; \
+    using Super = AActor; \
     using ThisClass_t = AMyCar; \
     static UClass* StaticClass() \
     { \
-        static UClass Cls{ "AMyCar", APawn::StaticClass(), sizeof(AMyCar) }; \
+        static UClass Cls{ "AMyCar", AActor::StaticClass(), sizeof(AMyCar) }; \
         static bool bRegistered = (UClass::SignUpClass(&Cls), true); \
         return &Cls; \
     } \
