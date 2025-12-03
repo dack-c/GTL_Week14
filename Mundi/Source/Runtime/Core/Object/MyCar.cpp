@@ -285,7 +285,7 @@ void AMyCar::CreateVehicle4W()
         ChassisDimensions.Y * 0.5f,
         ChassisDimensions.Z * 0.5f);
 
-    // Z-up 좌표계에서의 관성 모멘트 계산
+    // Z-up 좌표계에서의 관性 모멘트 계산
     const PxVec3 ChassisMOI(
         // X축 회전 (롤): Y²+Z² 성분 - Z-up에서 X축은 차량의 롤 회전
         (ChassisHalfExtents.y * ChassisHalfExtents.y + ChassisHalfExtents.z * ChassisHalfExtents.z) * ChassisMass / 12.0f,
@@ -789,7 +789,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     LogCounter += DeltaTime;
     
     // Update wheel bone rotations based on PhysX wheel rotation
-    UpdateWheelBoneRotations();
+    UpdateWheelBoneRotations(vehicleQueryResults[0]);
 }
 
 void AMyCar::CleanupVehiclePhysics()
@@ -901,7 +901,7 @@ void AMyCar::FindWheelBones()
     }
 }
 
-void AMyCar::UpdateWheelBoneRotations()
+void AMyCar::UpdateWheelBoneRotations(const PxVehicleWheelQueryResult& Result)
 {
     if (!bWheelBonesFound || !VehicleDrive4W || !VehicleMesh)
     {
@@ -936,10 +936,37 @@ void AMyCar::UpdateWheelBoneRotations()
         }
         
         // Create rotation around Y-axis (wheel spinning axis in vehicle local space)
-        FQuat AdditionalRotation = FQuat::FromAxisAngle(FVector(0, 1, 0), RotationDelta);
+        FQuat SpinRotation = FQuat::FromAxisAngle(FVector(0, 1, 0), RotationDelta);
 
-        // Apply the rotation to the current bone rotation
-        CurrentBoneTransform.Rotation = CurrentBoneTransform.Rotation * AdditionalRotation;
+        // For front wheels (FL: 0, FR: 1), apply steering rotation around Z-axis
+        if (WheelIdx == 0 || WheelIdx == 1) // Front Left and Front Right
+        {
+            // Use current steering input instead of PhysX steer value
+			//static float PrevSteerAngle = 0.0f;
+            //float SteerAngle = -CurrentSteerInput * (PxPi * 0.5f * 0.3333f); // Max steer angle from wheel setup
+			float SteerAngle = Result.wheelQueryResults[WheelIdx].steerAngle; // Get steer angle from PhysX (in radians)
+			//UE_LOG("[MyCarComponent] Wheel %d steer angle from PhysX: %.2f degrees", WheelIdx, FMath::RadiansToDegrees(SteerAngle));
+
+            // Create steering rotation around Z-axis (vertical axis)
+            //FQuat SteerRotation = FQuat::FromAxisAngle(FVector(0, 0, 1), SteerAngle);
+            
+            float SteerAngleDegree = RadiansToDegrees(SteerAngle);
+
+
+            UE_LOG("[MyCarComponent] Wheel %d steer angle from PhysX: %.2f degrees", WheelIdx, SteerAngleDegree);
+
+            // Apply both steering and spin rotations
+            FVector RotationAxis = CurrentBoneTransform.Rotation.ToEulerZYXDeg();
+			FVector NewEuler = FVector(RotationAxis.X, RotationAxis.Y + RotationDelta, -SteerAngleDegree + 90.0f);
+			NewEuler.Z = NewEuler.Y > 0.0f ? NewEuler.Z /*- 180.0f*/ : NewEuler.Z;
+			CurrentBoneTransform.Rotation = FQuat::MakeFromEulerZYX(NewEuler);
+            //CurrentBoneTransform.Rotation = SteerRotation;
+        }
+        else
+        {
+            CurrentBoneTransform.Rotation = CurrentBoneTransform.Rotation * SpinRotation;
+        }
+        
         CurrentBoneTransform.Rotation.Normalize();
         
         // Set the updated bone transform
@@ -947,10 +974,11 @@ void AMyCar::UpdateWheelBoneRotations()
         
         // Optional: Log wheel rotation for debugging (every 60 frames)
         static int32 LogFrameCounter = 0;
-        if (LogFrameCounter++ % 60 == 0)
+        if (LogFrameCounter++ % 60 == 0 && (WheelIdx == 0 || WheelIdx == 1))
         {
-            UE_LOG("[MyCarComponent] Wheel %d rotation speed: %.2f rad/s, delta: %.4f rad", 
-                   WheelIdx, WheelRotationSpeed, RotationDelta);
+            float SteerAngleDegrees = CurrentSteerInput * 60.0f; // Convert to degrees (max 60 degrees)
+            UE_LOG("[MyCarComponent] Wheel %d - Spin speed: %.2f rad/s, Steer angle: %.1f deg", 
+                   WheelIdx, WheelRotationSpeed, SteerAngleDegrees);
         }
     }
 }
