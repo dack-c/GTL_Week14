@@ -113,7 +113,7 @@ AMyCar::AMyCar()
     VehicleMesh = CreateDefaultSubobject<USkeletalMeshComponent>("VehicleMesh");
     VehicleMesh->SetupAttachment(RootComponent, EAttachmentRule::KeepRelative);
     VehicleMesh->SetRelativeRotation(FQuat::MakeFromEulerZYX(FVector(0, 0, 90))); // Adjust orientation if needed
-	VehicleMesh->SetRelativeLocation(FVector(0, 0, -2.4f));
+	VehicleMesh->SetRelativeLocation(FVector(0, 0, -0.8f));
     //SetRootComponent(VehicleMesh);
     VehicleMesh->SetSkeletalMesh("Data/Model/SkeletalCar.fbx");
     
@@ -529,15 +529,41 @@ void AMyCar::ProcessKeyboardInput(float DeltaTime)
     float TargetBrake = 0.0f;
     float TargetSteer = 0.0f;
     float TargetHandbrake = 0.0f;
+    bool bTargetReverse = false;
+    
+    // 현재 차량 속도 확인 (전진/후진 판단용)
+    float CurrentSpeed = 0.0f;
+    if (VehicleDrive4W)
+    {
+        CurrentSpeed = VehicleDrive4W->computeForwardSpeed();
+    }
     
     // Arrow key controls
     if (InputManager.IsKeyDown(VK_UP))
     {
-        TargetThrottle = 1.0f;
+        // 위 화살표: 전진 또는 후진에서 브레이크
+        if (CurrentSpeed < -0.1f) // 후진 중이면 브레이크
+        {
+            TargetBrake = 1.0f;
+        }
+        else // 정지 또는 전진 중이면 가속
+        {
+            TargetThrottle = 1.0f;
+            bTargetReverse = false;
+        }
     }
     if (InputManager.IsKeyDown(VK_DOWN))
     {
-        TargetBrake = 1.0f;
+        // 아래 화살표: 후진 또는 전진에서 브레이크
+        if (CurrentSpeed > 0.1f) // 전진 중이면 브레이크
+        {
+            TargetBrake = 1.0f;
+        }
+        else // 정지 또는 후진 중이면 후진 가속
+        {
+            TargetThrottle = 1.0f;
+            bTargetReverse = true;
+        }
     }
     if (InputManager.IsKeyDown(VK_LEFT))
     {
@@ -593,12 +619,14 @@ void AMyCar::ProcessKeyboardInput(float DeltaTime)
     }
     
     CurrentHandbrakeInput = TargetHandbrake;
+    bIsReversing = bTargetReverse;
     
     // Apply to vehicle
     VehicleInput.AnalogAccel = CurrentThrottleInput;
     VehicleInput.AnalogBrake = CurrentBrakeInput;
     VehicleInput.AnalogSteer = CurrentSteerInput;
     VehicleInput.AnalogHandbrake = CurrentHandbrakeInput;
+    VehicleInput.bReverse = bIsReversing;
 }
 
 void AMyCar::UpdateVehiclePhysics(float DeltaTime)
@@ -638,6 +666,25 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     
     if (!PxScenePtr)
         return;
+    
+    // 후진 기어 처리
+    if (VehicleInput.bReverse)
+    {
+        // 후진 기어로 변경
+        VehicleDrive4W->mDriveDynData.forceGearChange(PxVehicleGearsData::eREVERSE);
+        VehicleDrive4W->mDriveDynData.setUseAutoGears(false); // 수동 기어 모드
+    }
+    else
+    {
+        // 전진 기어 모드
+        PxU32 currentGear = VehicleDrive4W->mDriveDynData.getCurrentGear();
+        if (currentGear == PxVehicleGearsData::eREVERSE)
+        {
+            // 후진에서 전진으로 변경할 때
+            VehicleDrive4W->mDriveDynData.forceGearChange(PxVehicleGearsData::eFIRST);
+        }
+        VehicleDrive4W->mDriveDynData.setUseAutoGears(true); // 자동 기어 모드
+    }
     
     // 1. Apply input with better responsiveness
     VehicleDrive4W->mDriveDynData.setAnalogInput(
@@ -726,10 +773,11 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     {
         LogCounter = 0.0f;
         UE_LOG("[MyCarComponent] === Vehicle State ===");
-        UE_LOG("[MyCarComponent] Sleeping: %s | InAir: %s | Gear: %d",
+        UE_LOG("[MyCarComponent] Sleeping: %s | InAir: %s | Gear: %d | Reverse: %s",
             bIsSleeping ? "YES" : "NO", 
             bIsVehicleInAir ? "YES" : "NO", 
-            currentGear);
+            currentGear,
+            bIsReversing ? "YES" : "NO");
         UE_LOG("[MyCarComponent] Speed: %.2f m/s | Engine RPM: %.1f",
             forwardSpeed, engineRotationSpeed);
         UE_LOG("[MyCarComponent] Input - Accel: %.2f | Brake: %.2f | Steer: %.2f",
@@ -805,6 +853,12 @@ void AMyCar::ApplyBrake(float Value)
 void AMyCar::ApplyHandbrake(float Value)
 {
     VehicleInput.AnalogHandbrake = FMath::Clamp(Value, 0.0f, 1.0f);
+}
+
+void AMyCar::ApplyReverse(bool bInReverse)
+{
+    VehicleInput.bReverse = bInReverse;
+    bIsReversing = bInReverse;
 }
 
 void AMyCar::FindWheelBones()
