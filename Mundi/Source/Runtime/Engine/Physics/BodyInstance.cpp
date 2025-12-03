@@ -261,8 +261,8 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
         }
     }
 
-    // 질량 / 관성 텐서 설정
-    PxRigidBodyExt::updateMassAndInertia(*DynamicActor, ActualMass);
+    // 질량 / 관성 텐서 설정 (setMassAndUpdateInertia는 mass를 직접 받음)
+    PxRigidBodyExt::setMassAndUpdateInertia(*DynamicActor, ActualMass);
 
     // 씬에 등록
     Scene->addActor(*DynamicActor);
