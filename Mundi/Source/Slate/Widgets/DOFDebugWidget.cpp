@@ -121,7 +121,7 @@ void UDOFDebugWidget::RenderWidget()
     // Max Near Blur Size
     ImGui::Text("Max Near Blur");
     ImGui::SetNextItemWidth(-1);
-    if (ImGui::DragFloat("##MaxNearBlur", &MaxNearBlurSize, 0.5f, 0.0f, 128.0f, "%.1f"))
+    if (ImGui::DragFloat("##MaxNearBlur", &MaxNearBlurSize, 0.5f, 0.0f, 16.0f, "%.1f"))
     {
         bChanged = true;
     }
@@ -133,7 +133,7 @@ void UDOFDebugWidget::RenderWidget()
     // Max Far Blur Size
     ImGui::Text("Max Far Blur");
     ImGui::SetNextItemWidth(-1);
-    if (ImGui::DragFloat("##MaxFarBlur", &MaxFarBlurSize, 0.5f, 0.0f, 128.0f, "%.1f"))
+    if (ImGui::DragFloat("##MaxFarBlur", &MaxFarBlurSize, 0.5f, 0.0f, 16.0f, "%.1f"))
     {
         bChanged = true;
     }

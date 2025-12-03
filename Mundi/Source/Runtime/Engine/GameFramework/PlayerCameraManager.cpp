@@ -54,6 +54,27 @@ APlayerCameraManager::~APlayerCameraManager()
 	CachedViewport = nullptr;
 }
 
+void APlayerCameraManager::DuplicateSubObjects()
+{
+	Super::DuplicateSubObjects();
+
+	// ActiveModifiers는 raw pointer 배열이므로 얕은 복사 시 댕글링 포인터 발생
+	// PIE용 복제본은 모디파이어 없이 시작해야 함 (게임플레이 중에 새로 생성됨)
+	ActiveModifiers.Empty();
+	Modifiers.clear();
+
+	// 카메라 참조도 초기화 (PIE World에서 새로 찾아야 함)
+	CurrentViewCamera = nullptr;
+	CachedViewport = nullptr;
+
+	// 블렌딩 상태 초기화
+	BlendTimeTotal = 0.0f;
+	BlendTimeRemaining = 0.0f;
+
+	// Vignette 인덱스 초기화
+	LastVignetteIdx = 0;
+}
+
 void APlayerCameraManager::BeginPlay()
 {
 	Super::BeginPlay();

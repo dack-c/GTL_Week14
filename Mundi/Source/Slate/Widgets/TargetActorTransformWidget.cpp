@@ -648,7 +648,7 @@ void UTargetActorTransformWidget::RenderDOFSettings(APlayerCameraManager* CamMgr
 			// Max Near Blur
 			ImGui::Text("Max Near Blur");
 			ImGui::SetNextItemWidth(-1);
-			ImGui::DragFloat("##MaxNearBlur", &DOF->MaxNearBlurSize, 0.5f, 0.0f, 128.0f, "%.1f");
+			ImGui::DragFloat("##MaxNearBlur", &DOF->MaxNearBlurSize, 0.5f, 0.0f, 16.0f, "%.1f");
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::SetTooltip("Maximum blur radius for near (foreground) objects in pixels");
@@ -657,7 +657,7 @@ void UTargetActorTransformWidget::RenderDOFSettings(APlayerCameraManager* CamMgr
 			// Max Far Blur
 			ImGui::Text("Max Far Blur");
 			ImGui::SetNextItemWidth(-1);
-			ImGui::DragFloat("##MaxFarBlur", &DOF->MaxFarBlurSize, 0.5f, 0.0f, 128.0f, "%.1f");
+			ImGui::DragFloat("##MaxFarBlur", &DOF->MaxFarBlurSize, 0.5f, 0.0f, 16.0f, "%.1f");
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::SetTooltip("Maximum blur radius for far (background) objects in pixels");
