@@ -1085,6 +1085,44 @@ bool UPropertyRenderer::RenderSkeletalMeshComponentDetails(USkeletalMeshComponen
 	bool bChanged = false;
 	ImGui::Spacing();
 	ImGui::Separator();
+
+	if (Component)
+	{
+		// #1. 현재 할당된 애니메이션 그래프 이름 표시
+		FString GraphName = Component->GetAnimGraph() ? Component->GetAnimGraph()->GetName() : "None";
+		ImGui::Text("애니메이션 그래프: %s", GraphName.c_str());
+
+		// #2. 그래프가 없으면 [Create], 있으면 [Edit] 버튼 표시
+		if (Component->GetAnimGraph() == nullptr)
+		{
+			if (ImGui::Button("새로운 애니메이션 그래프 생성"))
+			{
+				UAnimationGraph* NewGraph = NewObject<UAnimationGraph>();
+				// NewGraph->SetName("NewAnimGraph_" + std::to_string(NewGraph->GetID())); // 임시 이름
+
+				Component->SetAnimGraph(NewGraph);
+
+				USlateManager::GetInstance().OpenAnimationGraphEditor(NewGraph);
+			}
+		}
+		else
+		{
+			if (ImGui::Button("그래프 에디터 열기"))
+			{
+				if (USlateManager::GetInstance().IsAnimationGraphEditorOpen())
+				{
+					USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
+				}
+				else
+				{
+					USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
+				}
+			}
+		}
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
 	ImGui::Text("Physics Asset Override");
 
 	USkeletalMesh* Mesh = Component->GetSkeletalMesh();
