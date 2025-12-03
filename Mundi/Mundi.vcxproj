@@ -698,8 +698,7 @@
     <ClCompile Include="Generated\UPawnMovementComponent.generated.cpp" />
     <ClCompile Include="Generated\UParticleSystemComponent.generated.cpp" />
     <ClCompile Include="Generated\AMyCar.generated.cpp" />
-  </ItemGroup>
-  <ClCompile Include="Generated\USpringArmComponent.generated.cpp" /></ItemGroup>
+    <ClCompile Include="Generated\USpringArmComponent.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -1189,8 +1188,7 @@
     <ClInclude Include="Generated\UPawnMovementComponent.generated.h" />
     <ClInclude Include="Generated\UParticleSystemComponent.generated.h" />
     <ClInclude Include="Generated\AMyCar.generated.h" />
-  </ItemGroup>
-  <ClInclude Include="Generated\USpringArmComponent.generated.h" /></ItemGroup>
+    <ClInclude Include="Generated\USpringArmComponent.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

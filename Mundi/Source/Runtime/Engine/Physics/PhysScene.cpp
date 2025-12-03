@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "PhysScene.h"
 #include "SimulationEventCallback.h"
 #include "Source/Runtime/Engine/Collision/Collision.h"
@@ -47,7 +47,7 @@ PxQueryHitType::Enum VehicleWheelRaycastPreFilter(
     }
 
     // 알 수 없는 표면은 무시
-    return PxQueryHitType::eNONE;
+    return PxQueryHitType::eBLOCK;
 }
 
 /**
@@ -411,46 +411,32 @@ public:
 static FContactModifyCallback GContactModifyCallback;
 
 /**
- * @brief 래그돌 + 차량용 커스텀 충돌 필터 셰이더
+ * @brief 래그돌용 커스텀 충돌 필터 셰이더
  *
  * PxFilterData 사용법:
- * - word0: 오브젝트 그룹 ID (충돌 그룹)
+ * - word0: 오브젝트 그룹 ID (같은 스켈레탈 메쉬 = 같은 ID)
  * - word1: 충돌 마스크 (어떤 그룹과 충돌할지)
  * - word2: 예약
- * - word3: 표면 타입 (차량용)
+ * - word3: 예약
+ *
+ * 같은 word0을 가진 바디들끼리는 충돌하지 않음 (Self-Collision 비활성화)
  */
-static PxFilterFlags RagdollVehicleFilterShader(
+static PxFilterFlags RagdollFilterShader(
     PxFilterObjectAttributes attributes0, PxFilterData filterData0,
     PxFilterObjectAttributes attributes1, PxFilterData filterData1,
     PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
 {
-    // 1) Self Collision 처리 (래그돌)
-    // : word0이 같고 1보다 크면 같은 스켈레탈 메쉬의 바디들 → Self-Collision 비활성화
-    if (filterData0.word0 > 1 && filterData0.word0 == filterData1.word0 && 
-        !(filterData0.word3 & SURFACE_TYPE_VEHICLE) && !(filterData1.word3 & SURFACE_TYPE_VEHICLE))
+    // 1) Self Collision 처리
+    // : word0이 같으면 같은 스켈레탈 메쉬의 바디들 → Self-Collision 비활성화
+    // word0 == 0은 일반 오브젝트 (래그돌이 아님) → 서로 충돌함
+    if (filterData0.word0 != 0 && filterData0.word0 == filterData1.word0)
     {
         return PxFilterFlag::eSUPPRESS;  // 충돌 무시
     }
 
-    // 2) 차량 내부 충돌 방지
-    // : 둘 다 차량이면서 같은 차량인 경우 충돌 방지
-    if ((filterData0.word3 & SURFACE_TYPE_VEHICLE) && (filterData1.word3 & SURFACE_TYPE_VEHICLE))
-    {
-        // 같은 차량의 부품들끼리는 충돌하지 않음
-        if (filterData0.word0 == filterData1.word0)
-        {
-            return PxFilterFlag::eSUPPRESS;
-        }
-    }
-
-    // 3) 충돌 그룹 기반 필터링
-    // word1은 충돌 마스크 - 비트 AND 연산으로 충돌 여부 결정
-    if (!(filterData0.word1 & filterData1.word0) || !(filterData1.word1 & filterData0.word0))
-    {
-        return PxFilterFlag::eSUPPRESS;
-    }
-
-    // 4) 트리거 처리 
+    // 2) 트리거 처리 
+    // : 물리 처리 없고, CallBack 등으로 Event 발생용
+    // Trigger가 Contact보다 우선 순위가 높다. 둘 중 하나만 Trigger라도 Contact 무시하고 Trigger 처리
     if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
     {
         pairFlags = PxPairFlag::eTRIGGER_DEFAULT
@@ -459,13 +445,15 @@ static PxFilterFlags RagdollVehicleFilterShader(
         return PxFilterFlag::eDEFAULT;
     }
 
-    // 5) 기본 충돌 처리
+    // 3) 기본 충돌 처리
     pairFlags = PxPairFlag::eCONTACT_DEFAULT
-              | PxPairFlag::eNOTIFY_TOUCH_FOUND
-              | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
-              | PxPairFlag::eNOTIFY_TOUCH_LOST;
+        | PxPairFlag::eNOTIFY_TOUCH_FOUND
+        | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
+        | PxPairFlag::eNOTIFY_TOUCH_LOST;
 
-    // 6) Dynamic 바디가 포함된 모든 충돌에 Contact Modify 활성화
+    // 5) Dynamic 바디가 포함된 모든 충돌에 Contact Modify 활성화
+    // Kinematic 플래그는 런타임에 변경될 수 있으므로, 콜백에서 실시간으로 체크
+    // PxFilterObjectIsKinematic()은 캐시된 값을 사용해서 부정확할 수 있음
     pairFlags |= PxPairFlag::eMODIFY_CONTACTS;
 
     return PxFilterFlag::eDEFAULT;
@@ -513,7 +501,7 @@ bool FPhysScene::Initialize()
     // 업데이트된 충돌 필터링 로직을 담당하는 함수포인터
     // actor/shape의 PxFilterData를 보고 "이 둘을 충돌시킬지? 트리거로 볼지?"를 결정
     // 차량 표면 타입도 고려하는 필터 셰이더 사용
-    sceneDesc.filterShader = RagdollVehicleFilterShader;
+    sceneDesc.filterShader = RagdollFilterShader;
 
     // Scene 생성
     // PxScene = 실제 물리 시뮬레이션 월드하나
