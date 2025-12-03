@@ -63,10 +63,14 @@ static void SetupWheelsSimulationData(
         
         // Create suspension data with proper defaults
         PxVehicleSuspensionData suspData;
-        suspData.mMaxCompression = 0.3f;
+        /*suspData.mMaxCompression = 0.3f;
         suspData.mMaxDroop = 0.1f;
         suspData.mSpringStrength = 35000.0f;
-        suspData.mSpringDamperRate = 4500.0f;
+        suspData.mSpringDamperRate = 4500.0f;*/
+        suspData.mMaxCompression = 0.6f;  // 늘림
+        suspData.mMaxDroop = 0.3f;        // 늘림  
+        suspData.mSpringStrength = 25000.0f; // 약간 줄임
+        suspData.mSpringDamperRate = 3500.0f; // 약간 줄임
         // NOTE: mSprungMass is set automatically by setChassisMass() - DO NOT set manually
         WheelsSimData->setSuspensionData(i, suspData);
         
@@ -78,11 +82,17 @@ static void SetupWheelsSimulationData(
         // Z-up 좌표계에서 서스펜션 이동 방향은 -Z (아래쪽)
         WheelsSimData->setSuspTravelDirection(i, PxVec3(0, 0, -1));
         
+        //// Set suspension force application point offset - Z-up에서 Z축 위쪽으로 오프셋
+        //WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z + 0.3f));
+        //
+        //// Set tire force application point offset - 바퀴 중심에서 약간 아래쪽으로 설정
+        //WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z - 0.1f));
+
         // Set suspension force application point offset - Z-up에서 Z축 위쪽으로 오프셋
-        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z + 0.3f));
-        
+        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, -0.3f));
+
         // Set tire force application point offset - 바퀴 중심에서 약간 아래쪽으로 설정
-        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z - 0.1f));
+        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, -0.3f));
     }
 }
 
@@ -243,12 +253,12 @@ void AMyCar::CreateVehicle4W()
     
     // Z-up 좌표계에서의 관성 모멘트 계산
     const PxVec3 ChassisMOI(
-        // X축 회전 (피치): Y²+Z² 성분
+        // X축 회전 (롤): Y²+Z² 성분 - Z-up에서 X축은 차량의 롤 회전
         (ChassisHalfExtents.y * ChassisHalfExtents.y + ChassisHalfExtents.z * ChassisHalfExtents.z) * ChassisMass / 12.0f,
-        // Y축 회전 (요): X²+Z² 성분 - 차량의 좌우 흔들림을 줄이기 위해 약간 작게
-        (ChassisHalfExtents.x * ChassisHalfExtents.x + ChassisHalfExtents.z * ChassisHalfExtents.z) * 0.8f * ChassisMass / 12.0f,
-        // Z축 회전 (롤): X²+Y² 성분
-        (ChassisHalfExtents.x * ChassisHalfExtents.x + ChassisHalfExtents.y * ChassisHalfExtents.y) * ChassisMass / 12.0f
+        // Y축 회전 (피치): X²+Z² 성분 - Z-up에서 Y축은 차량의 피치 회전
+        (ChassisHalfExtents.x * ChassisHalfExtents.x + ChassisHalfExtents.z * ChassisHalfExtents.z) * ChassisMass / 12.0f,
+        // Z축 회전 (요): X²+Y² 성분 - Z-up에서 Z축은 차량의 요 회전 (좌우 흔들림 감소를 위해 약간 작게)
+        (ChassisHalfExtents.x * ChassisHalfExtents.x + ChassisHalfExtents.y * ChassisHalfExtents.y) * 0.8f * ChassisMass / 12.0f
     );
     
     // Z-up 좌표계에서 샤시 무게중심 오프셋: Z축이 위쪽이므로 차체 중심에서 약간 아래쪽
@@ -545,25 +555,43 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     PxWheelQueryResult wheelQueryResults[PX_MAX_NB_WHEELS];
     const PxU32 numWheels = VehicleDrive4W->mWheelsSimData.getNbWheels();
     
+    //for (PxU32 i = 0; i < numWheels; i++)
+    //{
+    //    wheelQueryResults[i].isInAir = true;
+    //    wheelQueryResults[i].tireSurfaceMaterial = nullptr;
+    //    wheelQueryResults[i].tireSurfaceType = 0;
+    //    wheelQueryResults[i].localPose = PxTransform(PxIdentity);
+    //    
+    //    // Check if this wheel's raycast hit something
+    //    if (raycastResults[i].getNbAnyHits() > 0)
+    //    {
+    //        const PxRaycastHit& hit = raycastResults[i].getAnyHit(0);
+    //        
+    //        wheelQueryResults[i].isInAir = false;
+    //        wheelQueryResults[i].tireSurfaceMaterial = hit.shape ? hit.shape->getMaterialFromInternalFaceIndex(hit.faceIndex) : nullptr;
+    //        wheelQueryResults[i].tireSurfaceType = 0;
+    //        
+    //        // Calculate wheel local pose
+    //        const PxVec3 wheelOffset = VehicleDrive4W->mWheelsSimData.getWheelCentreOffset(i);
+    //        wheelQueryResults[i].localPose = PxTransform(wheelOffset);
+    //    }
+    //}
+
+    // 레이캐스트 결과 디버깅 추가
     for (PxU32 i = 0; i < numWheels; i++)
     {
-        wheelQueryResults[i].isInAir = true;
-        wheelQueryResults[i].tireSurfaceMaterial = nullptr;
-        wheelQueryResults[i].tireSurfaceType = 0;
-        wheelQueryResults[i].localPose = PxTransform(PxIdentity);
-        
-        // Check if this wheel's raycast hit something
+        UE_LOG("[MyCarComponent] Wheel %d: Raycast hits = %d", i, raycastResults[i].getNbAnyHits());
+
         if (raycastResults[i].getNbAnyHits() > 0)
         {
             const PxRaycastHit& hit = raycastResults[i].getAnyHit(0);
-            
-            wheelQueryResults[i].isInAir = false;
-            wheelQueryResults[i].tireSurfaceMaterial = hit.shape ? hit.shape->getMaterialFromInternalFaceIndex(hit.faceIndex) : nullptr;
-            wheelQueryResults[i].tireSurfaceType = 0;
-            
-            // Calculate wheel local pose
-            const PxVec3 wheelOffset = VehicleDrive4W->mWheelsSimData.getWheelCentreOffset(i);
-            wheelQueryResults[i].localPose = PxTransform(wheelOffset);
+            UE_LOG("[MyCarComponent] Wheel %d: Hit distance = %.3f", i, hit.distance);
+            UE_LOG("[MyCarComponent] Wheel %d: Hit position = (%.2f, %.2f, %.2f)",
+                i, hit.position.x, hit.position.y, hit.position.z);
+        }
+        else
+        {
+            UE_LOG("[MyCarComponent] Wheel %d: NO HITS!", i);
         }
     }
     

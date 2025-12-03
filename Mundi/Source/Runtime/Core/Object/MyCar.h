@@ -88,7 +88,7 @@ protected:
     
     // Vehicle parameters
     UPROPERTY(EditAnywhere, Category = "Vehicle")
-    float ChassisMass = 15.0f;
+    float ChassisMass = 1500.0f;
     
     UPROPERTY(EditAnywhere, Category = "Vehicle")
     FVector ChassisDimensions = FVector(2.5f, 2.0f, 5.0f);
