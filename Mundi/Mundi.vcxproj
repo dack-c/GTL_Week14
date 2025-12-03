@@ -283,6 +283,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Components\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Gamma.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.cpp" />
@@ -919,6 +920,7 @@
     <ClInclude Include="Source\Runtime\Engine\Components\SkeletalMeshComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SkinnedMeshComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SphereComponent.h" />
+    <ClInclude Include="Source\Runtime\Engine\Components\SpringArmComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\AmbientLightActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_DOF.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Gamma.h" />
