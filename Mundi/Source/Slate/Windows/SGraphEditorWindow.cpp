@@ -7,6 +7,9 @@
 #include "BlueprintGraph/EdGraph.h"
 #include "BlueprintGraph/EdGraphNode.h"
 #include "BlueprintGraph/EdGraphPin.h"
+#include "BlueprintGraph/K2Node_Animation.h"
+#include "AnimGraph/BlendSpacePreviewWindow.h"
+#include "Source/Editor/FBX/BlendSpace/BlendSpace2D.h"
 
 // ImGui-Node-Editor ID 변환 헬퍼
 static inline ed::NodeId ToNodeId(int32 id) { return (uintptr_t)id; }
@@ -31,7 +34,13 @@ SGraphEditorWindow::~SGraphEditorWindow()
         Context = nullptr;
     }
 
-    // @todo 그래프를 소유할 경우 여기서 소멸해야 함 
+    if (BlendSpacePreview)
+    {
+        delete BlendSpacePreview;
+        BlendSpacePreview = nullptr;
+    }
+
+    // @todo 그래프를 소유할 경우 여기서 소멸해야 함
 }
 
 void SGraphEditorWindow::OnRender()
@@ -40,13 +49,16 @@ void SGraphEditorWindow::OnRender()
     {
         return;
     }
-    
+
     if (ImGui::Begin("블루프린트 편집기", &bIsOpen, ImGuiWindowFlags_MenuBar))
     {
         RenderMenuBar();
         RenderEditor();
     }
     ImGui::End();
+
+    // BlendSpace 프리뷰 창 렌더링
+    RenderBlendSpacePreview();
 
     if (!bIsOpen)
     {
@@ -56,14 +68,20 @@ void SGraphEditorWindow::OnRender()
 
 void SGraphEditorWindow::OnUpdate(float DeltaSeconds)
 {
+    if (BlendSpacePreview && BlendSpacePreview->IsOpen())
+    {
+        BlendSpacePreview->OnUpdate(DeltaSeconds);
+    }
 }
 
-bool SGraphEditorWindow::Initialize(UEdGraph* InGraphToEdit)
+bool SGraphEditorWindow::Initialize(UEdGraph* InGraphToEdit, UWorld* InWorld, ID3D11Device* InDevice)
 {
     /** @note Initialize는 한 번만 호출되어야 함 */
     assert(InGraphToEdit);
 
     Graph = InGraphToEdit;
+    World = InWorld;
+    Device = InDevice;
 
     ed::Config Config;
     Context = ed::CreateEditor(&Config);
@@ -189,10 +207,13 @@ void SGraphEditorWindow::RenderEditor()
     // #3. 상호작용: 링크 생성
     HandleCreation();
 
-    // #4. 상호작용: 링크/노드 삭제 
+    // #4. 상호작용: 링크/노드 삭제
     HandleDeletion();
 
-    // #5. 상호작용: 컨텍스트 메뉴
+    // #5. 상호작용: 노드 더블클릭 (BlendSpace 프리뷰 등)
+    HandleDoubleClick();
+
+    // #6. 상호작용: 컨텍스트 메뉴
     ed::Suspend();
     RenderContextMenu();
     ed::Resume();
@@ -478,4 +499,115 @@ SGraphEditorWindow::LinkId SGraphEditorWindow::GetLinkId(UEdGraphPin* StartPin, 
     LinkId Low = static_cast<LinkId>(EndPin->PinID);
 
     return (High << 32) | Low;
+}
+
+void SGraphEditorWindow::HandleDoubleClick()
+{
+    // 더블클릭된 노드 확인
+    ed::NodeId DoubleClickedNodeId = ed::GetDoubleClickedNode();
+    if (!DoubleClickedNodeId)
+    {
+        return;
+    }
+
+    int32 NodeID = static_cast<int32>(DoubleClickedNodeId.Get());
+
+    // 그래프에서 해당 노드 찾기
+    UEdGraphNode* ClickedNode = nullptr;
+    for (UEdGraphNode* Node : Graph->Nodes)
+    {
+        if (Node->NodeID == NodeID)
+        {
+            ClickedNode = Node;
+            break;
+        }
+    }
+
+    if (!ClickedNode)
+    {
+        return;
+    }
+
+    // BlendSpace2D 노드인지 확인
+    UK2Node_BlendSpace2D* BlendSpaceNode = Cast<UK2Node_BlendSpace2D>(ClickedNode);
+    if (BlendSpaceNode)
+    {
+        // UI 데이터를 BlendSpace 객체에 동기화
+        BlendSpaceNode->RebuildBlendSpace();
+
+        if (BlendSpaceNode->BlendSpace)
+        {
+            // 이미 프리뷰 창이 열려있으면 닫고 새로 열기
+            if (BlendSpacePreview)
+            {
+                delete BlendSpacePreview;
+                BlendSpacePreview = nullptr;
+            }
+
+            // 새 프리뷰 창 생성
+            BlendSpacePreview = new BlendSpacePreviewWindow();
+            BlendSpacePreview->Initialize(BlendSpaceNode->BlendSpace, World, Device);
+
+            UE_LOG("SGraphEditorWindow: BlendSpace2D 프리뷰 창을 열었습니다.");
+        }
+    }
+}
+
+void SGraphEditorWindow::RenderBlendSpacePreview()
+{
+    if (!BlendSpacePreview)
+    {
+        return;
+    }
+
+    // 프리뷰 창 렌더링
+    BlendSpacePreview->OnRender();
+
+    // 창이 닫혔으면 정리
+    if (!BlendSpacePreview->IsOpen())
+    {
+        delete BlendSpacePreview;
+        BlendSpacePreview = nullptr;
+    }
+}
+
+void SGraphEditorWindow::RenderBlendSpacePreviewViewport()
+{
+    if (BlendSpacePreview && BlendSpacePreview->IsOpen())
+    {
+        BlendSpacePreview->OnRenderViewport();
+    }
+}
+
+void SGraphEditorWindow::OnMouseDown(FVector2D MousePos, uint32 Button)
+{
+    if (BlendSpacePreview && BlendSpacePreview->IsOpen())
+    {
+        BlendSpacePreview->OnMouseDown(MousePos, Button);
+    }
+}
+
+void SGraphEditorWindow::OnMouseUp(FVector2D MousePos, uint32 Button)
+{
+    if (BlendSpacePreview && BlendSpacePreview->IsOpen())
+    {
+        BlendSpacePreview->OnMouseUp(MousePos, Button);
+    }
+}
+
+void SGraphEditorWindow::OnMouseMove(FVector2D MousePos)
+{
+    if (BlendSpacePreview && BlendSpacePreview->IsOpen())
+    {
+        BlendSpacePreview->OnMouseMove(MousePos);
+    }
+}
+
+bool SGraphEditorWindow::IsMouseInBlendSpaceViewport(const FVector2D& MousePos) const
+{
+    if (BlendSpacePreview && BlendSpacePreview->IsOpen())
+    {
+        return BlendSpacePreview->GetViewportRect().Contains(MousePos);
+    }
+    return false;
 }

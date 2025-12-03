@@ -233,7 +233,9 @@ public:
     virtual FString GetMenuCategory() const override { return "애니메이션"; };
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 
-private:
+    /** UI 데이터를 BlendSpace 객체에 동기화 */
     void RebuildBlendSpace();
+
+private:
     void DrawTriangles(ImDrawList* DrawList, ImVec2 CanvasMin, float CanvasSize);
 };
