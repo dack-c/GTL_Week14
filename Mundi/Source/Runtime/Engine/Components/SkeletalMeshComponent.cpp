@@ -163,12 +163,13 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         {
             if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
             {
-                PhysicsState = EPhysicsAnimationState::PhysicsDriven;
+                SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
                 UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
             }
             else
             {
-                PhysicsState = EPhysicsAnimationState::AnimationDriven;
+                SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
+                ResetToBindPose();
                 UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
             }
         }
