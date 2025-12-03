@@ -114,6 +114,10 @@ PxMaterial* FPhysXSharedResources::DefaultMaterial = nullptr;
 int32 FPhysXSharedResources::RefCount = 0;
 bool FPhysXSharedResources::bInitialized = false;
 
+// 차량용 공유 리소스
+PxVehicleDrivableSurfaceToTireFrictionPairs* FPhysXSharedResources::VehicleFrictionPairs = nullptr;
+TArray<PxBatchQuery*> FPhysXSharedResources::ActiveBatchQueries;
+
 bool FPhysXSharedResources::Initialize()
 {
     if (bInitialized)
@@ -194,6 +198,16 @@ bool FPhysXSharedResources::Initialize()
         return false;
     }
 
+    // Initialize PhysX Vehicle SDK
+    if (!PxInitVehicleSDK(*Physics))
+    {
+        UE_LOG("[MyCarComponent] Failed to initialize PhysX Vehicle SDK");
+        return false;
+    }
+
+    // 차량용 공유 리소스 초기화
+    InitializeVehicleResources();
+
     bInitialized = true;
     UE_LOG("[PhysXSharedResources] Initialized successfully (Workers: %d)", numWorkerThreads);
     return true;
@@ -205,6 +219,9 @@ void FPhysXSharedResources::Shutdown()
 {
     if (!bInitialized)
         return;
+
+    // 차량용 공유 리소스 정리
+    ShutdownVehicleResources();
 
     if (Dispatcher)
     {
@@ -995,3 +1012,109 @@ void FPhysScene::SetupActorAsUndrivableSurface(PxRigidActor* actor)
     delete[] shapes;
     UE_LOG("[PhysScene] Actor set up as undrivable surface");
 }
+
+// ===== 차량용 공유 리소스 관리 함수들 =====
+
+void FPhysXSharedResources::InitializeVehicleResources()
+{
+    if (!Physics)
+    {
+        UE_LOG("[PhysXSharedResources] Cannot initialize vehicle resources: Physics not initialized");
+        return;
+    }
+
+    PxMaterial* DefaultMaterial = GetDefaultMaterial();
+    if (!DefaultMaterial)
+    {
+        UE_LOG("[PhysXSharedResources] Cannot initialize vehicle resources: Default material not found");
+        return;
+    }
+
+    // Friction Pairs 생성 - 더 많은 타이어 타입과 표면 타입 지원
+    const PxU32 numTireTypes = 1;
+    const PxU32 numSurfaceTypes = 1;
+    
+    PxVehicleDrivableSurfaceType surfaceTypes[1];
+    surfaceTypes[0].mType = 0;
+
+    const PxMaterial* surfaceMaterials[1];
+    surfaceMaterials[0] = DefaultMaterial;
+
+    VehicleFrictionPairs = PxVehicleDrivableSurfaceToTireFrictionPairs::allocate(numTireTypes, numSurfaceTypes);
+    VehicleFrictionPairs->setup(numTireTypes, numSurfaceTypes, surfaceMaterials, surfaceTypes);
+
+    // 마찰력 강화 - 타이어와 도로 간 마찰력 증가
+    for (PxU32 i = 0; i < numTireTypes; i++)
+    {
+        for (PxU32 j = 0; j < numSurfaceTypes; j++)
+        {
+            // 마찰력을 1.5로 증가시켜 더 나은 트랙션 제공
+            VehicleFrictionPairs->setTypePairFriction(i, j, 1.5f);
+        }
+    }
+
+    UE_LOG("[PhysXSharedResources] Vehicle resources initialized successfully");
+}
+
+void FPhysXSharedResources::ShutdownVehicleResources()
+{
+    // 활성 BatchQuery들 정리
+    for (PxBatchQuery* BatchQuery : ActiveBatchQueries)
+    {
+        if (BatchQuery)
+        {
+            BatchQuery->release();
+        }
+    }
+    ActiveBatchQueries.Empty();
+
+    // FrictionPairs 정리
+    if (VehicleFrictionPairs)
+    {
+        VehicleFrictionPairs->release();
+        VehicleFrictionPairs = nullptr;
+    }
+
+    UE_LOG("[PhysXSharedResources] Vehicle resources shutdown complete");
+}
+
+PxBatchQuery* FPhysXSharedResources::CreateVehicleBatchQuery(PxScene* Scene, int32 NumWheels)
+{
+    if (!Scene)
+    {
+        UE_LOG("[PhysXSharedResources] CreateVehicleBatchQuery: Scene is null");
+        return nullptr;
+    }
+
+    // Create batch query for vehicle raycasts with vehicle pre-filter
+    PxBatchQueryDesc batchQueryDesc(NumWheels, 0, 0);
+    batchQueryDesc.preFilterShader = VehicleWheelRaycastPreFilter;  // 차량용 pre-filter 사용
+    
+    PxBatchQuery* BatchQuery = Scene->createBatchQuery(batchQueryDesc);
+    if (BatchQuery)
+    {
+        ActiveBatchQueries.Add(BatchQuery);
+        UE_LOG("[PhysXSharedResources] Vehicle BatchQuery created (NumWheels: %d)", NumWheels);
+    }
+    else
+    {
+        UE_LOG("[PhysXSharedResources] Failed to create vehicle BatchQuery");
+    }
+
+    return BatchQuery;
+}
+
+//void FPhysXSharedResources::ReleaseVehicleBatchQuery(PxBatchQuery* BatchQuery)
+//{
+//    if (!BatchQuery)
+//        return;
+//
+//    // 활성 목록에서 제거
+//    ActiveBatchQueries.RemoveAll([&BatchQuery](PxBatchQuery* ActiveQuery) {
+//        return ActiveQuery == BatchQuery;
+//    });
+//
+//    // 실제 해제
+//    BatchQuery->release();
+//    UE_LOG("[PhysXSharedResources] Vehicle BatchQuery released");
+//}

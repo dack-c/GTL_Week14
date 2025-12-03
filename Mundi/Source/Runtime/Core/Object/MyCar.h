@@ -83,8 +83,6 @@ protected:
 
     // PhysX vehicle data
     physx::PxVehicleDrive4W* VehicleDrive4W = nullptr;
-    physx::PxVehicleDrivableSurfaceToTireFrictionPairs* FrictionPairs = nullptr;
-    physx::PxBatchQuery* BatchQuery = nullptr;
 
     // 레이캐스트 결과 버퍼
     TArray<physx::PxRaycastQueryResult> RaycastResults;

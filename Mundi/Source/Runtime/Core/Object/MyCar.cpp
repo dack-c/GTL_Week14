@@ -210,13 +210,6 @@ void AMyCar::InitializeVehiclePhysics()
         UE_LOG("[MyCarComponent] Failed to initialize: Invalid PhysX scene");
         return;
     }
-
-    // Initialize PhysX Vehicle SDK
-    if (!PxInitVehicleSDK(*Physics))
-    {
-        UE_LOG("[MyCarComponent] Failed to initialize PhysX Vehicle SDK");
-        return;
-    }
     
     // CRITICAL: Set proper basis vectors for Z-up coordinate system
     // Forward = +Y, Right = +X, Up = +Z in Z-up left-handed coordinate system
@@ -228,37 +221,6 @@ void AMyCar::InitializeVehiclePhysics()
     // 레이캐스트 결과 버퍼 초기화
     RaycastResults.SetNum(NumWheels);
     RaycastHitBuffer.SetNum(NumWheels);
-    
-    // Create batch query for vehicle raycasts with vehicle pre-filter
-    PxBatchQueryDesc batchQueryDesc(NumWheels, 0, 0);
-    batchQueryDesc.queryMemory.userRaycastResultBuffer = RaycastResults.GetData();
-    batchQueryDesc.queryMemory.userRaycastTouchBuffer = RaycastHitBuffer.GetData();
-    batchQueryDesc.queryMemory.raycastTouchBufferSize = NumWheels;
-    batchQueryDesc.preFilterShader = VehicleWheelRaycastPreFilter;  // 차량용 pre-filter 사용
-    BatchQuery = PxScenePtr->createBatchQuery(batchQueryDesc);
-
-    // Friction Pairs 생성 - 더 많은 타이어 타입과 표면 타입 지원
-    const PxU32 numTireTypes = 1;
-    const PxU32 numSurfaceTypes = 1;
-    
-    PxVehicleDrivableSurfaceType surfaceTypes[1];
-    surfaceTypes[0].mType = 0;
-
-    const PxMaterial* surfaceMaterials[1];
-    surfaceMaterials[0] = Material;
-
-    FrictionPairs = PxVehicleDrivableSurfaceToTireFrictionPairs::allocate(numTireTypes, numSurfaceTypes);
-    FrictionPairs->setup(numTireTypes, numSurfaceTypes, surfaceMaterials, surfaceTypes);
-
-    // 마찰력 강화 - 타이어와 도로 간 마찰력 증가
-    for (PxU32 i = 0; i < numTireTypes; i++)
-    {
-        for (PxU32 j = 0; j < numSurfaceTypes; j++)
-        {
-            // 마찰력을 1.5로 증가시켜 더 나은 트랙션 제공
-            FrictionPairs->setTypePairFriction(i, j, 1.5f);
-        }
-    }
     
     // Create the vehicle
     CreateVehicle4W();
@@ -631,7 +593,7 @@ void AMyCar::ProcessKeyboardInput(float DeltaTime)
 
 void AMyCar::UpdateVehiclePhysics(float DeltaTime)
 {
-    if (!VehicleDrive4W || !BatchQuery)
+    if (!VehicleDrive4W)
         return;
 
     // CRITICAL: Check if vehicle is sleeping and wake it up if input is provided
@@ -703,13 +665,39 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
         PxVehicleDrive4WControl::eANALOG_INPUT_HANDBRAKE, 
         VehicleInput.AnalogHandbrake);
     
-    // 2. Perform suspension raycasts using the new vehicle filter system
+    // 2. Perform suspension raycasts using the shared vehicle resources
     PxVehicleWheels* vehicles[1] = {VehicleDrive4W};
     PxRaycastQueryResult* raycastResults = RaycastResults.GetData();
     const PxU32 raycastResultsSize = RaycastResults.Num();
     
+    // Get shared vehicle friction pairs for raycasts
+    PxVehicleDrivableSurfaceToTireFrictionPairs* SharedFrictionPairs = FPhysXSharedResources::GetVehicleFrictionPairs();
+    if (!SharedFrictionPairs)
+    {
+        UE_LOG("[MyCarComponent] SharedFrictionPairs is null - vehicle suspension may not work properly");
+        return;
+    }
+
+    // Use shared BatchQuery - create one if it doesn't exist yet
+    static PxBatchQuery* SharedBatchQuery = nullptr;
+    if (!SharedBatchQuery)
+    {
+        SharedBatchQuery = FPhysXSharedResources::CreateVehicleBatchQuery(PxScenePtr, NumWheels);
+        if (!SharedBatchQuery)
+        {
+            UE_LOG("[MyCarComponent] Failed to create shared BatchQuery");
+            return;
+        }
+    }
+
+    // Set up the raycast results buffer for this batch query
+    PxBatchQueryDesc queryDesc(NumWheels, 0, 0);
+    queryDesc.queryMemory.userRaycastResultBuffer = raycastResults;
+    queryDesc.queryMemory.userRaycastTouchBuffer = RaycastHitBuffer.GetData();
+    queryDesc.queryMemory.raycastTouchBufferSize = NumWheels;
+
     PxVehicleSuspensionRaycasts(
-        BatchQuery,           // Batch query with vehicle pre-filter
+        SharedBatchQuery,     // Shared batch query with vehicle pre-filter
         1,                    // Number of vehicles
         vehicles,             // Array of vehicle pointers
         raycastResultsSize,   // Size of raycast results array
@@ -743,7 +731,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
         {wheelQueryResults, numWheels}
     };
     
-    // 4. Update vehicle physics
+    // 4. Update vehicle physics using shared friction pairs
     const PxVec3 grav = PxScenePtr->getGravity();
     //const float FixedTimeStep = 1.0f / 60.0f;
     float FixedTimeStep = 0.0f;
@@ -756,7 +744,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
         FixedTimeStep = DeltaTime;
 	}
     
-    PxVehicleUpdates(FixedTimeStep * 2.0f, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
+    PxVehicleUpdates(FixedTimeStep * 2.0f, grav, *SharedFrictionPairs, 1, vehicles, vehicleQueryResults);
 
     // ENHANCED: Detailed vehicle state debugging
     bool bIsSleeping = VehicleActor->isSleeping();
@@ -826,7 +814,7 @@ void AMyCar::CleanupVehiclePhysics()
         VehicleDrive4W = nullptr;
     }
     
-    if (BatchQuery)
+    /*if (BatchQuery)
     {
         BatchQuery->release();
         BatchQuery = nullptr;
@@ -836,7 +824,7 @@ void AMyCar::CleanupVehiclePhysics()
     {
         FrictionPairs->release();
         FrictionPairs = nullptr;
-    }
+    }*/
     
     // Cleanup PhysX Vehicle SDK
     //PxCloseVehicleSDK();

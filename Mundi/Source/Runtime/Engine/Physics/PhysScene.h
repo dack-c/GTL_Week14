@@ -96,6 +96,11 @@ public:
     static PxMaterial* GetDefaultMaterial() { return DefaultMaterial; }
     static bool IsInitialized() { return bInitialized; }
 
+    // 차량용 공유 리소스
+    static PxVehicleDrivableSurfaceToTireFrictionPairs* GetVehicleFrictionPairs() { return VehicleFrictionPairs; }
+    static PxBatchQuery* CreateVehicleBatchQuery(PxScene* Scene, int32 NumWheels);
+    //static void ReleaseVehicleBatchQuery(PxBatchQuery* BatchQuery);
+
 private:
     static PxDefaultAllocator Allocator;
     static FPhysXCustomErrorCallback ErrorCallback;  // 커스텀 에러 콜백 사용
@@ -108,6 +113,13 @@ private:
     static PxMaterial* DefaultMaterial;
     static int32 RefCount;
     static bool bInitialized;
+
+    // 차량용 공유 리소스
+    static PxVehicleDrivableSurfaceToTireFrictionPairs* VehicleFrictionPairs;
+    static TArray<PxBatchQuery*> ActiveBatchQueries; // 활성 BatchQuery 목록 추적
+
+    static void InitializeVehicleResources();
+    static void ShutdownVehicleResources();
 };
 
 class FPhysScene
