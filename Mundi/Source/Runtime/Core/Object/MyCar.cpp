@@ -59,6 +59,7 @@ static void SetupWheelsSimulationData(
         suspData.mMaxDroop = 0.1f;
         suspData.mSpringStrength = 35000.0f;
         suspData.mSpringDamperRate = 4500.0f;
+        // NOTE: mSprungMass is set automatically by setChassisMass() - DO NOT set manually
         WheelsSimData->setSuspensionData(i, suspData);
         
         WheelsSimData->setWheelShapeMapping(i, i);
@@ -67,11 +68,11 @@ static void SetupWheelsSimulationData(
         WheelsSimData->setSuspTravelDirection(i, PxVec3(0, -1, 0));
         WheelsSimData->setWheelCentreOffset(i, WheelCentreOffsets[i]);
         
-        // Set suspension force application point offset
-        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(0, 0, 0));
+        // Set suspension force application point offset - must be different from (0,0,0)
+        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y + 0.3f, WheelCentreOffsets[i].z));
         
-        // Set tire force application point offset
-        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(0, 0, 0));
+        // Set tire force application point offset - must be different from (0,0,0)
+        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y - 0.3f, WheelCentreOffsets[i].z));
     }
 }
 
@@ -294,8 +295,19 @@ void AMyCar::CreateVehicle4W()
     SetupWheelsSimulationData(WheelMass, WheelRadius, WheelWidth, WheelMOI, 
                                ChassisCMOffsetFVector, NumWheels, WheelsSimData);
     
+    // CRITICAL: Set the chassis mass distribution for suspension sprung masses
+    WheelsSimData->setChassisMass(ChassisMass);
+    
     // Create drive simulation data
     PxVehicleDriveSimData4W DriveSimData;
+    
+    // Setup Ackermann geometry - this is critical for validation
+    PxVehicleAckermannGeometryData AckermannData;
+    AckermannData.mAccuracy = 1.0f;
+    AckermannData.mFrontWidth = 2.0f; // Distance between front wheels (must be > 0)
+    AckermannData.mRearWidth = 2.0f;  // Distance between rear wheels (must be > 0)
+    AckermannData.mAxleSeparation = 3.0f; // Distance between front and rear axles
+    DriveSimData.setAckermannGeometryData(AckermannData);
     
     // Setup differential (4WD)
     PxVehicleDifferential4WData Diff;
