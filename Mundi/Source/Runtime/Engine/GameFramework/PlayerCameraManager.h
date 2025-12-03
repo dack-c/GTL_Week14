@@ -26,6 +26,7 @@ public:
 	void BeginPlay() override;
 	void Destroy() override;
 	void Tick(float DeltaTime) override;
+	void DuplicateSubObjects() override;
 
 	void RegisterView(UCameraComponent* RegisterViewTarget);
 	void UnregisterView(UCameraComponent* UnregisterViewTarget);
