@@ -124,7 +124,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 			// 바닥 찾음 - 스냅 (경사면 내려가기)
 			if (StepDownHit.ImpactNormal.Z > 0.7f)
 			{
-				const float SkinWidth = 0.04f;
+				const float SkinWidth = 0.01f;
 				float SnapDistance = StepDownHit.Distance - SkinWidth;
 				if (SnapDistance > KINDA_SMALL_NUMBER)
 				{
@@ -211,7 +211,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsFalling = false;
 
 			// 바닥으로 스냅 (SkinWidth 여유를 두고 이동)
-			const float SkinWidth = 0.04f;
+			const float SkinWidth = 0.01f;
 			float SnapDistance = FloorHit.Distance - SkinWidth;
 			if (SnapDistance > KINDA_SMALL_NUMBER)
 			{
