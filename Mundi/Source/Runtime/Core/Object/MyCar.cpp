@@ -222,6 +222,22 @@ void AMyCar::InitializeVehiclePhysics()
     RaycastResults.SetNum(NumWheels);
     RaycastHitBuffer.SetNum(NumWheels);
     
+    if (!SharedBatchQuery)
+    {
+        // Set up the raycast results buffer for this batch query
+        PxBatchQueryDesc queryDesc(NumWheels, 0, 0);
+        queryDesc.queryMemory.userRaycastResultBuffer = RaycastResults.GetData();
+        queryDesc.queryMemory.userRaycastTouchBuffer = RaycastHitBuffer.GetData();
+        queryDesc.queryMemory.raycastTouchBufferSize = NumWheels;
+
+        SharedBatchQuery = FPhysXSharedResources::CreateVehicleBatchQuery(PxScenePtr, queryDesc);
+        if (!SharedBatchQuery)
+        {
+            UE_LOG("[MyCarComponent] Failed to create shared BatchQuery");
+            return;
+        }
+    }
+
     // Create the vehicle
     CreateVehicle4W();
     
@@ -679,22 +695,7 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     }
 
     // Use shared BatchQuery - create one if it doesn't exist yet
-    static PxBatchQuery* SharedBatchQuery = nullptr;
-    if (!SharedBatchQuery)
-    {
-        SharedBatchQuery = FPhysXSharedResources::CreateVehicleBatchQuery(PxScenePtr, NumWheels);
-        if (!SharedBatchQuery)
-        {
-            UE_LOG("[MyCarComponent] Failed to create shared BatchQuery");
-            return;
-        }
-    }
-
-    // Set up the raycast results buffer for this batch query
-    PxBatchQueryDesc queryDesc(NumWheels, 0, 0);
-    queryDesc.queryMemory.userRaycastResultBuffer = raycastResults;
-    queryDesc.queryMemory.userRaycastTouchBuffer = RaycastHitBuffer.GetData();
-    queryDesc.queryMemory.raycastTouchBufferSize = NumWheels;
+    
 
     PxVehicleSuspensionRaycasts(
         SharedBatchQuery,     // Shared batch query with vehicle pre-filter
@@ -814,6 +815,13 @@ void AMyCar::CleanupVehiclePhysics()
         VehicleDrive4W = nullptr;
     }
     
+    if (SharedBatchQuery)
+    {
+        //FPhysScene* PhysScene = World->GetPhysScene();
+        FPhysXSharedResources::ReleaseVehicleBatchQuery(SharedBatchQuery);
+        SharedBatchQuery = nullptr;
+    }
+
     /*if (BatchQuery)
     {
         BatchQuery->release();

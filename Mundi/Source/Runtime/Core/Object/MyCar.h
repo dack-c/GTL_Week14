@@ -91,6 +91,8 @@ protected:
     // Vehicle input
     FVehicleInputData VehicleInput;
     
+    PxBatchQuery* SharedBatchQuery = nullptr;
+
     // Vehicle parameters
     UPROPERTY(EditAnywhere, Category = "Vehicle")
     float ChassisMass = 1500.0f;

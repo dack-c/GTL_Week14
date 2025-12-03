@@ -1078,7 +1078,7 @@ void FPhysXSharedResources::ShutdownVehicleResources()
     UE_LOG("[PhysXSharedResources] Vehicle resources shutdown complete");
 }
 
-PxBatchQuery* FPhysXSharedResources::CreateVehicleBatchQuery(PxScene* Scene, int32 NumWheels)
+PxBatchQuery* FPhysXSharedResources::CreateVehicleBatchQuery(PxScene* Scene, PxBatchQueryDesc& queryDesc)
 {
     if (!Scene)
     {
@@ -1087,14 +1087,13 @@ PxBatchQuery* FPhysXSharedResources::CreateVehicleBatchQuery(PxScene* Scene, int
     }
 
     // Create batch query for vehicle raycasts with vehicle pre-filter
-    PxBatchQueryDesc batchQueryDesc(NumWheels, 0, 0);
-    batchQueryDesc.preFilterShader = VehicleWheelRaycastPreFilter;  // 차량용 pre-filter 사용
+    queryDesc.preFilterShader = VehicleWheelRaycastPreFilter;  // 차량용 pre-filter 사용
     
-    PxBatchQuery* BatchQuery = Scene->createBatchQuery(batchQueryDesc);
+    PxBatchQuery* BatchQuery = Scene->createBatchQuery(queryDesc);
     if (BatchQuery)
     {
         ActiveBatchQueries.Add(BatchQuery);
-        UE_LOG("[PhysXSharedResources] Vehicle BatchQuery created (NumWheels: %d)", NumWheels);
+        UE_LOG("[PhysXSharedResources] Vehicle BatchQuery created (NumWheels: %d)", queryDesc.queryMemory.raycastTouchBufferSize);
     }
     else
     {
@@ -1104,17 +1103,16 @@ PxBatchQuery* FPhysXSharedResources::CreateVehicleBatchQuery(PxScene* Scene, int
     return BatchQuery;
 }
 
-//void FPhysXSharedResources::ReleaseVehicleBatchQuery(PxBatchQuery* BatchQuery)
-//{
-//    if (!BatchQuery)
-//        return;
-//
-//    // 활성 목록에서 제거
-//    ActiveBatchQueries.RemoveAll([&BatchQuery](PxBatchQuery* ActiveQuery) {
-//        return ActiveQuery == BatchQuery;
-//    });
-//
-//    // 실제 해제
-//    BatchQuery->release();
-//    UE_LOG("[PhysXSharedResources] Vehicle BatchQuery released");
-//}
+void FPhysXSharedResources::ReleaseVehicleBatchQuery(PxBatchQuery* BatchQuery)
+{
+    if (!BatchQuery)
+        return;
+
+    // 활성 목록에서 제거 - 직접적인 Remove 사용
+    if (!ActiveBatchQueries.empty())
+    {
+        ActiveBatchQueries.Remove(BatchQuery);
+        BatchQuery->release();
+        UE_LOG("[PhysXSharedResources] Vehicle BatchQuery released");
+    }
+}

@@ -98,8 +98,8 @@ public:
 
     // 차량용 공유 리소스
     static PxVehicleDrivableSurfaceToTireFrictionPairs* GetVehicleFrictionPairs() { return VehicleFrictionPairs; }
-    static PxBatchQuery* CreateVehicleBatchQuery(PxScene* Scene, int32 NumWheels);
-    //static void ReleaseVehicleBatchQuery(PxBatchQuery* BatchQuery);
+    static PxBatchQuery* CreateVehicleBatchQuery(PxScene* Scene, PxBatchQueryDesc& queryDesc);
+    static void ReleaseVehicleBatchQuery(PxBatchQuery* BatchQuery);
 
 private:
     static PxDefaultAllocator Allocator;
