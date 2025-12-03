@@ -1,9 +1,10 @@
 ﻿#include "pch.h"
-#include "GameModeBase.h" 
+#include "GameModeBase.h"
 #include "PlayerController.h"
 #include "Pawn.h"
 #include "World.h"
 #include "CameraComponent.h"
+#include "SpringArmComponent.h"
 #include "PlayerCameraManager.h"
 #include "Character.h"
 #include "Source/Runtime/Core/Misc/PathUtils.h"
@@ -75,13 +76,30 @@ void AGameModeBase::PostLogin(APlayerController* NewPlayer)
 
     }
 
-	// 카메라가 없으면 카메라 부착
-	if (NewPawn && !NewPawn->GetComponent(UCameraComponent::StaticClass()))
+	// SpringArm + Camera 구조로 부착
+	if (NewPawn && !NewPawn->GetComponent(USpringArmComponent::StaticClass()))
 	{
-		if (UActorComponent* ActorComponent = NewPawn->AddNewComponent(UCameraComponent::StaticClass(), NewPawn->GetRootComponent())) {
-			auto* Camera = Cast<UCameraComponent>(ActorComponent);
-			Camera->SetRelativeLocation(FVector(-4, 0, 2.7));
-			Camera->SetRelativeRotationEuler(FVector(0, 14, 0));
+		// 1. SpringArm 생성 및 RootComponent에 부착
+		USpringArmComponent* SpringArm = nullptr;
+		if (UActorComponent* SpringArmComp = NewPawn->AddNewComponent(USpringArmComponent::StaticClass(), NewPawn->GetRootComponent()))
+		{
+			SpringArm = Cast<USpringArmComponent>(SpringArmComp);
+			SpringArm->SetRelativeLocation(FVector(0, 0, 2.0f));  // 캐릭터 머리 위쪽
+			SpringArm->SetTargetArmLength(5.0f);                  // 카메라 거리
+			SpringArm->SetDoCollisionTest(true);                  // 충돌 체크 활성화
+			SpringArm->SetUsePawnControlRotation(true);           // 컨트롤러 회전 사용
+		}
+
+		// 2. Camera를 SpringArm에 부착
+		if (SpringArm)
+		{
+			if (UActorComponent* CameraComp = NewPawn->AddNewComponent(UCameraComponent::StaticClass(), SpringArm))
+			{
+				auto* Camera = Cast<UCameraComponent>(CameraComp);
+				// 카메라는 SpringArm 끝에 위치 (SpringArm이 위치 계산)
+				Camera->SetRelativeLocation(FVector(0, 0, 0));
+				Camera->SetRelativeRotationEuler(FVector(0, 0, 0));
+			}
 		}
 	}
 

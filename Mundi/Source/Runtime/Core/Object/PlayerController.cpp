@@ -2,9 +2,10 @@
 #include "PlayerController.h"
 #include "Pawn.h"
 #include "CameraComponent.h"
+#include "SpringArmComponent.h"
 #include <windows.h>
 #include <cmath>
-#include  "Character.h"
+#include "Character.h"
 
 APlayerController::APlayerController()
 {
@@ -146,14 +147,14 @@ void APlayerController::ProcessRotationInput(float DeltaTime)
         FQuat NewControlRotation = FQuat::MakeFromEulerZYX(Euler);
         SetControlRotation(NewControlRotation);
 
-        // 카메라만 회전 (플레이어는 회전하지 않음)
-        if (UActorComponent* C = Pawn->GetComponent(UCameraComponent::StaticClass()))
+        // SpringArm을 회전시켜 카메라가 캐릭터 주위를 공전하도록 함
+        if (UActorComponent* C = Pawn->GetComponent(USpringArmComponent::StaticClass()))
         {
-            if (UCameraComponent* CamComp = Cast<UCameraComponent>(C))
+            if (USpringArmComponent* SpringArm = Cast<USpringArmComponent>(C))
             {
-                // 카메라는 Yaw + Pitch 모두 적용 (로컬 회전)
-                FQuat CameraLocalRot = FQuat::MakeFromEulerZYX(FVector(0.0f, Euler.Y, Euler.Z));
-                CamComp->SetRelativeRotation(CameraLocalRot);
+                // SpringArm 회전 적용 → 카메라가 캐릭터 주위를 공전
+                FQuat SpringArmRot = FQuat::MakeFromEulerZYX(FVector(0.0f, Euler.Y, Euler.Z));
+                SpringArm->SetRelativeRotation(SpringArmRot);
             }
         }
     }
