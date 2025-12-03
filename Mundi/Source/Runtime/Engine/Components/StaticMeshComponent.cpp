@@ -34,6 +34,7 @@ void UStaticMeshComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitCollisionShape();
 	RecreateBodySetup();
 
 	// 콜라이더가 비활성화되어 있으면 물리 등록 안 함
@@ -90,6 +91,40 @@ void UStaticMeshComponent::OnCollisionShapeChanged()
 			}
 		}
 	}
+}
+
+void UStaticMeshComponent::InitCollisionShape()
+{
+	EAggCollisionShapeType CurrentShapeType = static_cast<EAggCollisionShapeType>(CollisionType);
+	if (CurrentShapeType != EAggCollisionShapeType::Convex)
+	{
+		FAABB LocalBound = StaticMesh->GetLocalBound();
+		FVector BoundExtent = LocalBound.GetHalfExtent();
+
+		bool bBoxExtentIsDefault = (BoxExtent == FVector(50.f));
+		bool bSphereRadiusIsDefault = (SphereRadius == 50.f);
+		bool bCapsuleRadiusIsDefault = (CapsuleRadius == 22.f);
+		bool bCapsuleHalfHeightIsDefault = (CapsuleHalfHeight == 44.f);
+
+		if (bBoxExtentIsDefault)
+		{
+			BoxExtent = BoundExtent; // Set to mesh's half-extent
+		}
+		if (bSphereRadiusIsDefault)
+		{
+			SphereRadius = BoundExtent.GetMaxValue(); // Max of half-extents
+		}
+		if (bCapsuleRadiusIsDefault)
+		{
+			CapsuleRadius = BoundExtent.GetMaxValue() / 2.f; // Heuristic for capsule radius
+		}
+		if (bCapsuleHalfHeightIsDefault)
+		{
+			CapsuleHalfHeight = BoundExtent.Z; // Heuristic for capsule half-height
+		}
+	}
+
+	OnCollisionShapeChanged();
 }
 
 void UStaticMeshComponent::TickComponent(float DeltaTime)
@@ -235,38 +270,6 @@ void UStaticMeshComponent::SetStaticMesh(const FString& PathFileName)
 			SetMaterialByName(i, GroupInfos[i].InitialMaterialName);
 		}
 		MarkWorldPartitionDirty();
-		
-		// Update default primitive collider dimensions if they are still at their initial hardcoded values
-        // and if the collision type is not convex.
-		ECollisionShapeType CurrentShapeType = static_cast<ECollisionShapeType>(CollisionType);
-        if (CurrentShapeType != ECollisionShapeType::Convex)
-        {
-            FAABB LocalBound = StaticMesh->GetLocalBound();
-            FVector BoundExtent = LocalBound.GetExtent(); // Half-extent
-
-            // Check if properties are at their hardcoded defaults
-            bool bBoxExtentIsDefault = (BoxExtent == FVector(50.f));
-            bool bSphereRadiusIsDefault = (SphereRadius == 50.f);
-            bool bCapsuleRadiusIsDefault = (CapsuleRadius == 22.f);
-            bool bCapsuleHalfHeightIsDefault = (CapsuleHalfHeight == 44.f);
-            
-            if (bBoxExtentIsDefault)
-            {
-                BoxExtent = BoundExtent; // Set to mesh's half-extent
-            }
-            if (bSphereRadiusIsDefault)
-            {
-                SphereRadius = BoundExtent.GetMax(); // Max of half-extents
-            }
-            if (bCapsuleRadiusIsDefault)
-            {
-                CapsuleRadius = BoundExtent.GetMax() / 2.f; // Heuristic for capsule radius
-            }
-            if (bCapsuleHalfHeightIsDefault)
-            {
-                CapsuleHalfHeight = BoundExtent.Z; // Heuristic for capsule half-height
-            }
-        }
 	}
 	else
 	{
@@ -274,8 +277,6 @@ void UStaticMeshComponent::SetStaticMesh(const FString& PathFileName)
 		// (슬롯은 이미 위에서 비워졌습니다.)
 		StaticMesh = nullptr;
 	}
-	
-	OnCollisionShapeChanged();
 }
 
 FAABB UStaticMeshComponent::GetWorldAABB() const
@@ -397,10 +398,10 @@ void UStaticMeshComponent::RecreateBodySetup()
 		BodySetupOverride = nullptr;
 	}
 	
-	ECollisionShapeType CurrentShapeType = static_cast<ECollisionShapeType>(CollisionType);
+	EAggCollisionShapeType CurrentShapeType = static_cast<EAggCollisionShapeType>(CollisionType);
 
 	// 컨벡스 타입은 StaticMesh의 기본 BodySetup을 사용하므로 override가 필요 없음
-	if (CurrentShapeType == ECollisionShapeType::Convex)
+	if (CurrentShapeType == EAggCollisionShapeType::Convex)
 	{
 		return;
 	}
@@ -411,46 +412,48 @@ void UStaticMeshComponent::RecreateBodySetup()
 	}
 
 	BodySetupOverride = new UBodySetup();
+	BodySetupOverride->BoneName = FName("None");
 	
 	FAABB LocalBound = StaticMesh->GetLocalBound();
 	FVector Center = LocalBound.GetCenter();
-	FVector Extent = LocalBound.GetExtent();
+	FVector Extent = LocalBound.GetHalfExtent();
+
 
 	switch (CurrentShapeType)
 	{
-		case ECollisionShapeType::Box:
+		case EAggCollisionShapeType::Box:
 		{
 			FKBoxElem BoxElem;
 			BoxElem.Center = CollisionOffset;
 			BoxElem.Rotation = CollisionRotation;
-			BoxElem.X = BoxExtent.X * 2.f; // Extent는 반쪽 크기이므로 2를 곱함
-			BoxElem.Y = BoxExtent.Y * 2.f;
-			BoxElem.Z = BoxExtent.Z * 2.f;
-			BodySetupOverride->AggGeom.BoxElems.Add(BoxElem);
+			BoxElem.Extents = BoxExtent; // Extent는 반쪽 크기
+			BodySetupOverride->AggGeom.BoxElements.Add(BoxElem);
 			break;
 		}
-		case ECollisionShapeType::Sphere:
+		case EAggCollisionShapeType::Sphere:
 		{
 			FKSphereElem SphereElem;
 			SphereElem.Center = CollisionOffset;
 			SphereElem.Radius = SphereRadius;
-			BodySetupOverride->AggGeom.SphereElems.Add(SphereElem);
+			BodySetupOverride->AggGeom.SphereElements.Add(SphereElem);
 			break;
 		}
-		case ECollisionShapeType::Capsule:
+		case EAggCollisionShapeType::Capsule:
 		{
 			FKCapsuleElem CapsuleElem;
 			CapsuleElem.Center = CollisionOffset;
 			CapsuleElem.Rotation = CollisionRotation;
 			CapsuleElem.Radius = CapsuleRadius;
-			CapsuleElem.HalfHeight = CapsuleHalfHeight;
-			BodySetupOverride->AggGeom.CapsuleElems.Add(CapsuleElem);
+			CapsuleElem.HalfLength = CapsuleHalfHeight;
+			BodySetupOverride->AggGeom.CapsuleElements.Add(CapsuleElem);
 			break;
 		}
-		case ECollisionShapeType::Convex:
+		case EAggCollisionShapeType::Convex:
 			// Already handled
 			break;
 	}
+
+	BodySetupOverride->BuildCachedData();
 }
 
 void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
@@ -463,17 +466,15 @@ void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		FJsonSerializer::ReadBool(InOutHandle, "bEnableCollision", bEnableCollision, true, false);
 		FJsonSerializer::ReadBool(InOutHandle, "bSimulatePhysics", bSimulatePhysics, false, false);
 		
-		int32 ShapeType = static_cast<int32>(ECollisionShapeType::Box);
-		FJsonSerializer::ReadInt32(InOutHandle, "CollisionType", ShapeType, static_cast<int32>(ECollisionShapeType::Box), false);
-		CollisionType = static_cast<uint8>(ShapeType);
+		int32 ShapeType = static_cast<int32>(EAggCollisionShapeType::Box);
+		FJsonSerializer::ReadInt32(InOutHandle, "CollisionType", ShapeType, static_cast<int32>(EAggCollisionShapeType::Box), false);
+		CollisionType = static_cast<EAggCollisionShapeType>(ShapeType);
 
-		FJsonSerializer::ReadFVector(InOutHandle, "BoxExtent", BoxExtent, FVector(50.f), false);
+		FJsonSerializer::ReadVector(InOutHandle, "BoxExtent", BoxExtent, FVector(50.f), false);
 		FJsonSerializer::ReadFloat(InOutHandle, "SphereRadius", SphereRadius, 50.f, false);
 		FJsonSerializer::ReadFloat(InOutHandle, "CapsuleRadius", CapsuleRadius, 22.f, false);
 		FJsonSerializer::ReadFloat(InOutHandle, "CapsuleHalfHeight", CapsuleHalfHeight, 44.f, false);
-		FJsonSerializer::ReadFVector(InOutHandle, "CollisionOffset", CollisionOffset, FVector::ZeroVector, false);
-		FJsonSerializer::ReadFRotator(InOutHandle, "CollisionRotation", CollisionRotation, FRotator::ZeroRotator, false);
-
+		FJsonSerializer::ReadVector(InOutHandle, "CollisionOffset", CollisionOffset, FVector::Zero(), false);
 
 		// Physics 속성 역직렬화
 		FJsonSerializer::ReadFloat(InOutHandle, "MassOverride", MassOverride, 10.0f, false);
@@ -496,14 +497,13 @@ void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		InOutHandle["bEnableCollision"] = bEnableCollision;
 		InOutHandle["bSimulatePhysics"] = bSimulatePhysics;
 
-		InOutHandle["CollisionType"] = CollisionType;
-		JsonSerializer::Write(InOutHandle, "BoxExtent", BoxExtent);
+		InOutHandle["CollisionType"] = static_cast<int32>(CollisionType);
+		InOutHandle["BoxExtent"] = FJsonSerializer::VectorToJson(FVector(BoxExtent.X, BoxExtent.Y, BoxExtent.Z));
 		InOutHandle["SphereRadius"] = SphereRadius;
 		InOutHandle["CapsuleRadius"] = CapsuleRadius;
 		InOutHandle["CapsuleHalfHeight"] = CapsuleHalfHeight;
-		JsonSerializer::Write(InOutHandle, "CollisionOffset", CollisionOffset);
-		JsonSerializer::Write(InOutHandle, "CollisionRotation", CollisionRotation);
-
+		InOutHandle["CollisionOffset"] = FJsonSerializer::VectorToJson(FVector(CollisionOffset.X, CollisionOffset.Y, CollisionOffset.Z));
+		InOutHandle["CollisionRotation"] = FJsonSerializer::VectorToJson(FVector(CollisionRotation.X, CollisionRotation.Y, CollisionRotation.Z));
 
 		// Physics 속성 직렬화
 		InOutHandle["MassOverride"] = MassOverride;

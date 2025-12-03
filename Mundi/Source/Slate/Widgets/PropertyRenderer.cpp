@@ -177,6 +177,10 @@ bool UPropertyRenderer::RenderProperty(const FProperty& Property, void* ObjectIn
 		bChanged = RenderCombineModeProperty(Property, ObjectInstance);
 		break;
 
+	case EPropertyType::AggCollisionShapeType:
+		bChanged = RenderCollisionShapeTypeProperty(Property, ObjectInstance);
+		break;
+
 	default:
 		ImGui::Text("%s: [Unknown Type]", Property.Name);
 		break;
@@ -323,99 +327,7 @@ void UPropertyRenderer::RenderAllPropertiesWithInheritance(UObject* Object)
 	{
 		RenderSkeletalMeshComponentDetails(Skel);
 	}
-	if (UStaticMeshComponent* SMC = Cast<UStaticMeshComponent>(Object))
-	{
-		RenderStaticMeshComponentDetails(SMC);
-	}
 }
-
-void UPropertyRenderer::RenderStaticMeshComponentDetails(UStaticMeshComponent* Component)
-{
-	if (!Component)
-	{
-		return;
-	}
-
-	bool bChanged = false;
-
-	ImGui::Spacing();
-	ImGui::Separator();
-	ImGui::Text("Collision");
-
-	// --- Collision Type Dropdown ---
-	static const char* shapeTypeNames[] = { "Box", "Sphere", "Capsule", "Convex" };
-	int currentShapeType = Component->CollisionType;
-	const char* previewText = (currentShapeType >= 0 && currentShapeType < 4) ? shapeTypeNames[currentShapeType] : "Unknown";
-
-	ImGui::SetNextItemWidth(150.f);
-	if (ImGui::BeginCombo("Collision Type", previewText))
-	{
-		for (int i = 0; i < IM_ARRAYSIZE(shapeTypeNames); ++i)
-		{
-			const bool is_selected = (currentShapeType == i);
-			if (ImGui::Selectable(shapeTypeNames[i], is_selected))
-			{
-				if (currentShapeType != i)
-				{
-					Component->CollisionType = static_cast<uint8>(i);
-					bChanged = true;
-				}
-			}
-			if (is_selected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	// --- Conditional Property Rendering ---
-	ECollisionShapeType shapeType = static_cast<ECollisionShapeType>(Component->CollisionType);
-
-	if (shapeType == ECollisionShapeType::Box)
-	{
-		if (ImGui::DragFloat3("Box Extent", &Component->BoxExtent.X, 0.1f))
-		{
-			bChanged = true;
-		}
-	}
-	else if (shapeType == ECollisionShapeType::Sphere)
-	{
-		if (ImGui::DragFloat("Sphere Radius", &Component->SphereRadius, 0.1f, 0.0f))
-		{
-			bChanged = true;
-		}
-	}
-	else if (shapeType == ECollisionShapeType::Capsule)
-	{
-		if (ImGui::DragFloat("Capsule Radius", &Component->CapsuleRadius, 0.1f, 0.0f))
-		{
-			bChanged = true;
-		}
-		if (ImGui::DragFloat("Capsule Half Height", &Component->CapsuleHalfHeight, 0.1f, 0.0f))
-		{
-			bChanged = true;
-		}
-	}
-
-	if (shapeType != ECollisionShapeType::Convex)
-	{
-		if (ImGui::DragFloat3("Collision Offset", &Component->CollisionOffset.X, 0.1f))
-		{
-			bChanged = true;
-		}
-		if (ImGui::DragFloat3("Collision Rotation", &Component->CollisionRotation.Pitch, 1.0f))
-		{
-			bChanged = true;
-		}
-	}
-	
-	if (bChanged)
-	{
-		Component->OnCollisionShapeChanged();
-	}
-}
-
 // ===== 리소스 캐싱 =====
 
 void UPropertyRenderer::CacheResources()
@@ -1264,37 +1176,6 @@ bool UPropertyRenderer::RenderSkeletalMeshComponentDetails(USkeletalMeshComponen
 			}
 		}
 		ImGui::EndCombo();
-	}
-
-	// Animation Graph part
-	ImGui::Spacing();
-	ImGui::Separator();
-
-	FString GraphName = Component->GetAnimGraph() ? Component->GetAnimGraph()->GetName() : "None";
-	ImGui::Text("애니메이션 그래프: %s", GraphName.c_str());
-
-	if (Component->GetAnimGraph() == nullptr)
-	{
-		if (ImGui::Button("새로운 애니메이션 그래프 생성"))
-		{
-			UAnimationGraph* NewGraph = NewObject<UAnimationGraph>();
-			Component->SetAnimGraph(NewGraph);
-			USlateManager::GetInstance().OpenAnimationGraphEditor(NewGraph);
-		}
-	}
-	else
-	{
-		if (ImGui::Button("그래프 에디터 열기"))
-		{
-			if (USlateManager::GetInstance().IsAnimationGraphEditorOpen())
-			{
-				USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
-			}
-			else
-			{
-				USlateManager::GetInstance().OpenAnimationGraphEditor(Component->GetAnimGraph());
-			}
-		}
 	}
 
 	return bChanged;
@@ -2391,6 +2272,63 @@ bool UPropertyRenderer::RenderCombineModeProperty(const FProperty& Prop, void* I
 		case 1: Description = "Min: min(A, B)"; break;
 		case 2: Description = "Multiply: A * B (Default)"; break;
 		case 3: Description = "Max: max(A, B)"; break;
+		}
+		ImGui::SetTooltip("%s", Description);
+	}
+
+	return bChanged;
+}
+
+bool UPropertyRenderer::RenderCollisionShapeTypeProperty(const FProperty& Prop, void* Instance)
+{
+	uint8* ValuePtr = Prop.GetValuePtr<uint8>(Instance);
+	if (!ValuePtr)
+		return false;
+
+	bool bChanged = false;
+
+	static const char* ModeNames[] = {
+		"Sphere",   // 0
+		"Box",       // 1
+		"Capsule",  // 2
+		"Convex"    // 3
+	};
+	static const int NumModes = sizeof(ModeNames) / sizeof(ModeNames[0]);
+
+	int CurrentIndex = static_cast<int>(*ValuePtr);
+	if (CurrentIndex < 0 || CurrentIndex >= NumModes)
+		CurrentIndex = 2; // Default to Multiply
+
+	const char* PreviewText = ModeNames[CurrentIndex];
+
+	FString Label = FString(Prop.Name) + "##CollisionShapeType";
+	ImGui::SetNextItemWidth(150.0f);
+	if (ImGui::BeginCombo(Label.c_str(), PreviewText))
+	{
+		for (int i = 0; i < NumModes; ++i)
+		{
+			bool bIsSelected = (CurrentIndex == i);
+			if (ImGui::Selectable(ModeNames[i], bIsSelected))
+			{
+				*ValuePtr = static_cast<uint8>(i);
+				bChanged = true;
+			}
+			if (bIsSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+
+	// 툴팁으로 합성 모드 설명
+	if (ImGui::IsItemHovered())
+	{
+		const char* Description = "";
+		switch (CurrentIndex)
+		{
+		case 0: Description = "박스"; break;
+		case 1: Description = "스피어"; break;
+		case 2: Description = "캡슐"; break;
+		case 3: Description = "다각형"; break;
 		}
 		ImGui::SetTooltip("%s", Description);
 	}
