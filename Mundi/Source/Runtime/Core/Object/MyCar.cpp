@@ -19,20 +19,20 @@ static void SetupWheelsSimulationData(
     float WheelMass, float WheelRadius, float WheelWidth, float WheelMOI,
     const FVector& ChassisCMOffset, int32 NumWheels, PxVehicleWheelsSimData* WheelsSimData)
 {
-    // Setup wheels
+    // Setup wheels - Z-up 좌표계에서 바퀴 위치 설정
     PxVec3 WheelCentreOffsets[PX_MAX_NB_WHEELS];
     
-    // Front wheels
+    // Front wheels - 앞쪽이 +Y 방향 (Z-up 왼손좌표계)
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eFRONT_LEFT] = 
-        PxVec3(-1.0f, 0.0f, 1.5f);
+        PxVec3(-1.0f, 1.5f, -0.5f);  // 좌측 앞바퀴: X-, Y+, Z-
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eFRONT_RIGHT] = 
-        PxVec3(1.0f, 0.0f, 1.5f);
+        PxVec3(1.0f, 1.5f, -0.5f);   // 우측 앞바퀴: X+, Y+, Z-
     
-    // Rear wheels
+    // Rear wheels - 뒤쪽이 -Y 방향 (Z-up 왼손좌표계)
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eREAR_LEFT] = 
-        PxVec3(-1.0f, 0.0f, -1.5f);
+        PxVec3(-1.0f, -1.5f, -0.5f); // 좌측 뒷바퀴: X-, Y-, Z-
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eREAR_RIGHT] = 
-        PxVec3(1.0f, 0.0f, -1.5f);
+        PxVec3(1.0f, -1.5f, -0.5f);  // 우측 뒷바퀴: X+, Y-, Z-
 
     // Setup wheel simulation data with proper default values
     for (PxU32 i = 0; i < static_cast<PxU32>(NumWheels); i++)
@@ -65,14 +65,16 @@ static void SetupWheelsSimulationData(
         WheelsSimData->setWheelShapeMapping(i, i + 1);
         
         // Set wheel center offset
-        WheelsSimData->setSuspTravelDirection(i, PxVec3(0, 0, -1));
         WheelsSimData->setWheelCentreOffset(i, WheelCentreOffsets[i]);
         
-        // Set suspension force application point offset - must be different from (0,0,0)
-        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y + 0.3f, WheelCentreOffsets[i].z));
+        // Z-up 좌표계에서 서스펜션 이동 방향은 -Z (아래쪽)
+        WheelsSimData->setSuspTravelDirection(i, PxVec3(0, 0, -1));
         
-        // Set tire force application point offset - must be different from (0,0,0)
-        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y - 0.3f, WheelCentreOffsets[i].z));
+        // Set suspension force application point offset - Z-up에서 Z축 위쪽으로 오프셋
+        WheelsSimData->setSuspForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z + 0.3f));
+        
+        // Set tire force application point offset - Z-up에서 Z축 아래쪽으로 오프셋
+        WheelsSimData->setTireForceAppPointOffset(i, PxVec3(WheelCentreOffsets[i].x, WheelCentreOffsets[i].y, WheelCentreOffsets[i].z - 0.3f));
     }
 }
 
@@ -220,18 +222,23 @@ void AMyCar::CreateVehicle4W()
     if (!Physics || !PxScenePtr || !Material)
         return;
     
-    // Calculate MOI for chassis and wheels
+    // Calculate MOI for chassis and wheels - Z-up 좌표계에 맞게 수정
     const PxVec3 ChassisHalfExtents(ChassisDimensions.X * 0.5f, 
                                     ChassisDimensions.Y * 0.5f, 
                                     ChassisDimensions.Z * 0.5f);
     
+    // Z-up 좌표계에서의 관성 모멘트 계산
     const PxVec3 ChassisMOI(
+        // X축 회전 (피치): Y²+Z² 성분
         (ChassisHalfExtents.y * ChassisHalfExtents.y + ChassisHalfExtents.z * ChassisHalfExtents.z) * ChassisMass / 12.0f,
+        // Y축 회전 (요): X²+Z² 성분 - 차량의 좌우 흔들림을 줄이기 위해 약간 작게
         (ChassisHalfExtents.x * ChassisHalfExtents.x + ChassisHalfExtents.z * ChassisHalfExtents.z) * 0.8f * ChassisMass / 12.0f,
+        // Z축 회전 (롤): X²+Y² 성분
         (ChassisHalfExtents.x * ChassisHalfExtents.x + ChassisHalfExtents.y * ChassisHalfExtents.y) * ChassisMass / 12.0f
     );
     
-    const PxVec3 ChassisCMOffset(0.0f, -ChassisDimensions.Y * 0.5f + 0.65f, 0.25f);
+    // Z-up 좌표계에서 샤시 무게중심 오프셋: Z축이 위쪽이므로 차체 중심에서 약간 아래쪽
+    const PxVec3 ChassisCMOffset(0.0f, 0.25f, -ChassisDimensions.Z * 0.5f + 0.65f);
     const FVector ChassisCMOffsetFVector(ChassisCMOffset.x, ChassisCMOffset.y, ChassisCMOffset.z);
     
     // Create rigid body
@@ -301,12 +308,12 @@ void AMyCar::CreateVehicle4W()
     // Create drive simulation data
     PxVehicleDriveSimData4W DriveSimData;
     
-    // Setup Ackermann geometry - this is critical for validation
+    // Setup Ackermann geometry - Z-up 좌표계에 맞게 조정
     PxVehicleAckermannGeometryData AckermannData;
     AckermannData.mAccuracy = 1.0f;
-    AckermannData.mFrontWidth = 2.0f; // Distance between front wheels (must be > 0)
-    AckermannData.mRearWidth = 2.0f;  // Distance between rear wheels (must be > 0)
-    AckermannData.mAxleSeparation = 3.0f; // Distance between front and rear axles
+    AckermannData.mFrontWidth = 2.0f; // 앞바퀴 간격 (X축 방향)
+    AckermannData.mRearWidth = 2.0f;  // 뒷바퀴 간격 (X축 방향)
+    AckermannData.mAxleSeparation = 3.0f; // 전후축 거리 (Y축 방향)
     DriveSimData.setAckermannGeometryData(AckermannData);
     
     // Setup differential (4WD)
