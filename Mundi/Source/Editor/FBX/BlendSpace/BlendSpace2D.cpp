@@ -629,8 +629,8 @@ void UBlendSpace2D::Update(float X, float Y, float DeltaTime, TArray<FTransform>
 		return;
 	}
 
-	// 3+ samples: use Delaunay triangulation
-	if (bTriangulationDirty)
+	// 3+ samples: use Delaunay triangulation (only if no manual triangles exist)
+	if (bTriangulationDirty && Triangles.Num() == 0)
 	{
 		PerformDelaunayTriangulation();
 		bTriangulationDirty = false;
