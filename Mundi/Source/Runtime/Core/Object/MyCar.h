@@ -42,7 +42,7 @@ struct FVehicleWheelSetup
 };
 
 UCLASS(DisplayName="자동차 컴포넌트", Description="화살표키로 제어 가능한 차량 컴포넌트")
-class AMyCar : public APawn
+class AMyCar : public AActor
 {
 public:
     GENERATED_REFLECTION_BODY()

@@ -34,12 +34,33 @@ static void SetupWheelsSimulationData(
     WheelCentreOffsets[PxVehicleDrive4WWheelOrder::eREAR_RIGHT] = 
         PxVec3(1.0f, 0.0f, -1.5f);
 
-    // Setup wheel simulation data
+    // Setup wheel simulation data with proper default values
     for (PxU32 i = 0; i < static_cast<PxU32>(NumWheels); i++)
     {
-        WheelsSimData->setWheelData(i, PxVehicleWheelData());
-        WheelsSimData->setTireData(i, PxVehicleTireData());
-        WheelsSimData->setSuspensionData(i, PxVehicleSuspensionData());
+        // Create wheel data with proper defaults
+        PxVehicleWheelData wheelData;
+        wheelData.mRadius = WheelRadius;
+        wheelData.mWidth = WheelWidth;
+        wheelData.mMass = WheelMass;
+        wheelData.mMOI = WheelMOI;
+        wheelData.mMaxSteer = (i < 2) ? PxPi * 0.3333f : 0.0f; // Front wheels can steer
+        wheelData.mMaxHandBrakeTorque = 4000.0f;
+        wheelData.mMaxBrakeTorque = 1500.0f;
+        WheelsSimData->setWheelData(i, wheelData);
+        
+        // Create tire data with proper defaults
+        PxVehicleTireData tireData;
+        tireData.mType = 0;
+        WheelsSimData->setTireData(i, tireData);
+        
+        // Create suspension data with proper defaults
+        PxVehicleSuspensionData suspData;
+        suspData.mMaxCompression = 0.3f;
+        suspData.mMaxDroop = 0.1f;
+        suspData.mSpringStrength = 35000.0f;
+        suspData.mSpringDamperRate = 4500.0f;
+        WheelsSimData->setSuspensionData(i, suspData);
+        
         WheelsSimData->setWheelShapeMapping(i, i);
         
         // Set wheel center offset
@@ -289,6 +310,7 @@ void AMyCar::CreateVehicle4W()
     // Define torque curve points (normalized RPM -> normalized torque)
     // This creates a realistic engine torque curve
     PxFixedSizeLookupTable<8>& TorqueCurve = Engine.mTorqueCurve;
+    TorqueCurve.clear(); // Clear existing pairs first
     TorqueCurve.addPair(0.0f,  0.8f);  // Idle
     TorqueCurve.addPair(0.33f, 1.0f);  // Peak torque at 33% RPM
     TorqueCurve.addPair(0.5f,  0.95f); // Mid-range
@@ -306,12 +328,20 @@ void AMyCar::CreateVehicle4W()
     PxVehicleAutoBoxData AutoBox;
     DriveSimData.setAutoBoxData(AutoBox);
     
-    // Create the vehicle
+    // Create the vehicle - 마지막 매개변수를 0으로 수정
     VehicleDrive4W = PxVehicleDrive4W::allocate(NumWheels);
-    VehicleDrive4W->setup(Physics, VehicleActor, *WheelsSimData, DriveSimData, NumWheels - 4);
     
-    // Free simulation data
-    WheelsSimData->free();
+    // Null 체크 추가
+    if (!VehicleDrive4W)
+    {
+        UE_LOG("[MyCarComponent] Failed to allocate vehicle");
+        VehicleActor->release();
+        WheelsSimData->free();
+        return;
+    }
+    
+    // Setup 호출 - 4륜차의 경우 마지막 매개변수는 0이어야 함
+    VehicleDrive4W->setup(Physics, VehicleActor, *WheelsSimData, DriveSimData, 0);
     
     // Add actor to scene
     PxScenePtr->addActor(*VehicleActor);
@@ -320,6 +350,9 @@ void AMyCar::CreateVehicle4W()
     VehicleDrive4W->setToRestState();
     VehicleDrive4W->mDriveDynData.forceGearChange(PxVehicleGearsData::eFIRST);
     VehicleDrive4W->mDriveDynData.setUseAutoGears(true);
+    
+    // Free simulation data
+    WheelsSimData->free();
     
     UE_LOG("[MyCarComponent] Vehicle 4W created successfully");
 }
