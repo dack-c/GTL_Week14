@@ -647,8 +647,20 @@ void USkeletalMeshComponent::InstantiatePhysicsAssetBodies(FPhysScene& PhysScene
         BI->OwnerComponent = this;
         BI->BodySetup      = Setup;
 
+        // BodySetup에서 질량 가져오기 (없으면 기본값 10.0f)
+        float BodyMass = Setup->Mass > 0.0f ? Setup->Mass : 10.0f;
+
         // Dynamic 바디로 생성 (OwnerID 전달로 Self-Collision 방지)
-        BI->InitDynamic(PhysScene, BoneWorldTM, /*Mass=*/10.0f, FVector(1,1,1), OwnerID);
+        BI->InitDynamic(PhysScene, BoneWorldTM, BodyMass, FVector(1,1,1), OwnerID);
+
+        // AnimationDriven 모드에서는 Kinematic으로 시작
+        if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
+        {
+            if (PxRigidDynamic* Dyn = BI->RigidActor->is<PxRigidDynamic>())
+            {
+                Dyn->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+            }
+        }
 
         Bodies.Add(BI);
     }
@@ -712,11 +724,42 @@ void USkeletalMeshComponent::DestroyPhysicsAssetBodies(FPhysScene& PhysScene)
     Bodies.Empty();
 }
 
+void USkeletalMeshComponent::SetPhysicsAnimationState(EPhysicsAnimationState NewState, float InBlendTime)
+{
+    if (PhysicsState == NewState)
+        return;
+
+    PhysicsState = NewState;
+    BlendTime = InBlendTime;
+
+    // 모든 바디의 Kinematic 플래그를 전환
+    for (FBodyInstance* BI : Bodies)
+    {
+        if (!BI || !BI->RigidActor)
+            continue;
+
+        PxRigidDynamic* Dyn = BI->RigidActor->is<PxRigidDynamic>();
+        if (!Dyn)
+            continue;
+
+        if (NewState == EPhysicsAnimationState::AnimationDriven)
+        {
+            // Kinematic 모드로 전환 (애니메이션이 제어)
+            Dyn->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+        }
+        else if (NewState == EPhysicsAnimationState::PhysicsDriven)
+        {
+            // Dynamic 모드로 전환 (물리가 제어 - 래그돌)
+            Dyn->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
+        }
+    }
+}
+
 void USkeletalMeshComponent::SyncBodiesFromAnimation(FPhysScene& PhysScene)
 {
     // 애니메이션 포즈가 이미 계산되어 있다고 가정 (현재 프레임 포즈)
     // 각 BodyInstance에 대응되는 본의 월드 트랜스폼을 읽어와서
-    // PhysX Actor의 글로벌 포즈로 세팅
+    // Kinematic 타겟으로 설정 (시뮬레이션 중 자연스럽게 이동 + 충돌 반응)
 
     for (FBodyInstance* BI : Bodies)
     {
@@ -728,16 +771,14 @@ void USkeletalMeshComponent::SyncBodiesFromAnimation(FPhysScene& PhysScene)
             continue;
 
         FTransform BoneWorldTM = GetBoneWorldTransform(BoneIndex);
-
-        // Transform을 PhysX 포즈로 변환
         PxTransform PxPose = ToPx(BoneWorldTM);
-        BI->RigidActor->setGlobalPose(PxPose);
 
-        // Dynamic이면 속도 초기화 (초기 상태에서 튀지 않게)
-        if (PxRigidDynamic* Dyn = BI->RigidActor->is<PxRigidDynamic>())
+        PxRigidDynamic* Dyn = BI->RigidActor->is<PxRigidDynamic>();
+        if (Dyn)
         {
-            Dyn->setLinearVelocity(PxVec3(0,0,0));
-            Dyn->setAngularVelocity(PxVec3(0,0,0));
+            // Kinematic 타겟 설정 (다음 simulate()에서 이 위치로 이동)
+            // setKinematicTarget은 Kinematic 모드에서만 동작함
+            Dyn->setKinematicTarget(PxPose);
         }
     }
 }

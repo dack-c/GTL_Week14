@@ -3,6 +3,7 @@
 #include "SimulationEventCallback.h"
 #include "Source/Runtime/Engine/Collision/Collision.h"
 #include "Source/Runtime/Engine/Physics/BodyInstance.h"
+#include "Source/Runtime/Engine/Physics/BodySetup.h"
 #include "Source/Runtime/Engine/Components/PrimitiveComponent.h"
 #include "Actor.h"
 #include <Windows.h>
@@ -173,6 +174,104 @@ void FPhysXSharedResources::Release()
 }
 
 /**
+ * @brief Kinematic-Dynamic 충돌 시 질량 기반 임펄스 조절 콜백
+ *
+ * Kinematic 바디가 Dynamic 바디를 밀 때, Kinematic의 "가상 질량"과
+ * Dynamic의 실제 질량 비율로 임펄스를 스케일링합니다.
+ *
+ * 예: 70kg Kinematic이 10000kg Dynamic을 밀면 임펄스가 0.7%로 감소
+ */
+class FContactModifyCallback : public PxContactModifyCallback
+{
+public:
+    virtual void onContactModify(PxContactModifyPair* pairs, PxU32 count) override
+    {
+        // 콜백 호출 확인
+        static int callCount = 0;
+        if (callCount++ < 5)
+        {
+            UE_LOG("[ContactModify] onContactModify called! pairs=%d", count);
+        }
+
+        for (PxU32 i = 0; i < count; i++)
+        {
+            PxContactModifyPair& pair = pairs[i];
+
+            // 두 액터 중 Kinematic과 Dynamic 찾기
+            const PxRigidDynamic* actor0 = pair.actor[0]->is<PxRigidDynamic>();
+            const PxRigidDynamic* actor1 = pair.actor[1]->is<PxRigidDynamic>();
+
+            if (!actor0 || !actor1)
+            {
+                static int skipCount = 0;
+                if (skipCount++ < 3)
+                {
+                    UE_LOG("[ContactModify] Skipped: not both RigidDynamic (actor0=%p, actor1=%p)", actor0, actor1);
+                }
+                continue;
+            }
+
+            // Kinematic 여부 확인 (getRigidBodyFlags()로 실시간 체크)
+            PxRigidBodyFlags flags0 = actor0->getRigidBodyFlags();
+            PxRigidBodyFlags flags1 = actor1->getRigidBodyFlags();
+            bool bIsKinematic0 = (flags0 & PxRigidBodyFlag::eKINEMATIC);
+            bool bIsKinematic1 = (flags1 & PxRigidBodyFlag::eKINEMATIC);
+
+            // 둘 중 하나만 Kinematic이어야 함 (Kinematic vs Dynamic)
+            if (bIsKinematic0 == bIsKinematic1)
+                continue;
+
+            // Kinematic과 Dynamic 분리
+            const PxRigidDynamic* kinematicActor = bIsKinematic0 ? actor0 : actor1;
+            const PxRigidDynamic* dynamicActor = bIsKinematic0 ? actor1 : actor0;
+
+            // BodyInstance에서 BodySetup의 질량 가져오기
+            FBodyInstance* kinematicBI = static_cast<FBodyInstance*>(kinematicActor->userData);
+            if (!kinematicBI || !kinematicBI->BodySetup)
+                continue;
+
+            float kinematicMass = kinematicBI->BodySetup->Mass;
+            float dynamicMass = dynamicActor->getMass();
+
+            // 질량 비율 계산 (0에 가까울수록 거의 안 밀림)
+            float massRatio = kinematicMass / (kinematicMass + dynamicMass);
+
+            // 디버그 로그 (처음 몇 번만 출력)
+            static int logCount = 0;
+            if (logCount < 5)
+            {
+                UE_LOG("[ContactModify] Kinematic(%.1fkg) vs Dynamic(%.1fkg) -> massRatio=%.3f",
+                       kinematicMass, dynamicMass, massRatio);
+                logCount++;
+            }
+
+            // 질량 비율이 너무 낮으면 (가벼운 kinematic이 무거운 dynamic을 밀 때)
+            // 접촉을 무시하거나 임펄스를 크게 줄임
+            if (massRatio < 0.1f)
+            {
+                // 무거운 물체는 거의 안 밀리게 - 접촉점 무시
+                for (PxU32 j = 0; j < pair.contacts.size(); j++)
+                {
+                    pair.contacts.ignore(j);
+                }
+            }
+            else
+            {
+                // 임펄스 제한 (질량 비율 적용)
+                for (PxU32 j = 0; j < pair.contacts.size(); j++)
+                {
+                    float originalMaxImpulse = pair.contacts.getMaxImpulse(j);
+                    pair.contacts.setMaxImpulse(j, originalMaxImpulse * massRatio);
+                }
+            }
+        }
+    }
+};
+
+// 전역 Contact Modify Callback 인스턴스
+static FContactModifyCallback GContactModifyCallback;
+
+/**
  * @brief 래그돌용 커스텀 충돌 필터 셰이더
  *
  * PxFilterData 사용법:
@@ -180,7 +279,7 @@ void FPhysXSharedResources::Release()
  * - word1: 충돌 마스크 (어떤 그룹과 충돌할지)
  * - word2: 예약
  * - word3: 예약
- * 
+ *
  * 같은 word0을 가진 바디들끼리는 충돌하지 않음 (Self-Collision 비활성화)
  */
 static PxFilterFlags RagdollFilterShader(
@@ -212,6 +311,12 @@ static PxFilterFlags RagdollFilterShader(
               | PxPairFlag::eNOTIFY_TOUCH_FOUND
               | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
               | PxPairFlag::eNOTIFY_TOUCH_LOST;
+
+    // 5) Dynamic 바디가 포함된 모든 충돌에 Contact Modify 활성화
+    // Kinematic 플래그는 런타임에 변경될 수 있으므로, 콜백에서 실시간으로 체크
+    // PxFilterObjectIsKinematic()은 캐시된 값을 사용해서 부정확할 수 있음
+    pairFlags |= PxPairFlag::eMODIFY_CONTACTS;
+
     return PxFilterFlag::eDEFAULT;
 }
 
@@ -269,6 +374,11 @@ bool FPhysScene::Initialize()
         UE_LOG("[PhysScene] createScene failed!");
         return false;
     }
+
+    // Contact Modify Callback 등록 (Scene 생성 후 설정)
+    // Kinematic vs Dynamic 충돌 시 질량 기반 임펄스 조절
+    Scene->setContactModifyCallback(&GContactModifyCallback);
+    UE_LOG("[PhysScene] Contact Modify Callback registered");
 
     // PVD Scene 클라이언트 설정
     PxPvd* Pvd = FPhysXSharedResources::GetPvd();
@@ -468,7 +578,7 @@ namespace
         }
     }
 
-    // Static 콜라이더만 대상으로 하는 필터 콜백
+    // Static + Dynamic 콜라이더를 대상으로 하는 필터 콜백
     class FSweepQueryFilterCallback : public PxQueryFilterCallback
     {
     public:
@@ -485,8 +595,9 @@ namespace
             const PxRigidActor* actor,
             PxHitFlags& queryFlags) override
         {
-            // Static 액터만 대상으로 함
-            if (actor->getType() != PxActorType::eRIGID_STATIC)
+            // Static 또는 Dynamic 액터만 대상으로 함 (Kinematic 포함)
+            PxActorType::Enum actorType = actor->getType();
+            if (actorType != PxActorType::eRIGID_STATIC && actorType != PxActorType::eRIGID_DYNAMIC)
             {
                 return PxQueryHitType::eNONE;
             }
@@ -555,10 +666,10 @@ bool FPhysScene::SweepCapsule(
     PxSweepBuffer HitBuffer;
     PxHitFlags HitFlags = PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDEFAULT;
 
-    // Static만 대상으로 하는 필터
+    // Static + Dynamic 모두 대상으로 하는 필터 (Dynamic 바디 위에도 올라갈 수 있도록)
     FSweepQueryFilterCallback FilterCallback(IgnoreActor);
     PxQueryFilterData FilterData;
-    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
 
     // Read Lock 필요 (시뮬레이션과 동시 접근 방지)
     SCOPED_PHYSX_READ_LOCK(*Scene);
@@ -614,7 +725,7 @@ bool FPhysScene::SweepBox(
 
     FSweepQueryFilterCallback FilterCallback(IgnoreActor);
     PxQueryFilterData FilterData;
-    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
 
     SCOPED_PHYSX_READ_LOCK(*Scene);
 
@@ -667,7 +778,7 @@ bool FPhysScene::SweepSphere(
 
     FSweepQueryFilterCallback FilterCallback(IgnoreActor);
     PxQueryFilterData FilterData;
-    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::ePREFILTER;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
 
     SCOPED_PHYSX_READ_LOCK(*Scene);
 
