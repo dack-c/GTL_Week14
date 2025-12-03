@@ -160,6 +160,7 @@ void AMyCar::InitializeVehiclePhysics()
     PxScene* PxScenePtr = PhysScene->GetScene();
     PxPhysics* Physics = PhysScene->GetPhysics();
     PxMaterial* Material = PhysScene->GetDefaultMaterial();
+	//PxMaterial* Material = Physics->createMaterial(0.5f, 0.5f, 0.6f); // 동적 마찰계수, 정적 마찰계수, 반발계수
     
     if (!PxScenePtr || !Physics || !Material)
     {
@@ -572,16 +573,30 @@ void AMyCar::UpdateVehiclePhysics(float DeltaTime)
     
     // 4. Update vehicle physics
     const PxVec3 grav = PxScenePtr->getGravity();
-    PxVehicleUpdates(DeltaTime/* * 100000*/, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
     
+    //PxVehicleUpdates(DeltaTime/* * 100000*/, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
+    
+    const float FixedTimeStep = 1.0f / 60.0f;
+    PxVehicleUpdates(FixedTimeStep, grav, *FrictionPairs, 1, vehicles, vehicleQueryResults);
+
     // Check if vehicle is in air
-    bIsVehicleInAir = VehicleDrive4W->getRigidDynamicActor()->isSleeping() 
+	bool bIsSleeping = VehicleDrive4W->getRigidDynamicActor()->isSleeping();
+
+    bIsVehicleInAir = bIsSleeping
         ? false 
         : PxVehicleIsInAir(vehicleQueryResults[0]);
     
     // 5. Sync transform
     if (VehicleDrive4W->getRigidDynamicActor())
     {
+		UE_LOG("[MyCarComponent] Vehicle Sleeping: %s", bIsSleeping ? "Yes" : "No");
+		UE_LOG("[MyCarComponent] Vehicle In Air: %s", bIsVehicleInAir ? "Yes" : "No");
+		UE_LOG("[MyCarComponent] Vehicle Speed: %.2f m/s", VehicleDrive4W->computeForwardSpeed());
+        UE_LOG("[MyCarComponent] Vehicle Position: X=%.2f Y=%.2f Z=%.2f", 
+            VehicleDrive4W->getRigidDynamicActor()->getGlobalPose().p.x,
+            VehicleDrive4W->getRigidDynamicActor()->getGlobalPose().p.y,
+			VehicleDrive4W->getRigidDynamicActor()->getGlobalPose().p.z);
+
         PxTransform PxTrans = VehicleDrive4W->getRigidDynamicActor()->getGlobalPose();
         
         FTransform NewTransform;
