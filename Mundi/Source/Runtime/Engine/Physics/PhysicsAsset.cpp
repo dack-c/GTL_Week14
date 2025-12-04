@@ -55,6 +55,203 @@ void UPhysicsAsset::BuildBodySetupIndexMap()
 	}
 }
 
+void UPhysicsAsset::BuildBodyGroups(const FSkeleton* Skeleton, TArray<FBodyBoneGroup>& OutBodyGroups) const
+{
+    OutBodyGroups.Empty();
+
+    if (!Skeleton || !CurrentSkeletal)
+    {
+        return;
+    }
+
+    const int32 NumBones = Skeleton->GetNumBones();
+    if (NumBones <= 0)
+    {
+        return;
+    }
+
+    // 1) 부모/길이 테이블
+    TArray<int32> ParentIndices;
+    TArray<float> BoneLengths;
+    ParentIndices.SetNum(NumBones);
+    BoneLengths.SetNum(NumBones);
+
+    for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
+    {
+        const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
+        ParentIndices[BoneIndex] = ParentIndex;
+
+        const FTransform ChildTransform(CurrentSkeletal->GetBoneWorldTransform(BoneIndex));
+        FTransform ParentTransform = ChildTransform;
+
+        if (ParentIndex != INDEX_NONE)
+        {
+            ParentTransform = CurrentSkeletal->GetBoneWorldTransform(ParentIndex);
+        }
+
+        const float BoneLength = (ChildTransform.Translation - ParentTransform.Translation).Size();
+        BoneLengths[BoneIndex] = BoneLength;
+    }
+
+    // 2) Body로 쓸 대표 본 선택 (긴 본 + 루트)
+    const float MinLengthToCreateBody = MinColliderLength; // 스케일 보정된 값 사용
+
+    TSet<int32> BodyBoneSet;
+    for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
+    {
+        const int32 ParentIndex = ParentIndices[BoneIndex];
+
+        if (ParentIndex == INDEX_NONE)
+        {
+            BodyBoneSet.Add(BoneIndex); // 루트는 무조건 Body
+            continue;
+        }
+
+        if (BoneLengths[BoneIndex] >= MinLengthToCreateBody)
+        {
+            BodyBoneSet.Add(BoneIndex); // 충분히 긴 본은 Body
+        }
+    }
+
+    if (BodyBoneSet.Num() == 0)
+    {
+        // 최소한 루트 하나는 생성
+        BodyBoneSet.Add(0);
+    }
+
+    // 3) BodyBone 하나당 그룹 생성
+    TMap<int32, int32> BoneToGroupIndex;
+
+    for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
+    {
+        if (!BodyBoneSet.Contains(BoneIndex))
+        {
+            continue;
+        }
+
+        const int32 GroupIndex = OutBodyGroups.Emplace();
+        FBodyBoneGroup& BodyGroup = OutBodyGroups[GroupIndex];
+
+        BodyGroup.RootBoneIndex = BoneIndex;
+        BodyGroup.BoneIndices.Add(BoneIndex);
+
+        BoneToGroupIndex.Add(BoneIndex, GroupIndex);
+    }
+
+    // 4) 짧은 본들을 가장 가까운 조상 BodyBone에 머지
+    for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
+    {
+        if (BodyBoneSet.Contains(BoneIndex))
+        {
+            continue; // 이미 대표 본
+        }
+
+        int32 Ancestor = BoneIndex;
+        while (Ancestor != INDEX_NONE && !BodyBoneSet.Contains(Ancestor))
+        {
+            Ancestor = ParentIndices[Ancestor];
+        }
+
+        if (Ancestor != INDEX_NONE)
+        {
+            if (int32* GroupIndexPtr = BoneToGroupIndex.Find(Ancestor))
+            {
+                OutBodyGroups[*GroupIndexPtr].BoneIndices.Add(BoneIndex);
+            }
+        }
+        // 조상이 BodyBone이 아니면(루트까지 다 짧은 경우) 과감히 버려도 됨
+    }
+}
+
+void UPhysicsAsset::CollectGroupBonePoints(const FSkeleton* Skeleton, int32 RootBoneIndex, const TArray<int32>& BoneIndices, TArray<FVector>& OutPointsLocal) const
+{
+    OutPointsLocal.Empty();
+
+    if (!Skeleton || !CurrentSkeletal)
+    {
+        return;
+    }
+
+    const int32 NumBones = Skeleton->GetNumBones();
+    if (RootBoneIndex < 0 || RootBoneIndex >= NumBones)
+    {
+        return;
+    }
+
+    // 루트 본의 월드 트랜스폼 (스케일 제거)
+    FTransform RootWorldTransform = CurrentSkeletal->GetBoneWorldTransform(RootBoneIndex);
+    RootWorldTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+
+    for (int32 BoneIndex : BoneIndices)
+    {
+        if (BoneIndex < 0 || BoneIndex >= NumBones)
+        {
+            continue;
+        }
+
+        const int32 ParentIndex = Skeleton->GetParentIndex(BoneIndex);
+
+        FTransform ChildTransform = CurrentSkeletal->GetBoneWorldTransform(BoneIndex);
+        ChildTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+
+        FTransform ParentTransform = ChildTransform;
+        if (ParentIndex != INDEX_NONE && ParentIndex < NumBones)
+        {
+            ParentTransform = CurrentSkeletal->GetBoneWorldTransform(ParentIndex);
+            ParentTransform.Scale3D = FVector(1.0f, 1.0f, 1.0f);
+        }
+
+        // 루트 본 로컬 좌표계로 변환
+        FVector LocalStart = InverseTransformPositionNoScale(RootWorldTransform, ParentTransform.Translation);
+        FVector LocalEnd = InverseTransformPositionNoScale(RootWorldTransform, ChildTransform.Translation);
+
+        OutPointsLocal.Add(LocalStart);
+        OutPointsLocal.Add(LocalEnd);
+    }
+}
+
+bool UPhysicsAsset::ComputeGroupAxisAndBounds(const TArray<FVector>& PointsLocal, FVector& OutAxis, float& OutMinProjection, float& OutMaxProjection)
+{
+    const int32 NumPoints = PointsLocal.Num();
+    if (NumPoints < 2)
+    {
+        OutAxis = FVector(0, 0, 1);
+        OutMinProjection = 0.0f;
+        OutMaxProjection = 0.0f;
+        return false;
+    }
+
+    // 1) 점들을 이용해 대략적인 축 방향 계산 (짝지어진 Start/End 기준)
+    FVector AxisSum = FVector::Zero();
+    for (int32 Index = 0; Index + 1 < NumPoints; Index += 2)
+    {
+        const FVector Direction = PointsLocal[Index + 1] - PointsLocal[Index];
+        AxisSum += Direction;
+    }
+
+    FVector Axis = AxisSum.GetSafeNormal();
+    if (Axis.SizeSquared() < KINDA_SMALL_NUMBER)
+    {
+        Axis = FVector(0, 0, 1); // 완전 휘어진 경우 fallback
+    }
+
+    // 2) 해당 축에 대한 최소/최대 투영값
+    float MinProjection = FLT_MAX;
+    float MaxProjection = -FLT_MAX;
+
+    for (const FVector& Point : PointsLocal)
+    {
+        const float Projection = FVector::Dot(Axis, Point);
+        MinProjection = FMath::Min(MinProjection, Projection);
+        MaxProjection = FMath::Max(MaxProjection, Projection);
+    }
+
+    OutAxis = Axis;
+    OutMinProjection = MinProjection;
+    OutMaxProjection = MaxProjection;
+    return true;
+}
+
 int32 UPhysicsAsset::FindBodyIndex(FName BodyName) const
 {
 	if (const int32* Found = BodySetupIndexMap.Find(BodyName))
@@ -129,44 +326,59 @@ void UPhysicsAsset::CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType,
 
     CalculateScaledMinColliderLength();
 
-    TArray<int32> BoneIndicesToCreate;
-    SelectBonesForBodies(Skeleton, BoneIndicesToCreate);
-    if (BoneIndicesToCreate.IsEmpty())
+    // 1) 본 그룹 빌드 (Bone Merge)
+    TArray<FBodyBoneGroup> BodyGroups;
+    BuildBodyGroups(Skeleton, BodyGroups);
+
+    if (BodyGroups.IsEmpty())
     {
-        UE_LOG("UPhysicsAsset::CreateGenerateAllBodySetup : no bones selected");
+        UE_LOG("UPhysicsAsset::CreateGenerateAllBodySetup : no body groups created");
         return;
     }
 
-    for (int32 BoneIndex : BoneIndicesToCreate)
+    // 2) 각 그룹별 BodySetup 생성
+    for (const FBodyBoneGroup& BodyGroup : BodyGroups)
     {
-        UBodySetup* Body = NewObject<UBodySetup>();
-        if (!Body)
+        UBodySetup* BodySetup = NewObject<UBodySetup>();
+        if (!BodySetup)
         {
             continue;
         }
 
-        Body->BoneName = Skeleton->GetBoneName(BoneIndex);
+        const FName RootBoneName = Skeleton->GetBoneName(BodyGroup.RootBoneIndex);
+        BodySetup->BoneName = RootBoneName;
 
         switch (ShapeType)
         {
-        case EAggCollisionShapeType::Capsule:
-            Body->AddCapsule(FitCapsuleToBone(Skeleton, BoneIndex));
-            break;
-        case EAggCollisionShapeType::Box:
-            Body->AddBox(FitBoxToBone(Skeleton, BoneIndex));
-            break;
-        case EAggCollisionShapeType::Sphere:
-            Body->AddSphere(FitSphereToBone(Skeleton, BoneIndex));
-            break;
-        default:
-            Body->AddCapsule(FitCapsuleToBone(Skeleton, BoneIndex));
-            break;
+            case EAggCollisionShapeType::Capsule:
+                BodySetup->AddCapsule(FitCapsuleToBoneGroup(Skeleton, BodyGroup));
+                break;
+
+            case EAggCollisionShapeType::Box:
+                BodySetup->AddBox(FitBoxToBoneGroup(Skeleton, BodyGroup));
+                break;
+
+            case EAggCollisionShapeType::Sphere:
+                BodySetup->AddSphere(FitSphereToBoneGroup(Skeleton, BodyGroup));
+                break;
+
+            default:
+                BodySetup->AddCapsule(FitCapsuleToBoneGroup(Skeleton, BodyGroup));
+                break;
         }
 
-        BodySetups.Add(Body);
+        BodySetups.Add(BodySetup);
     }
 
-    GenerateConstraintsFromSkeleton(Skeleton, BoneIndicesToCreate, SkeletalComponent);
+    // 3) Constraints는 대표 본들만 대상으로 생성
+    TArray<int32> BodyBoneIndices;
+    BodyBoneIndices.Reserve(BodyGroups.Num());
+    for (const FBodyBoneGroup& BodyGroup : BodyGroups)
+    {
+        BodyBoneIndices.Add(BodyGroup.RootBoneIndex);
+    }
+
+    GenerateConstraintsFromSkeleton(Skeleton, BodyBoneIndices, SkeletalComponent);
     BuildRuntimeCache();
 }
 
@@ -229,6 +441,133 @@ FBonePoints UPhysicsAsset::GetBonePoints(const FSkeleton* Skeleton, int32 BoneIn
     Points.End = ChildT.Translation;
 
     return Points;
+}
+
+FKCapsuleElem UPhysicsAsset::FitCapsuleToBoneGroup(const FSkeleton* Skeleton, const FBodyBoneGroup& BodyGroup)
+{
+    FKCapsuleElem CapsuleElement;
+
+    if (!Skeleton || BodyGroup.RootBoneIndex == INDEX_NONE)
+    {
+        CapsuleElement.Radius = 0.1f;
+        CapsuleElement.HalfLength = 0.0f;
+        CapsuleElement.Center = FVector::Zero();
+        CapsuleElement.Rotation = FQuat::Identity();
+        return CapsuleElement;
+    }
+
+    TArray<FVector> PointsLocal;
+    CollectGroupBonePoints(Skeleton, BodyGroup.RootBoneIndex, BodyGroup.BoneIndices, PointsLocal);
+
+    if (PointsLocal.Num() < 2)
+    {
+        return FitCapsuleToBone(Skeleton, BodyGroup.RootBoneIndex);
+    }
+
+    FVector Axis;
+    float MinProjection = 0.0f;
+    float MaxProjection = 0.0f;
+    ComputeGroupAxisAndBounds(PointsLocal, Axis, MinProjection, MaxProjection);
+
+    const float ChainLength = MaxProjection - MinProjection;
+    const float ChainHalfLength = ChainLength * 0.5f;
+    const float MidProjection = (MinProjection + MaxProjection) * 0.5f;
+
+    // 캡슐 중심 (루트 본 로컬)
+    CapsuleElement.Center = Axis * MidProjection;
+
+    // 캡슐 축을 로컬 Z축과 맞추기 위한 회전
+    const FVector CapsuleLocalAxis = FVector(0, 0, 1);
+    CapsuleElement.Rotation = FQuat::FindBetweenVectors(CapsuleLocalAxis, Axis);
+
+    // 길이/반지름 설정 (적당히 통통하게)
+    CapsuleElement.HalfLength = ChainHalfLength * 0.5f;      // 체인 길이의 1/2 를 HalfLength로
+    CapsuleElement.Radius = ChainLength * 0.25f;       // 체인 길이의 1/4를 반지름으로 (튜닝 가능)
+
+    return CapsuleElement;
+}
+
+FKBoxElem UPhysicsAsset::FitBoxToBoneGroup(const FSkeleton* Skeleton, const FBodyBoneGroup& BodyGroup)
+{
+    FKBoxElem BoxElement;
+
+    if (!Skeleton || BodyGroup.RootBoneIndex == INDEX_NONE)
+    {
+        BoxElement.Extents = FVector(0.1f, 0.1f, 0.1f);
+        BoxElement.Center = FVector::Zero();
+        BoxElement.Rotation = FQuat::Identity();
+        return BoxElement;
+    }
+
+    TArray<FVector> PointsLocal;
+    CollectGroupBonePoints(Skeleton, BodyGroup.RootBoneIndex, BodyGroup.BoneIndices, PointsLocal);
+
+    if (PointsLocal.Num() < 2)
+    {
+        return FitBoxToBone(Skeleton, BodyGroup.RootBoneIndex);
+    }
+
+    FVector Axis;
+    float MinProjection = 0.0f;
+    float MaxProjection = 0.0f;
+    ComputeGroupAxisAndBounds(PointsLocal, Axis, MinProjection, MaxProjection);
+
+    const float ChainLength = MaxProjection - MinProjection;
+    const float ChainHalfLength = ChainLength * 0.5f;
+    const float MidProjection = (MinProjection + MaxProjection) * 0.5f;
+
+    // 박스 중심 (루트 본 로컬)
+    BoxElement.Center = Axis * MidProjection;
+
+    // 본 로컬 Z축 기준
+    const FVector BoxLocalZ = FVector(0, 0, 1);
+    BoxElement.Rotation = FQuat::FindBetweenVectors(BoxLocalZ, Axis);
+
+    const float HalfDepth = ChainHalfLength;
+    const float HalfWidth = ChainHalfLength * 0.4f;
+
+    BoxElement.Extents = FVector(HalfWidth, HalfWidth, HalfDepth);
+    return BoxElement;
+}
+
+FKSphereElem UPhysicsAsset::FitSphereToBoneGroup(const FSkeleton* Skeleton, const FBodyBoneGroup& BodyGroup)
+{
+    FKSphereElem SphereElement;
+
+    if (!Skeleton || BodyGroup.RootBoneIndex == INDEX_NONE)
+    {
+        SphereElement.Radius = 0.1f;
+        SphereElement.Center = FVector::Zero();
+        return SphereElement;
+    }
+
+    TArray<FVector> PointsLocal;
+    CollectGroupBonePoints(Skeleton, BodyGroup.RootBoneIndex, BodyGroup.BoneIndices, PointsLocal);
+
+    if (PointsLocal.Num() < 2)
+    {
+        return FitSphereToBone(Skeleton, BodyGroup.RootBoneIndex);
+    }
+
+    // 평균 중심
+    FVector Center = FVector::Zero();
+    for (const FVector& Point : PointsLocal)
+    {
+        Center += Point;
+    }
+    Center /= static_cast<float>(PointsLocal.Num());
+
+    float MaxRadiusSquared = 0.0f;
+    for (const FVector& Point : PointsLocal)
+    {
+        const float DistanceSquared = (Point - Center).SizeSquared();
+        MaxRadiusSquared = FMath::Max(MaxRadiusSquared, DistanceSquared);
+    }
+
+    SphereElement.Center = Center;
+    SphereElement.Radius = FMath::Sqrt(MaxRadiusSquared) * 1.1f; // 살짝 여유
+
+    return SphereElement;
 }
 
 FKSphereElem UPhysicsAsset::FitSphereToBone(const FSkeleton* Skeleton, int32 BoneIndex)
@@ -416,7 +755,7 @@ float UPhysicsAsset::GetMeshScale() const
 void UPhysicsAsset::CalculateScaledMinColliderLength()
 {
     float MeshScale = GetMeshScale();
-    MinColliderLength *= MeshScale;
+    // MinColliderLength *= MeshScale;
 }
 
 bool UPhysicsAsset::Load(const FString& InFilePath, ID3D11Device* InDevice)

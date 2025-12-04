@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Name.h"
 #include "ResourceBase.h"
 #include "FKShapeElem.h"
@@ -27,6 +27,12 @@ struct FBonePoints
 {
     FVector Start;
     FVector End;
+};
+
+struct FBodyBoneGroup
+{
+    int32 RootBoneIndex = INDEX_NONE;
+    TArray<int32> BoneIndices;
 };
 
 class UBodySetup;
@@ -74,9 +80,18 @@ public:
     void CreateGenerateAllBodySetup(EAggCollisionShapeType ShapeType, FSkeleton* Skeleton, USkeletalMeshComponent* SkeletalComponent = nullptr);
     void SelectBonesForBodies(const FSkeleton* Skeleton, TArray<int32>& OutBones) const;
     FBonePoints GetBonePoints(const FSkeleton* Skeleton, int32 BoneIndex) const;
+
+    FKCapsuleElem FitCapsuleToBoneGroup(const FSkeleton* Skeleton, const FBodyBoneGroup& BodyGroup);
+    FKBoxElem FitBoxToBoneGroup(const FSkeleton* Skeleton, const FBodyBoneGroup& BodyGroup);
+    FKSphereElem FitSphereToBoneGroup(const FSkeleton* Skeleton, const FBodyBoneGroup& BodyGroup);
+
     FKSphereElem FitSphereToBone(const FSkeleton* Skeleton, int32 BoneIndex);
     FKBoxElem FitBoxToBone(const FSkeleton* Skeleton, int32 BoneIndex);
     FKCapsuleElem FitCapsuleToBone(const FSkeleton* Skeleton, int32 BoneIndex);
+
+    void BuildBodyGroups(const FSkeleton* Skeleton, TArray<FBodyBoneGroup>& OutBodyGroups) const;
+    void CollectGroupBonePoints(const FSkeleton* Skeleton, int32 RootBoneIndex, const TArray<int32>& BoneIndices, TArray<FVector>& OutPointsLocal) const;
+    bool ComputeGroupAxisAndBounds(const TArray<FVector>& PointsLocal, FVector& OutAxis, float& OutMinProjection, float& OutMaxProjection);
 
     void GenerateConstraintsFromSkeleton(const FSkeleton* Skeleton, const TArray<int32>& BoneIndicesToCreate, USkeletalMeshComponent* SkeletalComponent = nullptr);
 
