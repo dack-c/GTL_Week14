@@ -584,6 +584,9 @@ struct FQuat
 	// 벡터 회전
 	FVector RotateVector(const FVector& V) const;
 
+	// 두 벡터(정규화 불필요) 사이의 최단 회전 쿼터니언을 구함
+	static FQuat FindBetweenVectors(const FVector& A, const FVector& B);
+
 	// Axis-Angle → Quaternion (axis normalized, angle in radians)
 	static FQuat FromAxisAngle(const FVector& Axis, float Angle)
 	{
@@ -1512,6 +1515,13 @@ inline FVector FQuat::RotateVector(const FVector& V) const
 		V.Y + W * T.Y + (U.Z * T.X - U.X * T.Z),
 		V.Z + W * T.Z + (U.X * T.Y - U.Y * T.X)
 	);
+}
+
+inline FQuat FQuat::FindBetweenVectors(const FVector& A, const FVector& B)
+{
+	FVector NormA = A.GetNormalized();
+	FVector NormB = B.GetNormalized();
+	return FindBetweenNormals(NormA, NormB);
 }
 
 // FQuat → Matrix

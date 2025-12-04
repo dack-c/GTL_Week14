@@ -62,10 +62,10 @@ protected:
 	UStaticMesh* StaticMesh = nullptr;
 
 	// Physics 설정
-	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Enable collision for this mesh (creates static collider)")
+	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="체크 시 Static 물리 전환, 체크 해제 시 물리 제거")
 	bool bEnableCollision = true;
 
-	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="Enable physics simulation (dynamic body with gravity/forces)")
+	UPROPERTY(EditAnywhere, Category="Physics", Tooltip="체크 시 Dynamic 물리로 전환")
 	bool bSimulatePhysics = false;
 
 	// Physics Material Override 설정
