@@ -9,7 +9,7 @@ void UAnimNotify_PlaySound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 {
 	// Sound 할당하는 임시 코드
 
-	UE_LOG("PlaySound_Notify");
+	//UE_LOG("PlaySound_Notify");
 
 	if (Sound && MeshComp)
 	{
