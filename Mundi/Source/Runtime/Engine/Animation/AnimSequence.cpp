@@ -82,6 +82,13 @@ void UAnimSequence::GetBonePose(FPoseContext& OutPoseContext, const FAnimExtract
             OutPoseContext.Pose[TrackIndex] = BoneTransform;
         }
     }
+
+    if(bUseRootMotion && BoneTracks.Num() > 0)
+    {
+        FTransform RootTransform = OutPoseContext.Pose[0];
+		RootTransform.Translation = FVector::Zero(); // 루트 본 위치 0으로 고정
+        OutPoseContext.Pose[0] = RootTransform; 
+	}
 }
 
 bool UAnimSequence::IsCompatibleWith(const TArray<FName>& SkeletonBoneNames) const

@@ -47,6 +47,9 @@ public:
     // Override GetPlayLength from base class
     virtual float GetPlayLength() const override;
 
+	void SetUseRootMotion(bool bInUseRootMotion) { bUseRootMotion = bInUseRootMotion; }
+	bool IsUsingRootMotion() const { return bUseRootMotion; }
+
     // ============================================================
     // IAnimPoseProvider 인터페이스 구현
     // ============================================================
@@ -79,4 +82,7 @@ public:
 
     // Check if this animation is compatible with given skeleton bone names
     bool IsCompatibleWith(const TArray<FName>& SkeletonBoneNames) const;
+
+protected:
+	bool bUseRootMotion = false;
 };
