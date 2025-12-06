@@ -18,6 +18,20 @@ float UAnimSequence::GetPlayLength() const
     return 0.0f;
 }
 
+FTransform UAnimSequence::ExtractRootMotionDelta(float StartTime, float EndTime)
+{
+	assert(DataModel != nullptr);
+
+    FTransform RootMotionTransformStart = DataModel->EvaluateBoneTrackTransform(BoneNames[0], StartTime, true);
+    FTransform RootMotionTransformEnd = DataModel->EvaluateBoneTrackTransform(BoneNames[0], EndTime, true);
+
+	FVector DeltaTranslation = RootMotionTransformEnd.Translation - RootMotionTransformStart.Translation;
+	FQuat DeltaRotation = RootMotionTransformEnd.Rotation * RootMotionTransformStart.Rotation.Inverse();
+	FVector DeltaScale = RootMotionTransformEnd.Scale3D - RootMotionTransformStart.Scale3D;
+	FTransform RootMotionDelta = FTransform(DeltaTranslation, DeltaRotation, DeltaScale);
+	return RootMotionDelta;
+}
+
 void UAnimSequence::GetAnimationPose(FPoseContext& OutPoseContext, const FAnimExtractContext& ExtractionContext)
 {
     GetBonePose(OutPoseContext, ExtractionContext);
@@ -86,7 +100,7 @@ void UAnimSequence::GetBonePose(FPoseContext& OutPoseContext, const FAnimExtract
     if(bUseRootMotion && BoneTracks.Num() > 0)
     {
         FTransform RootTransform = OutPoseContext.Pose[0];
-		RootTransform.Translation = FVector::Zero(); // 루트 본 위치 0으로 고정
+        RootTransform.Translation = Model->EvaluateBoneTrackTransform(BoneNames[0], 0.0f, true).Translation;
         OutPoseContext.Pose[0] = RootTransform; 
 	}
 }
