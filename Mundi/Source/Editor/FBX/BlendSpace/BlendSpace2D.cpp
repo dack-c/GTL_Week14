@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "BlendSpace2D.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
@@ -459,6 +459,14 @@ void UBlendSpace2D::EvaluateAnimation(UAnimSequence* Animation, float Time, TArr
 		{
 			OutPose[BoneIndex] = FTransform();
 		}
+	}
+
+	// If using root motion, zero out root translation
+	if (Animation->IsUsingRootMotion() && NumBones > 0)
+	{
+		FTransform RootTransform = OutPose[0];
+		RootTransform.Translation = FVector::Zero();
+		OutPose[0] = RootTransform;
 	}
 }
 

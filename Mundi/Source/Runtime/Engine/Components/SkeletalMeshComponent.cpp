@@ -283,6 +283,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         {
             case EPhysicsAnimationState::AnimationDriven:
                 AnimInstance->NativeUpdateAnimation(DeltaTime);
+                ApplyRootMotion();
                 if (PhysScene)
                 {
                     SyncBodiesFromAnimation(*PhysScene);
@@ -1052,6 +1053,9 @@ void USkeletalMeshComponent::SetAnimationTime(float InTime)
 
             // 포즈 변경 사항을 스키닝에 반영
             ForceRecomputePose();
+
+			// 루트 모션 적용
+            ApplyRootMotion();
         }
     }
 }
@@ -1282,6 +1286,24 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
     // 6. 포즈 변경 사항을 스키닝에 반영
     ForceRecomputePose();
+
+	// 7. 루트 모션 적용
+    ApplyRootMotion();
+}
+
+void USkeletalMeshComponent::ApplyRootMotion()
+{
+    if (!CurrentAnimation || !CurrentAnimation->IsUsingRootMotion())
+    {
+        return;
+    }
+
+    const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+    FName RootBoneName = Skeleton.GetBoneName(0);
+
+    UAnimDataModel* DataModel = CurrentAnimation->GetDataModel();
+    FTransform RootMotionTransform = DataModel->EvaluateBoneTrackTransform(RootBoneName, CurrentAnimationTime, true);
+    Owner->AddActorLocalLocation(RootMotionTransform.Translation);
 }
 
 // ============================================================

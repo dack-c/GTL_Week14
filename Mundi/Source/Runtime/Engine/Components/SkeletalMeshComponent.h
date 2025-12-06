@@ -182,6 +182,8 @@ protected:
      */
     void TickAnimInstances(float DeltaTime);
 
+    void ApplyRootMotion();
+
 protected:
     /** 현재 재생 중인 애니메이션 */
     UPROPERTY()
