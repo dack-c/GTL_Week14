@@ -1,0 +1,22 @@
+{
+        "BodySetups" : [{
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [{
+                  "Center" : [0.000000, 15.700000, 0.000000],
+                  "Radius" : 56.099998
+                }],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftUpLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "SimulatePhysics" : true
+          }],
+        "Constraints" : [],
+        "Name" : "UPhysicsAsset_3",
+        "Type" : "PhysicsAsset"
+      }

@@ -1,0 +1,30 @@
+{
+        "BodySetups" : [{
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 0.000000, 0.700000],
+                  "HalfLength" : 0.500000,
+                  "Radius" : 0.300000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftUpLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }],
+        "Constraints" : [],
+        "Name" : "UPhysicsAsset_1",
+        "Type" : "PhysicsAsset"
+      }

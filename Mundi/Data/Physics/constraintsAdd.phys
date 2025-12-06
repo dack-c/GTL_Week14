@@ -1,0 +1,109 @@
+{
+        "BodySetups" : [{
+            "Aggregate" : {
+              "Boxes" : [{
+                  "Center" : [0.000000, -3.600000, -32.900002],
+                  "Extents" : [33.099998, 33.099998, 37.200001],
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }],
+              "Convexes" : [],
+              "Spheres" : [{
+                  "Center" : [0.000000, 0.000000, 0.000000],
+                  "Radius" : 50.000000
+                }],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 2.000000, -145.100006],
+                  "HalfLength" : 50.000000,
+                  "Radius" : 33.099998,
+                  "Rotation" : [-0.180683, -0.061334, 0.315534, 0.929532]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightFoot",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Head",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }],
+        "Constraints" : [{
+            "BodyA" : "LeftLeg",
+            "BodyB" : "RightFoot",
+            "LocalFrameA" : {
+              "Rotation" : [-0.053490, -0.435048, 0.003461, 0.898810],
+              "Scale3D" : [1.000000, 1.000000, 1.000000],
+              "Translation" : [27.653694, 29.990000, -17.440001]
+            },
+            "LocalFrameB" : {
+              "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000],
+              "Scale3D" : [1.000000, 1.000000, 1.000000],
+              "Translation" : [0.000000, 0.000000, 0.000000]
+            },
+            "SwingY" : 45.000000,
+            "SwingZ" : 45.000000,
+            "TwistMax" : 70.000000,
+            "TwistMin" : -28.500000
+          }, {
+            "BodyA" : "Head",
+            "BodyB" : "RightFoot",
+            "LocalFrameA" : {
+              "Rotation" : [0.899380, 0.015395, 0.435635, -0.033173],
+              "Scale3D" : [1.000000, 1.000000, 1.000000],
+              "Translation" : [-1.336594, 14.779200, -146.501038]
+            },
+            "LocalFrameB" : {
+              "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000],
+              "Scale3D" : [1.000000, 1.000000, 1.000000],
+              "Translation" : [0.000000, 0.000000, 0.000000]
+            },
+            "SwingY" : 45.000000,
+            "SwingZ" : 45.000000,
+            "TwistMax" : 45.000000,
+            "TwistMin" : -45.000000
+          }],
+        "Name" : "constraintsAdd.phys",
+        "Type" : "PhysicsAsset"
+      }

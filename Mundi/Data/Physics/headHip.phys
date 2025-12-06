@@ -1,0 +1,70 @@
+{
+        "BodySetups" : [{
+            "Aggregate" : {
+              "Boxes" : [{
+                  "Center" : [0.000000, 0.000000, 0.130000],
+                  "Extents" : [0.190000, 0.240000, 0.230000],
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }],
+              "Capsules" : [],
+              "Convexes" : [],
+              "Spheres" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Head",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Capsules" : [{
+                  "Center" : [0.000000, 0.000000, -0.140000],
+                  "HalfLength" : 0.110000,
+                  "Radius" : 0.300000,
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }],
+              "Convexes" : [],
+              "Spheres" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "Hips",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "PhysMaterial" : {
+              "Density" : 1.000000,
+              "DynamicFriction" : 0.500000,
+              "Restitution" : 0.500000,
+              "StaticFriction" : 0.500000
+            },
+            "SimulatePhysics" : true
+          }],
+        "Constraints" : [{
+            "BodyA" : "Head",
+            "BodyB" : "Hips",
+            "LocalFrameA" : {
+              "Rotation" : [0.000000, -0.000000, 0.000000, 1.000000],
+              "Scale3D" : [1.000000, 1.000000, 1.000000],
+              "Translation" : [0.007957, 0.000000, -0.637798]
+            },
+            "LocalFrameB" : {
+              "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000],
+              "Scale3D" : [1.000000, 1.000000, 1.000000],
+              "Translation" : [0.000000, 0.000000, 0.000000]
+            },
+            "SwingY" : 45.000000,
+            "SwingZ" : 45.000000,
+            "TwistMax" : 45.000000,
+            "TwistMin" : -45.000000
+          }],
+        "Name" : "head hip",
+        "Type" : "PhysicsAsset"
+      }
