@@ -31,6 +31,10 @@ ULuaScriptComponent::~ULuaScriptComponent()
 
 void ULuaScriptComponent::BeginPlay()
 {
+	if (GetWorld()->bPie == false)
+	{
+		return;
+	}
 	// 델리게이트 등록
 	if (AActor* Owner = GetOwner())
 	{
@@ -179,6 +183,10 @@ void ULuaScriptComponent::OnHit(UPrimitiveComponent* MyComp, UPrimitiveComponent
 
 void ULuaScriptComponent::TickComponent(float DeltaTime)
 {
+	if (GetWorld()->bPie == false)
+	{
+		return;
+	}
 	if (FuncTick.valid()) {
 		auto Result = FuncTick(DeltaTime);
 		if (!Result.valid()) { sol::error Err = Result; UE_LOG("[Lua][error] %s\n", Err.what()); }
@@ -187,6 +195,10 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
 
 void ULuaScriptComponent::EndPlay()
 {
+	if (GetWorld()->bPie == false)
+	{
+		return;
+	}
 	if (FuncEndPlay.valid())
 	{
 		auto Result = FuncEndPlay();
