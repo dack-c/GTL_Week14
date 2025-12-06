@@ -53,9 +53,10 @@ protected:
 	 * @brief Sweep 검사를 통해 안전한 이동 수행
 	 * @param Delta 이동할 거리
 	 * @param OutHit 충돌 결과
+	 * @param bOutDidDepenetrate 끼임 탈출 코드 작동 시 true
 	 * @return 실제 이동 완료 여부 (충돌 시 false)
 	 */
-	bool SafeMoveUpdatedComponent(const FVector& Delta, FHitResult& OutHit);
+	bool SafeMoveUpdatedComponent(const FVector& Delta, FHitResult& OutHit, bool& bOutDidDepenetrate);
 
 	/**
 	 * @brief 충돌 후 슬라이딩 처리
