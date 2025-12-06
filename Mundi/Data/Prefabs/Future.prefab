@@ -1,10 +1,42 @@
 {
   "ObjectName" : "캐릭터_0",
   "OwnedComponents" : [{
+      "AnimGraphPath" : "Data/Graphs/Future.graph",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 2338,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "AssetPath" : "Ch06_body",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_eyelashes",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_body1",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_1",
+      "ParentId" : 2337,
+      "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
+      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "SkeletalMesh" : "Data/FBX/James_Mixamo_Idle.fbx",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true
+    }, {
       "CapsuleHalfHeight" : 1.000000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 0,
-      "Id" : 11536,
+      "Id" : 2337,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [-10.182528, -13.650158, 9.774999],
@@ -21,36 +53,11 @@
       "bShapeIsVisible" : true,
       "bTickEnabled" : true
     }, {
-      "AnimGraphPath" : "Data/Graphs/Future.graph",
-      "CollisionEnabled_Internal" : 2,
-      "Id" : 11537,
-      "MaterialSlots" : [{
-          "Type" : "None"
-        }, {
-          "AssetPath" : "Ch06_body",
-          "Type" : "UMaterial"
-        }, {
-          "AssetPath" : "Ch06_eyelashes",
-          "Type" : "UMaterial"
-        }, {
-          "AssetPath" : "Ch06_body1",
-          "Type" : "UMaterial"
-        }],
-      "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 11536,
-      "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
-      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
-      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "SkeletalMesh" : "Data/FBX/James_Mixamo_Idle.fbx",
-      "Type" : "USkeletalMeshComponent",
-      "bBlockComponent" : false,
-      "bCastShadows" : true,
-      "bGenerateOverlapEvents" : true,
+      "ObjectName" : "ULuaScriptComponent_3",
+      "ScriptFilePath" : "Data/Scripts/Player.lua",
+      "Type" : "ULuaScriptComponent",
       "bHiddenInGame" : false,
       "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
       "bTickEnabled" : true
     }, {
       "ObjectName" : "UCharacterMovementComponent_1",
@@ -59,7 +66,7 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }],
-  "RootComponentId" : 11536,
+  "RootComponentId" : 2337,
   "Tag" : "",
   "Type" : "ACharacter",
   "bActorHiddenInGame" : false,
