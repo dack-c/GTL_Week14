@@ -1293,17 +1293,26 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
 void USkeletalMeshComponent::ApplyRootMotion()
 {
-    if (!CurrentAnimation || !CurrentAnimation->IsUsingRootMotion())
+    if (!AnimInstance || !(AnimInstance->GetCurrentSequence()))
     {
         return;
     }
 
-    const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
-    FName RootBoneName = Skeleton.GetBoneName(0);
+    if (AnimInstance->GetCurrentSequence()->IsUsingRootMotion() == false)
+    {
+        return;
+    }
 
-    UAnimDataModel* DataModel = CurrentAnimation->GetDataModel();
-    FTransform RootMotionTransform = DataModel->EvaluateBoneTrackTransform(RootBoneName, CurrentAnimationTime, true);
-    Owner->AddActorLocalLocation(RootMotionTransform.Translation);
+	FTransform RootMotionDelta = AnimInstance->GetRootDelta();
+    Owner->AddActorLocalLocation(RootMotionDelta.Translation);
+
+ //   const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
+ //   FName RootBoneName = Skeleton.GetBoneName(0);
+
+ //   UAnimDataModel* DataModel = AnimInstance->GetCurrentSequence()->GetDataModel();
+	////UE_LOG("Applying Root Motion at time %.2f", CurrentAnimationTime);
+ //   FTransform RootMotionTransform = DataModel->EvaluateBoneTrackTransform(RootBoneName, CurrentAnimationTime, true);
+ //   Owner->AddActorLocalLocation(RootMotionTransform.Translation);
 }
 
 // ============================================================

@@ -135,6 +135,8 @@ public:
      */
     void EvaluatePose(TArray<FTransform>& OutPose);
 
+	FTransform GetRootDelta() const;
+
     // ============================================================
     // Playback API
     // ============================================================

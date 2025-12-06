@@ -50,6 +50,8 @@ public:
 	void SetUseRootMotion(bool bInUseRootMotion) { bUseRootMotion = bInUseRootMotion; }
 	bool IsUsingRootMotion() const { return bUseRootMotion; }
 
+	FTransform ExtractRootMotionDelta(float StartTime, float EndTime);
+
     // ============================================================
     // IAnimPoseProvider 인터페이스 구현
     // ============================================================

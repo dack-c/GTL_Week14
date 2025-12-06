@@ -2887,6 +2887,15 @@ void SSkeletalMeshViewerWindow::DrawAssetBrowserPanel(ViewerState* State)
                         State->bIsPlayingReverse = false;
                     }
                 }
+
+                if (State->CurrentAnimation)
+                {
+                    bool bCurrentAnimUseRootMotion = State->CurrentAnimation->IsUsingRootMotion();
+                    if (ImGui::Checkbox("bUseRootMotion", &bCurrentAnimUseRootMotion))
+                    {
+                        State->CurrentAnimation->SetUseRootMotion(bCurrentAnimUseRootMotion);
+                    }
+                }
             }
         }
     }
