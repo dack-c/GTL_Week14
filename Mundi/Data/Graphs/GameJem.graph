@@ -145,15 +145,15 @@
       "ToNodeID" : 34,
       "ToPinName" : "Enter"
     }, {
-      "FromNodeID" : 63,
-      "FromPinName" : "Is Falling",
-      "ToNodeID" : 62,
-      "ToPinName" : "Can Transition"
-    }, {
       "FromNodeID" : 64,
       "FromPinName" : "Value",
       "ToNodeID" : 62,
       "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 65,
+      "FromPinName" : "Is Finished",
+      "ToNodeID" : 62,
+      "ToPinName" : "Can Transition"
     }],
   "Nodes" : [{
       "ClassName" : "UK2Node_BlendSpace1D",
@@ -487,7 +487,7 @@
         }],
       "StateName" : "Jump"
     }, {
-      "AnimPath" : "Data/animations/Parkour/P_Sprint To Wall Climb.fbx_mixamo.com",
+      "AnimPath" : "Data/animations/Parkour/P_Jumping.fbx_mixamo.com",
       "ClassName" : "UK2Node_AnimSequence",
       "NodeID" : 51,
       "NodePosX" : 2184.000000,
@@ -574,17 +574,6 @@
           "PinName" : "Blend Time"
         }]
     }, {
-      "ClassName" : "UK2Node_GetIsFalling",
-      "NodeID" : 63,
-      "NodePosX" : 3169.000000,
-      "NodePosY" : 1152.000000,
-      "Pins" : [{
-          "DefaultValue" : "",
-          "Direction" : 1,
-          "PinCategory" : "bool",
-          "PinName" : "Is Falling"
-        }]
-    }, {
       "ClassName" : "UK2Node_Literal_Float",
       "NodeID" : 64,
       "NodePosX" : 3345.000000,
@@ -595,7 +584,18 @@
           "PinCategory" : "float",
           "PinName" : "Value"
         }],
-      "Value" : 3.000000
+      "Value" : 0.300000
+    }, {
+      "ClassName" : "UK2Node_GetIsFinishAnim",
+      "NodeID" : 65,
+      "NodePosX" : 3079.000000,
+      "NodePosY" : 1184.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Is Finished"
+        }]
     }],
-  "UniqueIDCounter" : 65
+  "UniqueIDCounter" : 66
 }

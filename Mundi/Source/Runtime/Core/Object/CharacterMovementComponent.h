@@ -26,6 +26,8 @@ public:
 	float BrackingDeceleration; // 입력이 없을 때 감속도
 	float GroundFriction; //바닥 마찰 계수 
 
+	bool bUseGravity = true;
+
 	//TODO
 	//float MaxWalkSpeedCrouched = 6.0f;
 	//float MaxSwimSpeed;
@@ -37,6 +39,9 @@ public:
 	bool IsFalling() const { return bIsFalling; }
 	bool IsOnGround() const { return !bIsFalling; }
 	const FHitResult& GetCurrentFloorResult() const { return CurrentFloor; }
+
+	void SetUseGravity(bool bEnable) { bUseGravity = bEnable; }
+	bool IsUsingGravity() const { return bUseGravity; }
 
 protected:
 	void PhysWalking(float DeltaSecond);

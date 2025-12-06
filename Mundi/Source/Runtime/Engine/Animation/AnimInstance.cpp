@@ -505,6 +505,7 @@ void UAnimInstance::AdvancePlayState(FAnimationPlayState& PlayState, float Delta
         if (PlayState.CurrentTime >= PlayLength)
         {
             PlayState.CurrentTime = FMath::Fmod(PlayState.CurrentTime, PlayLength);
+            PlayState.loopCount++;
         }
     }
     else if (PlayState.CurrentTime >= PlayLength)

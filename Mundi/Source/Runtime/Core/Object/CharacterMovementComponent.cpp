@@ -149,8 +149,11 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 {
 	// 중력 적용
-	float ActualGravity = GLOBAL_GRAVITY_Z * GravityScale;
-	Velocity.Z += ActualGravity * DeltaSecond;
+	if (bUseGravity)
+	{
+		float ActualGravity = GLOBAL_GRAVITY_Z * GravityScale;
+		Velocity.Z += ActualGravity * DeltaSecond;
+	}
 
 	// 위치 이동 (Sweep 검사)
 	FVector DeltaLoc = Velocity * DeltaSecond;

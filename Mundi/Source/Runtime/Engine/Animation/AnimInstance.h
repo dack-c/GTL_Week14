@@ -27,6 +27,7 @@ struct FAnimationPlayState
     float BlendWeight = 1.0f;
     bool bIsLooping = false;
     bool bIsPlaying = false;
+    uint32 loopCount = 1; // 몇 번째 루프인지
 };
 
 /**
@@ -257,6 +258,8 @@ public:
     // ============================================================
 
     USkeletalMeshComponent* GetOwningComponent() const { return OwningComponent; }
+
+	const FAnimationPlayState& GetCurrentPlayState() const { return CurrentPlayState; }
 
 protected:
     // PlayState 헬퍼
