@@ -1,0 +1,17 @@
+{
+  "Links" : [],
+  "Nodes" : [{
+      "AnimPath" : "Data/FBX/James_Mixamo_Run.fbx_mixamo.com",
+      "ClassName" : "UK2Node_AnimSequence",
+      "NodeID" : 1,
+      "NodePosX" : 8.000000,
+      "NodePosY" : 0.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Value"
+        }]
+    }],
+  "UniqueIDCounter" : 2
+}

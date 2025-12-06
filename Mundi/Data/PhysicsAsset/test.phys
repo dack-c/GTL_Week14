@@ -1,0 +1,44 @@
+{
+        "BodySetups" : [{
+            "Aggregate" : {
+              "Boxes" : [{
+                  "Center" : [0.000000, -3.600000, -32.900002],
+                  "Extents" : [33.099998, 33.099998, 37.200001],
+                  "Rotation" : [0.000000, 0.000000, 0.000000, 1.000000]
+                }],
+              "Convexes" : [],
+              "Spheres" : [{
+                  "Center" : [0.000000, 0.000000, 0.000000],
+                  "Radius" : 50.000000
+                }],
+              "Sphyls" : []
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "LeftLeg",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "SimulatePhysics" : true
+          }, {
+            "Aggregate" : {
+              "Boxes" : [],
+              "Convexes" : [],
+              "Spheres" : [],
+              "Sphyls" : [{
+                  "Center" : [0.000000, 2.000000, -145.100006],
+                  "HalfLength" : 50.000000,
+                  "Radius" : 33.099998,
+                  "Rotation" : [-0.180683, -0.061334, 0.315534, 0.929532]
+                }]
+            },
+            "AngularDamping" : 0.050000,
+            "Bone" : "RightFoot",
+            "EnableGravity" : true,
+            "LinearDamping" : 0.010000,
+            "Mass" : 10.000000,
+            "SimulatePhysics" : true
+          }],
+        "Constraints" : [],
+        "Name" : "UPhysicsAsset_2",
+        "Type" : "PhysicsAsset"
+      }
