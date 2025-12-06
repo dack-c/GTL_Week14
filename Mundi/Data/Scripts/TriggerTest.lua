@@ -18,3 +18,7 @@ end
 
 function Tick(Delta)
 end
+
+function Test()
+print("asdf")
+end

@@ -32,6 +32,23 @@ public:
 	bool Call(const char* FuncName, sol::variadic_args VarArgs); // 다른 클래스가 날 호출할 때 씀
 
 	void CleanupLuaResources();
+	void SetLuaFilePath(const FString& Path) { ScriptFilePath = Path; }
+	void CallFunction(const FString& FuncName)
+	{
+		sol::optional<sol::protected_function> LuaFunc = Env[FuncName.c_str()];
+		if(LuaFunc && LuaFunc->valid())
+		{
+			sol::protected_function_result result = (*LuaFunc)();
+
+			if (!result.valid()) {
+				sol::error err = result;
+				std::cout << "Lua Error: " << err.what() << std::endl;
+			}
+		}
+		else {
+			std::cout << "Lua function not found: " << FuncName << std::endl;
+		}
+	}
 protected:
 	// 이 컴포넌트가 실행할 .lua 스크립트 파일의 경로 (에디터에서 설정)
 	UPROPERTY(EditAnywhere, Category="Script", Tooltip="Lua Script 파일 경로입니다")

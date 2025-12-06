@@ -1,9 +1,16 @@
 {
   "ObjectName" : "캐릭터_0",
   "OwnedComponents" : [{
+      "ObjectName" : "ULuaScriptComponent_3",
+      "ScriptFilePath" : "Data/Scripts/Player.lua",
+      "Type" : "ULuaScriptComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
       "AnimGraphPath" : "Data/Graphs/Future.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 2338,
+      "Id" : 7003,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -17,7 +24,7 @@
           "Type" : "UMaterial"
         }],
       "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 2337,
+      "ParentId" : 7053,
       "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
       "RelativeLocation" : [0.000000, 0.000000, -1.000000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
@@ -30,13 +37,13 @@
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
+      "bOverrideCollisionSetting" : true,
       "bTickEnabled" : true
     }, {
       "CapsuleHalfHeight" : 1.000000,
       "CapsuleRadius" : 0.300000,
-      "CollisionEnabled_Internal" : 0,
-      "Id" : 2337,
+      "CollisionEnabled_Internal" : 1,
+      "Id" : 7053,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [-10.182528, -13.650158, 9.774999],
@@ -48,16 +55,9 @@
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
+      "bOverrideCollisionSetting" : true,
       "bShapeHiddenInGame" : false,
       "bShapeIsVisible" : true,
-      "bTickEnabled" : true
-    }, {
-      "ObjectName" : "ULuaScriptComponent_3",
-      "ScriptFilePath" : "Data/Scripts/Player.lua",
-      "Type" : "ULuaScriptComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
       "bTickEnabled" : true
     }, {
       "ObjectName" : "UCharacterMovementComponent_1",
@@ -66,7 +66,7 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }],
-  "RootComponentId" : 2337,
+  "RootComponentId" : 7053,
   "Tag" : "",
   "Type" : "ACharacter",
   "bActorHiddenInGame" : false,

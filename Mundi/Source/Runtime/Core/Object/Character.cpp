@@ -5,6 +5,8 @@
 #include "CharacterMovementComponent.h" 
 #include "ObjectMacros.h" 
 #include "Source/Runtime/Engine/Collision/Collision.h" 
+#include "TriggerComponent.h"
+
 ACharacter::ACharacter()
 {
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("CapsuleComponent");
@@ -35,6 +37,7 @@ ACharacter::~ACharacter()
 void ACharacter::Tick(float DeltaSecond)
 {
 	Super::Tick(DeltaSecond);
+    UTriggerComponent::CharacterPos = RootComponent->GetWorldLocation();
 }
 
 void ACharacter::BeginPlay()

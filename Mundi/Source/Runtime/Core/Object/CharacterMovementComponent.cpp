@@ -94,7 +94,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 	{
 		FHitResult Hit;
 		bool bMoved = SafeMoveUpdatedComponent(DeltaLoc, Hit);
-
+		
 		// 충돌 시 슬라이딩 처리
 		if (!bMoved && Hit.bBlockingHit)
 		{
@@ -281,7 +281,7 @@ bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta,
 	if (!PhysScene)
 	{
 		// PhysScene이 없으면 그냥 이동
-		UE_LOG("[CharacterMovement] PhysScene is null - moving without sweep");
+		//UE_LOG("[CharacterMovement] PhysScene is null - moving without sweep");
 		UpdatedComponent->AddRelativeLocation(Delta);
 		return true;
 	}
@@ -300,8 +300,8 @@ bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta,
 	// 디버깅 로그
 	if (bHit)
 	{
-		UE_LOG("[CharacterMovement] Sweep HIT! Distance: %.3f, Normal: (%.2f, %.2f, %.2f)",
-			OutHit.Distance, OutHit.ImpactNormal.X, OutHit.ImpactNormal.Y, OutHit.ImpactNormal.Z);
+		/*UE_LOG("[CharacterMovement] Sweep HIT! Distance: %.3f, Normal: (%.2f, %.2f, %.2f)",
+			OutHit.Distance, OutHit.ImpactNormal.X, OutHit.ImpactNormal.Y, OutHit.ImpactNormal.Z);*/
 	}
 
 	if (bHit && OutHit.bBlockingHit)
@@ -347,7 +347,7 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 	if (!PhysScene)
 	{
 		// PhysScene이 없으면 임시로 Z=0을 바닥으로 취급
-		UE_LOG("[CharacterMovement] CheckFloor: PhysScene is null, using Z=0 fallback");
+		//UE_LOG("[CharacterMovement] CheckFloor: PhysScene is null, using Z=0 fallback");
 		return UpdatedComponent->GetWorldLocation().Z <= 0.001f;
 	}
 

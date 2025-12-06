@@ -336,8 +336,8 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
     {
         const FAnimNotifyEvent& Event = *Pending.Event;
 
-        UE_LOG("AnimNotify Triggered: %s at %.2f (Type: %d)",
-            Event.NotifyName.ToString().c_str(), Event.TriggerTime, (int)Pending.Type);
+       /* UE_LOG("AnimNotify Triggered: %s at %.2f (Type: %d)",
+            Event.NotifyName.ToString().c_str(), Event.TriggerTime, (int)Pending.Type);*/
 
         // Dispatch to notifies using the same policy as SkeletalMeshComponent
         if (OwningComponent)
