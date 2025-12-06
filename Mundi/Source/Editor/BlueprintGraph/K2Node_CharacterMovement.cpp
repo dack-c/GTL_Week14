@@ -261,3 +261,81 @@ void UK2Node_GetSpeed::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionR
     Spawner->Category = GetMenuCategory();
     ActionRegistrar.AddAction(Spawner);
 }
+
+// ----------------------------------------------------------------
+//	[GetIsFinishAnim]
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetIsFinishAnim)
+
+UK2Node_GetIsFinishAnim::UK2Node_GetIsFinishAnim()
+{
+    TitleColor = ImColor(100, 200, 100); // Pure Node Green
+}
+
+void UK2Node_GetIsFinishAnim::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Is Finished");
+}
+
+FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (!Context || !Context->SourceObject)
+    {
+        return FBlueprintValue(false);
+    }
+
+    // Context에서 AnimInstance 가져오기
+    UAnimInstance* AnimInstance = Cast<UAnimInstance>(Context->SourceObject);
+    if (!AnimInstance)
+    {
+        return FBlueprintValue(false);
+    }
+
+    if (OutputPin->PinName == "Is Finished")
+    {
+        // 현재 재생 중인지 확인
+        if (!AnimInstance->IsPlaying())
+        {
+            return FBlueprintValue(true); // 재생 중이 아니면 종료된 것으로 간주
+        }
+
+        // 현재 시퀀스 가져오기
+        UAnimSequence* CurrentSequence = AnimInstance->GetCurrentSequence();
+        if (!CurrentSequence)
+        {
+            return FBlueprintValue(false); // 시퀀스가 없으면 종료 판단 불가
+        }
+
+        // 애니메이션 길이 가져오기
+        float PlayLength = CurrentSequence->GetPlayLength();
+        if (PlayLength <= 0.0f)
+        {
+            return FBlueprintValue(false);
+        }
+
+        // 현재 재생 시간과 비교 (약간의 여유를 둠)
+        const float Epsilon = 0.016f; // 약 1프레임 (60fps 기준)
+        float CurrentTime = AnimInstance->GetCurrentSequence() ? 
+            AnimInstance->GetCurrentSequence()->GetCurrentPlayTime() : 0.0f;
+        
+        // PoseProvider에서 현재 시간 가져오기 (BlendSpace 등 지원)
+        if (CurrentSequence->GetDominantSequence())
+        {
+            CurrentTime = CurrentSequence->GetDominantSequence()->GetCurrentPlayTime();
+        }
+
+        bool bIsFinished = (CurrentTime >= PlayLength - Epsilon);
+        return FBlueprintValue(bIsFinished);
+    }
+
+    return FBlueprintValue(false);
+}
+
+void UK2Node_GetIsFinishAnim::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}

@@ -113,3 +113,27 @@ public:
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };
 
+// ----------------------------------------------------------------
+//	[GetIsFinishAnim] 애니메이션 종료 여부 확인 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Is Animation Finished", Description = "현재 재생 중인 애니메이션이 끝 시간에 도달했는지 확인합니다.")
+class UK2Node_GetIsFinishAnim : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetIsFinishAnim, UK2Node);
+
+public:
+    UK2Node_GetIsFinishAnim();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Is Animation Finished"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
