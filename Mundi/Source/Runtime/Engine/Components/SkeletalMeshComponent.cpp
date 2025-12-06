@@ -199,7 +199,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
             // 0.5 단위로 속도가 변경될 때마다 로그 출력
             if (FMath::Abs(CurrentSpeed - LastLoggedSpeed) >= 0.5f)
             {
-                UE_LOG("[Team2AnimInstance] Speed: %.2f (W key - Increasing)", CurrentSpeed);
+                //UE_LOG("[Team2AnimInstance] Speed: %.2f (W key - Increasing)", CurrentSpeed);
                 LastLoggedSpeed = CurrentSpeed;
             }
         }
@@ -213,7 +213,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
             // 0.5 단위로 속도가 변경될 때마다 로그 출력
             if (FMath::Abs(CurrentSpeed - LastLoggedSpeed) >= 0.5f)
             {
-                UE_LOG("[Team2AnimInstance] Speed: %.2f (S key - Decreasing)", CurrentSpeed);
+                //UE_LOG("[Team2AnimInstance] Speed: %.2f (S key - Decreasing)", CurrentSpeed);
                 LastLoggedSpeed = CurrentSpeed;
             }
         }
@@ -222,7 +222,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         {
             CurrentSpeed = 0.0f;
             AnimInstance->SetMovementSpeed(CurrentSpeed);
-            UE_LOG("[Team2AnimInstance] Speed RESET to 0.0");
+            //UE_LOG("[Team2AnimInstance] Speed RESET to 0.0");
             LastLoggedSpeed = CurrentSpeed;
         }
 
@@ -247,13 +247,13 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
                 if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
                 {
                     SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
-                    UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
+                    //UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
                 }
                 else
                 {
                     SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
                     ResetToBindPose();
-                    UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
+                    //UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
                 }
             }
         }
@@ -263,9 +263,9 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         LogTimer += DeltaTime;
         if (LogTimer >= 5.0f)
         {
-            UE_LOG("[Team2AnimInstance] Current Speed: %.2f, IsMoving: %d, Threshold: 5.0",
+            /*UE_LOG("[Team2AnimInstance] Current Speed: %.2f, IsMoving: %d, Threshold: 5.0",
                 CurrentSpeed,
-                AnimInstance->GetIsMoving() ? 1 : 0);
+                AnimInstance->GetIsMoving() ? 1 : 0);*/
             LogTimer = 0.0f;
         }
 
@@ -473,8 +473,8 @@ void USkeletalMeshComponent::ApplyPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
     FPhysScene* PhysScene = World ? World->GetPhysScene() : nullptr;
 
     // 디버그 로그
-    UE_LOG("[SkeletalMeshComponent] ApplyPhysicsAsset: World=%p, PhysScene=%p, PhysicsAsset=%p",
-           World, PhysScene, InPhysicsAsset);
+   /* UE_LOG("[SkeletalMeshComponent] ApplyPhysicsAsset: World=%p, PhysScene=%p, PhysicsAsset=%p",
+           World, PhysScene, InPhysicsAsset);*/
 
     // Thread 충돌 방지, Main Thread애서 physx 비동기 Thread 기다림
     // - PA의 물리 시뮬레이션이 완료될 때까지 기다린 다음, BodyInstance를 삭제시킨다.
@@ -498,11 +498,11 @@ void USkeletalMeshComponent::ApplyPhysicsAsset(UPhysicsAsset* InPhysicsAsset)
     if (PhysScene && PhysicsAsset)
     {
         InstantiatePhysicsAssetBodies(*PhysScene);
-        UE_LOG("[SkeletalMeshComponent] Bodies created: %d", Bodies.Num());
+        //UE_LOG("[SkeletalMeshComponent] Bodies created: %d", Bodies.Num());
     }
     else if (!PhysScene && PhysicsAsset)
     {
-        UE_LOG("[SkeletalMeshComponent] WARNING: PhysScene is null, cannot create physics bodies!");
+        //UE_LOG("[SkeletalMeshComponent] WARNING: PhysScene is null, cannot create physics bodies!");
     }
 }
 FAABB USkeletalMeshComponent::GetWorldAABB() const
@@ -525,13 +525,13 @@ void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
         UAnimSingleNodeInstance* SingleNodeInstance = NewObject<UAnimSingleNodeInstance>();
         SetAnimInstance(SingleNodeInstance);
 
-        UE_LOG("SetAnimationMode: Switched to AnimationSingleNode mode");
+        //UE_LOG("SetAnimationMode: Switched to AnimationSingleNode mode");
     }
     else if (AnimationMode == EAnimationMode::AnimationBlueprint)
     {
         // AnimationBlueprint 모드: 커스텀 AnimInstance 설정 대기
         // (사용자가 SetAnimInstance로 상태머신이 포함된 인스턴스를 설정해야 함)
-        UE_LOG("SetAnimationMode: Switched to AnimationBlueprint mode");
+        //UE_LOG("SetAnimationMode: Switched to AnimationBlueprint mode");
     }
 }
 
@@ -549,7 +549,7 @@ void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool 
     UAnimSequence* Sequence = Cast<UAnimSequence>(NewAnimToPlay);
     if (!Sequence)
     {
-        UE_LOG("PlayAnimation: Only UAnimSequence assets are supported currently");
+        //UE_LOG("PlayAnimation: Only UAnimSequence assets are supported currently");
         return;
     }
 
@@ -558,7 +558,7 @@ void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool 
     if (SingleNodeInstance)
     {
         SingleNodeInstance->PlaySingleNode(Sequence, bLooping, 1.0f);
-        UE_LOG("PlayAnimation: Playing through AnimSingleNodeInstance");
+        //UE_LOG("PlayAnimation: Playing through AnimSingleNodeInstance");
     }
     else
     {
@@ -568,7 +568,7 @@ void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool 
         SetPlayRate(1.0f);
         CurrentAnimationTime = 0.0f;
         SetPlaying(true);
-        UE_LOG("PlayAnimation: Playing directly (fallback)");
+        //UE_LOG("PlayAnimation: Playing directly (fallback)");
     }
 }
 
@@ -1141,7 +1141,7 @@ void USkeletalMeshComponent::TickAnimation(float DeltaTime)
         static bool bLoggedOnce = false;
         if (!bLoggedOnce)
         {
-            UE_LOG("TickAnimation skipped - CurrentAnimation: %p, bIsPlaying: %d", CurrentAnimation, bIsPlaying);
+            //UE_LOG("TickAnimation skipped - CurrentAnimation: %p, bIsPlaying: %d", CurrentAnimation, bIsPlaying);
             bLoggedOnce = true;
         }
         return;
@@ -1175,7 +1175,7 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
     static int FrameCount = 0;
     if (FrameCount++ % 60 == 0) // 매 60프레임마다 로그
     {
-        UE_LOG("Animation Playing - Time: %.2f / %.2f, Looping: %d", CurrentAnimationTime, PlayLength, bIsLooping);
+        //UE_LOG("Animation Playing - Time: %.2f / %.2f, Looping: %d", CurrentAnimationTime, PlayLength, bIsLooping);
     }
 
     // 2. 루핑 처리
@@ -1241,16 +1241,16 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
             if (!bLoggedAnimData && BoneIndex < 5)
             {
                 const FTransform& AnimTransform = PoseContext.Pose[TrackIdx];
-                UE_LOG("[AnimData] Bone[%d] %s: T(%.3f,%.3f,%.3f) R(%.3f,%.3f,%.3f,%.3f) S(%.3f,%.3f,%.3f)",
+               /* UE_LOG("[AnimData] Bone[%d] %s: T(%.3f,%.3f,%.3f) R(%.3f,%.3f,%.3f,%.3f) S(%.3f,%.3f,%.3f)",
                     BoneIndex, Track.Name.ToString().c_str(),
                     AnimTransform.Translation.X, AnimTransform.Translation.Y, AnimTransform.Translation.Z,
                     AnimTransform.Rotation.X, AnimTransform.Rotation.Y, AnimTransform.Rotation.Z, AnimTransform.Rotation.W,
-                    AnimTransform.Scale3D.X, AnimTransform.Scale3D.Y, AnimTransform.Scale3D.Z);
+                    AnimTransform.Scale3D.X, AnimTransform.Scale3D.Y, AnimTransform.Scale3D.Z);*/
             }
         }
         else if (!bLoggedBoneMatching)
         {
-            UE_LOG("Bone not found in skeleton: %s (TrackIdx: %d)", Track.Name.ToString().c_str(), TrackIdx);
+            //UE_LOG("Bone not found in skeleton: %s (TrackIdx: %d)", Track.Name.ToString().c_str(), TrackIdx);
         }
     }
 
@@ -1261,20 +1261,20 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
     if (!bLoggedBoneMatching)
     {
-        UE_LOG("Bone matching: %d / %d bones matched", MatchedBones, TotalBones);
-        UE_LOG("Skeleton has %d bones, Animation has %d tracks", Skeleton.Bones.Num(), TotalBones);
+       /* UE_LOG("Bone matching: %d / %d bones matched", MatchedBones, TotalBones);
+        UE_LOG("Skeleton has %d bones, Animation has %d tracks", Skeleton.Bones.Num(), TotalBones);*/
 
         // Print first 5 bone names from each
-        UE_LOG("=== Skeleton Bones (first 5) ===");
+        //UE_LOG("=== Skeleton Bones (first 5) ===");
         for (int32 i = 0; i < FMath::Min(5, (int32)Skeleton.Bones.Num()); ++i)
         {
-            UE_LOG("  [%d] %s", i, Skeleton.Bones[i].Name.c_str());
+            //UE_LOG("  [%d] %s", i, Skeleton.Bones[i].Name.c_str());
         }
 
-        UE_LOG("=== Animation Tracks (first 5) ===");
+        //UE_LOG("=== Animation Tracks (first 5) ===");
         for (int32 i = 0; i < FMath::Min(5, (int32)BoneTracks.Num()); ++i)
         {
-            UE_LOG("  [%d] %s", i, BoneTracks[i].Name.ToString().c_str());
+            //UE_LOG("  [%d] %s", i, BoneTracks[i].Name.ToString().c_str());
         }
 
         bLoggedBoneMatching = true;
@@ -1301,7 +1301,7 @@ void USkeletalMeshComponent::SetAnimationPose(const TArray<FTransform>& InPose)
     // 포즈가 스켈레톤과 일치하는지 확인
     if (InPose.Num() != NumBones)
     {
-        UE_LOG("SetAnimationPose: Pose size mismatch (%d != %d)", InPose.Num(), NumBones);
+        //UE_LOG("SetAnimationPose: Pose size mismatch (%d != %d)", InPose.Num(), NumBones);
         return;
     }
 
@@ -1326,7 +1326,7 @@ void USkeletalMeshComponent::SetAnimInstance(UAnimInstance* InAnimInstance)
     if (AnimInstance)
     {
         AnimInstance->Initialize(this);
-        UE_LOG("AnimInstance initialized for SkeletalMeshComponent");
+        //UE_LOG("AnimInstance initialized for SkeletalMeshComponent");
     }
 }
 
