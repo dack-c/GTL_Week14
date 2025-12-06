@@ -33,6 +33,8 @@ public:
 	//APawn에서 정의 됨
 	USkeletalMeshComponent* GetMesh() const { return SkeletalMeshComp; }
 
+	float GetCurrentGroundSlope() const;
+
 protected:
     UCapsuleComponent* CapsuleComponent;
     UCharacterMovementComponent* CharacterMovement;

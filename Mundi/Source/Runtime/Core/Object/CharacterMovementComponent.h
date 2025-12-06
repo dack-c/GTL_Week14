@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "PawnMovementComponent.h"
+#include "Collision.h"
 #include "UCharacterMovementComponent.generated.h"
 
 class ACharacter;
@@ -34,6 +35,8 @@ public:
 	void DoJump();
 	void StopJump();
 	bool IsFalling() const { return bIsFalling; }
+	bool IsOnGround() const { return !bIsFalling; }
+	const FHitResult& GetCurrentFloorResult() const { return CurrentFloor; }
 
 protected:
 	void PhysWalking(float DeltaSecond);
@@ -73,6 +76,7 @@ protected:
 protected:
 	ACharacter* CharacterOwner = nullptr;
 	bool bIsFalling = false;
+	FHitResult CurrentFloor;
 
 	const float GLOBAL_GRAVITY_Z = -9.8f;
 	const float GravityScale = 1.0f;
