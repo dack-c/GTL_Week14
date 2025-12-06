@@ -5,7 +5,7 @@
 #include "CapsuleComponent.h"
 #include "World.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
-#include "Source/Runtime/Engine/Collision/Collision.h"
+#include "Collision.h"
 
 UCharacterMovementComponent::UCharacterMovementComponent()
 {
@@ -16,6 +16,8 @@ UCharacterMovementComponent::UCharacterMovementComponent()
 
 	BrackingDeceleration = 20.0f; // 입력이 없을 때 감속도
 	GroundFriction = 8.0f; //바닥 마찰 계수 
+
+	CurrentFloor.Reset();
 }
 
 UCharacterMovementComponent::~UCharacterMovementComponent()
@@ -49,8 +51,9 @@ void UCharacterMovementComponent::DoJump()
 {
 	if (!bIsFalling)
 	{
-			Velocity.Z = JumpZVelocity;
+		Velocity.Z = JumpZVelocity;
 		bIsFalling = true;
+		CurrentFloor.Reset();
 	}
 }
 
@@ -105,8 +108,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 	}
 
 	// 바닥 검사
-	FHitResult FloorHit;
-	if (!CheckFloor(FloorHit))
+	if (!CheckFloor(CurrentFloor))
 	{
 		// 경사면 내려가기: 더 긴 거리로 바닥 찾기
 		const float MaxStepDownHeight = 0.5f;
@@ -124,6 +126,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 			// 바닥 찾음 - 스냅 (경사면 내려가기)
 			if (StepDownHit.ImpactNormal.Z > 0.7f)
 			{
+				CurrentFloor = StepDownHit;
 				const float SkinWidth = 0.00125f;
 				float SnapDistance = StepDownHit.Distance - SkinWidth;
 				if (SnapDistance > KINDA_SMALL_NUMBER)
@@ -139,6 +142,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 
 		// 바닥 못 찾음 - Falling
 		bIsFalling = true;
+		CurrentFloor.Reset();
 	}
 }
 
@@ -164,6 +168,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			// 착지
 			Velocity.Z = 0.0f;
 			bIsFalling = false;
+			CurrentFloor = Hit;
 			// SafeMoveUpdatedComponent에서 이미 SkinWidth 적용된 위치로 설정됨
 			// Hit.Location으로 덮어쓰면 경사면에 박힘
 		}
@@ -209,6 +214,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			// 바닥에 닿음
 			Velocity.Z = 0.0f;
 			bIsFalling = false;
+			CurrentFloor = FloorHit;
 
 			// 바닥으로 스냅 (SkinWidth 여유를 두고 이동)
 			const float SkinWidth = 0.00125f;
@@ -362,7 +368,7 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 		Radius, HalfHeight, Start.X, Start.Y, Start.Z, bHit ? "YES" : "NO");*/
 
 	// 바닥으로 인정하려면 노말이 위를 향해야 함
-	if (bHit && OutHit.ImpactNormal.Z > 0.7f)
+	if (bHit && OutHit.ImpactNormal.Z > 0.5f)
 	{
 		return true;
 	}

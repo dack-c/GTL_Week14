@@ -4,6 +4,7 @@
 #include "SkeletalMeshComponent.h"
 #include "CharacterMovementComponent.h" 
 #include "ObjectMacros.h" 
+#include "Source/Runtime/Engine/Collision/Collision.h" 
 ACharacter::ACharacter()
 {
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("CapsuleComponent");
@@ -116,4 +117,31 @@ void ACharacter::StopJumping()
 		// 지금은 비어있음
 		CharacterMovement->StopJump(); 
 	}
+}
+
+float ACharacter::GetCurrentGroundSlope() const
+{
+	if (CharacterMovement && CharacterMovement->IsOnGround())
+	{
+		const FHitResult& FloorResult = CharacterMovement->GetCurrentFloorResult();
+		if (FloorResult.bBlockingHit)
+		{
+			// 바닥의 법선 벡터
+			const FVector& FloorNormal = FloorResult.ImpactNormal;
+
+			// 월드 Up 벡터
+			const FVector UpVector(0.f, 0.f, 1.f);
+
+			// 두 벡터 사이의 각도를 계산 (라디안 단위)
+            float DotResult = FVector::Dot(FloorNormal, UpVector);
+            DotResult = FMath::Clamp(DotResult, -1.0f, 1.0f);
+ 
+			float AngleRadians = acosf(DotResult);
+
+			// 각도를 디그리로 변환
+			return RadiansToDegrees(AngleRadians);
+		}
+	}
+
+	return 0.f;
 }
