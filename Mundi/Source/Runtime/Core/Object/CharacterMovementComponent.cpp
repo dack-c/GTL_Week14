@@ -81,6 +81,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 	}
 
 	// 속도 계산
+	Velocity.Z = 0.0f; // 걷는 동안에는 Z 속도를 사용하지 않음
 	CalcVelocity(InputVector, DeltaSecond, GroundFriction, BrackingDeceleration);
 
 	if (!CharacterOwner || !CharacterOwner->GetController())
@@ -91,6 +92,17 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 	}
 
 	FVector DeltaLoc = Velocity * DeltaSecond;
+
+	// 경사면을 따라 부드럽게 이동하기 위해 이동 벡터를 바닥 평면에 투영합니다.
+	if (CurrentFloor.bBlockingHit && !DeltaLoc.IsZero())
+	{
+		const FVector FloorNormal = CurrentFloor.ImpactNormal;
+		if (FloorNormal.Z > MinFloorNormalZ) // 걸을 수 있는 바닥인지 확인
+		{
+			const float Dot = FVector::Dot(DeltaLoc, FloorNormal);
+			DeltaLoc -= FloorNormal * Dot;
+		}
+	}
 
 	// Sweep 검사를 통한 안전한 이동
 	if (!DeltaLoc.IsZero())
