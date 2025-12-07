@@ -99,9 +99,7 @@ void UAnimSequence::GetBonePose(FPoseContext& OutPoseContext, const FAnimExtract
 
     if(bUseRootMotion && BoneTracks.Num() > 0)
     {
-        FTransform RootTransform = OutPoseContext.Pose[0];
-        RootTransform.Translation = Model->EvaluateBoneTrackTransform(BoneNames[0], 0.0f, true).Translation;
-        OutPoseContext.Pose[0] = RootTransform; 
+        IgnoreRootBoneTransform(&OutPoseContext.Pose[0], BoneNames[0], Model);
 	}
 }
 

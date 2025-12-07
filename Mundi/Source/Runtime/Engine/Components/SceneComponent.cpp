@@ -269,6 +269,15 @@ void USceneComponent::SetLocalLocationAndRotation(const FVector& L, const FQuat&
     OnTransformUpdated();
 }
 
+void USceneComponent::AddWorldScale3D(const FVector& DeltaScale)
+{
+    FVector CurrentScale = GetWorldScale();
+    FVector NewScale = FVector(CurrentScale.X * DeltaScale.X,
+        CurrentScale.Y * DeltaScale.Y,
+        CurrentScale.Z * DeltaScale.Z);
+	SetWorldScale(NewScale);
+}
+
 
 FMatrix USceneComponent::GetWorldMatrix() const
 {
