@@ -1,5 +1,5 @@
 {
-  "Notifies" : [],
   "Type" : "AnimSequenceMeta",
+  "UseRootMotion" : false,
   "Version" : 1
 }
