@@ -1295,22 +1295,12 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
 void USkeletalMeshComponent::ApplyRootMotion()
 {
-    if (!AnimInstance || (!(AnimInstance->GetCurrentSequence()) && !(AnimInstance->GetBlendTargetState().Sequence)))
+    if (!AnimInstance)
     {
-        if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
-        {
-            UCharacterMovementComponent* CharMoveComp = OwnerCharacter->GetCharacterMovement();
-            assert(CharMoveComp);
-            //CharMoveComp->SetActive(true);
-            CharMoveComp->SetUseGravity(true);
-            //PC->SetUseMovementInput(true);
-            CharMoveComp->SetUseInput(true);
-            //PC->SetActorActive(true);
-        }
         return;
     }
 
-	bool bHasRootMotion = AnimInstance->GetCurrentSequence()->IsUsingRootMotion();
+    bool bHasRootMotion = false;
     
 	// blend Target 애니메이션이 있으면, 그것을 우선적으로 검사
 	const FAnimationPlayState& BlendTargetState = AnimInstance->GetBlendTargetState();
@@ -1321,6 +1311,18 @@ void USkeletalMeshComponent::ApplyRootMotion()
     else if(BlendTargetState.PoseProvider)
     {
 		bHasRootMotion = false;
+    }
+	else // 블랜드 타켓이 없을 경우, 현재 재생중인 애니메이션 검사
+    {
+		const FAnimationPlayState& CurrentState = AnimInstance->GetCurrentPlayState();
+        if (CurrentState.Sequence)
+        {
+            bHasRootMotion = CurrentState.Sequence->IsUsingRootMotion();
+        }
+        else
+        {
+			bHasRootMotion = false;
+        }
     }
     
 
