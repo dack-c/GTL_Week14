@@ -277,6 +277,18 @@ void UStaticMesh::InitConvexMesh()
 
 	if (bShouldRegenerate)
 	{
+		// ===== OPTIMIZATION: 복잡한 메시는 convex cooking 스킵 =====
+		// Convex hull 계산은 O(n^2) 복잡도, 10만 정점 이상은 수 분~수 시간 소요
+		const uint32 MAX_CONVEX_VERTICES = 100000;
+		if (StaticMeshAsset->Vertices.size() > MAX_CONVEX_VERTICES)
+		{
+			UE_LOG("Mesh too complex for convex cooking (%zu vertices > %d limit), skipping: %s",
+				   StaticMeshAsset->Vertices.size(), MAX_CONVEX_VERTICES, GetAssetPathFileName().c_str());
+			UE_LOG("Mesh will load and render, but won't have physics collision.");
+			return; // Convex cooking만 스킵, 메시 렌더링은 정상 진행
+		}
+		// ===== END OPTIMIZATION =====
+
 		UE_LOG("Cooking convex mesh for: %s", GetAssetPathFileName().c_str());
 
 		physx::PxDefaultAllocator      gAllocator;
