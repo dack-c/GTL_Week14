@@ -10,7 +10,7 @@
 UCharacterMovementComponent::UCharacterMovementComponent()
 {
 	// 캐릭터 전용 설정 값
- 	MaxWalkSpeed = 6.0f;
+ 	MaxWalkSpeed = 8.0f;
 	MaxAcceleration = 20.0f;
 	JumpZVelocity = 4.0;
 
@@ -67,6 +67,7 @@ void UCharacterMovementComponent::DoJump()
 	{
 		Velocity.Z = JumpZVelocity;
 		bIsFalling = true;
+		bIsSliding = false;
 		CurrentFloor.Reset();
 	}
 }
@@ -89,8 +90,6 @@ void UCharacterMovementComponent::TryStartSliding()
 
 void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 {
-	// 초반 슬라이딩 추가 가속도 ?
-
 	// 입력 벡터 가져오기
 	// 해당 방향으로 이동 시키기?
 	// 좌우 정도는 입력에 따라 그쪽 방향으로 조금 더 이동함?
@@ -102,25 +101,33 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 
 		FVector DownDirection(0.0f, 0.0f, -1.0f);
 
-		const float Dot = FVector::Dot(FloorNormal, DownDirection);
+		float Dot = FVector::Dot(FloorNormal, DownDirection);
 
 		FVector SlidingVector = DownDirection - (FloorNormal * Dot);
 		SlidingVector.Normalize();
-
-		FHitResult Hit;
-		bool bMoved = SafeMoveUpdatedComponent(SlidingVector * DeltaSecond * SlidingSpeed, Hit);
-
 		// 슬라이딩 속도가 일정 량 이하로 떨어지면 종료
-		if (!bMoved || SlidingVector.SizeSquared() < MinSlidingSpeed)
+		if (SlidingVector.SizeSquared() < MinSlidingSpeed)
 		{
 			bIsSliding = false;
+			return;
 		}
-		else
+
+		Velocity = SlidingVector * SlidingSpeed;
+
+		FHitResult Hit;
+		bool bMoved = SafeMoveUpdatedComponent(Velocity * DeltaSecond, Hit);
+
+		if (bMoved)
 		{
 			// 내려가는 방향으로 회전
 			float TargetRadian = atan2(SlidingVector.Y, SlidingVector.X);
 			FQuat TargetQuat = FQuat::MakeFromEulerZYX(FVector(0, 0, RadiansToDegrees(TargetRadian)));
 			CharacterOwner->SetActorRotation(FQuat::Slerp(CharacterOwner->GetActorRotation(), TargetQuat, DeltaSecond * SlidingRotateSpeed));
+		}
+		else
+		{
+			// 움직이지 않는 경우 슬라이딩 종료
+			bIsSliding = false;
 		}
 	}
 	else
@@ -335,15 +342,10 @@ void UCharacterMovementComponent::CalcVelocity(const FVector& Input, float Delta
 		FVector AccelerationVec = Input * MaxAcceleration;
 
 		CurrentVelocity += AccelerationVec * DeltaSecond;
-
-		if (CurrentVelocity.Size() > MaxWalkSpeed)
-		{
-			CurrentVelocity = CurrentVelocity.GetNormalized() * MaxWalkSpeed;
-		}
 	}
 
-	// 입력이 없으면 감속 
-	else
+	// 입력이 없거나 최대 속도 초과 시 감속
+	if(!bHasInput || CurrentVelocity.Size() > MaxWalkSpeed)
 	{
 		float CurrentSpeed = CurrentVelocity.Size();
 		if (CurrentSpeed > 0.0f)
