@@ -340,6 +340,12 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 	MaterialGroupIndexList.Add(0, TArray<uint32>());
 	MaterialToIndex.Add(nullptr, 0);
 	MeshData->GroupInfos.Add(FGroupInfo());
+
+	// ===== CRITICAL FIX PHASE 4: IndexMap을 외부에서 관리 =====
+	// 전체 FBX 파일의 모든 서브메시에 대해 정점 중복 제거
+	TMap<FSkinnedVertex, uint32> IndexMap;
+	// ===== END FIX PHASE 4 =====
+
 	if (RootNode)
 	{
 		// 2번의 패스로 나눠서 처음엔 뼈의 인덱스를 결정하고 2번째 패스에서 뼈가 영향을 미치는 정점들을 구하고 정점마다 뼈 인덱스를 할당해 줄 것임(동시에 TPose 역행렬도 구함)
@@ -351,7 +357,7 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 		
 		for (int Index = 0; Index < RootNodeChildCount; Index++)
 		{
-			FBXMeshLoader::LoadMeshFromNode(RootNode->GetChild(Index), *MeshData, MaterialGroupIndexList, BoneToIndex, MaterialToIndex, MaterialInfos);
+			FBXMeshLoader::LoadMeshFromNode(RootNode->GetChild(Index), *MeshData, MaterialGroupIndexList, BoneToIndex, MaterialToIndex, MaterialInfos, IndexMap);
 		}
 
 		// 여러 루트 본이 있으면 가상 루트 생성
