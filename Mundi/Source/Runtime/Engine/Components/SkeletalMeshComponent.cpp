@@ -1295,7 +1295,7 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
 void USkeletalMeshComponent::ApplyRootMotion()
 {
-    if (!AnimInstance || !(AnimInstance->GetCurrentSequence()))
+    if (!AnimInstance || (!(AnimInstance->GetCurrentSequence()) && !(AnimInstance->GetBlendTargetState().Sequence)))
     {
         if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
         {
@@ -1310,7 +1310,20 @@ void USkeletalMeshComponent::ApplyRootMotion()
         return;
     }
 
-	const bool bHasRootMotion = AnimInstance->GetCurrentSequence()->IsUsingRootMotion();
+	bool bHasRootMotion = AnimInstance->GetCurrentSequence()->IsUsingRootMotion();
+    
+	// blend Target 애니메이션이 있으면, 그것을 우선적으로 검사
+	const FAnimationPlayState& BlendTargetState = AnimInstance->GetBlendTargetState();
+    if (BlendTargetState.Sequence)
+    {
+		bHasRootMotion = BlendTargetState.Sequence->IsUsingRootMotion();
+    }
+    else if(BlendTargetState.PoseProvider)
+    {
+		bHasRootMotion = false;
+    }
+    
+
     if (bHasRootMotion)
     {
         FTransform RootMotionDelta = AnimInstance->GetRootDelta();
