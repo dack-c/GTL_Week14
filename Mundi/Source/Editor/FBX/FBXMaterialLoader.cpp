@@ -92,58 +92,6 @@ void FBXMaterialLoader::ParseMaterial(FbxSurfaceMaterial* Material, FMaterialInf
 	UResourceManager::GetInstance().Add<UMaterial>(MaterialInfo.MaterialName, NewMaterial);
 }
 
-// 여러 디렉토리에서 텍스처 파일을 찾는 헬퍼 함수
-static FString FindTextureFile(const FString& InTexturePath, const FString& InFbxBaseDir)
-{
-	if (InTexturePath.empty())
-		return FString();
-
-	// 1. 먼저 원본 경로로 해석 시도
-	FString ResolvedPath = ResolveAssetRelativePath(InTexturePath, InFbxBaseDir);
-	FWideString WResolvedPath = UTF8ToWide(ResolvedPath);
-
-	std::error_code ec;
-	if (fs::exists(WResolvedPath, ec) && !ec)
-	{
-		// 원본 경로가 유효하면 그대로 반환
-		return ResolvedPath;
-	}
-
-	// 2. 원본 경로가 유효하지 않으면 파일명만 추출
-	FWideString WPath = UTF8ToWide(InTexturePath);
-	fs::path OriginalPath(WPath);
-	FString FileName = WideToUTF8(OriginalPath.filename().wstring());
-
-	if (FileName.empty())
-		return FString();
-
-	// 3. 검색할 디렉토리 목록
-	TArray<FString> SearchDirs;
-	SearchDirs.Add(InFbxBaseDir);                    // FBX 파일이 있는 디렉토리
-	SearchDirs.Add(GDataDir + "/Textures");          // Data/Textures
-	SearchDirs.Add(GDataDir + "/Model");             // Data/Model
-	SearchDirs.Add(GDataDir + "/Untracked");         // Data/Untracked
-
-	// 4. 각 디렉토리에서 파일 찾기
-	for (const FString& Dir : SearchDirs)
-	{
-		FString CandidatePath = Dir + "/" + FileName;
-		FWideString WCandidatePath = UTF8ToWide(CandidatePath);
-
-		if (fs::exists(WCandidatePath, ec) && !ec)
-		{
-			UE_LOG("[FBX Texture] Found texture: %s -> %s", InTexturePath.c_str(), CandidatePath.c_str());
-			return NormalizePath(CandidatePath);
-		}
-	}
-
-	// 5. 찾지 못했을 경우 경고 로그
-	UE_LOG("[FBX Texture] WARNING: Could not find texture file: %s (filename: %s)", InTexturePath.c_str(), FileName.c_str());
-
-	// 6. 원본 경로 반환 (기존 동작 유지)
-	return ResolvedPath;
-}
-
 FString FBXMaterialLoader::ParseTexturePath(FbxProperty& Property)
 {
 	if (Property.IsValid())
@@ -166,9 +114,7 @@ FString FBXMaterialLoader::ParseTexturePath(FbxProperty& Property)
 
 				FString TexturePath = ACPToUTF8(AcpPath);
 				const FString& CurrentFbxBaseDir = UFbxLoader::GetInstance().GetCurrentFbxBaseDir();
-
-				// FindTextureFile을 사용하여 텍스처 파일 자동 탐색
-				return FindTextureFile(TexturePath, CurrentFbxBaseDir);
+				return ResolveAssetRelativePath(TexturePath, CurrentFbxBaseDir);
 			}
 		}
 	}
