@@ -147,6 +147,9 @@ public:
     // GameMode 
     void SetGameMode(AGameModeBase* InGameMode) { GameMode = InGameMode; }
     AGameModeBase* GetGameMode() { return GameMode; }
+    /** === 물리 씬 ===*/
+    std::unique_ptr<FPhysScene> PhysScene;
+
 private:
     bool DestroyActor(AActor* Actor);   // 즉시 삭제
 
@@ -168,9 +171,6 @@ private:
     /** === 루아 매니저 ===*/
     std::unique_ptr<FLuaManager> LuaManager;
 
-    /** === 물리 씬 ===*/
-    std::unique_ptr<FPhysScene> PhysScene;
-    
     /** === GameMode === */
     AGameModeBase* GameMode = nullptr;
     UClass* GameModeClass = nullptr;
