@@ -44,7 +44,25 @@ public:
 	void SetUseGravity(bool bEnable) { bUseGravity = bEnable; }
 	bool IsUsingGravity() const { return bUseGravity; }
 	
-	void SetUseInput(bool bEnable) { bUseInput = bEnable; }
+	void SetUseInput(bool bEnable)
+	{ 
+		if (bEnable == bUseInput)
+		{
+			return;
+		}
+
+		/*if (!bEnable)
+		{
+			LastVelocityBeforIgnoreInput = Velocity;
+			Velocity = FVector::Zero();
+		}
+		else
+		{
+			Velocity = LastVelocityBeforIgnoreInput;
+			LastVelocityBeforIgnoreInput = FVector::Zero();
+		}*/
+		bUseInput = bEnable;
+	}
 	bool IsUsingInput() const { return bUseInput; }
 
 protected:
@@ -102,4 +120,6 @@ protected:
 	const float GravityScale = 1.0f;
 
 	const float SkinWidth = 0.025f;  // 통일된 SkinWidth
+
+	FVector LastVelocityBeforIgnoreInput = FVector::Zero();
 };

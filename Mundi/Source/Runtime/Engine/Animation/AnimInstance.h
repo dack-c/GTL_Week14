@@ -260,6 +260,7 @@ public:
     USkeletalMeshComponent* GetOwningComponent() const { return OwningComponent; }
 
 	const FAnimationPlayState& GetCurrentPlayState() const { return CurrentPlayState; }
+	const FAnimationPlayState& GetBlendTargetState() const { return BlendTargetState; }
 
 protected:
     // PlayState 헬퍼
