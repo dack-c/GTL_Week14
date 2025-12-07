@@ -8,7 +8,8 @@ void FBXMeshLoader::LoadMeshFromNode(FbxNode* InNode,
 	TMap<int32, TArray<uint32>>& MaterialGroupIndexList,
 	TMap<FbxNode*, int32>& BoneToIndex,
 	TMap<FbxSurfaceMaterial*, int32>& MaterialToIndex,
-	TArray<FMaterialInfo>& MaterialInfos)
+	TArray<FMaterialInfo>& MaterialInfos,
+	TMap<FSkinnedVertex, uint32>& IndexMap)
 {
 
 	// 부모노드로부터 상대좌표 리턴
@@ -89,18 +90,18 @@ void FBXMeshLoader::LoadMeshFromNode(FbxNode* InNode,
 						MeshData.GroupInfos[MaterialIndex].InitialMaterialName = MaterialInfo.MaterialName;
 					}
 					// MaterialSlotToIndex에 추가할 필요 없음(머티리얼 하나일때 해싱 패스하고 Material Index로 바로 그룹핑 할 거라서 안 씀)
-					LoadMesh(Mesh, MeshData, MaterialGroupIndexList, BoneToIndex, MaterialSlotToIndex, MaterialIndex);
+					LoadMesh(Mesh, MeshData, MaterialGroupIndexList, BoneToIndex, MaterialSlotToIndex, IndexMap, MaterialIndex);
 					continue;
 				}
 			}
 
-			LoadMesh(Mesh, MeshData, MaterialGroupIndexList, BoneToIndex, MaterialSlotToIndex);
+			LoadMesh(Mesh, MeshData, MaterialGroupIndexList, BoneToIndex, MaterialSlotToIndex, IndexMap);
 		}
 	}
 
 	for (int Index = 0; Index < InNode->GetChildCount(); Index++)
 	{
-		LoadMeshFromNode(InNode->GetChild(Index), MeshData, MaterialGroupIndexList, BoneToIndex, MaterialToIndex, MaterialInfos);
+		LoadMeshFromNode(InNode->GetChild(Index), MeshData, MaterialGroupIndexList, BoneToIndex, MaterialToIndex, MaterialInfos, IndexMap);
 	}
 }
 void FBXMeshLoader::LoadMeshFromAttribute(FbxNodeAttribute* InAttribute, FSkeletalMeshData& MeshData)
@@ -117,7 +118,7 @@ void FBXMeshLoader::LoadMeshFromAttribute(FbxNodeAttribute* InAttribute, FSkelet
 	// Buffer함수로 FbxString->char* 변환
 	//UE_LOG("<Attribute Type = %s, Name = %s\n", TypeName.Buffer(), AttributeName.Buffer());
 }
-void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<int32, TArray<uint32>>& MaterialGroupIndexList, TMap<FbxNode*, int32>& BoneToIndex, TArray<int32> MaterialSlotToIndex, int32 DefaultMaterialIndex)
+void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<int32, TArray<uint32>>& MaterialGroupIndexList, TMap<FbxNode*, int32>& BoneToIndex, TArray<int32> MaterialSlotToIndex, TMap<FSkinnedVertex, uint32>& IndexMap, int32 DefaultMaterialIndex)
 {
 	// 위에서 뼈 인덱스를 구했으므로 일단 ControlPoint에 대응되는 뼈 인덱스와 가중치부터 할당할 것임(이후 MeshData를 채우면서 ControlPoint를 순회할 것이므로)
 	struct IndexWeight
@@ -206,12 +207,90 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 	// 그대로 참조하면 됨, 그래서 VertexId를 꼭짓점 순회하는 순서대로 증가시키면서 매핑할 것임.
 	int VertexId = 0;
 
-	// 위의 이유로 ControlPoint를 인덱스 버퍼로 쓸 수가 없어서 Vertex마다 대응되는 Index Map을 따로 만들어서 계산할 것임.
-	TMap<FSkinnedVertex, uint32> IndexMap;
+	// ===== CRITICAL FIX PHASE 4: IndexMap을 외부에서 관리 (전체 FBX 중복 제거) =====
+	// IndexMap이 함수 로컬 변수였을 때: 서브메시마다 새로 생성 → 이전 정점 중복 체크 불가 → 40M 정점 누적
+	// IndexMap을 파라미터로 받으면: 전체 FBX에 대해 정점 재사용 → 메모리 폭발 방지
+	// ===== END FIX PHASE 4 =====
 
+	// ===== CRITICAL FIX: Element 캐싱으로 40GB 메모리 폭발 방지 =====
+	// GetElementXXX(0) 호출을 루프 밖으로 이동 (6백만 번 -> 4번)
+	FbxGeometryElementNormal* CachedNormals = nullptr;
+	FbxGeometryElementTangent* CachedTangents = nullptr;
+	FbxGeometryElementUV* CachedUVs = nullptr;
+	FbxGeometryElementVertexColor* CachedColors = nullptr;
+
+	if (InMesh->GetElementNormalCount() > 0)
+		CachedNormals = InMesh->GetElementNormal(0);
+	if (InMesh->GetElementTangentCount() > 0)
+		CachedTangents = InMesh->GetElementTangent(0);
+	if (InMesh->GetElementUVCount() > 0)
+		CachedUVs = InMesh->GetElementUV(0);
+	if (InMesh->GetElementVertexColorCount() > 0)
+		CachedColors = InMesh->GetElementVertexColor(0);
+	// ===== END FIX =====
+
+	// ===== CRITICAL FIX PHASE 2: DirectArray/IndexArray 캐싱으로 7,800만 번 객체 생성 방지 =====
+	// GetDirectArray()/GetIndexArray() 호출을 루프 밖으로 이동 (78,000,000번 -> 8번)
+	const FbxLayerElementArrayTemplate<FbxColor>* ColorDirectArray = nullptr;
+	const FbxLayerElementArrayTemplate<int>* ColorIndexArray = nullptr;
+	const FbxLayerElementArrayTemplate<FbxVector4>* NormalDirectArray = nullptr;
+	const FbxLayerElementArrayTemplate<int>* NormalIndexArray = nullptr;
+	const FbxLayerElementArrayTemplate<FbxVector4>* TangentDirectArray = nullptr;
+	const FbxLayerElementArrayTemplate<int>* TangentIndexArray = nullptr;
+	const FbxLayerElementArrayTemplate<FbxVector2>* UVDirectArray = nullptr;
+	const FbxLayerElementArrayTemplate<int>* UVIndexArray = nullptr;
+
+	if (CachedColors) {
+		ColorDirectArray = &CachedColors->GetDirectArray();
+		ColorIndexArray = &CachedColors->GetIndexArray();
+	}
+	if (CachedNormals) {
+		NormalDirectArray = &CachedNormals->GetDirectArray();
+		NormalIndexArray = &CachedNormals->GetIndexArray();
+	}
+	if (CachedTangents) {
+		TangentDirectArray = &CachedTangents->GetDirectArray();
+		TangentIndexArray = &CachedTangents->GetIndexArray();
+	}
+	if (CachedUVs) {
+		UVDirectArray = &CachedUVs->GetDirectArray();
+		UVIndexArray = &CachedUVs->GetIndexArray();
+	}
+	// ===== END FIX PHASE 2 =====
+
+	// ===== CRITICAL FIX PHASE 3: TArray 동적 재할당 방지 (프렉탈 메모리 패턴 제거) =====
+	// TArray::Add()의 재할당을 방지 (23번 재할당 → 0번)
+	// 최악의 경우: 모든 vertex unique (PolygonCount * 3)
+	const uint32 VertexCountBeforeThisMesh = MeshData.Vertices.Num(); // 현재 메시 시작 전 정점 수
+
+	UE_LOG("[FBX RESERVE] PolygonCount: %d, Reserving: %d vertices", PolygonCount, PolygonCount * 3);
+	UE_LOG("[FBX RESERVE] BEFORE - Vertices capacity: %zu, IndexMap bucket_count: %zu",
+		MeshData.Vertices.capacity(), IndexMap.bucket_count());
+
+	MeshData.Vertices.Reserve(PolygonCount * 3);
+	IndexMap.reserve(PolygonCount * 3); // std::unordered_map::reserve (소문자)
+
+	UE_LOG("[FBX RESERVE] AFTER - Vertices capacity: %zu, IndexMap bucket_count: %zu",
+		MeshData.Vertices.capacity(), IndexMap.bucket_count());
+
+	// MaterialGroupIndexList의 각 TArray도 Reserve (최악: 모든 polygon이 하나의 material 사용)
+	for (auto& Elem : MaterialGroupIndexList)
+	{
+		Elem.second.Reserve(PolygonCount * 3); // std::pair는 second 사용
+	}
+	// ===== END FIX PHASE 3 =====
 
 	for (int PolygonIndex = 0; PolygonIndex < PolygonCount; PolygonIndex++)
 	{
+		// 100,000번째마다 진행 상황 로그 (메모리 재할당 감지용)
+		if (PolygonIndex % 100000 == 0)
+		{
+			UE_LOG("[FBX PROGRESS] Polygon %d/%d - Vertices: %d/%zu, IndexMap: %zu/%zu",
+				PolygonIndex, PolygonCount,
+				MeshData.Vertices.Num(), MeshData.Vertices.capacity(),
+				IndexMap.size(), IndexMap.bucket_count());
+		}
+
 		// 최종적으로 사용할 머티리얼 인덱스를 구함, MaterialIndex 기본값이 0이므로 없는 경우 처리됨, 머티리얼이 하나일때 materialIndex가 1 이상이므로 처리됨.
 		// 머티리얼이 여러개일때만 처리해주면 됌.
 
@@ -262,10 +341,10 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 			// 엔진에서는 항상 0번만 사용하거나 Count가 0임. 그래서 하나라도 있으면 그냥 0번 쓰게 함.
 			// 왜 이렇게 지어졌나? -> Fbx가 3D 모델링 관점에서 만들어졌기 때문, 모델링 툴에서는 여러 개의 컬러 레이어를 하나에 매시에 만들 수 있음.
 			// 컬러 뿐만 아니라 UV Normal Tangent 모두 다 레이어로 저장하고 모두 다 0번만 쓰면 됨.
-			if (InMesh->GetElementVertexColorCount() > 0)
+			if (CachedColors)
 			{
 				// 왜 FbxLayerElement를 안 쓰지? -> 구버전 API
-				FbxGeometryElementVertexColor* VertexColors = InMesh->GetElementVertexColor(0);
+				FbxGeometryElementVertexColor* VertexColors = CachedColors;
 				int MappingIndex;
 				// 확장성을 고려하여 switch를 씀, ControlPoint와 PolygonVertex말고 다른 모드들도 있음.
 				switch (VertexColors->GetMappingMode())
@@ -292,15 +371,15 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 				case FbxGeometryElement::eDirect:
 				{
 					// 바로 참조 가능.
-					const FbxColor& Color = VertexColors->GetDirectArray().GetAt(MappingIndex);
+					const FbxColor& Color = ColorDirectArray->GetAt(MappingIndex);
 					SkinnedVertex.Color = FVector4(Color.mRed, Color.mGreen, Color.mBlue, Color.mAlpha);
 				}
 				break;
 				//인덱스 배열로 간접참조해야함
 				case FbxGeometryElement::eIndexToDirect:
 				{
-					int Id = VertexColors->GetIndexArray().GetAt(MappingIndex);
-					const FbxColor& Color = VertexColors->GetDirectArray().GetAt(Id);
+					int Id = ColorIndexArray->GetAt(MappingIndex);
+					const FbxColor& Color = ColorDirectArray->GetAt(Id);
 					SkinnedVertex.Color = FVector4(Color.mRed, Color.mGreen, Color.mBlue, Color.mAlpha);
 				}
 				break;
@@ -310,9 +389,9 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 				}
 			}
 
-			if (InMesh->GetElementNormalCount() > 0)
+			if (CachedNormals)
 			{
-				FbxGeometryElementNormal* Normals = InMesh->GetElementNormal(0);
+				FbxGeometryElementNormal* Normals = CachedNormals;
 
 				// 각진 모서리 표현력 때문에 99퍼센트의 모델은 eByPolygonVertex를 쓴다고 함.
 				// 근데 구 같이 각진 모서리가 아예 없는 경우, 부드러운 셰이딩 모델을 익스포트해서 eControlPoint로 저장될 수도 있음
@@ -334,15 +413,15 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 				{
 				case FbxGeometryElement::eDirect:
 				{
-					const FbxVector4& Normal = Normals->GetDirectArray().GetAt(MappingIndex);
+					const FbxVector4& Normal = NormalDirectArray->GetAt(MappingIndex);
 					FbxVector4 NormalWorld = FbxSceneWorldInverseTranspose.MultT(FbxVector4(Normal.mData[0], Normal.mData[1], Normal.mData[2], 0.0f));
 					SkinnedVertex.Normal = FVector(NormalWorld.mData[0], NormalWorld.mData[1], NormalWorld.mData[2]);
 				}
 				break;
 				case FbxGeometryElement::eIndexToDirect:
 				{
-					int Id = Normals->GetIndexArray().GetAt(MappingIndex);
-					const FbxVector4& Normal = Normals->GetDirectArray().GetAt(Id);
+					int Id = NormalIndexArray->GetAt(MappingIndex);
+					const FbxVector4& Normal = NormalDirectArray->GetAt(Id);
 					FbxVector4 NormalWorld = FbxSceneWorldInverseTranspose.MultT(FbxVector4(Normal.mData[0], Normal.mData[1], Normal.mData[2], 0.0f));
 					SkinnedVertex.Normal = FVector(NormalWorld.mData[0], NormalWorld.mData[1], NormalWorld.mData[2]);
 				}
@@ -352,9 +431,9 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 				}
 			}
 
-			if (InMesh->GetElementTangentCount() > 0)
+			if (CachedTangents)
 			{
-				FbxGeometryElementTangent* Tangents = InMesh->GetElementTangent(0);
+				FbxGeometryElementTangent* Tangents = CachedTangents;
 
 				// 왜 Color에서 계산한 Mapping Index를 안 쓰지? -> 컬러, 탄젠트, 노말, UV 모두 다 다른 매핑 방식을 사용 가능함.
 				int MappingIndex;
@@ -375,15 +454,15 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 				{
 				case FbxGeometryElement::eDirect:
 				{
-					const FbxVector4& Tangent = Tangents->GetDirectArray().GetAt(MappingIndex);
+					const FbxVector4& Tangent = TangentDirectArray->GetAt(MappingIndex);
 					FbxVector4 TangentWorld = FbxSceneWorld.MultT(FbxVector4(Tangent.mData[0], Tangent.mData[1], Tangent.mData[2], 0.0f));
 					SkinnedVertex.Tangent = FVector4(TangentWorld.mData[0], TangentWorld.mData[1], TangentWorld.mData[2], Tangent.mData[3]);
 				}
 				break;
 				case FbxGeometryElement::eIndexToDirect:
 				{
-					int Id = Tangents->GetIndexArray().GetAt(MappingIndex);
-					const FbxVector4& Tangent = Tangents->GetDirectArray().GetAt(Id);
+					int Id = TangentIndexArray->GetAt(MappingIndex);
+					const FbxVector4& Tangent = TangentDirectArray->GetAt(Id);
 					FbxVector4 TangentWorld = FbxSceneWorld.MultT(FbxVector4(Tangent.mData[0], Tangent.mData[1], Tangent.mData[2], 0.0f));
 					SkinnedVertex.Tangent = FVector4(TangentWorld.mData[0], TangentWorld.mData[1], TangentWorld.mData[2], Tangent.mData[3]);
 				}
@@ -413,9 +492,9 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 			//		  서로 다른 uv 좌표를 가져야 할 때가 생김. 그냥 VertexId를 더 나누면 안되나? => 아티스트가 싫어하고 직관적이지도 않음, 실제로 
 			//		  물리적으로 폴리곤이 찢어진 게 아닌데 텍스처를 입히겠다고 Vertex를 새로 만들고 폴리곤을 찢어야 함.
 			//		  그래서 UV는 인덱싱을 나머지와 다르게함
-			if (InMesh->GetElementUVCount() > 0)
+			if (CachedUVs)
 			{
-				FbxGeometryElementUV* UVs = InMesh->GetElementUV(0);
+				FbxGeometryElementUV* UVs = CachedUVs;
 
 				switch (UVs->GetMappingMode())
 				{
@@ -424,14 +503,14 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 					{
 					case FbxGeometryElement::eDirect:
 					{
-						const FbxVector2& UV = UVs->GetDirectArray().GetAt(ControlPointIndex);
+						const FbxVector2& UV = UVDirectArray->GetAt(ControlPointIndex);
 						SkinnedVertex.UV = FVector2D(UV.mData[0], 1 - UV.mData[1]);
 					}
 					break;
 					case FbxGeometryElement::eIndexToDirect:
 					{
-						int Id = UVs->GetIndexArray().GetAt(ControlPointIndex);
-						const FbxVector2& UV = UVs->GetDirectArray().GetAt(Id);
+						int Id = UVIndexArray->GetAt(ControlPointIndex);
+						const FbxVector2& UV = UVDirectArray->GetAt(Id);
 						SkinnedVertex.UV = FVector2D(UV.mData[0], 1 - UV.mData[1]);
 					}
 					break;
@@ -447,7 +526,7 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 					case FbxGeometryElement::eDirect:
 					case FbxGeometryElement::eIndexToDirect:
 					{
-						const FbxVector2& UV = UVs->GetDirectArray().GetAt(TextureUvIndex);
+						const FbxVector2& UV = UVDirectArray->GetAt(TextureUvIndex);
 						SkinnedVertex.UV = FVector2D(UV.mData[0], 1 - UV.mData[1]);
 					}
 					break;
@@ -490,7 +569,16 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 		} // for PolygonSize
 	} // for PolygonCount
 
+	// 루프 완료 후 최종 통계
+	const uint32 VerticesAddedByThisMesh = MeshData.Vertices.Num() - VertexCountBeforeThisMesh;
+	const uint32 ExpectedVertices = PolygonCount * 3;
 
+	UE_LOG("[FBX COMPLETE] Final - Vertices: %d/%zu (added: %d), IndexMap: %zu/%zu",
+		MeshData.Vertices.Num(), MeshData.Vertices.capacity(), VerticesAddedByThisMesh,
+		IndexMap.size(), IndexMap.bucket_count());
+	UE_LOG("[FBX COMPLETE] This mesh deduplication: %.2f%% (%d unique / %d expected)",
+		(float)VerticesAddedByThisMesh / ExpectedVertices * 100.0f,
+		VerticesAddedByThisMesh, ExpectedVertices);
 
 	// FBX에 정점의 탄젠트 벡터가 존재하지 않을 시
 	if (InMesh->GetElementTangentCount() == 0)
