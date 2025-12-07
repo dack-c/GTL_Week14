@@ -291,6 +291,12 @@ void UWorld::Tick(float DeltaSeconds)
 		TArray<AActor*> LevelActors = Level->GetActors();
 		for (AActor* Actor : LevelActors)
 		{
+			// 카메라 매니저 Tick은 마지막에
+			if (PlayerCameraManager == Actor)
+			{
+				continue;
+			}
+
 			if (Actor && Actor->IsActorActive())
 			{
 				if (Actor->CanEverTick())
@@ -321,6 +327,12 @@ void UWorld::Tick(float DeltaSeconds)
 	{
 		PhysScene->StepSimulation(GetDeltaTime(EDeltaTime::Game));
 		//PhysScene->StepSimulation(1.0f/60.0f);
+	}
+
+	// 카메라 매니저 Tick은 마지막에
+	if (PlayerCameraManager)
+	{
+		PlayerCameraManager->Tick(GetDeltaTime(EDeltaTime::Game) * PlayerCameraManager->GetCustomTimeDillation());
 	}
 
 	// 지연 삭제 처리

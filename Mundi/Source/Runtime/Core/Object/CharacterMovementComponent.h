@@ -37,7 +37,9 @@ public:
 	// 상태 제어 
 	void DoJump();
 	void StopJump();
+	void TryStartSliding();
 	bool IsFalling() const { return bIsFalling; }
+	bool IsSliding() const { return bIsSliding; }
 	bool IsOnGround() const { return !bIsFalling; }
 	const FHitResult& GetCurrentFloorResult() const { return CurrentFloor; }
 
@@ -66,6 +68,7 @@ public:
 	bool IsUsingInput() const { return bUseInput; }
 
 protected:
+	void PhysSliding(float DeltaSecond);
 	void PhysWalking(float DeltaSecond);
 	void PhysFalling(float DeltaSecond);
 
@@ -109,11 +112,21 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Move")
+	float SlidingSpeed = 30.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Move")
+	float SlidingRotateSpeed = 10.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Move")
+	float MinSlidingSpeed = 0.2f;
+
+	UPROPERTY(EditAnywhere, Category = "Move")
 	float MinFloorNormalZ = 0.7f;	// 평지로 인식하는 최소 normal Z
 
 protected:
 	ACharacter* CharacterOwner = nullptr;
 	bool bIsFalling = false;
+	bool bIsSliding = false;
 	FHitResult CurrentFloor;
 
 	const float GLOBAL_GRAVITY_Z = -9.8f;
