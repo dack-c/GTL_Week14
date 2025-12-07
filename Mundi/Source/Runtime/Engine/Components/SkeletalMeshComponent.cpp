@@ -1305,7 +1305,7 @@ void USkeletalMeshComponent::ApplyRootMotion()
     {
         FTransform RootMotionDelta = AnimInstance->GetRootDelta();
         Owner->AddActorLocalLocation(RootMotionDelta.Translation);
-		Owner->AddActorLocalRotation(RootMotionDelta.Rotation);
+		//Owner->AddActorLocalRotation(RootMotionDelta.Rotation);
     }
 
     if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
@@ -1315,11 +1315,13 @@ void USkeletalMeshComponent::ApplyRootMotion()
 
         if (bHasRootMotion)
         {
+			//CharMoveComp->SetActive(false);
 			CharMoveComp->SetUseGravity(false);
         }
         else
         {
-			CharMoveComp->SetUseGravity(true);
+			//CharMoveComp->SetActive(true);
+            CharMoveComp->SetUseGravity(true);
         }
     }
 }

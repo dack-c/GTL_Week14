@@ -35,11 +35,6 @@
       "ToNodeID" : 36,
       "ToPinName" : "Blend Time"
     }, {
-      "FromNodeID" : 33,
-      "FromPinName" : "Value",
-      "ToNodeID" : 48,
-      "ToPinName" : "Blend Time"
-    }, {
       "FromNodeID" : 34,
       "FromPinName" : "Exit",
       "ToNodeID" : 36,
@@ -120,6 +115,11 @@
       "ToNodeID" : 62,
       "ToPinName" : "Execute"
     }, {
+      "FromNodeID" : 50,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 69,
+      "ToPinName" : "Execute"
+    }, {
       "FromNodeID" : 51,
       "FromPinName" : "Value",
       "ToNodeID" : 50,
@@ -150,10 +150,55 @@
       "ToNodeID" : 62,
       "ToPinName" : "Blend Time"
     }, {
+      "FromNodeID" : 64,
+      "FromPinName" : "Value",
+      "ToNodeID" : 69,
+      "ToPinName" : "Blend Time"
+    }, {
       "FromNodeID" : 65,
       "FromPinName" : "Is Finished",
+      "ToNodeID" : 67,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 66,
+      "FromPinName" : "Value",
+      "ToNodeID" : 48,
+      "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 67,
+      "FromPinName" : "Result",
       "ToNodeID" : 62,
       "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 68,
+      "FromPinName" : "Is Falling",
+      "ToNodeID" : 67,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 69,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 11,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 70,
+      "FromPinName" : "Result",
+      "ToNodeID" : 69,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 71,
+      "FromPinName" : "Is Falling",
+      "ToNodeID" : 72,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 72,
+      "FromPinName" : "Result",
+      "ToNodeID" : 70,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 73,
+      "FromPinName" : "Is Finished",
+      "ToNodeID" : 70,
+      "ToPinName" : "A"
     }],
   "Nodes" : [{
       "ClassName" : "UK2Node_BlendSpace1D",
@@ -550,8 +595,8 @@
     }, {
       "ClassName" : "UK2Node_AnimTransition",
       "NodeID" : 62,
-      "NodePosX" : 3368.000000,
-      "NodePosY" : 876.000000,
+      "NodePosX" : 3544.000000,
+      "NodePosY" : 852.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -588,8 +633,137 @@
     }, {
       "ClassName" : "UK2Node_GetIsFinishAnim",
       "NodeID" : 65,
-      "NodePosX" : 3079.000000,
-      "NodePosY" : 1184.000000,
+      "NodePosX" : 2855.000000,
+      "NodePosY" : 1216.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Is Finished"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 66,
+      "NodePosX" : 2193.000000,
+      "NodePosY" : 1088.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.000000
+    }, {
+      "ClassName" : "UK2Node_And_BoolBool",
+      "NodeID" : 67,
+      "NodePosX" : 3128.000000,
+      "NodePosY" : 1232.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_GetIsFalling",
+      "NodeID" : 68,
+      "NodePosX" : 2881.000000,
+      "NodePosY" : 1376.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Is Falling"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 69,
+      "NodePosX" : 3672.000000,
+      "NodePosY" : 1044.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_And_BoolBool",
+      "NodeID" : 70,
+      "NodePosX" : 3513.000000,
+      "NodePosY" : 1328.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_GetIsFalling",
+      "NodeID" : 71,
+      "NodePosX" : 3137.000000,
+      "NodePosY" : 1440.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Is Falling"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Not_Bool",
+      "NodeID" : 72,
+      "NodePosX" : 3320.000000,
+      "NodePosY" : 1444.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_GetIsFinishAnim",
+      "NodeID" : 73,
+      "NodePosX" : 3287.000000,
+      "NodePosY" : 1344.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 1,
@@ -597,5 +771,5 @@
           "PinName" : "Is Finished"
         }]
     }],
-  "UniqueIDCounter" : 66
+  "UniqueIDCounter" : 74
 }
