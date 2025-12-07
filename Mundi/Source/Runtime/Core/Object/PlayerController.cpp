@@ -42,7 +42,10 @@ void APlayerController::Tick(float DeltaSeconds)
     }
 
 	// 입력 처리 (Move)
-	ProcessMovementInput(DeltaSeconds);
+    if (bUseMovementInput)
+    {
+        ProcessMovementInput(DeltaSeconds);
+    }
 	  
 	// 입력 처리 (Look/Turn)
 	ProcessRotationInput(DeltaSeconds);

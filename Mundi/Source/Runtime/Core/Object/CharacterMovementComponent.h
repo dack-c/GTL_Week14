@@ -27,6 +27,7 @@ public:
 	float GroundFriction; //바닥 마찰 계수 
 
 	bool bUseGravity = true;
+	bool bUseInput = true;
 
 	//TODO
 	//float MaxWalkSpeedCrouched = 6.0f;
@@ -42,6 +43,9 @@ public:
 
 	void SetUseGravity(bool bEnable) { bUseGravity = bEnable; }
 	bool IsUsingGravity() const { return bUseGravity; }
+	
+	void SetUseInput(bool bEnable) { bUseInput = bEnable; }
+	bool IsUsingInput() const { return bUseInput; }
 
 protected:
 	void PhysWalking(float DeltaSecond);
