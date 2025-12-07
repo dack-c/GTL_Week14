@@ -78,9 +78,16 @@ protected:
 	/** PhysScene 가져오기 */
 	FPhysScene* GetPhysScene() const;
 
+	/**
+	 * @brief 현재 위치에서 관통(Penetration) 해결
+	 * 반복적으로 MTD를 계산하여 겹친 상태에서 탈출
+	 * @return 탈출에 성공하면 true, 최대 반복 후에도 실패하면 false
+	 */
+	bool ResolveOverlaps();
+
 public:
 	UPROPERTY(EditAnywhere, Category = "Move")
-	float MinFloorNormalZ = 0.7f;
+	float MinFloorNormalZ = 0.7f;	// 평지로 인식하는 최소 normal Z
 
 protected:
 	ACharacter* CharacterOwner = nullptr;
@@ -90,5 +97,5 @@ protected:
 	const float GLOBAL_GRAVITY_Z = -9.8f;
 	const float GravityScale = 1.0f;
 
-
+	const float SkinWidth = 0.025f;  // 통일된 SkinWidth
 };
