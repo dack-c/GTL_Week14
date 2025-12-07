@@ -5,5 +5,4 @@ void IAnimPoseProvider::IgnoreRootBoneTransform(FTransform* OutRootPose, const F
 {
 	const FTransform FirstFrameTransform = InDataModel->EvaluateBoneTrackTransform(InRootBoneName, 0.0f, true);
 	OutRootPose->Translation = FirstFrameTransform.Translation;
-	//OutRootPose->Rotation = FirstFrameTransform.Rotation;
 }

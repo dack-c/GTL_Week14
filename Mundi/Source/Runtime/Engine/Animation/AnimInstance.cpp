@@ -113,14 +113,14 @@ FTransform UAnimInstance::GetRootDelta() const
     if (UAnimSequence* BlendSequence = BlendTargetState.Sequence)
     {
         RootDelta = BlendSequence->ExtractRootMotionDelta(PreviousBlendTargetPlayTime, BlendTargetState.CurrentTime);
-        UE_LOG("[Root Moation] - Blend Target PreviousTime: %.2f, Current Time: %.2f ", PreviousBlendTargetPlayTime, BlendTargetState.CurrentTime);
+        //UE_LOG("[Root Moation] - Blend Target PreviousTime: %.2f, Current Time: %.2f ", PreviousBlendTargetPlayTime, BlendTargetState.CurrentTime);
     }
     else
     {
         UAnimSequence* CurrentSequence = CurrentPlayState.Sequence;
         assert(CurrentSequence != nullptr && "GetRootDelta called but no current sequence!");
         RootDelta = CurrentSequence ? CurrentSequence->ExtractRootMotionDelta(PreviousPlayTime, CurrentPlayState.CurrentTime) : FTransform();
-		UE_LOG("[Root Moation] - Current PreviousTime: %.2f, Current Time: %.2f ", PreviousPlayTime, CurrentPlayState.CurrentTime);
+		//UE_LOG("[Root Moation] - Current PreviousTime: %.2f, Current Time: %.2f ", PreviousPlayTime, CurrentPlayState.CurrentTime);
     }
     
     return RootDelta;
