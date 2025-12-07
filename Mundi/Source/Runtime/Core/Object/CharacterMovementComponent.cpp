@@ -160,7 +160,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 			{
 				CurrentFloor = StepDownHit;
 				float SnapDistance = StepDownHit.Distance - SkinWidth;
-				if (SnapDistance > KINDA_SMALL_NUMBER)
+				if (SnapDistance > KINDA_SMALL_NUMBER && bUseInput)
 				{
 					FVector NewLoc = UpdatedComponent->GetWorldLocation();
 					NewLoc.Z -= SnapDistance;
@@ -252,7 +252,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 
 			// 바닥으로 스냅 (SkinWidth 여유를 두고 이동)
 			float SnapDistance = FloorHit.Distance - SkinWidth;
-			if (SnapDistance > KINDA_SMALL_NUMBER)
+			if (SnapDistance > KINDA_SMALL_NUMBER && bUseInput)
 			{
 				FVector CurrentLoc = UpdatedComponent->GetWorldLocation();
 				CurrentLoc.Z -= SnapDistance;
