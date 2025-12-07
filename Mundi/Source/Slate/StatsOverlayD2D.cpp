@@ -119,6 +119,7 @@ void UStatsOverlayD2D::EnsureInitialized()
 	SafeRelease(BrushViolet);
 	SafeRelease(BrushDeepPink);
 	SafeRelease(BrushBlack);
+	SafeRelease(ColorBrush);
 
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &BrushYellow);
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::SkyBlue), &BrushSkyBlue);
@@ -128,6 +129,7 @@ void UStatsOverlayD2D::EnsureInitialized()
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Violet), &BrushViolet);
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::DeepPink), &BrushDeepPink);
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.6f), &BrushBlack);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.0f), &ColorBrush);
 
 }
 
@@ -141,6 +143,7 @@ void UStatsOverlayD2D::ReleaseD2DResources()
 	SafeRelease(BrushLightGreen);
 	SafeRelease(BrushSkyBlue);
 	SafeRelease(BrushYellow);
+	SafeRelease(ColorBrush);
 
 	SafeRelease(TextFormat);
 	SafeRelease(DWriteFactory);
@@ -148,6 +151,17 @@ void UStatsOverlayD2D::ReleaseD2DResources()
 	SafeRelease(D2DDevice);
 	SafeRelease(D2DFactory);
 
+}
+
+void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color)
+{
+	ColorBrush->SetColor(D2D1_COLOR_F(Color.X, Color.Y, Color.Z, Color.W));
+	D2DContext->DrawTextW(
+		InText,
+		static_cast<UINT32>(wcslen(InText)),
+		TextFormat,
+		InRect,
+		ColorBrush);
 }
 
 static void DrawTextBlock(
@@ -207,6 +221,25 @@ void UStatsOverlayD2D::Draw()
 	D2DContext->SetTarget(TargetBmp);
 
 	D2DContext->BeginDraw();
+
+
+	D3D11_VIEWPORT Viewport;
+	UINT NumViewports = 1;
+
+	D3DContext->RSGetViewports(&NumViewports, &Viewport);
+
+	ViewportLTop = FVector2D(Viewport.TopLeftX, Viewport.TopLeftY);
+	ViewportSize = FVector2D(Viewport.Width, Viewport.Height);
+
+	DrawInfose.Sort();
+	for (FDrawInfo* Info : DrawInfose)
+	{
+		Info->DrawUI();
+		delete Info;
+	}
+	DrawInfose.clear();
+
+
 	const float Margin = 12.0f;
 	const float Space = 8.0f;   // 패널간의 간격
 	const float PanelWidth = 250.0f;
@@ -438,4 +471,12 @@ void UStatsOverlayD2D::Draw()
 
 	SafeRelease(TargetBmp);
 	SafeRelease(Surface);
+}
+
+
+
+
+void UStatsOverlayD2D::RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color)
+{
+	DrawInfose.Push(new FDrawInfoText(InRectTransform, Text, Color));
 }

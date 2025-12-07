@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <d2d1_1.h>
 #include <dwrite.h>
+#include "RectTransform.h"
 
 class UStatsOverlayD2D
 {
@@ -10,6 +11,8 @@ public:
     void Initialize(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain);
 	void Shutdown();
     void Draw();
+
+    void DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color);
 
     void SetShowFPS(bool b) { bShowFPS = b; }
     void SetShowMemory(bool b) { bShowMemory = b; }
@@ -39,6 +42,16 @@ public:
     bool IsSkinningVisible() const { return bShowSkinning; }
     bool IsParticleVisible() const { return bShowParticle; }
 
+    void RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color);
+
+    FVector2D GetViewportSize() const
+    {
+        return ViewportSize;
+    }
+    FVector2D GetViewportLTop() const
+    {
+        return ViewportLTop;
+    }
 private:
     UStatsOverlayD2D() = default;
     ~UStatsOverlayD2D() = default;
@@ -48,7 +61,14 @@ private:
     void EnsureInitialized();
     void ReleaseD2DResources();
 
+    TArray<FDrawInfo*> DrawInfose;
+
+
 private:
+
+    FVector2D ViewportLTop;
+    FVector2D ViewportSize;
+
     bool bInitialized = false;
     bool bShowFPS = true;
     bool bShowMemory = false;
@@ -70,6 +90,7 @@ private:
     IDWriteFactory* DWriteFactory = nullptr;
     IDWriteTextFormat* TextFormat = nullptr;
 
+    ID2D1SolidColorBrush* ColorBrush = nullptr;
     ID2D1SolidColorBrush* BrushYellow = nullptr;
     ID2D1SolidColorBrush* BrushSkyBlue = nullptr;
     ID2D1SolidColorBrush* BrushLightGreen = nullptr;
