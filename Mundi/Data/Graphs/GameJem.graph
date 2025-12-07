@@ -199,8 +199,8 @@
           "PinCategory" : "UAnimSequence",
           "PinName" : "Output"
         }],
-      "SampleAnim_0" : "Data/FBX/James_Mixamo_Idle.fbx_mixamo.com",
-      "SampleAnim_1" : "Data/FBX/James_Mixamo_Run.fbx_mixamo.com",
+      "SampleAnim_0" : "Data/animations/Parkour/P_Idle.fbx_mixamo.com",
+      "SampleAnim_1" : "Data/animations/Parkour/P_Fast Run.fbx_mixamo.com",
       "SamplePos_0" : 0.000000,
       "SamplePos_1" : 1.049997
     }, {
@@ -317,7 +317,7 @@
         }],
       "StateName" : "Falling Idle"
     }, {
-      "AnimPath" : "Data/animations/Falling Idle.fbx_mixamo.com",
+      "AnimPath" : "Data/animations/Parkour/P_Falling Idle.fbx_mixamo.com",
       "ClassName" : "UK2Node_AnimSequence",
       "NodeID" : 35,
       "NodePosX" : 2032.000000,
@@ -510,7 +510,7 @@
         }],
       "StateName" : "Jump"
     }, {
-      "AnimPath" : "Data/animations/Parkour/P_Jumping.fbx_mixamo.com",
+      "AnimPath" : "Data/animations/Parkour/P_Jump.fbx_mixamo.com",
       "ClassName" : "UK2Node_AnimSequence",
       "NodeID" : 51,
       "NodePosX" : 2184.000000,
