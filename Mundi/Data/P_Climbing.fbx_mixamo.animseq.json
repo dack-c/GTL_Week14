@@ -1,5 +1,5 @@
 {
   "Type" : "AnimSequenceMeta",
-  "UseRootMotion" : false,
+  "UseRootMotion" : true,
   "Version" : 1
 }

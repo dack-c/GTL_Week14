@@ -51,6 +51,7 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
     if (bIsBlending)
     {
+		PreviousBlendTargetPlayTime = BlendTargetState.CurrentTime;
         AdvancePlayState(BlendTargetState, DeltaSeconds);
 
         const float SafeTotalTime = FMath::Max(BlendTotalTime, 1e-6f);
@@ -79,6 +80,8 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             BlendTargetState = FAnimationPlayState();
             BlendTimeRemaining = 0.0f;
             BlendTotalTime = 0.0f;
+
+            PreviousPlayTime = CurrentPlayState.CurrentTime;
         }
     }
     else if (OwningComponent)
@@ -106,16 +109,20 @@ void UAnimInstance::EvaluatePose(TArray<FTransform>& OutPose)
 }
 FTransform UAnimInstance::GetRootDelta() const
 {
+    FTransform RootDelta = FTransform();
     if (UAnimSequence* BlendSequence = BlendTargetState.Sequence)
     {
-        FTransform RootDelta = BlendSequence->ExtractRootMotionDelta(PreviousPlayTime, CurrentPlayState.CurrentTime);
-		return RootDelta;
+        RootDelta = BlendSequence->ExtractRootMotionDelta(PreviousBlendTargetPlayTime, BlendTargetState.CurrentTime);
+        UE_LOG("[Root Moation] - Blend Target PreviousTime: %.2f, Current Time: %.2f ", PreviousBlendTargetPlayTime, BlendTargetState.CurrentTime);
+    }
+    else
+    {
+        UAnimSequence* CurrentSequence = CurrentPlayState.Sequence;
+        assert(CurrentSequence != nullptr && "GetRootDelta called but no current sequence!");
+        RootDelta = CurrentSequence ? CurrentSequence->ExtractRootMotionDelta(PreviousPlayTime, CurrentPlayState.CurrentTime) : FTransform();
+		UE_LOG("[Root Moation] - Current PreviousTime: %.2f, Current Time: %.2f ", PreviousPlayTime, CurrentPlayState.CurrentTime);
     }
     
-    UAnimSequence* CurrentSequence = CurrentPlayState.Sequence;
-	assert(CurrentSequence != nullptr && "GetRootDelta called but no current sequence!");
-    FTransform RootDelta = CurrentSequence ? CurrentSequence->ExtractRootMotionDelta(PreviousPlayTime, CurrentPlayState.CurrentTime) : FTransform();
-
     return RootDelta;
 }
 // ============================================================

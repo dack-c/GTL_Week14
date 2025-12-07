@@ -248,6 +248,7 @@ FBlueprintValue UK2Node_GetSpeed::EvaluatePin(const UEdGraphPin* OutputPin, FBlu
     {
         // Velocity 벡터의 길이를 구해서 반환 (FVector::Length() 가정)
         float Speed = MoveComp->GetVelocity().Size();
+        //UE_LOG("UK2Node_GetSpeed's Speed: %.2f", Speed);
         return FBlueprintValue(Speed);
     }
 
