@@ -27,23 +27,33 @@ public:
 	UConsoleWidget();
 	~UConsoleWidget() override;
 
-	bool IsWindowPinned() const { return bIsWindowPinned; }
-
 private:
 	// Console data
 	char InputBuf[256];
-	TArray<FString> Items;           // Log items
-	TArray<FString> HelpCommandList;        // Available commands
-	TArray<FString> History;         // Command history
-	int32 HistoryPos;                // -1: new line, 0..History.Size-1 browsing history
+	TArray<FString> Items;
+	TArray<FString> PendingLogs;
+	mutable std::mutex PendingLogsMutex;
+	TArray<FString> HelpCommandList;
+	TArray<FString> History;
+	int32 HistoryPos;
 
 	// UI state
 	bool AutoScroll;
 	bool ScrollToBottom;
 	ImGuiTextFilter Filter;
 
-	bool bIsWindowPinned;    // 콘솔 창 고정(핀) 상태
-	std::mutex LogMutex;
+	// Text selection state
+	struct FTextSelection
+	{
+		int32 StartLine = -1;
+		int32 EndLine = -1;
+
+		bool IsActive() const { return StartLine >= 0 && EndLine >= 0; }
+		void Clear() { StartLine = -1; EndLine = -1; }
+	};
+
+	FTextSelection TextSelection;
+	bool bIsDragging = false;
 
 	// Helper methods
 	static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);

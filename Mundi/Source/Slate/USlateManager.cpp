@@ -527,16 +527,8 @@ void USlateManager::Render()
         bool isWindowOpen = true;
         if (ImGui::Begin("ConsoleOverlay", &isWindowOpen, flags))
         {
-            UConsoleWidget* ConsoleWidget = ConsoleWindow->GetConsoleWidget();
-            bool bIsPinned = false;
-            if (ConsoleWidget)
-            {
-                bIsPinned = ConsoleWidget->IsWindowPinned();
-            }
-
-            // 2. '핀'이 활성화되지 않았을 때만 포커스를 잃으면 닫기
-            if (!bIsPinned &&
-                !ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+            // 포커스를 잃으면 콘솔 닫기
+            if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
                 bIsConsoleVisible &&
                 !bIsConsoleAnimating)
             {
