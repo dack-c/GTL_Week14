@@ -448,7 +448,6 @@ GEMINI.md
 # Untracked Data Files
 /Mundi/DerivedDataCache/**
 /Mundi/ThirdParty/**
-/Mundi/Data/Untracked/
 
 # imgui-node-editor는 수정이 필요하므로 제외
 !/Mundi/ThirdParty/imgui-node-editor
