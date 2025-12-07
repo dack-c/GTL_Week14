@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -290,6 +290,7 @@
     </ClCompile>
     <ClCompile Include="Source\Runtime\Core\Object\MyCar.cpp" />
     <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Animation\AnimTypes.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\TriggerComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_DOF.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\SpringArmComponent.cpp" />
@@ -702,7 +703,8 @@
     <ClCompile Include="Generated\AMyCar.generated.cpp" />
     <ClCompile Include="Generated\USpringArmComponent.generated.cpp" />
     <ClCompile Include="Generated\UTriggerComponent.generated.cpp" />
-  <ClCompile Include="Generated\ATriggerActor.generated.cpp" /></ItemGroup>
+    <ClCompile Include="Generated\ATriggerActor.generated.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -1196,7 +1198,8 @@
     <ClInclude Include="Generated\AMyCar.generated.h" />
     <ClInclude Include="Generated\USpringArmComponent.generated.h" />
     <ClInclude Include="Generated\UTriggerComponent.generated.h" />
-  <ClInclude Include="Generated\ATriggerActor.generated.h" /></ItemGroup>
+    <ClInclude Include="Generated\ATriggerActor.generated.h" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

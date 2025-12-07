@@ -137,6 +137,7 @@ public:
     void AddActorLocalRotation(const FVector& DeltaEuler);
     void AddActorLocalRotation(const FQuat& DeltaRotation);
     void AddActorLocalLocation(const FVector& DeltaRot);
+	void AddActorScale(const FVector& DeltaScale);
 
     // 파티션
     void MarkPartitionDirty();

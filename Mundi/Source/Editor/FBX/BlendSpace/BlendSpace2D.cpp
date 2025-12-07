@@ -464,9 +464,7 @@ void UBlendSpace2D::EvaluateAnimation(UAnimSequence* Animation, float Time, TArr
 	// If using root motion, zero out root translation
 	if (Animation->IsUsingRootMotion() && NumBones > 0)
 	{
-		FTransform RootTransform = OutPose[0];
-		RootTransform.Translation = DataModel->EvaluateBoneTrackTransform(Animation->BoneNames[0], 0.0f, true).Translation;
-		OutPose[0] = RootTransform;
+		IgnoreRootBoneTransform(&OutPose[0], Animation->BoneNames[0], DataModel);
 	}
 }
 

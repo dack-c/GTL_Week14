@@ -30,6 +30,8 @@
 #include "Pawn.h"
 #include "Controller.h"
 #include "PlayerController.h"
+#include "Character.h"
+#include "CharacterMovementComponent.h"
 
 
 static FBodyInstance* FindBodyInstanceByName(const TArray<FBodyInstance*>& Bodies, const FName& BoneName)
@@ -1298,21 +1300,28 @@ void USkeletalMeshComponent::ApplyRootMotion()
         return;
     }
 
-    if (AnimInstance->GetCurrentSequence()->IsUsingRootMotion() == false)
+	const bool bHasRootMotion = AnimInstance->GetCurrentSequence()->IsUsingRootMotion();
+    if (bHasRootMotion)
     {
-        return;
+        FTransform RootMotionDelta = AnimInstance->GetRootDelta();
+        Owner->AddActorLocalLocation(RootMotionDelta.Translation);
+		Owner->AddActorLocalRotation(RootMotionDelta.Rotation);
     }
 
-	FTransform RootMotionDelta = AnimInstance->GetRootDelta();
-    Owner->AddActorLocalLocation(RootMotionDelta.Translation);
+    if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
+    {
+		UCharacterMovementComponent* CharMoveComp = OwnerCharacter->GetCharacterMovement();
+		assert(CharMoveComp);
 
- //   const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
- //   FName RootBoneName = Skeleton.GetBoneName(0);
-
- //   UAnimDataModel* DataModel = AnimInstance->GetCurrentSequence()->GetDataModel();
-	////UE_LOG("Applying Root Motion at time %.2f", CurrentAnimationTime);
- //   FTransform RootMotionTransform = DataModel->EvaluateBoneTrackTransform(RootBoneName, CurrentAnimationTime, true);
- //   Owner->AddActorLocalLocation(RootMotionTransform.Translation);
+        if (bHasRootMotion)
+        {
+			CharMoveComp->SetUseGravity(false);
+        }
+        else
+        {
+			CharMoveComp->SetUseGravity(true);
+        }
+    }
 }
 
 // ============================================================

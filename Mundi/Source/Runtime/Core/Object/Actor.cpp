@@ -528,6 +528,15 @@ void AActor::AddActorLocalLocation(const FVector& DeltaLocation)
 	}
 }
 
+void AActor::AddActorScale(const FVector& DeltaScale)
+{
+	if (RootComponent && !DeltaScale.IsZero()) // 영 벡터가 아닐 때만
+	{
+		RootComponent->AddWorldScale3D(DeltaScale);
+		MarkPartitionDirty();
+	}
+}
+
 void AActor::SetActorHiddenInEditor(bool bNewHidden)
 {
 	bHiddenInEditor = bNewHidden; 
