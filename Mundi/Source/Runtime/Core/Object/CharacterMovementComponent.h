@@ -79,6 +79,10 @@ protected:
 	/** PhysScene 가져오기 */
 	FPhysScene* GetPhysScene() const;
 
+public:
+	UPROPERTY(EditAnywhere, Category = "Move")
+	float MinFloorNormalZ = 0.7f;
+
 protected:
 	ACharacter* CharacterOwner = nullptr;
 	bool bIsFalling = false;
