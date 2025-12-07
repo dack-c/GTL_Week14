@@ -89,7 +89,30 @@ void UStatsOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
 			TextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 			TextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
 		}
+
+		DWriteFactory->CreateTextFormat(
+			L"Segoe UI",
+			nullptr,
+			DWRITE_FONT_WEIGHT_NORMAL,
+			DWRITE_FONT_STYLE_NORMAL,
+			DWRITE_FONT_STRETCH_NORMAL,
+			16.0f,
+			L"en-us",
+			&UITextFormat);
+
+		if (UITextFormat)
+		{
+			UITextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+			UITextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+		}
 	}
+
+	HRESULT hr = CoCreateInstance(
+		CLSID_WICImagingFactory,
+		nullptr,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&WICFactory)
+	);
 
 	EnsureInitialized();
 }
@@ -119,7 +142,8 @@ void UStatsOverlayD2D::EnsureInitialized()
 	SafeRelease(BrushViolet);
 	SafeRelease(BrushDeepPink);
 	SafeRelease(BrushBlack);
-	SafeRelease(ColorBrush);
+
+	SafeRelease(UIColorBrush);
 
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &BrushYellow);
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::SkyBlue), &BrushSkyBlue);
@@ -129,12 +153,18 @@ void UStatsOverlayD2D::EnsureInitialized()
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Violet), &BrushViolet);
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::DeepPink), &BrushDeepPink);
 	D2DContext->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.6f), &BrushBlack);
-	D2DContext->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.0f), &ColorBrush);
+	D2DContext->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.0f), &UIColorBrush);
 
 }
 
 void UStatsOverlayD2D::ReleaseD2DResources()
 {
+	for (ID2D1Bitmap* Bitmap : BitmapMap.GetValues())
+	{
+		Bitmap->Release();
+	}
+	SafeRelease(WICFactory);
+
 	SafeRelease(BrushBlack);
 	SafeRelease(BrushDeepPink);
 	SafeRelease(BrushViolet);
@@ -143,7 +173,9 @@ void UStatsOverlayD2D::ReleaseD2DResources()
 	SafeRelease(BrushLightGreen);
 	SafeRelease(BrushSkyBlue);
 	SafeRelease(BrushYellow);
-	SafeRelease(ColorBrush);
+
+	SafeRelease(UIColorBrush);
+	SafeRelease(UITextFormat);
 
 	SafeRelease(TextFormat);
 	SafeRelease(DWriteFactory);
@@ -153,15 +185,112 @@ void UStatsOverlayD2D::ReleaseD2DResources()
 
 }
 
-void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color)
+void UStatsOverlayD2D::ReadBitmap(const FString& FilePath)
 {
-	ColorBrush->SetColor(D2D1_COLOR_F(Color.X, Color.Y, Color.Z, Color.W));
+	ReadBitmap(UTF8ToWide(FilePath));
+}
+void UStatsOverlayD2D::ReadBitmap(const FWideString& FilePath)
+{
+	if (BitmapMap.Contains(FilePath))
+	{
+		return;
+	}
+
+	FWideString NormalizedPath = NormalizePath(FilePath);
+
+	if (!std::filesystem::exists(NormalizedPath))
+	{
+		return;
+	}
+
+	ID2D1Bitmap* bitmap = nullptr;
+
+	// PNG/JPG를 WIC으로 읽기
+	IWICBitmapDecoder* decoder = nullptr;
+	WICFactory->CreateDecoderFromFilename(
+		NormalizedPath.c_str(), nullptr,
+		GENERIC_READ, WICDecodeMetadataCacheOnLoad,
+		&decoder
+	);
+
+	// 프레임 가져오기
+	IWICBitmapFrameDecode* frame = nullptr;
+	decoder->GetFrame(0, &frame);
+
+	// **WIC Format Converter**
+	IWICFormatConverter* converter = nullptr;
+	WICFactory->CreateFormatConverter(&converter);
+
+	// 프레임을 32bit PBGRA로 변환
+	converter->Initialize(
+		frame,
+		GUID_WICPixelFormat32bppPBGRA,
+		WICBitmapDitherTypeNone,
+		nullptr,
+		0.0f,
+		WICBitmapPaletteTypeCustom
+	);
+
+	// D2D 비트맵 생성
+	HRESULT hr = D2DContext->CreateBitmapFromWicBitmap(
+		converter,
+		nullptr,
+		&bitmap
+	);
+
+	if (FAILED(hr))
+	{
+		// 디버그 로그 넣으면 도움됨
+		// wprintf(L"Failed to create bitmap. HR = 0x%x\n", hr);
+	}
+
+	// 메모리 해제
+	converter->Release();
+	frame->Release();
+	decoder->Release();
+
+	BitmapMap[FilePath] = bitmap;
+}
+void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color, const float FontSize)
+{
+	if (FontSize != UITextFormat->GetFontSize()) 
+	{
+		UITextFormat->Release();
+		DWriteFactory->CreateTextFormat(
+			L"Segoe UI",
+			nullptr,
+			DWRITE_FONT_WEIGHT_NORMAL,
+			DWRITE_FONT_STYLE_NORMAL,
+			DWRITE_FONT_STRETCH_NORMAL,
+			FontSize,
+			L"en-us",
+			&UITextFormat);
+
+		if (UITextFormat)
+		{
+			UITextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+			UITextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+		}
+	}
+	UIColorBrush->SetColor(D2D1_COLOR_F(Color.X, Color.Y, Color.Z, Color.W));
 	D2DContext->DrawTextW(
 		InText,
 		static_cast<UINT32>(wcslen(InText)),
-		TextFormat,
+		UITextFormat,
 		InRect,
-		ColorBrush);
+		UIColorBrush);
+}
+
+void UStatsOverlayD2D::DrawBitmap(const D2D1_RECT_F& InRect, const FString& FilePath, const float Opacity) const
+{
+	DrawBitmap(InRect, UTF8ToWide(FilePath), Opacity);
+}
+void UStatsOverlayD2D::DrawBitmap(const D2D1_RECT_F& InRect, const FWideString& FilePath, const float Opacity) const
+{
+	if (BitmapMap.Contains(FilePath))
+	{
+		D2DContext->DrawBitmap(BitmapMap.at(FilePath), InRect, Opacity);
+	}
 }
 
 static void DrawTextBlock(
@@ -231,7 +360,11 @@ void UStatsOverlayD2D::Draw()
 	ViewportLTop = FVector2D(Viewport.TopLeftX, Viewport.TopLeftY);
 	ViewportSize = FVector2D(Viewport.Width, Viewport.Height);
 
-	DrawInfose.Sort();
+	std::sort(DrawInfose.begin(), DrawInfose.end(),
+		[](const FDrawInfo* A, const FDrawInfo* B)
+		{
+			return A->RectTransform.ZOrder < B->RectTransform.ZOrder;
+		});
 	for (FDrawInfo* Info : DrawInfose)
 	{
 		Info->DrawUI();
@@ -476,7 +609,13 @@ void UStatsOverlayD2D::Draw()
 
 
 
-void UStatsOverlayD2D::RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color)
+void UStatsOverlayD2D::RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize)
 {
-	DrawInfose.Push(new FDrawInfoText(InRectTransform, Text, Color));
+	DrawInfose.Push(new FDrawInfoText(InRectTransform, Text, Color, InFontSize));
+}
+
+void UStatsOverlayD2D::RegisterSpriteUI(const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity)
+{
+	ReadBitmap(FilePath);
+	DrawInfose.Push(new FDrawInfoSprite(InRectTransform, FilePath, Opacity));
 }

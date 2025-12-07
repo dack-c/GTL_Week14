@@ -8,7 +8,7 @@ public:
     FVector2D Pivot = FVector2D(0.5f, 0.5f);
     FVector2D Pos;
     FVector2D Size;
-    uint32 ZOrder = 0;
+    int ZOrder = 0;
     FRectTransform(const FVector2D& InPos, const FVector2D& InSize) : Pos(InPos), Size(InSize){}
     D2D1_RECT_F GetRect(const FVector2D& ViewportSize, const FVector2D& ViewportLTop) const
     {
@@ -28,6 +28,7 @@ struct FDrawInfo
     FRectTransform RectTransform;
     FDrawInfo(const FRectTransform& InRT) : RectTransform(InRT) {}
     virtual void DrawUI() const = 0;
+    virtual ~FDrawInfo() = default;
     bool operator<(const FDrawInfo& Other) const
     {
         return RectTransform.ZOrder < Other.RectTransform.ZOrder;
@@ -35,17 +36,19 @@ struct FDrawInfo
 };
 struct FDrawInfoText : public FDrawInfo
 {
-    FString Text;
     FVector4 Color;
     FWideString WText;
-    FDrawInfoText(const FRectTransform& InRT, const FString& InText, const FVector4& InColor) :
-        FDrawInfo(InRT), Text(InText), WText(UTF8ToWide(InText)), Color(InColor)
+    float FontSize;
+    ~FDrawInfoText() override = default;
+
+    FDrawInfoText(const FRectTransform& InRT, const FString& InText, const FVector4& InColor, const float InFontSize) :
+        FDrawInfo(InRT), WText(UTF8ToWide(InText)), Color(InColor), FontSize(InFontSize)
     {
     
     }
 
-    FDrawInfoText(const FRectTransform& InRT, const FWideString& InWText, const FVector4& InColor) :
-        FDrawInfo(InRT), Text(WideToUTF8(InWText)), WText(InWText), Color(InColor)
+    FDrawInfoText(const FRectTransform& InRT, const FWideString& InWText, const FVector4& InColor, const float InFontSize) :
+        FDrawInfo(InRT), WText(InWText), Color(InColor), FontSize(InFontSize)
     {
 
     }
@@ -53,9 +56,12 @@ struct FDrawInfoText : public FDrawInfo
 };
 struct FDrawInfoSprite : public FDrawInfo
 {
-    FString SpritePath;
-    void DrawUI() const override
-    {
-
-    }
+    FWideString SpritePath;
+    float Opacity = 1.0f;
+    ~FDrawInfoSprite() override = default;
+    FDrawInfoSprite(const FRectTransform& InRT, const FWideString& InFilePath, const float InOpacity = 1.0f) : 
+        FDrawInfo(InRT), SpritePath(InFilePath), Opacity (InOpacity){}
+    FDrawInfoSprite(const FRectTransform& InRT, const FString& InFilePath, const float InOpacity = 1.0f) :
+        FDrawInfo(InRT), SpritePath(UTF8ToWide(InFilePath)), Opacity(InOpacity) {}
+    void DrawUI() const override;
 };
