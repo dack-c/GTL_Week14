@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <d2d1_1.h>
 #include <dwrite.h>
+#include <wincodec.h>
+#include "RectTransform.h"
 
 class UStatsOverlayD2D
 {
@@ -10,6 +12,12 @@ public:
     void Initialize(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain);
 	void Shutdown();
     void Draw();
+
+    void ReadBitmap(const FWideString& FilePath);
+    void ReadBitmap(const FString& FilePath);
+    void DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color, const float FontSize);
+    void DrawBitmap(const D2D1_RECT_F& InRect, const FString& FilePath, const float Opacity = 1.0f) const;
+    void DrawBitmap(const D2D1_RECT_F& InRect, const FWideString& FilePath, const float Opacity = 1.0f) const;
 
     void SetShowFPS(bool b) { bShowFPS = b; }
     void SetShowMemory(bool b) { bShowMemory = b; }
@@ -39,6 +47,17 @@ public:
     bool IsSkinningVisible() const { return bShowSkinning; }
     bool IsParticleVisible() const { return bShowParticle; }
 
+    void RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize);
+    void RegisterSpriteUI(const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity = 1.0f);
+
+    FVector2D GetViewportSize() const
+    {
+        return ViewportSize;
+    }
+    FVector2D GetViewportLTop() const
+    {
+        return ViewportLTop;
+    }
 private:
     UStatsOverlayD2D() = default;
     ~UStatsOverlayD2D() = default;
@@ -48,7 +67,15 @@ private:
     void EnsureInitialized();
     void ReleaseD2DResources();
 
+    TArray<FDrawInfo*> DrawInfose;
+    TMap<FWideString, ID2D1Bitmap*> BitmapMap;
+
+
 private:
+
+    FVector2D ViewportLTop;
+    FVector2D ViewportSize;
+
     bool bInitialized = false;
     bool bShowFPS = true;
     bool bShowMemory = false;
@@ -69,6 +96,7 @@ private:
     ID2D1DeviceContext* D2DContext = nullptr;
     IDWriteFactory* DWriteFactory = nullptr;
     IDWriteTextFormat* TextFormat = nullptr;
+    IWICImagingFactory* WICFactory = nullptr;
 
     ID2D1SolidColorBrush* BrushYellow = nullptr;
     ID2D1SolidColorBrush* BrushSkyBlue = nullptr;
@@ -78,4 +106,7 @@ private:
     ID2D1SolidColorBrush* BrushViolet = nullptr;
     ID2D1SolidColorBrush* BrushDeepPink = nullptr;
     ID2D1SolidColorBrush* BrushBlack = nullptr;
+
+    ID2D1SolidColorBrush* UIColorBrush = nullptr;
+    IDWriteTextFormat* UITextFormat = nullptr;
 };

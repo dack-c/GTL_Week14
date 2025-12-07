@@ -114,6 +114,14 @@ void APlayerController::ProcessMovementInput(float DeltaTime)
             Character->StopJumping();
         }
     }
+
+    if (InputManager.IsKeyPressed(16)) // Shift 키 코드
+    {
+        if (auto* Character = Cast<ACharacter>(Pawn))
+        {
+            Character->TryStartSliding();
+        }
+    }
 }
 
 void APlayerController::ProcessRotationInput(float DeltaTime)

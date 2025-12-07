@@ -23,6 +23,7 @@ public:
 	// 캐릭터 고유 기능
 	virtual void Jump();
 	virtual void StopJumping();
+	virtual void TryStartSliding();
 	 
 	UCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
 	UCharacterMovementComponent* GetCharacterMovement() const { return CharacterMovement; }

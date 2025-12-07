@@ -462,7 +462,7 @@
     </ClCompile>
     <ClCompile Include="Source\Runtime\Engine\Components\TriggerComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\TriggerActor.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\Animation\AnimTypes.cpp" />
+    <ClCompile Include="Source\Slate\RectTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Generated\AActor.generated.h">
@@ -947,6 +947,7 @@
       <Filter>Generated</Filter>
     </ClInclude>
     <ClInclude Include="Source\Runtime\Engine\GameFramework\TriggerActor.h" />
+    <ClInclude Include="Source\Slate\RectTransform.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

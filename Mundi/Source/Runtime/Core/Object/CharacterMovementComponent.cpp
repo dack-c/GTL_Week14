@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "CharacterMovementComponent.h"
 #include "Character.h"
 #include "SceneComponent.h"
@@ -48,6 +48,11 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 	}
 
 	if (bIsFalling)
+	if (bIsSliding)
+	{
+		PhysSliding(DeltaSeconds);
+	}
+	else if (bIsFalling)
 	{
 		PhysFalling(DeltaSeconds);
 	}
@@ -73,6 +78,58 @@ void UCharacterMovementComponent::StopJump()
 	//{
 	//	Velocity.Z *= 0.5f;
 	//}
+}
+
+void UCharacterMovementComponent::TryStartSliding()
+{
+	if (CheckFloor(CurrentFloor))
+	{
+		bIsSliding = true;
+	}
+}
+
+void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
+{
+	// 초반 슬라이딩 추가 가속도 ?
+
+	// 입력 벡터 가져오기
+	// 해당 방향으로 이동 시키기?
+	// 좌우 정도는 입력에 따라 그쪽 방향으로 조금 더 이동함?
+	FVector InputVector = CharacterOwner->ConsumeMovementInputVector();
+
+	if (CheckFloor(CurrentFloor))
+	{
+		FVector FloorNormal = CurrentFloor.ImpactNormal;
+
+		FVector DownDirection(0.0f, 0.0f, -1.0f);
+
+		const float Dot = FVector::Dot(FloorNormal, DownDirection);
+
+		FVector SlidingVector = DownDirection - (FloorNormal * Dot);
+		SlidingVector.Normalize();
+
+		FHitResult Hit;
+		bool bMoved = SafeMoveUpdatedComponent(SlidingVector * DeltaSecond * SlidingSpeed, Hit);
+
+		// 슬라이딩 속도가 일정 량 이하로 떨어지면 종료
+		if (!bMoved || SlidingVector.SizeSquared() < MinSlidingSpeed)
+		{
+			bIsSliding = false;
+		}
+		else
+		{
+			// 내려가는 방향으로 회전
+			float TargetRadian = atan2(SlidingVector.Y, SlidingVector.X);
+			FQuat TargetQuat = FQuat::MakeFromEulerZYX(FVector(0, 0, RadiansToDegrees(TargetRadian)));
+			CharacterOwner->SetActorRotation(FQuat::Slerp(CharacterOwner->GetActorRotation(), TargetQuat, DeltaSecond * SlidingRotateSpeed));
+		}
+	}
+	else
+	{
+		// 현재 바닥이 없으면 isfalling으로
+		bIsFalling = true;
+		bIsSliding = false;
+	}
 }
 
 void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
