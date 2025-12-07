@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "SceneComponent.h"
 #include "USpringArmComponent.generated.h"
@@ -94,6 +94,10 @@ private:
     UPROPERTY(EditAnywhere, Category="SpringArm")
     bool bUsePawnControlRotation;
 
+    UPROPERTY(EditAnywhere, Category = "SpringArm")
+    float ShrinkSpeed = 15.0f;  // 충돌 시 줄어드는 속도
+    UPROPERTY(EditAnywhere, Category = "SpringArm")
+    float GrowSpeed = 5.0f;     // 복귀 시 늘어나는 속도
     /** 충돌 계산 후 실제 암 길이 */
     float CurrentArmLength;
 };
