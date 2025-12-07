@@ -132,7 +132,7 @@ protected:
 	const float GLOBAL_GRAVITY_Z = -9.8f;
 	const float GravityScale = 1.0f;
 
-	const float SkinWidth = 0.025f;  // 통일된 SkinWidth
+	const float SkinWidth = 0.00125;  // 통일된 SkinWidth
 
 	FVector LastVelocityBeforIgnoreInput = FVector::Zero();
 };
