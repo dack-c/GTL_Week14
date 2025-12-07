@@ -163,3 +163,17 @@ void APlayerController::ProcessRotationInput(float DeltaTime)
         }
     }
 }
+
+void APlayerController::SpringArmRotation()
+{
+    // 매 프레임 SpringArm 월드 회전을 ControlRotation으로 동기화 (캐릭터 회전과 독립)
+    if (UActorComponent* C = Pawn->GetComponent(USpringArmComponent::StaticClass()))
+    {
+        if (USpringArmComponent* SpringArm = Cast<USpringArmComponent>(C))
+        {
+            FVector Euler = GetControlRotation().ToEulerZYXDeg();
+            FQuat SpringArmRot = FQuat::MakeFromEulerZYX(FVector(0.0f, Euler.Y, Euler.Z));
+            SpringArm->SetWorldRotation(SpringArmRot);
+        }
+    }
+}

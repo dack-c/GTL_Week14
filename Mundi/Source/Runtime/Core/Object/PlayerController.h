@@ -13,6 +13,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupInput();
+	
+	void SpringArmRotation();
 
 	void SetMouseLookEnabled(bool bEnable) { bMouseLookEnabled = bEnable; }
 	bool IsMouseLookEnabled() const { return  bMouseLookEnabled; }

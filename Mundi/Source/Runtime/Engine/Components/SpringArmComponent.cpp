@@ -1,8 +1,9 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "SpringArmComponent.h"
 #include "World.h"
 #include "Source/Runtime/Engine/Collision/Collision.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
+#include "PlayerController.h"
 
 USpringArmComponent::USpringArmComponent()
     : TargetArmLength(300.0f)
@@ -47,6 +48,15 @@ void USpringArmComponent::TickComponent(float DeltaTime)
             Child->SetRelativeLocation(SocketLocalLocation);
         }
     }
+
+    auto AllActors = GetWorld()->GetActors();
+    for (AActor* Actor : AllActors)
+    {
+        if (APlayerController* PlayerController = Cast<APlayerController>(Actor))
+        {
+            PlayerController->SpringArmRotation();
+        }
+    }
 }
 
 void USpringArmComponent::UpdateDesiredArmLocation(float DeltaTime)
@@ -71,8 +81,6 @@ void USpringArmComponent::UpdateDesiredArmLocation(float DeltaTime)
 
     // 부드러운 보간으로 CurrentArmLength 업데이트
     // 충돌 시(줄어들 때)는 빠르게, 복귀 시(늘어날 때)는 느리게
-    const float ShrinkSpeed = 15.0f;  // 충돌 시 줄어드는 속도
-    const float GrowSpeed = 5.0f;     // 복귀 시 늘어나는 속도
 
     if (DesiredArmLength < CurrentArmLength)
     {
