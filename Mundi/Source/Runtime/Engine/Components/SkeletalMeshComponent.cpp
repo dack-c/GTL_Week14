@@ -1297,6 +1297,16 @@ void USkeletalMeshComponent::ApplyRootMotion()
 {
     if (!AnimInstance || !(AnimInstance->GetCurrentSequence()))
     {
+        if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
+        {
+            UCharacterMovementComponent* CharMoveComp = OwnerCharacter->GetCharacterMovement();
+            assert(CharMoveComp);
+            //CharMoveComp->SetActive(true);
+            CharMoveComp->SetUseGravity(true);
+            //PC->SetUseMovementInput(true);
+            CharMoveComp->SetUseInput(true);
+            //PC->SetActorActive(true);
+        }
         return;
     }
 
@@ -1306,6 +1316,7 @@ void USkeletalMeshComponent::ApplyRootMotion()
         FTransform RootMotionDelta = AnimInstance->GetRootDelta();
         Owner->AddActorLocalLocation(RootMotionDelta.Translation);
 		//Owner->AddActorLocalRotation(RootMotionDelta.Rotation);
+		UE_LOG("[Root Motion] Delta: T(%.3f, %.3f, %.3f)", RootMotionDelta.Translation.X, RootMotionDelta.Translation.Y, RootMotionDelta.Translation.Z);
     }
 
     if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
@@ -1333,6 +1344,12 @@ void USkeletalMeshComponent::ApplyRootMotion()
             //PC->SetActorActive(true);
         }
     }
+
+    if(bHasRootMotion)
+    {
+		FTransform OwnerTransform = Owner->GetActorTransform();
+        UE_LOG("[Root Motion] Applied Root Motion: T(%.3f, %.3f, %.3f)", OwnerTransform.Translation.X, OwnerTransform.Translation.Y, OwnerTransform.Translation.Z);
+	}
 }
 
 // ============================================================
