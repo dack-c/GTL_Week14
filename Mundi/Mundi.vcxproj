@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -496,6 +496,7 @@
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\VignettePass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\SceneView.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\TileLightCuller.cpp" />
+    <ClCompile Include="Source\Slate\RectTransform.cpp" />
     <ClCompile Include="Source\Slate\Widgets\PropertyRenderer.cpp" />
     <ClCompile Include="Source\Slate\Windows\AnimGraph\BlendSpacePreviewWindow.cpp" />
     <ClCompile Include="Source\Slate\Windows\AnimGraph\SAnimGraphEditorWindow.cpp" />
@@ -702,7 +703,8 @@
     <ClCompile Include="Generated\AMyCar.generated.cpp" />
     <ClCompile Include="Generated\USpringArmComponent.generated.cpp" />
     <ClCompile Include="Generated\UTriggerComponent.generated.cpp" />
-  <ClCompile Include="Generated\ATriggerActor.generated.cpp" /></ItemGroup>
+    <ClCompile Include="Generated\ATriggerActor.generated.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -1028,6 +1030,7 @@
     <ClInclude Include="Source\Runtime\Renderer\TileLightCuller.h" />
     <ClInclude Include="Source\Runtime\RHI\SwapGuard.h" />
     <ClInclude Include="Source\Runtime\RHI\ConstantBufferType.h" />
+    <ClInclude Include="Source\Slate\RectTransform.h" />
     <ClInclude Include="Source\Slate\Widgets\PropertyRenderer.h" />
     <ClInclude Include="Source\Slate\Windows\AnimGraph\BlendSpacePreviewWindow.h" />
     <ClInclude Include="Source\Slate\Windows\AnimGraph\SAnimGraphEditorWindow.h" />
@@ -1196,7 +1199,8 @@
     <ClInclude Include="Generated\AMyCar.generated.h" />
     <ClInclude Include="Generated\USpringArmComponent.generated.h" />
     <ClInclude Include="Generated\UTriggerComponent.generated.h" />
-  <ClInclude Include="Generated\ATriggerActor.generated.h" /></ItemGroup>
+    <ClInclude Include="Generated\ATriggerActor.generated.h" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

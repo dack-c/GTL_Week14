@@ -7,6 +7,7 @@
 #include "CameraActor.h"
 #include "CameraComponent.h"
 #include "PlayerCameraManager.h"
+#include "StatsOverlayD2D.h"
 #include <tuple>
 
 sol::object MakeCompProxy(sol::state_view SolState, void* Instance, UClass* Class) {
@@ -336,13 +337,71 @@ FLuaManager::FLuaManager()
         "Dot", [](const FVector& a, const FVector& b) { return FVector::Dot(a, b); },
         "Cross", [](const FVector& a, const FVector& b) { return FVector::Cross(a, b); }
     );
+    SharedLib.set_function("Vector2D", sol::overload(
+        []() { return FVector2D(0.0f, 0.0f); },
+        [](float x, float y) { return FVector2D(x, y); }
+    ));
+    SharedLib.new_usertype<FVector2D>("FVector2D",
+        sol::no_constructor,
+        "X", &FVector2D::X,
+        "Y", &FVector2D::Y,
+        // Operators
+        sol::meta_function::addition, [](const FVector2D& a, const FVector2D& b) -> FVector2D {
+            return FVector2D(a.X + b.X, a.Y + b.Y);
+        },
+        sol::meta_function::subtraction, [](const FVector2D& a, const FVector2D& b) -> FVector2D {
+            return FVector2D(a.X - b.X, a.Y - b.Y);
+        },
+        sol::meta_function::multiplication, sol::overload(
+            [](const FVector2D& v, float f) -> FVector2D { return v * f; },
+            [](float f, const FVector2D& v) -> FVector2D { return v * f; }
+        )
+    );
 
+    SharedLib.set_function("Vector4", sol::overload(
+        []() { return FVector4(0.0f, 0.0f, 0.0f ,0.0f); },
+        [](float x, float y, float z, float w) { return FVector4(x, y, z, w); }
+    ));
+    SharedLib.new_usertype<FVector4>("FVector4",
+        sol::no_constructor,
+        "X", &FVector4::X,
+        "Y", &FVector4::Y,
+        "Z", &FVector4::Z,
+        "W", &FVector4::W,
+        // Operators
+        sol::meta_function::addition, [](const FVector4& a, const FVector4& b) -> FVector4 {
+            return FVector4(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
+        },
+        sol::meta_function::subtraction, [](const FVector4& a, const FVector4& b) -> FVector4 {
+            return FVector4(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+        },
+        sol::meta_function::multiplication, sol::overload(
+            [](const FVector4& v, float f) -> FVector4 { return v * f; },
+            [](float f, const FVector4& v) -> FVector4 { return v * f; }
+        )
+    );
     Lua->set_function("Color", sol::overload(
         []() { return FLinearColor(0.0f, 0.0f, 0.0f, 1.0f); },
         [](float R, float G, float B) { return FLinearColor(R, G, B, 1.0f); },
         [](float R, float G, float B, float A) { return FLinearColor(R, G, B, A); }
     ));
+    SharedLib.set_function("RectTransform", sol::overload(
+        [](const FVector2D& InPos, const FVector2D& InSize) { return FRectTransform(InPos, InSize); }
+    ));
+    SharedLib.new_usertype<FRectTransform>("FRectTransform",
+        sol::no_constructor,
+        // Properties
+        "Anchor", &FRectTransform::Anchor,
+        "Pivot", &FRectTransform::Pivot,
+        "Pos", &FRectTransform::Pos,
+        "Size", &FRectTransform::Size,
+        "ZOrder", &FRectTransform::ZOrder);
 
+    SharedLib.set_function("DrawUIText", [](const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize) 
+        { UStatsOverlayD2D::Get().RegisterTextUI(InRectTransform, Text, Color, InFontSize); });
+
+    SharedLib.set_function("DrawUISprite", [](const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity)
+        { UStatsOverlayD2D::Get().RegisterSpriteUI(InRectTransform, FilePath, Opacity); });
 
     SharedLib.new_usertype<FLinearColor>("FLinearColor",
         sol::no_constructor,
