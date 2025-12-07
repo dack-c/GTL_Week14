@@ -1313,15 +1313,24 @@ void USkeletalMeshComponent::ApplyRootMotion()
 		UCharacterMovementComponent* CharMoveComp = OwnerCharacter->GetCharacterMovement();
 		assert(CharMoveComp);
 
+		APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
+		assert(PC);
+
         if (bHasRootMotion)
         {
 			//CharMoveComp->SetActive(false);
 			CharMoveComp->SetUseGravity(false);
+			CharMoveComp->SetUseInput(false);
+			//PC->SetUseMovementInput(false);
+			//PC->SetActorActive(false);
         }
         else
         {
 			//CharMoveComp->SetActive(true);
             CharMoveComp->SetUseGravity(true);
+			//PC->SetUseMovementInput(true);
+            CharMoveComp->SetUseInput(true);
+            //PC->SetActorActive(true);
         }
     }
 }

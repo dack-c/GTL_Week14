@@ -40,6 +40,13 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 	// 매 프레임 시작 시 관통 상태 해결 (벽에 끼인 경우 탈출)
 	ResolveOverlaps();
 
+	// 입력을 사용안한다면 입력 벡터 소비
+	if (!bUseInput)
+	{
+		FVector Dummy = CharacterOwner->ConsumeMovementInputVector();
+		Velocity = FVector::Zero();
+	}
+
 	if (bIsFalling)
 	{
 		PhysFalling(DeltaSeconds);
