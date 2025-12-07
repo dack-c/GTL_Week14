@@ -23,28 +23,17 @@ UConsoleWidget::UConsoleWidget()
 	, HistoryPos(-1)
 	, AutoScroll(true)
 	, ScrollToBottom(false)
-	, bIsWindowPinned(false)
 {
 	memset(InputBuf, 0, sizeof(InputBuf));
 }
 
 UConsoleWidget::~UConsoleWidget()
 {
+	// Clear the GlobalConsole pointer to prevent dangling pointer access
 	if (UGlobalConsole::GetConsoleWidget() == this)
 	{
 		UGlobalConsole::SetConsoleWidget(nullptr);
 	}
-
-	// (혹시 마지막으로 들어온 로그가 락을 잡고 있을 수 있으니 락 걸고 삭제)
-	{
-		std::lock_guard<std::mutex> lock(LogMutex);
-		Items.Empty();
-		HelpCommandList.Empty();
-		History.Empty();
-	}
-    
-	// 3. ImGui 필터 정리
-	Filter.Clear();
 }
 
 void UConsoleWidget::Initialize()
@@ -79,7 +68,12 @@ void UConsoleWidget::Initialize()
 
 void UConsoleWidget::Update()
 {
-	// Console doesn't need per-frame updates
+	std::lock_guard<std::mutex> Lock(PendingLogsMutex);
+	if (!PendingLogs.IsEmpty())
+	{
+		Items.insert(Items.end(), PendingLogs.begin(), PendingLogs.end());
+		PendingLogs.clear();
+	}
 }
 
 void UConsoleWidget::RenderWidget()
@@ -118,31 +112,51 @@ void UConsoleWidget::RenderToolbar()
 	}
 	ImGui::SameLine();
 
-	bool copy_to_clipboard = ImGui::SmallButton("Copy");
-
-	ImGui::SameLine();
-
-	// bIsWindowPinned가 true라면 스타일을 Push합니다.
-	if (bIsWindowPinned)
+	if (ImGui::SmallButton("Copy"))
 	{
-		// 활성화(고정) 상태: 눌린 것처럼 보이도록 스타일 적용
-		ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)); // 붉은색 텍스트
-	}
+		FString clipboard_text;
 
-	// 클릭 여부를 임시 변수에 저장합니다.
-	bool bWasClicked = ImGui::SmallButton(bIsWindowPinned ? "고정됨" : "고정");
+		// 선택된 텍스트가 있으면 선택 영역만 복사
+		if (TextSelection.IsActive())
+		{
+			int32 Start = std::min(TextSelection.StartLine, TextSelection.EndLine);
+			int32 End = std::max(TextSelection.StartLine, TextSelection.EndLine);
 
-	// bIsWindowPinned가 true였다면 (Push가 되었다면) 스타일을 Pop합니다.
-	if (bIsWindowPinned)
-	{
-		ImGui::PopStyleColor(2); // 2개의 스타일 Pop
-	}
+			if (Start >= 0 && End >= 0 && Start < Items.Num() && End < Items.Num())
+			{
+				int32 idx = 0;
+				for (const FString& item : Items)
+				{
+					if (idx >= Start && idx <= End)
+					{
+						clipboard_text += item + "\n";
+					}
+					++idx;
+				}
+			}
+		}
+		else
+		{
+			// 선택 영역이 없으면 전체 복사
+			for (const FString& item : Items)
+			{
+				clipboard_text += item + "\n";
+			}
+		}
 
-	// Push/Pop 로직이 모두 끝난 후, 클릭 여부에 따라 상태를 토글합니다.
-	if (bWasClicked)
-	{
-		bIsWindowPinned = !bIsWindowPinned;
+		if (!clipboard_text.empty())
+		{
+			ImGui::SetClipboardText(clipboard_text.c_str());
+			if (TextSelection.IsActive())
+			{
+				int32 LineCount = std::abs(TextSelection.EndLine - TextSelection.StartLine) + 1;
+				AddLog("[info] Copied %d selected line(s) to clipboard", LineCount);
+			}
+			else
+			{
+				AddLog("[info] Copied %d lines to clipboard", Items.Num());
+			}
+		}
 	}
 
 	// Options menu
@@ -162,13 +176,6 @@ void UConsoleWidget::RenderToolbar()
 
 void UConsoleWidget::RenderLogOutput()
 {
-	std::lock_guard<std::mutex> lock(LogMutex);
-	// 2. 인덱스로 계산해서 지운다.
-	if (Items.Num() > 1000)
-	{
-		Items.erase(Items.begin(), Items.end() - 1000);
-	}
-	
 	// Reserve space for input at bottom
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 
@@ -183,10 +190,49 @@ void UConsoleWidget::RenderLogOutput()
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
 
+		ImDrawList* DrawList = ImGui::GetWindowDrawList();
+		float LineHeight = ImGui::GetTextLineHeight();
+
+		// 마우스 입력 처리
+		ImVec2 MousePos = ImGui::GetMousePos();
+		bool bIsWindowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+
+		// ESC 또는 다른 곳 클릭 시 선택 해제
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			TextSelection.Clear();
+			bIsDragging = false;
+		}
+
+		// 윈도우 밖 클릭 시 선택 해제
+		if (!bIsWindowHovered && ImGui::IsMouseClicked(0))
+		{
+			TextSelection.Clear();
+			bIsDragging = false;
+		}
+
+		// 선택 영역 계산
+		int32 StartLine = TextSelection.IsActive() ? std::min(TextSelection.StartLine, TextSelection.EndLine) : -1;
+		int32 EndLine = TextSelection.IsActive() ? std::max(TextSelection.StartLine, TextSelection.EndLine) : -1;
+
+		// 1단계: 로그 렌더링하면서 위치 정보 수집
+		struct FRenderedLine
+		{
+			ImVec2 Min;
+			ImVec2 Max;
+			int32 Index;
+		};
+		TArray<FRenderedLine> RenderedLines;
+		RenderedLines.Reserve(Items.Num());
+
+		int32 LogIndex = 0;
 		for (const FString& item : Items)
 		{
 			if (!Filter.PassFilter(item.c_str()))
+			{
+				++LogIndex;
 				continue;
+			}
 
 			// Color coding for different log levels
 			ImVec4 color;
@@ -210,9 +256,160 @@ void UConsoleWidget::RenderLogOutput()
 
 			if (has_color)
 				ImGui::PushStyleColor(ImGuiCol_Text, color);
+
+			ImVec2 LineMin = ImGui::GetCursorScreenPos();
 			ImGui::TextUnformatted(item.c_str());
+			ImVec2 LineMax = ImGui::GetCursorScreenPos();
+
 			if (has_color)
 				ImGui::PopStyleColor();
+
+			// 렌더링된 라인 정보 저장
+			ImVec2 TextSize = ImGui::CalcTextSize(item.c_str());
+			RenderedLines.Add({
+				LineMin,
+				ImVec2(LineMin.x + TextSize.x, LineMax.y),
+				LogIndex
+			});
+
+			++LogIndex;
+		}
+
+		// 마우스 드래그 처리
+		static int32 ClickedLineOnPress = -1;
+		static bool bWasSingleLineSelected = false;
+		static int32 PreviouslySelectedLine = -1;
+
+		if (bIsWindowHovered && ImGui::IsMouseClicked(0))
+		{
+			// 클릭 전 선택 상태 저장
+			bWasSingleLineSelected = (TextSelection.IsActive() && TextSelection.StartLine == TextSelection.EndLine);
+			PreviouslySelectedLine = bWasSingleLineSelected ? TextSelection.StartLine : -1;
+
+			// 클릭한 라인 찾기
+			ClickedLineOnPress = -1;
+			for (const FRenderedLine& Line : RenderedLines)
+			{
+				if (MousePos.y >= Line.Min.y && MousePos.y < Line.Min.y + LineHeight)
+				{
+					ClickedLineOnPress = Line.Index;
+					break;
+				}
+			}
+
+			// 다중 라인 선택 상태에서 클릭 시 선택 해제만
+			if (TextSelection.IsActive() && !bWasSingleLineSelected)
+			{
+				TextSelection.Clear();
+				bIsDragging = false;
+			}
+			// 단일 라인 또는 선택 없는 상태에서 클릭 시 새로운 선택 시작
+			else if (ClickedLineOnPress >= 0)
+			{
+				bIsDragging = true;
+				TextSelection.StartLine = ClickedLineOnPress;
+				TextSelection.EndLine = ClickedLineOnPress;
+			}
+		}
+
+		if (bIsDragging && ImGui::IsMouseDown(0))
+		{
+			// 드래그 중 - EndLine 업데이트
+			for (const FRenderedLine& Line : RenderedLines)
+			{
+				if (MousePos.y >= Line.Min.y && MousePos.y < Line.Min.y + LineHeight)
+				{
+					TextSelection.EndLine = Line.Index;
+					break;
+				}
+			}
+		}
+
+		if (ImGui::IsMouseReleased(0))
+		{
+			// 단일 라인 토글: 드래그 없이 같은 라인을 다시 클릭한 경우
+			if (bIsDragging && bWasSingleLineSelected &&
+				TextSelection.IsActive() &&
+				TextSelection.StartLine == TextSelection.EndLine &&
+				PreviouslySelectedLine == ClickedLineOnPress &&
+				!ImGui::IsMouseDragging(0, 1.0f))
+			{
+				TextSelection.Clear();
+			}
+
+			bIsDragging = false;
+		}
+
+		// 선택 영역 하이라이트
+		if (TextSelection.IsActive())
+		{
+			const ImU32 HighlightColor = IM_COL32(70, 100, 200, 128);
+
+			if (bIsDragging)
+			{
+				// 드래그 중: 화면 밖 선택 영역도 표시
+				ImVec2 WindowPos = ImGui::GetWindowPos();
+				float VirtualY = WindowPos.y + ImGui::GetStyle().WindowPadding.y - ImGui::GetScrollY();
+
+				for (int32 idx = 0; idx < Items.Num(); ++idx)
+				{
+					if (idx < StartLine || idx > EndLine) continue;
+
+					// 화면에 렌더링된 라인 찾기
+					bool bFound = false;
+					for (const FRenderedLine& Line : RenderedLines)
+					{
+						if (Line.Index == idx)
+						{
+							DrawList->AddRectFilled(Line.Min, ImVec2(Line.Max.x, Line.Min.y + LineHeight), HighlightColor);
+							bFound = true;
+							break;
+						}
+					}
+
+					// 화면 밖 라인은 가상 위치에 표시
+					if (!bFound)
+					{
+						ImVec2 SelMin = ImVec2(WindowPos.x, VirtualY + idx * LineHeight);
+						ImVec2 SelMax = ImVec2(SelMin.x + 1000.0f, SelMin.y + LineHeight);
+						DrawList->AddRectFilled(SelMin, SelMax, HighlightColor);
+					}
+				}
+			}
+			else
+			{
+				// 드래그 완료: 화면에 보이는 것만 하이라이트
+				for (const FRenderedLine& Line : RenderedLines)
+				{
+					if (Line.Index >= StartLine && Line.Index <= EndLine)
+					{
+						DrawList->AddRectFilled(Line.Min, ImVec2(Line.Max.x, Line.Min.y + LineHeight), HighlightColor);
+					}
+				}
+			}
+		}
+
+		// Ctrl+C로 복사
+		if (TextSelection.IsActive() && ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_C))
+		{
+			FString SelectedText;
+			int32 Start = std::min(TextSelection.StartLine, TextSelection.EndLine);
+			int32 End = std::max(TextSelection.StartLine, TextSelection.EndLine);
+
+			if (Start >= 0 && End >= 0 && Start < Items.Num() && End < Items.Num())
+			{
+				int32 idx = 0;
+				for (const FString& item : Items)
+				{
+					if (idx >= Start && idx <= End)
+					{
+						SelectedText += item + "\n";
+					}
+					++idx;
+				}
+
+				ImGui::SetClipboardText(SelectedText.c_str());
+			}
 		}
 
 		// Auto scroll to bottom
@@ -263,9 +460,11 @@ void UConsoleWidget::AddLog(const char* fmt, ...)
 	{
 		USlateManager::GetInstance().ForceOpenConsole();
 	}
-	
-	std::lock_guard<std::mutex> lock(LogMutex); 
-	Items.Add(FString(buf));
+
+	{
+		std::lock_guard<std::mutex> Lock(PendingLogsMutex);
+		PendingLogs.Add(FString(buf));
+	}
 	ScrollToBottom = true;
 }
 
@@ -280,15 +479,19 @@ void UConsoleWidget::VAddLog(const char* fmt, va_list args)
 		USlateManager::GetInstance().ForceOpenConsole();
 	}
 
-	std::lock_guard<std::mutex> lock(LogMutex); 
-	Items.Add(FString(buf));
+	{
+		std::lock_guard<std::mutex> Lock(PendingLogsMutex);
+		PendingLogs.Add(FString(buf));
+	}
 	ScrollToBottom = true;
 }
 
 void UConsoleWidget::ClearLog()
 {
-	std::lock_guard<std::mutex> lock(LogMutex);
 	Items.Empty();
+
+	std::lock_guard<std::mutex> Lock(PendingLogsMutex);
+	PendingLogs.Empty();
 }
 
 void UConsoleWidget::ExecCommand(const char* command_line)
