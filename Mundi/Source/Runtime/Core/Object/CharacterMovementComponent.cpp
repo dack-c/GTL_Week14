@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CharacterMovementComponent.h"
 #include "Character.h"
 #include "SceneComponent.h"
@@ -47,7 +47,6 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 		Velocity = FVector::Zero();
 	}
 
-	if (bIsFalling)
 	if (bIsSliding)
 	{
 		PhysSliding(DeltaSeconds);
