@@ -397,9 +397,11 @@ FLuaManager::FLuaManager()
         "Size", &FRectTransform::Size,
         "ZOrder", &FRectTransform::ZOrder);
 
-    SharedLib.set_function("DrawUIText", [](const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color) 
-        { UStatsOverlayD2D::Get().RegisterTextUI(InRectTransform, Text, Color); });
+    SharedLib.set_function("DrawUIText", [](const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize) 
+        { UStatsOverlayD2D::Get().RegisterTextUI(InRectTransform, Text, Color, InFontSize); });
 
+    SharedLib.set_function("DrawUISprite", [](const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity)
+        { UStatsOverlayD2D::Get().RegisterSpriteUI(InRectTransform, FilePath, Opacity); });
 
     SharedLib.new_usertype<FLinearColor>("FLinearColor",
         sol::no_constructor,

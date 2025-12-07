@@ -26,12 +26,28 @@ function OnEndOverlap(OtherActor)
 end
 
 function Tick(Delta)
+ local Pos = Vector2D(500.0,500.0)
+local Size = Vector2D(300.0,400.0)
+local RectTransform = RectTransform(Pos,Size)
+local Color = Vector4(1,1,1,1)
+RectTransform.Pivot = Vector2D(0.5,0.5)
+--DrawUIText(RectTransform, "asdf", Color, 50)
+RectTransform.ZOrder = 0;
+DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
 
-  local Pos = Vector2D(100.0,100.0)
-    local Size = Vector2D(100.0,100.0)
-    local RectTransform = RectTransform(Pos,Size)
-    local Color = Vector4(1,1,1,1)
-    DrawUIText(RectTransform, "asdf", Color)
+RectTransform.ZOrder = 1;
+
+DrawUISprite(RectTransform, "Data/Textures/Boom.png", 1.0)
+RectTransform.ZOrder = 2;
+RectTransform.Anchor = Vector2D(0.5,0.5)
+RectTransform.Pivot = Vector2D(1,1)
+RectTransform.Pos = Vector2D(0,0)
+DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
+RectTransform.Pivot = Vector2D(0.5,0.5)
+DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
+
+
+
 end
 
 function CameraAction()
