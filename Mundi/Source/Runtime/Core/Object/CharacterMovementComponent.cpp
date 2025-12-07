@@ -136,7 +136,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 		if (PhysScene && PhysScene->SweepCapsule(StepDownStart, StepDownEnd, Radius, HalfHeight, StepDownHit, CharacterOwner))
 		{
 			// 바닥 찾음 - 스냅 (경사면 내려가기)
-			if (StepDownHit.ImpactNormal.Z > 0.7f)
+			if (StepDownHit.ImpactNormal.Z > MinFloorNormalZ)
 			{
 				CurrentFloor = StepDownHit;
 				const float SkinWidth = 0.00125f;
@@ -184,7 +184,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 	{
 		// 바닥에 착지했는지 확인 (충돌 노말이 위를 향하면 바닥)
 		// 단, 상승 중(Velocity.Z > 0)에는 착지하지 않음 (경사면에서 점프 시)
-		if (Hit.ImpactNormal.Z > 0.7f && Velocity.Z <= 0.0f)
+		if (Hit.ImpactNormal.Z > MinFloorNormalZ && Velocity.Z <= 0.0f)
 		{
 			// 착지
 			Velocity.Z = 0.0f;
@@ -417,7 +417,7 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 		Radius, HalfHeight, Start.X, Start.Y, Start.Z, bHit ? "YES" : "NO");*/
 
 	// 바닥으로 인정하려면 노말이 위를 향해야 함
-	if (bHit && OutHit.ImpactNormal.Z > 0.5f)
+	if (bHit && OutHit.ImpactNormal.Z > MinFloorNormalZ)
 	{
 		return true;
 	}
