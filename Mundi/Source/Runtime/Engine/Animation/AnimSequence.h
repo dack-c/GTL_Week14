@@ -85,6 +85,11 @@ public:
     // Check if this animation is compatible with given skeleton bone names
     bool IsCompatibleWith(const TArray<FName>& SkeletonBoneNames) const;
 
+    // Save/Load root motion metadata as a sidecar JSON (e.g., .animseq.json)
+    bool SaveMeta(const FString& MetaPathUTF8) const;
+    bool LoadMeta(const FString& MetaPathUTF8);
+    FString GetMetaPath() const;
+
 protected:
 	bool bUseRootMotion = false;
 };

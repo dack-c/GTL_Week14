@@ -40,6 +40,13 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 	// 매 프레임 시작 시 관통 상태 해결 (벽에 끼인 경우 탈출)
 	ResolveOverlaps();
 
+	// 입력을 사용안한다면 입력 벡터 소비
+	if (!bUseInput)
+	{
+		FVector Dummy = CharacterOwner->ConsumeMovementInputVector();
+		Velocity = FVector::Zero();
+	}
+
 	if (bIsSliding)
 	{
 		PhysSliding(DeltaSeconds);
@@ -209,7 +216,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 			{
 				CurrentFloor = StepDownHit;
 				float SnapDistance = StepDownHit.Distance - SkinWidth;
-				if (SnapDistance > KINDA_SMALL_NUMBER)
+				if (SnapDistance > KINDA_SMALL_NUMBER && bUseInput)
 				{
 					FVector NewLoc = UpdatedComponent->GetWorldLocation();
 					NewLoc.Z -= SnapDistance;
@@ -299,9 +306,11 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsFalling = false;
 			CurrentFloor = FloorHit;
 
+			UE_LOG("[CharacterMovement] Landed on floor at Z=%.3f", FloorHit.ImpactPoint.Z);
+
 			// 바닥으로 스냅 (SkinWidth 여유를 두고 이동)
 			float SnapDistance = FloorHit.Distance - SkinWidth;
-			if (SnapDistance > KINDA_SMALL_NUMBER)
+			if (SnapDistance > KINDA_SMALL_NUMBER && bUseInput)
 			{
 				FVector CurrentLoc = UpdatedComponent->GetWorldLocation();
 				CurrentLoc.Z -= SnapDistance;
@@ -448,7 +457,7 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 
 	FVector Start = UpdatedComponent->GetWorldLocation();
 	// 바닥 검사는 캡슐 바닥에서 약간 아래로 Sweep
-	const float FloorCheckDistance = 0.1f;  // 검사 거리 증가
+	const float FloorCheckDistance = 0.01f;  // 검사 거리 증가
 	FVector End = Start - FVector(0, 0, FloorCheckDistance);
 
 	AActor* OwnerActor = CharacterOwner;

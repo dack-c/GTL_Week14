@@ -30,6 +30,8 @@
 #include "Pawn.h"
 #include "Controller.h"
 #include "PlayerController.h"
+#include "Character.h"
+#include "CharacterMovementComponent.h"
 
 
 static FBodyInstance* FindBodyInstanceByName(const TArray<FBodyInstance*>& Bodies, const FName& BoneName)
@@ -1293,26 +1295,61 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
 void USkeletalMeshComponent::ApplyRootMotion()
 {
-    if (!AnimInstance || !(AnimInstance->GetCurrentSequence()))
+    if (!AnimInstance)
     {
         return;
     }
 
-    if (AnimInstance->GetCurrentSequence()->IsUsingRootMotion() == false)
+    bool bHasRootMotion = false;
+    
+	// blend Target 애니메이션이 있으면, 그것을 우선적으로 검사
+	const FAnimationPlayState& BlendTargetState = AnimInstance->GetBlendTargetState();
+    if (BlendTargetState.Sequence)
     {
-        return;
+		bHasRootMotion = BlendTargetState.Sequence->IsUsingRootMotion();
+    }
+    else if(BlendTargetState.PoseProvider)
+    {
+		bHasRootMotion = false;
+    }
+	else // 블랜드 타켓이 없을 경우, 현재 재생중인 애니메이션 검사
+    {
+		const FAnimationPlayState& CurrentState = AnimInstance->GetCurrentPlayState();
+        if (CurrentState.Sequence)
+        {
+            bHasRootMotion = CurrentState.Sequence->IsUsingRootMotion();
+        }
+        else
+        {
+			bHasRootMotion = false;
+        }
     }
 
-	FTransform RootMotionDelta = AnimInstance->GetRootDelta();
-    Owner->AddActorLocalLocation(RootMotionDelta.Translation);
+    if (bHasRootMotion)
+    {
+        FTransform RootMotionDelta = AnimInstance->GetRootDelta();
+        Owner->AddActorLocalLocation(RootMotionDelta.Translation);
+    }
 
- //   const FSkeleton& Skeleton = SkeletalMesh->GetSkeletalMeshData()->Skeleton;
- //   FName RootBoneName = Skeleton.GetBoneName(0);
+    if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
+    {
+		UCharacterMovementComponent* CharMoveComp = OwnerCharacter->GetCharacterMovement();
+		assert(CharMoveComp);
 
- //   UAnimDataModel* DataModel = AnimInstance->GetCurrentSequence()->GetDataModel();
-	////UE_LOG("Applying Root Motion at time %.2f", CurrentAnimationTime);
- //   FTransform RootMotionTransform = DataModel->EvaluateBoneTrackTransform(RootBoneName, CurrentAnimationTime, true);
- //   Owner->AddActorLocalLocation(RootMotionTransform.Translation);
+		APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
+		assert(PC);
+
+        if (bHasRootMotion)
+        {
+			CharMoveComp->SetUseGravity(false);
+			CharMoveComp->SetUseInput(false);
+        }
+        else
+        {
+            CharMoveComp->SetUseGravity(true);
+            CharMoveComp->SetUseInput(true);
+        }
+    }
 }
 
 // ============================================================

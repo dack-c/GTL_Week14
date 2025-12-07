@@ -288,6 +288,7 @@ FBlueprintValue UK2Node_GetSpeed::EvaluatePin(const UEdGraphPin* OutputPin, FBlu
     {
         // Velocity 벡터의 길이를 구해서 반환 (FVector::Length() 가정)
         float Speed = MoveComp->GetVelocity().Size();
+        //UE_LOG("UK2Node_GetSpeed's Speed: %.2f", Speed);
         return FBlueprintValue(Speed);
     }
 
@@ -345,6 +346,84 @@ FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPi
 }
 
 void UK2Node_GetIsFinishAnim::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
+//	[GetRemainAnimLength]
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetRemainAnimLength)
+
+UK2Node_GetRemainAnimLength::UK2Node_GetRemainAnimLength()
+{
+    TitleColor = ImColor(100, 200, 100); // Pure Node Green
+}
+
+void UK2Node_GetRemainAnimLength::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "Remain Length");
+}
+
+FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    if (!Context || !Context->SourceObject)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    // Context에서 AnimInstance 가져오기
+    UAnimInstance* AnimInstance = Cast<UAnimInstance>(Context->SourceObject);
+    if (!AnimInstance)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    if (OutputPin->PinName == "Remain Length")
+    {
+        const FAnimationPlayState& CurrentState = AnimInstance->GetCurrentPlayState();
+        
+        // PoseProvider가 있으면 그것을 사용 (BlendSpace 등)
+        if (CurrentState.PoseProvider)
+        {
+            float PlayLength = CurrentState.PoseProvider->GetPlayLength();
+            float CurrentTime = CurrentState.CurrentTime;
+            float RemainTime = PlayLength - CurrentTime;
+            
+            // 음수 방지
+            if (RemainTime < 0.0f)
+            {
+                RemainTime = 0.0f;
+            }
+            
+            return FBlueprintValue(RemainTime);
+        }
+        
+        // Sequence 직접 사용
+        if (CurrentState.Sequence)
+        {
+            float PlayLength = CurrentState.Sequence->GetPlayLength();
+            float CurrentTime = CurrentState.CurrentTime;
+            float RemainTime = PlayLength - CurrentTime;
+            
+            // 음수 방지
+            if (RemainTime < 0.0f)
+            {
+                RemainTime = 0.0f;
+            }
+            
+            return FBlueprintValue(RemainTime);
+        }
+    }
+
+    return FBlueprintValue(0.0f);
+}
+
+void UK2Node_GetRemainAnimLength::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
     UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
     Spawner->MenuName = GetNodeTitle();

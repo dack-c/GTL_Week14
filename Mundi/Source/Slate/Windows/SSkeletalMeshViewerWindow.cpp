@@ -203,8 +203,19 @@ void SSkeletalMeshViewerWindow::SaveAllNotifiesOnClose()
         if (!State) continue;
         if (State->CurrentAnimation)
         {
+            // Save AnimSequenceBase notifies
             const FString OutPath = MakeDefaultMetaPath(State->CurrentAnimation);
             State->CurrentAnimation->SaveMeta(OutPath);
+        }
+    }
+
+    TArray<UAnimSequence*> AnimSequences = UResourceManager::GetInstance().GetAll<UAnimSequence>();
+    for (UAnimSequence* AnimSeq : AnimSequences)
+    {
+        if (AnimSeq)
+        {
+            FString AnimSeqMetaPath = AnimSeq->GetMetaPath();
+            AnimSeq->SaveMeta(AnimSeqMetaPath);
         }
     }
 }

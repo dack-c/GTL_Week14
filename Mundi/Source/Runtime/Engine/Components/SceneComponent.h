@@ -69,6 +69,8 @@ public:
     void AddLocalRotation(const FQuat& DeltaRot);
     void SetLocalLocationAndRotation(const FVector& L, const FQuat& R);
 
+	void AddWorldScale3D(const FVector& DeltaScale);
+
     FMatrix GetWorldMatrix() const; // ToMatrixWithScale
       
     // ──────────────────────────────

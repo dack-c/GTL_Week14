@@ -1,6 +1,9 @@
 ﻿#include "pch.h"
 #include "AnimSequence.h"
 #include "AnimDateModel.h"
+#include "JsonSerializer.h"
+#include "Source/Runtime/Core/Misc/PathUtils.h"
+#include <filesystem>
 
 IMPLEMENT_CLASS(UAnimSequence)
 
@@ -99,9 +102,7 @@ void UAnimSequence::GetBonePose(FPoseContext& OutPoseContext, const FAnimExtract
 
     if(bUseRootMotion && BoneTracks.Num() > 0)
     {
-        FTransform RootTransform = OutPoseContext.Pose[0];
-        RootTransform.Translation = Model->EvaluateBoneTrackTransform(BoneNames[0], 0.0f, true).Translation;
-        OutPoseContext.Pose[0] = RootTransform; 
+        IgnoreRootBoneTransform(&OutPoseContext.Pose[0], BoneNames[0], Model);
 	}
 }
 
@@ -163,4 +164,55 @@ int32 UAnimSequence::GetNumBoneTracks() const
         return Model->GetNumBoneTracks();
     }
     return 0;
+}
+
+bool UAnimSequence::SaveMeta(const FString& MetaPathUTF8) const
+{
+    if (MetaPathUTF8.empty())
+    {
+        return false;
+    }
+
+    JSON Root = JSON::Make(JSON::Class::Object);
+    Root["Type"] = "AnimSequenceMeta";
+    Root["Version"] = 1;
+    Root["UseRootMotion"] = bUseRootMotion;
+
+    FWideString WPath = UTF8ToWide(MetaPathUTF8);
+    return FJsonSerializer::SaveJsonToFile(Root, WPath);
+}
+
+bool UAnimSequence::LoadMeta(const FString& MetaPathUTF8)
+{
+    if (MetaPathUTF8.empty())
+    {
+        return false;
+    }
+
+    JSON Root;
+    FWideString WPath = UTF8ToWide(MetaPathUTF8);
+    if (!FJsonSerializer::LoadJsonFromFile(Root, WPath))
+    {
+        return false;
+    }
+
+    if (Root.hasKey("UseRootMotion"))
+    {
+        const JSON& Value = Root.at("UseRootMotion");
+        if (Value.JSONType() == JSON::Class::Boolean)
+        {
+            bUseRootMotion = Value.ToBool();
+        }
+    }
+
+    return true;
+}
+
+FString UAnimSequence::GetMetaPath() const
+{
+    FString Path = GetFilePath();
+    FWideString WString = UTF8ToWide(NormalizePath(Path));
+    std::filesystem::path p(WString);
+    FString stem = WideToUTF8(p.stem().wstring());
+    return NormalizePath(GDataDir + "/" + stem + ".animseq.json");
 }
