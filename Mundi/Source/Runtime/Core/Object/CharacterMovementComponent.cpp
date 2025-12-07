@@ -250,6 +250,8 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsFalling = false;
 			CurrentFloor = FloorHit;
 
+			UE_LOG("[CharacterMovement] Landed on floor at Z=%.3f", FloorHit.ImpactPoint.Z);
+
 			// 바닥으로 스냅 (SkinWidth 여유를 두고 이동)
 			float SnapDistance = FloorHit.Distance - SkinWidth;
 			if (SnapDistance > KINDA_SMALL_NUMBER && bUseInput)
@@ -399,7 +401,7 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 
 	FVector Start = UpdatedComponent->GetWorldLocation();
 	// 바닥 검사는 캡슐 바닥에서 약간 아래로 Sweep
-	const float FloorCheckDistance = 0.1f;  // 검사 거리 증가
+	const float FloorCheckDistance = 0.01f;  // 검사 거리 증가
 	FVector End = Start - FVector(0, 0, FloorCheckDistance);
 
 	AActor* OwnerActor = CharacterOwner;

@@ -1331,7 +1331,7 @@ void USkeletalMeshComponent::ApplyRootMotion()
         FTransform RootMotionDelta = AnimInstance->GetRootDelta();
         Owner->AddActorLocalLocation(RootMotionDelta.Translation);
 		//Owner->AddActorLocalRotation(RootMotionDelta.Rotation);
-		UE_LOG("[Root Motion] Delta: T(%.3f, %.3f, %.3f)", RootMotionDelta.Translation.X, RootMotionDelta.Translation.Y, RootMotionDelta.Translation.Z);
+		// UE_LOG("[Root Motion] Delta: T(%.3f, %.3f, %.3f)", RootMotionDelta.Translation.X, RootMotionDelta.Translation.Y, RootMotionDelta.Translation.Z);
     }
 
     if (ACharacter* OwnerCharacter = Cast<ACharacter>(Owner))
@@ -1363,7 +1363,7 @@ void USkeletalMeshComponent::ApplyRootMotion()
     if(bHasRootMotion)
     {
 		FTransform OwnerTransform = Owner->GetActorTransform();
-        UE_LOG("[Root Motion] Applied Root Motion: T(%.3f, %.3f, %.3f)", OwnerTransform.Translation.X, OwnerTransform.Translation.Y, OwnerTransform.Translation.Z);
+        // UE_LOG("[Root Motion] Applied Root Motion: T(%.3f, %.3f, %.3f)", OwnerTransform.Translation.X, OwnerTransform.Translation.Y, OwnerTransform.Translation.Z);
 	}
 }
 

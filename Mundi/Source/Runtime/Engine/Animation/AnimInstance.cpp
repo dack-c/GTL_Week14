@@ -106,10 +106,16 @@ void UAnimInstance::EvaluatePose(TArray<FTransform>& OutPose)
 }
 FTransform UAnimInstance::GetRootDelta() const
 {
-	UAnimSequence* CurrentSequence = CurrentPlayState.Sequence;
+    if (UAnimSequence* BlendSequence = BlendTargetState.Sequence)
+    {
+        FTransform RootDelta = BlendSequence->ExtractRootMotionDelta(PreviousPlayTime, CurrentPlayState.CurrentTime);
+		return RootDelta;
+    }
     
+    UAnimSequence* CurrentSequence = CurrentPlayState.Sequence;
 	assert(CurrentSequence != nullptr && "GetRootDelta called but no current sequence!");
     FTransform RootDelta = CurrentSequence ? CurrentSequence->ExtractRootMotionDelta(PreviousPlayTime, CurrentPlayState.CurrentTime) : FTransform();
+
     return RootDelta;
 }
 // ============================================================
