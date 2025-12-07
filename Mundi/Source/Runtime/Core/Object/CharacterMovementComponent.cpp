@@ -93,14 +93,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 	if (!DeltaLoc.IsZero())
 	{
 		FHitResult Hit;
-
-		bool bDidDepenetrate = false;
-		bool bMoved = SafeMoveUpdatedComponent(DeltaLoc, Hit, bDidDepenetrate);
-
-		if (bDidDepenetrate)
-		{
-			return;
-		}
+		bool bMoved = SafeMoveUpdatedComponent(DeltaLoc, Hit);
 		
 		// 충돌 시 슬라이딩 처리
 		if (!bMoved && Hit.bBlockingHit)
@@ -109,12 +102,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 			if (!SlideVector.IsZero())
 			{
 				FHitResult SlideHit;
-				SafeMoveUpdatedComponent(SlideVector, SlideHit, bDidDepenetrate);
-
-				if (bDidDepenetrate)
-				{
-					return;
-				}
+				SafeMoveUpdatedComponent(SlideVector, SlideHit);
 			}
 		}
 	}
@@ -171,13 +159,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 	FVector DeltaLoc = Velocity * DeltaSecond;
 
 	FHitResult Hit;
-	bool bDidDepenetrate = false;
-	bool bMoved = SafeMoveUpdatedComponent(DeltaLoc, Hit, bDidDepenetrate);
-
-	if (bDidDepenetrate)
-	{
-		return;
-	}
+	bool bMoved = SafeMoveUpdatedComponent(DeltaLoc, Hit);
 
 	// 충돌 처리
 	if (!bMoved && Hit.bBlockingHit)
@@ -200,12 +182,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			if (!SlideVector.IsZero())
 			{
 				FHitResult SlideHit;
-				bool bSlided = SafeMoveUpdatedComponent(SlideVector, SlideHit, bDidDepenetrate);
-
-				if (bDidDepenetrate)
-				{
-					return;
-				}
+				bool bSlided = SafeMoveUpdatedComponent(SlideVector, SlideHit);
 
 				// 2차 슬라이딩 (모서리 처리)
 				if (!bSlided && SlideHit.bBlockingHit)
@@ -214,12 +191,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 					if (!SlideVector2.IsZero())
 					{
 						FHitResult SlideHit2;
-						SafeMoveUpdatedComponent(SlideVector2, SlideHit2, bDidDepenetrate);
-
-						if (bDidDepenetrate)
-						{
-							return;
-						}
+						SafeMoveUpdatedComponent(SlideVector2, SlideHit2);
 					}
 				}
 			}
@@ -301,11 +273,9 @@ void UCharacterMovementComponent::CalcVelocity(const FVector& Input, float Delta
 	Velocity.Y = CurrentVelocity.Y;
 }
 
-bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta, FHitResult& OutHit, bool& bOutDidDepenetrate)
+bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta, FHitResult& OutHit)
 {
 	OutHit.Reset();
-
-	bOutDidDepenetrate = false;
 
 	if (!UpdatedComponent || Delta.IsZero())
 		return true;
@@ -339,22 +309,6 @@ bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta,
 
 	if (bHit && OutHit.bBlockingHit)
 	{
-        // [Depenetration] 겹침(Penetration) 감지 및 탈출 로직
-        // Sweep이 0 거리를 반환했다면, 이미 다른 물체와 겹쳐 있다는 의미입니다.
-        if (OutHit.Distance <= KINDA_SMALL_NUMBER) // KINDA_SMALL_NUMBER는 float 0에 가까운 값
-        {
-            const float DepenetrationPushDistance = 0.1f; // 벽에서 밀어낼 거리
-            FVector DepenetrationVector = OutHit.ImpactNormal * DepenetrationPushDistance;
-            UpdatedComponent->AddRelativeLocation(DepenetrationVector);
-
-            // 강제로 밀어낸 후에는, 이번 프레임의 추가 이동은 중단하여 안정성을 확보합니다.
-            // 다음 프레임에는 정확한 위치에서 시작하여 정상적으로 움직이도록 합니다.
-            //UE_LOG("[CharacterMovement] Detected penetration! Pushed out by Normal (%.2f,%.2f,%.2f) by %.2f", OutHit.ImpactNormal.X, OutHit.ImpactNormal.Y, OutHit.ImpactNormal.Z, DepenetrationPushDistance);
-			bOutDidDepenetrate = true;
-
-            return false; // 충돌이 발생했으므로 false 반환
-        }
-
 		// 충돌 지점 직전까지만 이동 (약간의 여유 거리)
 		const float SkinWidth = 0.00125f;
 		float SafeDistance = FMath::Max(0.0f, OutHit.Distance - SkinWidth);
