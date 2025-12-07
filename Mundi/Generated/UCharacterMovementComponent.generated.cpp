@@ -35,6 +35,9 @@ const bool UCharacterMovementComponent::bPropertiesRegistered = []() {
 
 BEGIN_PROPERTIES(UCharacterMovementComponent)
     MARK_AS_COMPONENT("UCharacterMovementComponent", "Auto-generated UCharacterMovementComponent")
+    ADD_PROPERTY(float, SlidingSpeed, "Move", true)
+    ADD_PROPERTY(float, SlidingRotateSpeed, "Move", true)
+    ADD_PROPERTY(float, MinSlidingSpeed, "Move", true)
     ADD_PROPERTY(float, MinFloorNormalZ, "Move", true)
 END_PROPERTIES()
 

@@ -82,6 +82,46 @@ void UK2Node_GetIsFalling::GetMenuActions(FBlueprintActionDatabaseRegistrar& Act
 }
 
 // ----------------------------------------------------------------
+//	[GetIsSliding] 
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetIsSliding)
+
+UK2Node_GetIsSliding::UK2Node_GetIsSliding()
+{
+    TitleColor = ImColor(100, 200, 100); // Pure Node Green
+}
+
+void UK2Node_GetIsSliding::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Is Sliding");
+}
+
+FBlueprintValue UK2Node_GetIsSliding::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    UCharacterMovementComponent* MoveComp = GetMovementFromContext(Context);
+
+    if (OutputPin->PinName == "Is Sliding")
+    {
+        if (!MoveComp)
+        {
+            return FBlueprintValue(false);
+        }
+        return FBlueprintValue(MoveComp->IsSliding());
+    }
+
+    return FBlueprintValue{};
+}
+
+void UK2Node_GetIsSliding::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
 //	[GetVelocity] 
 // ----------------------------------------------------------------
 

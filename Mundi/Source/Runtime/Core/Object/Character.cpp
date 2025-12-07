@@ -122,6 +122,14 @@ void ACharacter::StopJumping()
 	}
 }
 
+void ACharacter::TryStartSliding()
+{
+	if (CharacterMovement)
+	{
+		CharacterMovement->TryStartSliding();
+	}
+}
+
 float ACharacter::GetCurrentGroundSlope() const
 {
 	if (CharacterMovement && CharacterMovement->IsOnGround())
