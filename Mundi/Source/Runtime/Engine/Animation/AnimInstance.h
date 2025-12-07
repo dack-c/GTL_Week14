@@ -260,6 +260,7 @@ public:
     USkeletalMeshComponent* GetOwningComponent() const { return OwningComponent; }
 
 	const FAnimationPlayState& GetCurrentPlayState() const { return CurrentPlayState; }
+	const FAnimationPlayState& GetBlendTargetState() const { return BlendTargetState; }
 
 protected:
     // PlayState 헬퍼
@@ -281,6 +282,7 @@ protected:
 
     // 이전 프레임 재생 시간 (노티파이 검출용)
     float PreviousPlayTime = 0.0f;
+	float PreviousBlendTargetPlayTime = 0.0f;
 
     // 스켈레톤 참조
     FSkeleton* CurrentSkeleton = nullptr;

@@ -161,3 +161,27 @@ public:
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };
 
+// ----------------------------------------------------------------
+//	[GetRemainAnimLength] 애니메이션 남은 시간 반환 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Get Remain Animation Length", Description = "현재 재생 중인 애니메이션의 남은 시간을 반환합니다.")
+class UK2Node_GetRemainAnimLength : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetRemainAnimLength, UK2Node);
+
+public:
+    UK2Node_GetRemainAnimLength();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Get Remain Animation Length"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "애니메이션"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+

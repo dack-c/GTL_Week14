@@ -27,6 +27,7 @@ public:
 	float GroundFriction; //바닥 마찰 계수 
 
 	bool bUseGravity = true;
+	bool bUseInput = true;
 
 	//TODO
 	//float MaxWalkSpeedCrouched = 6.0f;
@@ -44,6 +45,27 @@ public:
 
 	void SetUseGravity(bool bEnable) { bUseGravity = bEnable; }
 	bool IsUsingGravity() const { return bUseGravity; }
+	
+	void SetUseInput(bool bEnable)
+	{ 
+		if (bEnable == bUseInput)
+		{
+			return;
+		}
+
+		/*if (!bEnable)
+		{
+			LastVelocityBeforIgnoreInput = Velocity;
+			Velocity = FVector::Zero();
+		}
+		else
+		{
+			Velocity = LastVelocityBeforIgnoreInput;
+			LastVelocityBeforIgnoreInput = FVector::Zero();
+		}*/
+		bUseInput = bEnable;
+	}
+	bool IsUsingInput() const { return bUseInput; }
 
 protected:
 	void PhysSliding(float DeltaSecond);
@@ -111,4 +133,6 @@ protected:
 	const float GravityScale = 1.0f;
 
 	const float SkinWidth = 0.025f;  // 통일된 SkinWidth
+
+	FVector LastVelocityBeforIgnoreInput = FVector::Zero();
 };

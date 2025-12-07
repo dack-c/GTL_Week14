@@ -102,4 +102,8 @@ public:
      * @return 이전 재생 시간
      */
     virtual float GetPreviousPlayTime() const { return 0.0f; }
+
+protected:
+	// 루트 모션 사용 시, 루트 본의 변환을 무시하는 유틸리티 함수
+	static void IgnoreRootBoneTransform(FTransform* OutRootPose, const FName& RootBoneName, const UAnimDataModel* InDataModel);
 };

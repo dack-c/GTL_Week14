@@ -185,6 +185,15 @@ void FBXAnimationLoader::ProcessAnimations(FbxScene* Scene, const FSkeletalMeshD
 		FString AnimKey = FilePath + "_" + AnimStackName;
 		RESOURCE.Add<UAnimSequence>(AnimKey, AnimSequence);
 
+		// Load metadata (bUseRootMotion, etc.) if it exists
+		FString MetaPath = AnimSequence->GetMetaPath();
+		std::filesystem::path MetaPathFS(UTF8ToWide(MetaPath));
+		std::error_code ec;
+		if (std::filesystem::exists(MetaPathFS, ec))
+		{
+			AnimSequence->LoadMeta(MetaPath);
+		}
+
 		OutAnimations.Add(AnimSequence);
 		UE_LOG("Extracted animation: %s (Duration: %.2fs, Frames: %d, Bones: %d) -> Key: %s",
 			AnimStackName.c_str(), static_cast<float>(PlayLength), NumFrames, BoneNames.Num(), AnimKey.c_str());

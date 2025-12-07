@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "FBXAnimationCache.h"
 #include "Source/Runtime/Engine/Animation/AnimSequence.h"
 #include "Source/Runtime/Engine/Animation/AnimDateModel.h"
@@ -43,6 +43,15 @@ bool FBXAnimationCache::TryLoadAnimationsFromCache(const FString& NormalizedPath
 			if (!RESOURCE.Add<UAnimSequence>(AnimKey, CachedAnim))
 			{
 				UE_LOG("Animation cache already registered: %s", AnimKey.c_str());
+			}
+
+			// Load metadata (bUseRootMotion, etc.) if it exists
+			FString MetaPath = CachedAnim->GetMetaPath();
+			std::filesystem::path MetaPathFS(UTF8ToWide(MetaPath));
+			std::error_code ec;
+			if (std::filesystem::exists(MetaPathFS, ec))
+			{
+				CachedAnim->LoadMeta(MetaPath);
 			}
 
 			OutAnimations.Add(CachedAnim);
