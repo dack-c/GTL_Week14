@@ -7,6 +7,8 @@
 #include <ObjManager.h>
 #include "FAudioDevice.h"
 #include <sol/sol.hpp>
+#include "GameModeBase.h"
+#include "Source/Runtime/Engine/Physics/PhysScene.h"
 
 #include "BlueprintGraph/BlueprintActionDatabase.h"
 
@@ -199,21 +201,44 @@ bool UGameEngine::Startup(HINSTANCE hInstance)
     FObjManager::Preload();
     FAudioDevice::Preload();
     RESOURCE.PreloadParticles();
+    GPU_PROFILER.Initialize(&RHIDevice);
 
     ///////////////////////////////////
     WorldContexts.Add(FWorldContext(NewObject<UWorld>(), EWorldType::Game));
     GWorld = WorldContexts[0].World;
     GWorld->Initialize();
     GWorld->bPie = true;
+    // 물리 씬 초기화
+    GWorld->PhysScene = std::make_unique<FPhysScene>();
+    GWorld->PhysScene->Initialize();
+
+    GWorld->bPie = true;
     ///////////////////////////////////
 
     // 시작 scene(level)을 직접 로드 
-    const FString StartupScenePath = GDataDir + "/Scenes/PlayScene.scene";
+    const FString StartupScenePath = GDataDir + "/Scenes/Final.scene";
     if (!GWorld->LoadLevelFromFile(UTF8ToWide(StartupScenePath)))
     {
         UE_LOG("Failed to load startup scene: %s", StartupScenePath.c_str());
         return false;
     }
+
+    AGameModeBase* GameMode = nullptr;
+    if (GWorld->GetGameMode() == nullptr)
+    {
+        AGameModeBase* GM = GWorld->SpawnActor<AGameModeBase>(FTransform());
+        GWorld->SetGameMode(GM);
+    }
+
+    GWorld->GetGameMode()->StartPlay();
+    //// PIE가 시작되면, 마우스를 숨기고 위치를 락건다.
+    //// F11을 통해서 풀 수 있다. 
+    //{
+    //    UInputManager& Input = UInputManager::GetInstance();
+    //    Input.SetCursorVisible(false);
+    //    Input.LockCursor();
+    //    Input.LockCursorToCenter();
+    //}
 
     // 로드된 월드의 모든 액터에 대해 BeginPlay() 호출
     TArray<AActor*> LevelActors = GWorld->GetLevel()->GetActors();

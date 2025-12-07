@@ -159,9 +159,12 @@ void UStatsOverlayD2D::EnsureInitialized()
 
 void UStatsOverlayD2D::ReleaseD2DResources()
 {
-	for (ID2D1Bitmap* Bitmap : BitmapMap.GetValues())
+	if (BitmapMap.size() > 0)
 	{
-		Bitmap->Release();
+		for (ID2D1Bitmap* Bitmap : BitmapMap.GetValues())
+		{
+			Bitmap->Release();
+		}
 	}
 	SafeRelease(WICFactory);
 
