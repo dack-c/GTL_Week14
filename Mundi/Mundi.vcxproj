@@ -318,6 +318,7 @@
     <ClCompile Include="Source\Runtime\Engine\Components\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\SkinnedMeshComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\GameModeBase.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\GameFramework\PlayerStart.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\SkeletalMeshActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\BoneAnchorComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Fade.cpp" />
@@ -725,7 +726,7 @@
     <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp" />
     <ClCompile Include="Generated\UAnimationStateMachine.generated.cpp" />
     <ClCompile Include="Generated\UAnimInstance.generated.cpp" />
-  <ClCompile Include="Generated\AHeightFogActor.generated.cpp" /></ItemGroup>
+  <ClCompile Include="Generated\AHeightFogActor.generated.cpp" /><ClCompile Include="Generated\APlayerStart.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -934,6 +935,7 @@
     <ClInclude Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Shake.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\GameEngine.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\GameModeBase.h" />
+    <ClInclude Include="Source\Runtime\Engine\GameFramework\PlayerStart.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\PlayerCameraManager.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\DirectionalLightActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\EmptyActor.h" />
@@ -1234,7 +1236,7 @@
     <ClInclude Include="Generated\UMotionBlurComponent.generated.h" />
     <ClInclude Include="Generated\UAnimationStateMachine.generated.h" />
     <ClInclude Include="Generated\UAnimInstance.generated.h" />
-  <ClInclude Include="Generated\AHeightFogActor.generated.h" /></ItemGroup>
+  <ClInclude Include="Generated\AHeightFogActor.generated.h" /><ClInclude Include="Generated\APlayerStart.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />
