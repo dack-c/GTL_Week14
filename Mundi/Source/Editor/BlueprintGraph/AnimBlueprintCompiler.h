@@ -23,4 +23,6 @@ private:
      *       하지만, 구현의 용이성을 위해 가장 먼저 탐색되는 노드만을 반환한다.
      */
     static UEdGraphNode* GetConnectedNode(UEdGraphPin* Pin);
+
+	static TArray<UEdGraphNode*> GetConnectedNodes(UEdGraphPin* Pin);
 };
