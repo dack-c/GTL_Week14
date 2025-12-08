@@ -34,7 +34,7 @@ const bool UMotionBlurComponent::bPropertiesRegistered = []() {
 // ===== Property Reflection =====
 
 BEGIN_PROPERTIES(UMotionBlurComponent)
-    MARK_AS_COMPONENT("Depth Of Field", "피사계 심도")
+    MARK_AS_COMPONENT("Motion Blur X", "모션블러 미완")
     ADD_PROPERTY_RANGE(float, FocusDistance, "DepthOfField", 0.01f, 1000.0f, true)
     ADD_PROPERTY_RANGE(float, FocusRange, "DepthOfField", 0.01f, 1000.0f, true)
     ADD_PROPERTY_RANGE(float, GaussianBlurWeight, "DepthOfField", 1.0f, 30.0f, true)

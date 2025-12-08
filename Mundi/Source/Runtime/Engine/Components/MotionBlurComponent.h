@@ -6,7 +6,7 @@
 #include "UMotionBlurComponent.generated.h"
 
 
-UCLASS(DisplayName = "Depth Of Field", Description = "피사계 심도")
+UCLASS(DisplayName = "Motion Blur X", Description = "모션블러 미완")
 class UMotionBlurComponent : public USceneComponent
 {
 public:
