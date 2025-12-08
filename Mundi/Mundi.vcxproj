@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -100,7 +100,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;$(ProjectDir)Source\Runtime\Engine\Audio;ThirdParty\physx\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\Engine\Animation;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;$(ProjectDir)Source\Runtime\Engine\Audio;ThirdParty\physx\include</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 /bigobj /MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -134,7 +134,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;ThirdParty\physx\include;$(ProjectDir)Source\Runtime\Engine\Audio</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\Engine\Animation;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;ThirdParty\physx\include;$(ProjectDir)Source\Runtime\Engine\Audio</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 /bigobj /MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -170,7 +170,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;$(ProjectDir)Source\Runtime\Engine\Audio;ThirdParty\physx\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\Engine\Animation;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;$(ProjectDir)Source\Runtime\Engine\Audio;ThirdParty\physx\include</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 /bigobj /MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -208,7 +208,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;ThirdParty\physx\include;$(ProjectDir)Source\Runtime\Engine\Audio</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Generated;$(ProjectDir)Source\Runtime\Core\Object;$(ProjectDir)Source\Runtime\Core\Math;$(ProjectDir)Source\Runtime\Core\Containers;$(ProjectDir)Source\Runtime\Core\Misc;$(ProjectDir)Source\Runtime\Core\Memory;$(ProjectDir)Source\Runtime\Engine\GameFramework;$(ProjectDir)Source\Runtime\Engine\Scripting;$(ProjectDir)Source\Runtime\Engine\Components;$(ProjectDir)Source\Runtime\Engine\Collision;$(ProjectDir)Source\Runtime\Engine\Spatial;$(ProjectDir)Source\Runtime\RHI;$(ProjectDir)Source\Runtime\Renderer;$(ProjectDir)Source\Runtime\AssetManagement;$(ProjectDir)Source\Runtime\Engine\Animation;$(ProjectDir)Source\Runtime\InputCore;$(ProjectDir)Source\Editor;$(ProjectDir)Source\Slate;ThirdParty\DirectXTex\include;ThirdParty\DirectXTK\include;ThirdParty\Lua\include;ThirdParty\sol;ThirdParty;ThirdParty\FBXSDK\include;ThirdParty\ImGui;ThirdParty\imgui-node-editor;ThirdParty\physx\include;$(ProjectDir)Source\Runtime\Engine\Audio</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 /bigobj /MP %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -724,7 +724,10 @@
     <ClCompile Include="Generated\ASpotLightActor.generated.cpp" />
     <ClCompile Include="Generated\AStaticMeshActor.generated.cpp" />
     <ClCompile Include="Generated\ATriggerActor.generated.cpp" />
-  <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp" /></ItemGroup>
+    <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp" />
+    <ClCompile Include="Generated\UAnimationStateMachine.generated.cpp" />
+    <ClCompile Include="Generated\UAnimInstance.generated.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -882,6 +885,7 @@
     <ClInclude Include="Source\Runtime\Core\Object\Controller.h" />
     <ClInclude Include="Source\Runtime\Core\Object\FireballActor.h" />
     <ClInclude Include="Source\Runtime\Core\Object\MyCar.h" />
+    <ClInclude Include="Source\Runtime\Core\Object\ObjectMacros.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Pawn.h" />
     <ClInclude Include="Source\Runtime\Core\Object\PlayerController.h" />
     <ClInclude Include="Source\Runtime\Core\Object\Property.h" />
@@ -898,6 +902,7 @@
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequence.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSequenceBase.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimSingleNodeInstance.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimStateTypes.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\AnimTypes.h" />
     <ClInclude Include="Source\Runtime\Engine\Animation\Team2AnimInstance.h" />
     <ClInclude Include="Source\Runtime\Engine\Audio\Sound.h" />
@@ -987,6 +992,7 @@
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaComponentProxy.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaCoroutineScheduler.h" />
     <ClInclude Include="Source\Runtime\Engine\Scripting\LuaManager.h" />
+    <ClInclude Include="Source\Runtime\Engine\Scripting\LuaPhysicsTypes.h" />
     <ClInclude Include="Source\Runtime\Engine\SkeletalViewer\SkeletalViewerBootstrap.h" />
     <ClInclude Include="Source\Runtime\Engine\SkeletalViewer\ViewerState.h" />
     <ClInclude Include="Source\Runtime\Renderer\FSkeletalViewerViewportClient.h" />
@@ -998,6 +1004,7 @@
     <ClInclude Include="Source\Runtime\Engine\Components\LocalLightComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\PointLightComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SpotLightComponent.h" />
+    <ClInclude Include="Source\Runtime\Renderer\LightStats.h" />
     <ClInclude Include="Source\Runtime\Renderer\MeshBatchElement.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFBlurPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\DOFRecombinePass.h" />
@@ -1010,6 +1017,7 @@
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\VignettePass.h" />
     <ClInclude Include="Source\Runtime\Renderer\RenderTexture.h" />
     <ClInclude Include="Source\Runtime\Renderer\SceneView.h" />
+    <ClInclude Include="Source\Runtime\Renderer\ShadowStats.h" />
     <ClInclude Include="Source\Runtime\Renderer\SkinningStats.h" />
     <ClInclude Include="Source\Runtime\Renderer\TileCullingStats.h" />
     <ClInclude Include="Source\Runtime\Renderer\TileLightCuller.h" />
@@ -1227,7 +1235,10 @@
     <ClInclude Include="Generated\ASpotLightActor.generated.h" />
     <ClInclude Include="Generated\AStaticMeshActor.generated.h" />
     <ClInclude Include="Generated\ATriggerActor.generated.h" />
-  <ClInclude Include="Generated\UMotionBlurComponent.generated.h" /></ItemGroup>
+    <ClInclude Include="Generated\UMotionBlurComponent.generated.h" />
+    <ClInclude Include="Generated\UAnimationStateMachine.generated.h" />
+    <ClInclude Include="Generated\UAnimInstance.generated.h" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />
