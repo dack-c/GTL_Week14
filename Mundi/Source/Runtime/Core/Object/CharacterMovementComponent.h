@@ -102,6 +102,8 @@ protected:
 	/** 캡슐 컴포넌트 크기 가져오기 */
 	void GetCapsuleSize(float& OutRadius, float& OutHalfHeight) const;
 
+	FVector GetSnapDownStart() const;
+
 	/** PhysScene 가져오기 */
 	FPhysScene* GetPhysScene() const;
 
@@ -127,6 +129,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Move")
 	float NeedRollingAirTime = 2.0f;	// 해당 시간 동안 체공 시 구르기로 착지
+
+	UPROPERTY(EditAnywhere, Category = "Capsule")
+	FVector CapsuleOffset = FVector::Zero(); // 캡슐 콜라이더 오프셋
 
 protected:
 	ACharacter* CharacterOwner = nullptr;
