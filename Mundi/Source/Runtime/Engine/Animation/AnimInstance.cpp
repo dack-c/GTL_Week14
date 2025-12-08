@@ -7,7 +7,6 @@
 // For notify dispatching
 #include "Source/Runtime/Engine/Animation/AnimNotify.h"
 
-IMPLEMENT_CLASS(UAnimInstance)
 
 // ============================================================
 // Initialization & Setup
