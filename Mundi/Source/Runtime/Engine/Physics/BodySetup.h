@@ -5,6 +5,7 @@ struct FKSphereElem;
 struct FKBoxElem;
 struct FKCapsuleElem;
 struct FKConvexElem;
+struct FKTriangleMeshElem;
 
 struct FKAggregateGeom
 {
@@ -12,6 +13,7 @@ struct FKAggregateGeom
     TArray<FKBoxElem>    BoxElements;
     TArray<FKCapsuleElem>  CapsuleElements;
     TArray<FKConvexElem> ConvexElements;
+    TArray<FKTriangleMeshElem> TriangleMeshElements;
 
     void Clear();
     void Serialize(const bool bInIsLoading, JSON& InOutHandle);
@@ -49,6 +51,7 @@ public:
     void AddSphere(const FKSphereElem& Elem);
     void AddBox(const FKBoxElem& Elem);
     void AddCapsule(const FKCapsuleElem& Elem);
+    void AddTriangleMesh(const FKTriangleMeshElem& Elem);
 
     void BuildCachedData();
     void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;

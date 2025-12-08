@@ -26,6 +26,8 @@ public:
 
 	const FString& GetCurrentFbxBaseDir() const { return CurrentFbxBaseDir; }
 
+	// 텍스처 파일명으로 전체 경로를 찾는 맵 (Smart Texture Matching)
+	static const TMap<FString, FString>& GetTextureFileNameMap() { return TextureFileNameMap; }
 
 protected:
 	~UFbxLoader() override;
@@ -43,4 +45,7 @@ private:
 
 	// 비-스켈레톤 부모 노드(예: Armature)의 로컬 트랜스폼 저장 (애니메이션 보정용)
 	TMap<const FbxNode*, FbxAMatrix> NonSkeletonParentTransforms;
+
+	// Smart Texture Matching: 파일명 → 전체 경로 맵 (Key: basename, Value: full path)
+	static TMap<FString, FString> TextureFileNameMap;
 };

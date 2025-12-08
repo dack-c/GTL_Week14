@@ -105,6 +105,8 @@ public:
 	void InitShaderILMap();
 	void InitTexToShaderMap();
 
+	void LoadCubeMap(const FWideString& Path);
+	ID3D11ShaderResourceView* GetCubemap() { return CubeMapSRV; }
 protected:
 	// --- 소멸자 및 복사/대입 방지 ---
 	~UResourceManager() override;
@@ -131,6 +133,8 @@ protected:
 	TMap<FWideString, FTextureData*> TextureMap;
 
 private:
+
+	ID3D11ShaderResourceView* CubeMapSRV = nullptr;
 	// --- 비공개 멤버 변수 ---
 	TMap<FString, UMaterial*> MaterialMap;
 

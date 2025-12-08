@@ -84,7 +84,9 @@ cbuffer FLightShadowmBufferType : register(b5)
 // --- 텍스처 및 샘플러 리소스 ---
 Texture2D g_DiffuseTexColor : register(t0);
 Texture2D g_NormalTexColor : register(t1);
+// t2: 타일 라이트 인덱스, t3: PointLightList, t4: SpotLightList
 Texture2D g_DirectionalShadowMap : register(t5);
+Texture2D g_EmissiveTexColor : register(t6); // Emissive 텍스처
 TextureCubeArray g_ShadowAtlasCube : register(t8);
 Texture2D g_ShadowAtlas2D : register(t9);
 Texture2D<float2> g_VSMShadowAtlas : register(t10);
@@ -332,6 +334,16 @@ PS_OUTPUT mainPS(PS_INPUT Input)
     // 텍스처 샘플링 (머트리얼 색상은 Gouraud는 VS에서 적용됨)
     float4 texColor = g_DiffuseTexColor.Sample(g_Sample, uv);
 
+    // Emissive 텍스처 샘플링 (기본값 흰색 = EmissiveColor만 사용)
+    // DirectX에서 nullptr 텍스처 샘플링 시 기본적으로 (0,0,0,1) 반환하므로 안전
+    float3 emissiveTex = g_EmissiveTexColor.Sample(g_Sample, uv).rgb;
+
+    // Emissive 텍스처가 없으면 (0,0,0) 반환되므로 흰색으로 대체
+    if (length(emissiveTex) < 0.01f)
+    {
+        emissiveTex = float3(1.0f, 1.0f, 1.0f);
+    }
+
     // 머트리얼의 SpecularExponent 사용, 머트리얼이 없으면 기본값 사용
     float specPower = bHasMaterial ? Material.SpecularExponent : 32.0f;
 
@@ -384,7 +396,7 @@ PS_OUTPUT mainPS(PS_INPUT Input)
     // 자체발광 추가 (조명의 영향을 받지 않음)
     if (bHasMaterial)
     {
-        finalPixel.rgb += Material.EmissiveColor;
+        finalPixel.rgb += Material.EmissiveColor * emissiveTex;
     }
 
     // 비머티리얼 오브젝트의 머티리얼/색상 블렌딩 적용
@@ -489,7 +501,7 @@ PS_OUTPUT mainPS(PS_INPUT Input)
     // 조명 계산 후 자체발광 추가
     if (bHasMaterial)
     {
-        litColor += Material.EmissiveColor;
+        litColor += Material.EmissiveColor * emissiveTex;
     }
 
     // 원본 알파 보존 (조명은 투명도에 영향 없음)
@@ -599,7 +611,7 @@ PS_OUTPUT mainPS(PS_INPUT Input)
     // 조명 계산 후 자체발광 추가
     if (bHasMaterial)
     {
-        litColor += Material.EmissiveColor;
+        litColor += Material.EmissiveColor * emissiveTex;
     }
 
     // 원본 알파 보존 (조명은 투명도에 영향 없음)
@@ -628,7 +640,7 @@ PS_OUTPUT mainPS(PS_INPUT Input)
             finalPixel.rgb = texColor.rgb;
         }
         // 자체발광 추가
-        finalPixel.rgb += Material.EmissiveColor;
+        finalPixel.rgb += Material.EmissiveColor * emissiveTex;
     }
     else
     {

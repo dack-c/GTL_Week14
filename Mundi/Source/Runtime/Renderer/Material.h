@@ -10,8 +10,8 @@ enum class EMaterialTextureSlot : uint8
 {
 	Diffuse = 0,
 	Normal,
+	Emissive,
 	//Specular,
-	//Emissive,
 	// ... 기타 슬롯 ...
 	Max // 배열 크기 지정용
 };

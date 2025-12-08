@@ -74,10 +74,17 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
     // -----------------------------
     // 4. 계산 시작
     // -----------------------------
+    // 배경(depth=1.0)인 경우 최대 거리의 fog 적용
+    bool bIsBackground = (depth >= 0.9999);
+
     float Distance = max(0.0, L - StartDistance);
-    if(Distance > (FogCutoffDistance - StartDistance))
+    if (!bIsBackground && Distance > (FogCutoffDistance - StartDistance))
         Distance = 0.0;
-    
+
+    // 배경이면 FogCutoffDistance를 사용
+    if (bIsBackground)
+        Distance = FogCutoffDistance - StartDistance;
+
     float oy = cameraWorldPos.z;
     float dy = rayDir.z;
     

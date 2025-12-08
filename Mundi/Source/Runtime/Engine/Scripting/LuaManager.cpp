@@ -24,7 +24,6 @@ FLuaManager::FLuaManager()
 {
     Lua = new sol::state();
     
-    
     // Open essential standard libraries for gameplay scripts
     Lua->open_libraries(
         sol::lib::base,
@@ -35,7 +34,10 @@ FLuaManager::FLuaManager()
     );
 
     SharedLib = Lua->create_table();
-
+    sol::load_result lr = Lua->load_file("Data/Scripts/Util.lua");
+    sol::protected_function pf = lr;
+    sol::table result = pf();          // return된 테이블 받기
+    (*Lua)["Util"] = result;      // 전역으로 등록
     // Lua에서 Actor와 FGameObject 가 1대1로 매칭되고
     // Component는 그대로 Component와 1대1로 매칭된다
     // NOTE: 그냥 FGameObject 개념을 없애고 그냥 Actor/Component 그대로 사용하는 게 좋을듯?
@@ -335,6 +337,7 @@ FLuaManager::FLuaManager()
         ),
         // Methods
         "Length", &FVector::Distance,
+        "Size", &FVector::Size,
         "Normalize", &FVector::Normalize,
         "Dot", [](const FVector& a, const FVector& b) { return FVector::Dot(a, b); },
         "Cross", [](const FVector& a, const FVector& b) { return FVector::Cross(a, b); }

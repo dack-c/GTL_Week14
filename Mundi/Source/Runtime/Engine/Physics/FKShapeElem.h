@@ -45,3 +45,19 @@ struct FKConvexElem
     // Runtime convex mesh
     physx::PxConvexMesh* ConvexMesh = nullptr;
 };
+
+struct FKTriangleMeshElem
+{
+    // Triangle Mesh 데이터
+    TArray<FVector> Vertices;
+    TArray<uint32> Indices;
+
+    // Serialized PhysX triangle mesh (캐싱용)
+    TArray<uint8> CookedData;
+
+    // Runtime triangle mesh
+    physx::PxTriangleMesh* TriangleMesh = nullptr;
+
+    // 디버그/에디터용
+    FVector Scale = FVector(1.0f, 1.0f, 1.0f);
+};

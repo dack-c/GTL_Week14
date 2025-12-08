@@ -48,7 +48,9 @@ extern "C" void LuaBind_Anchor_UCameraComponent() {}
 
 LUA_BIND_BEGIN(UCameraComponent)
 {
-    // No functions to bind
+    AddAlias<UCameraComponent, float>(
+        T, "SetFOV", &UCameraComponent::SetFOV);
+    AddMethodR<float, UCameraComponent>(
+        T, "GetFOV", &UCameraComponent::GetFOV);
 }
 LUA_BIND_END()
-

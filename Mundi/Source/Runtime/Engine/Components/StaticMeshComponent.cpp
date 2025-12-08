@@ -96,7 +96,8 @@ void UStaticMeshComponent::OnCollisionShapeChanged()
 void UStaticMeshComponent::InitCollisionShape()
 {
 	EAggCollisionShapeType CurrentShapeType = static_cast<EAggCollisionShapeType>(CollisionType);
-	if (CurrentShapeType != EAggCollisionShapeType::Convex)
+	if (CurrentShapeType != EAggCollisionShapeType::Convex &&
+		CurrentShapeType != EAggCollisionShapeType::TriangleMesh)
 	{
 		FAABB LocalBound = StaticMesh->GetLocalBound();
 		FVector BoundExtent = LocalBound.GetHalfExtent();
@@ -397,17 +398,38 @@ void UStaticMeshComponent::RecreateBodySetup()
 		ObjectFactory::DeleteObject(BodySetupOverride);
 		BodySetupOverride = nullptr;
 	}
-	
-	EAggCollisionShapeType CurrentShapeType = static_cast<EAggCollisionShapeType>(CollisionType);
 
-	// 컨벡스 타입은 StaticMesh의 기본 BodySetup을 사용하므로 override가 필요 없음
-	if (CurrentShapeType == EAggCollisionShapeType::Convex)
+	if (!StaticMesh)
 	{
 		return;
 	}
 
-	if (!StaticMesh)
+	EAggCollisionShapeType CurrentShapeType = static_cast<EAggCollisionShapeType>(CollisionType);
+
+	// Convex: StaticMesh의 기본 BodySetup 사용 (Convex만 포함)
+	if (CurrentShapeType == EAggCollisionShapeType::Convex)
 	{
+		// StaticMesh->BodySetup에 Convex와 TriangleMesh가 모두 있으므로 Convex만 사용하도록 Override 생성
+		if (StaticMesh->BodySetup && !StaticMesh->BodySetup->AggGeom.ConvexElements.IsEmpty())
+		{
+			BodySetupOverride = ObjectFactory::NewObject<UBodySetup>();
+			BodySetupOverride->BoneName = FName("None");
+			BodySetupOverride->AggGeom.ConvexElements = StaticMesh->BodySetup->AggGeom.ConvexElements;
+			BodySetupOverride->BuildCachedData();
+		}
+		return;
+	}
+
+	// TriangleMesh: StaticMesh의 TriangleMesh만 사용하도록 Override 생성
+	if (CurrentShapeType == EAggCollisionShapeType::TriangleMesh)
+	{
+		if (StaticMesh->BodySetup && !StaticMesh->BodySetup->AggGeom.TriangleMeshElements.IsEmpty())
+		{
+			BodySetupOverride = ObjectFactory::NewObject<UBodySetup>();
+			BodySetupOverride->BoneName = FName("None");
+			BodySetupOverride->AggGeom.TriangleMeshElements = StaticMesh->BodySetup->AggGeom.TriangleMeshElements;
+			BodySetupOverride->BuildCachedData();
+		}
 		return;
 	}
 
@@ -465,7 +487,7 @@ void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		// 역직렬화 (로드)
 		FJsonSerializer::ReadBool(InOutHandle, "bEnableCollision", bEnableCollision, true, false);
 		FJsonSerializer::ReadBool(InOutHandle, "bSimulatePhysics", bSimulatePhysics, false, false);
-		
+
 		int32 ShapeType = static_cast<int32>(EAggCollisionShapeType::Box);
 		FJsonSerializer::ReadInt32(InOutHandle, "CollisionType", ShapeType, static_cast<int32>(EAggCollisionShapeType::Box), false);
 		CollisionType = static_cast<EAggCollisionShapeType>(ShapeType);

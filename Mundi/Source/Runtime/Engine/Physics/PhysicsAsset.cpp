@@ -900,6 +900,7 @@ void FKAggregateGeom::Clear()
     BoxElements.Empty();
     CapsuleElements.Empty();
     ConvexElements.Empty();
+    TriangleMeshElements.Empty();
 }
 
 void FPhysicsConstraintSetup::Serialize(const bool bInIsLoading,  JSON& InOutHandle)

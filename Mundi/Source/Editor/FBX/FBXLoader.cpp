@@ -13,6 +13,9 @@
 
 IMPLEMENT_CLASS(UFbxLoader)
 
+// Smart Texture Matching 맵 정의
+TMap<FString, FString> UFbxLoader::TextureFileNameMap;
+
 UFbxLoader::UFbxLoader()
 {
 	// 메모리 관리, FbxManager 소멸시 Fbx 관련 오브젝트 모두 소멸
@@ -35,6 +38,10 @@ void UFbxLoader::PreLoad()
 
 	size_t LoadedCount = 0;
 	std::unordered_set<FWideString> ProcessedFiles;
+
+	// Smart Texture Matching: 텍스처 파일명 맵 초기화
+	TextureFileNameMap.clear();
+	size_t TextureMapCount = 0;
 
 	for (const auto& Entry : fs::recursive_directory_iterator(DataDir))
 	{
@@ -61,12 +68,28 @@ void UFbxLoader::PreLoad()
 		}
 		else if (Extension == L".dds" || Extension == L".jpg" || Extension == L".png")
 		{
-			UResourceManager::GetInstance().Load<UTexture>(WideToUTF8(Path.wstring()));
+			FString FullPath = WideToUTF8(Path.wstring());
+			UResourceManager::GetInstance().Load<UTexture>(FullPath);
+
+			// Smart Texture Matching: 파일명(basename)을 Key로 전체 경로를 Value로 저장
+			FString FileName = WideToUTF8(Path.filename().wstring());
+			if (TextureFileNameMap.find(FileName) != TextureFileNameMap.end())
+			{
+				// 파일명 중복 시 첫 번째 경로 유지, 경고 로그
+				UE_LOG("UFbxLoader: Texture filename collision: '%s' already exists at '%s', ignoring '%s'",
+					FileName.c_str(), TextureFileNameMap[FileName].c_str(), FullPath.c_str());
+			}
+			else
+			{
+				TextureFileNameMap[FileName] = NormalizePath(FullPath);
+				++TextureMapCount;
+			}
 		}
 	}
 	RESOURCE.SetSkeletalMeshs();
 
 	UE_LOG("UFbxLoader::Preload: Loaded %zu .fbx files from %s", LoadedCount, GDataDir.c_str());
+	UE_LOG("UFbxLoader::Preload: Built texture filename map with %zu entries", TextureMapCount);
 }
 
 
@@ -203,6 +226,7 @@ FSkeletalMeshData* UFbxLoader::LoadFbxMeshAsset(const FString& FilePath)
 				NewMaterial->SetMaterialInfo(MaterialInfo);
 				NewMaterial->SetShader(Default->GetShader());
 				NewMaterial->SetShaderMacros(Default->GetShaderMacros());
+				NewMaterial->ResolveTextures(); // MaterialInfo의 텍스처 경로들을 기반으로 실제 UTexture 로드
 				UResourceManager::GetInstance().Add<UMaterial>(MaterialInfo.MaterialName, NewMaterial);
 			}
 

@@ -1533,6 +1533,7 @@ bool UPropertyRenderer::RenderSingleMaterialSlot(const char* Label, UMaterialInt
 			{
 			case EMaterialTextureSlot::Diffuse: SlotName = "Diffuse Texture"; break;
 			case EMaterialTextureSlot::Normal: SlotName = "Normal Texture"; break;
+			case EMaterialTextureSlot::Emissive: SlotName = "Emissive Texture"; break;
 			}
 			FString TextureLabel = FString(SlotName) + "##" + Label;
 
@@ -1731,14 +1732,51 @@ bool UPropertyRenderer::RenderTextureSelectionCombo(const char* Label, UTexture*
 
 	if (ImGui::BeginCombo(Label, PreviewText))
 	{
+		// --- 검색 기능 추가 ---
+		// Label별로 독립적인 검색 버퍼 (static으로 상태 유지)
+		static std::map<std::string, std::string> SearchBuffers;
+		std::string LabelKey(Label);
+		if (SearchBuffers.find(LabelKey) == SearchBuffers.end())
+		{
+			SearchBuffers[LabelKey] = "";
+		}
+		std::string& SearchBuffer = SearchBuffers[LabelKey];
+
+		// 검색 입력 필드
+		char SearchInputBuffer[256];
+		strncpy_s(SearchInputBuffer, sizeof(SearchInputBuffer), SearchBuffer.c_str(), _TRUNCATE);
+		ImGui::SetNextItemWidth(-1.0f); // 콤보박스 너비에 맞춤
+		if (ImGui::InputText("##TextureSearch", SearchInputBuffer, sizeof(SearchInputBuffer)))
+		{
+			SearchBuffer = SearchInputBuffer;
+		}
+		ImGui::Separator();
+
 		// --- 콤보박스 드롭다운 리스트 렌더링 ---
 
 		// 드롭다운 리스트 내부의 아이템 간 수직 간격 설정
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, 1.0f));
 
+		// 소문자 변환 헬퍼 (대소문자 무시 검색)
+		auto ToLower = [](const std::string& str) -> std::string {
+			std::string lower = str;
+			std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+			return lower;
+		};
+		std::string LowerSearch = ToLower(SearchBuffer);
+
 		// 텍스처 리스트 (미리보기 포함) - "None" 옵션(i=0)을 루프에 포함
 		for (int i = 0; i < (int)CachedTextureItems.size(); ++i)
 		{
+			// 검색 필터링 (None은 항상 표시)
+			if (i > 0 && !LowerSearch.empty())
+			{
+				std::string ItemTextLower = ToLower(CachedTextureItems[i]);
+				if (ItemTextLower.find(LowerSearch) == std::string::npos)
+				{
+					continue; // 검색어와 매칭 안 되면 스킵
+				}
+			}
 			bool is_selected = (SelectedTextureIdx == i);
 			const char* ItemText = CachedTextureItems[i];
 
@@ -2247,16 +2285,17 @@ bool UPropertyRenderer::RenderCollisionShapeTypeProperty(const FProperty& Prop, 
 	bool bChanged = false;
 
 	static const char* ModeNames[] = {
-		"Sphere",   // 0
-		"Box",       // 1
-		"Capsule",  // 2
-		"Convex"    // 3
+		"Sphere",       // 0
+		"Box",          // 1
+		"Capsule",      // 2
+		"Convex",       // 3
+		"TriangleMesh"  // 4
 	};
 	static const int NumModes = sizeof(ModeNames) / sizeof(ModeNames[0]);
 
 	int CurrentIndex = static_cast<int>(*ValuePtr);
 	if (CurrentIndex < 0 || CurrentIndex >= NumModes)
-		CurrentIndex = 2; // Default to Multiply
+		CurrentIndex = 1; // Default to Box
 
 	const char* PreviewText = ModeNames[CurrentIndex];
 
@@ -2278,16 +2317,17 @@ bool UPropertyRenderer::RenderCollisionShapeTypeProperty(const FProperty& Prop, 
 		ImGui::EndCombo();
 	}
 
-	// 툴팁으로 합성 모드 설명
+	// 툴팁으로 충돌 타입 설명
 	if (ImGui::IsItemHovered())
 	{
 		const char* Description = "";
 		switch (CurrentIndex)
 		{
-		case 0: Description = "박스"; break;
-		case 1: Description = "스피어"; break;
+		case 0: Description = "스피어 (구)"; break;
+		case 1: Description = "박스"; break;
 		case 2: Description = "캡슐"; break;
-		case 3: Description = "다각형"; break;
+		case 3: Description = "Convex (볼록 다각형)"; break;
+		case 4: Description = "Triangle Mesh (정밀 충돌)"; break;
 		}
 		ImGui::SetTooltip("%s", Description);
 	}

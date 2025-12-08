@@ -37,6 +37,12 @@ void UBodySetup::AddCapsule(const FKCapsuleElem& Elem)
     bCachedDataDirty = true;
 }
 
+void UBodySetup::AddTriangleMesh(const FKTriangleMeshElem& Elem)
+{
+    AggGeom.TriangleMeshElements.Add(Elem);
+    bCachedDataDirty = true;
+}
+
 void UBodySetup::BuildCachedData()
 {
 }
@@ -113,6 +119,7 @@ uint32 UBodySetup::GetTotalShapeCount() const
 	Total += static_cast<uint32>(AggGeom.BoxElements.size());
 	Total += static_cast<uint32>(AggGeom.CapsuleElements.size());
 	Total += static_cast<uint32>(AggGeom.ConvexElements.size());
+	Total += static_cast<uint32>(AggGeom.TriangleMeshElements.size());
 	return Total;
 }
 
@@ -225,5 +232,66 @@ void FKAggregateGeom::Serialize(const bool bInIsLoading, JSON& InOutHandle)
                 V.Z = static_cast<float>(PointJson.at(2).ToFloat());
                 Elem.Vertices.Add(V);
             }
+        });
+
+    SerializeArray("TriangleMeshes", TriangleMeshElements,
+        [](const FKTriangleMeshElem& Elem, JSON& Out)
+        {
+            // Vertices 배열
+            JSON VerticesArray = JSON::Make(JSON::Class::Array);
+            for (const FVector& V : Elem.Vertices)
+            {
+                VerticesArray.append(FJsonSerializer::VectorToJson(V));
+            }
+            Out["Vertices"] = VerticesArray;
+
+            // Indices 배열
+            JSON IndicesArray = JSON::Make(JSON::Class::Array);
+            for (uint32 Idx : Elem.Indices)
+            {
+                IndicesArray.append((int)Idx);
+            }
+            Out["Indices"] = IndicesArray;
+
+            // Scale
+            Out["Scale"] = FJsonSerializer::VectorToJson(Elem.Scale);
+        },
+        [](const JSON& In, FKTriangleMeshElem& Elem)
+        {
+            Elem.Vertices.Empty();
+            Elem.Indices.Empty();
+
+            // Vertices 읽기
+            if (In.hasKey("Vertices"))
+            {
+                const JSON& VerticesJsonArray = In.at("Vertices");
+                for (size_t i = 0; i < VerticesJsonArray.size(); ++i)
+                {
+                    const JSON& PointJson = VerticesJsonArray.at(i);
+                    if (PointJson.JSONType() != JSON::Class::Array || PointJson.size() != 3)
+                    {
+                        continue;
+                    }
+
+                    FVector V;
+                    V.X = static_cast<float>(PointJson.at(0).ToFloat());
+                    V.Y = static_cast<float>(PointJson.at(1).ToFloat());
+                    V.Z = static_cast<float>(PointJson.at(2).ToFloat());
+                    Elem.Vertices.Add(V);
+                }
+            }
+
+            // Indices 읽기
+            if (In.hasKey("Indices"))
+            {
+                const JSON& IndicesJsonArray = In.at("Indices");
+                for (size_t i = 0; i < IndicesJsonArray.size(); ++i)
+                {
+                    Elem.Indices.Add((uint32)IndicesJsonArray.at(i).ToInt());
+                }
+            }
+
+            // Scale 읽기
+            FJsonSerializer::ReadVector(In, "Scale", Elem.Scale, FVector(1.0f, 1.0f, 1.0f));
         });
 }

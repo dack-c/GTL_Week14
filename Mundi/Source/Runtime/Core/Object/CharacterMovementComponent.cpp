@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "CharacterMovementComponent.h"
 #include "Character.h"
 #include "SceneComponent.h"
@@ -71,7 +71,6 @@ void UCharacterMovementComponent::DoJump()
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		//UE_LOG("B");
 		SetSliding(false);
 		CurrentFloor.Reset();
 	}
@@ -85,12 +84,19 @@ void UCharacterMovementComponent::StopJump()
 	//}
 }
 
-void UCharacterMovementComponent::TryStartSliding()
+bool UCharacterMovementComponent::TryStartSliding()
 {
 	if (CheckFloor(CurrentFloor))
 	{
-		SetSliding(true);
+		// 너무 평지 같지 않는 곳에서만 슬라이딩 가능
+		if (CurrentFloor.ImpactNormal.Z < SlideFloorMaxNormalZ)
+		{
+			SetSliding(true);
+			return true;
+		}
 	}
+
+	return false;
 }
 
 void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
@@ -140,7 +146,6 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		// 현재 바닥이 없으면 isfalling으로
 		bIsFalling = true;
 		AirTime = 0.0f;
-		//UE_LOG("C");
 		bNeedRolling = false;
 		SetSliding(false);
 	}
@@ -246,7 +251,6 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		//UE_LOG("A");
 		CurrentFloor.Reset();
 	}
 }
@@ -256,7 +260,12 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 	AirTime += DeltaSecond;
 	if (NeedRollingAirTime < AirTime)
 	{
-		//UE_LOG("D");
+		static int LogCount = 0;
+		if (LogCount < 1)
+		{
+			UE_LOG("CharacterMovement: Rolling animation triggered (AirTime=%.2f)", AirTime);
+			++LogCount;
+		}
 		bNeedRolling = true;
 	}
 
@@ -285,6 +294,15 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsJumping = false;
 			bIsFalling = false;
 			CurrentFloor = Hit;
+			
+			// 구르기가 필요할 정도의 높이에서 떨어지면 슬라이딩 시도
+			if (bNeedRolling)
+			{
+				if (TryStartSliding())
+				{
+					bNeedRolling = false;
+				}
+			}
 			// SafeMoveUpdatedComponent에서 이미 SkinWidth 적용된 위치로 설정됨
 			// Hit.Location으로 덮어쓰면 경사면에 박힘
 		}
@@ -332,6 +350,15 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsJumping = false;
 			bIsFalling = false;
 			CurrentFloor = FloorHit;
+
+			// 구르기가 필요할 정도의 높이에서 떨어지면 슬라이딩 시도
+			if (bNeedRolling)
+			{
+				if (TryStartSliding())
+				{
+					bNeedRolling = false;
+				}
+			}
 
 			UE_LOG("[CharacterMovement] Landed on floor at Z=%.3f", FloorHit.ImpactPoint.Z);
 

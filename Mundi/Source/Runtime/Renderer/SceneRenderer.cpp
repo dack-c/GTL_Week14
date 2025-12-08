@@ -55,6 +55,8 @@
 #include "StatsOverlayD2D.h"
 #include "Source/Runtime/Engine/Particle/ParticleStats.h"
 #include "MotionBlurComponent.h"
+#include "SkeletalMeshComponent.h"
+#include "SkyBoxComponent.h"
 
 FSceneRenderer::FSceneRenderer(UWorld* InWorld, FSceneView* InView, URenderer* InOwnerRenderer)
 	: World(InWorld)
@@ -96,10 +98,19 @@ void FSceneRenderer::Render()
     // 렌더링할 대상 수집 (Cull + Gather)
     GatherVisibleProxies();
 
+
+	RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId);
+	const float bg[4] = { 0.0f, 0.0f, 0.0f, 1.00f };
+	RHIDevice->GetDeviceContext()->ClearRenderTargetView(RHIDevice->GetCurrentTargetRTV(), bg);
+	RHIDevice->ClearDepthBuffer(1.0f, 0);
+
 	TIME_PROFILE(ShadowMapPass)
 	RenderShadowMaps();
 	TIME_PROFILE_END(ShadowMapPass)
-	
+
+	//Skybox
+	RenderSkybox();
+
 	// ViewMode에 따라 렌더링 경로 결정
 	if (View->RenderSettings->GetViewMode() == EViewMode::VMI_Lit_Phong ||
 		View->RenderSettings->GetViewMode() == EViewMode::VMI_Lit_Gouraud ||
@@ -157,9 +168,44 @@ void FSceneRenderer::Render()
 // Render Path 함수 구현
 //====================================================================================
 
+void FSceneRenderer::RenderSkybox()
+{
+	if (SceneGlobals.SkyBoxes.size() > 0)
+	{
+		RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithoutDepth);
+
+		//setshader
+		UShader* SkyboxShader = UResourceManager::GetInstance().Load<UShader>("Shaders/Sky/SkyBox.hlsl");
+		RHIDevice->PrepareShader(SkyboxShader);
+		//srv
+		auto CubeMapSRV = UResourceManager::GetInstance().GetCubemap();
+		RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &CubeMapSRV);
+
+		//samplerstate
+		auto Sampler = RHIDevice->GetSamplerState(RHI_Sampler_Index::LinearClamp);
+		RHIDevice->GetDeviceContext()->PSSetSamplers(0, 1, &Sampler);
+
+		//rsstate
+		RHIDevice->RSSetState(ERasterizerMode::Solid_NoCull);
+		//dssstate
+		RHIDevice->OMSetDepthStencilState(EComparisonFunc::Disable);
+		//vertexindexbuffer
+		UStaticMesh* SkyBoxMesh = UResourceManager::GetInstance().Load<UStaticMesh>("Data/cube-tex.obj");
+		UINT Offset = 0;
+		UINT Stride = SkyBoxMesh->GetVertexStride();
+		auto VertexBuffer = SkyBoxMesh->GetVertexBuffer();
+		auto IndexBuffer = SkyBoxMesh->GetIndexBuffer();
+		RHIDevice->GetDeviceContext()->IASetVertexBuffers(0, 1, &VertexBuffer, &Stride, &Offset);
+		RHIDevice->GetDeviceContext()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, Offset);
+
+		RHIDevice->GetDeviceContext()->DrawIndexed(SkyBoxMesh->GetIndexCount(), 0, 0);		
+	}
+
+}
 void FSceneRenderer::RenderLitPath()
 {
     RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId);
+	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
 
 	// 이 뷰의 rect 영역에 대해 Scene Color를 클리어하여 불투명한 배경을 제공함
 	// 이렇게 해야 에디터 뷰포트 여러 개를 동시에 겹치게 띄워도 서로의 렌더링이 섞이지 않는다
@@ -171,12 +217,8 @@ void FSceneRenderer::RenderLitPath()
         vp.Height   = (float)View->ViewRect.Height();
         vp.MinDepth = 0.0f; vp.MaxDepth = 1.0f;
         RHIDevice->GetDeviceContext()->RSSetViewports(1, &vp);
-        const float bg[4] = { 0.0f, 0.0f, 0.0f, 1.00f };
-        RHIDevice->GetDeviceContext()->ClearRenderTargetView(RHIDevice->GetCurrentTargetRTV(), bg);
-        RHIDevice->ClearDepthBuffer(1.0f, 0);
     }
     // Base Pass
-    RenderSkyPass();  // Sky를 먼저 렌더링 (배경)
     RenderOpaquePass(View->RenderSettings->GetViewMode());
 	RenderDecalPass();
 }
@@ -770,6 +812,10 @@ void FSceneRenderer::GatherVisibleProxies()
 					{
 						if (bDrawParticle) { Proxies.Particles.Add(ParticleComponent); }
 					}
+					else if (USkyBoxComponent* SkyboxComponent = Cast<USkyBoxComponent>(PrimitiveComponent))
+					{
+						SceneGlobals.SkyBoxes.Add(SkyboxComponent);
+					}
 					// SkySphere는 RenderSkyPass에서 직접 찾음 (퓨쳐엔진 방식)
 				}
 				else
@@ -1135,7 +1181,11 @@ void FSceneRenderer::RenderDecalPass()
 			// 기즈모에 데칼 입히면 안되므로 에디팅이 안되는 Component는 데칼 그리지 않음
 			if (!SMC || !SMC->IsEditable())
 				continue;
-			
+
+			// SkeletalMeshComponent는 데칼 적용 제외 (캐릭터 등)
+			if (SMC->IsA(USkeletalMeshComponent::StaticClass()))
+				continue;
+
 			AActor* Owner = SMC->GetOwner();
 			if (!Owner || !Owner->IsActorVisible())
 				continue;
@@ -1178,41 +1228,6 @@ void FSceneRenderer::RenderDecalPass()
 	RHIDevice->RSSetState(ERasterizerMode::Solid);
 	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
 	RHIDevice->OMSetBlendState(false);
-}
-
-void FSceneRenderer::RenderSkyPass()
-{
-	GPU_TIME_PROFILE("Sky_Draw")
-
-	// 퓨쳐엔진과 동일: World에서 SkySphereActor 직접 찾기
-	ASkySphereActor* SkyActor = World->FindActor<ASkySphereActor>();
-	if (!SkyActor)
-	{
-		return;
-	}
-
-	USkySphereComponent* SkyComponent = SkyActor->GetSkySphereComponent();
-	if (!SkyComponent)
-	{
-		return;
-	}
-
-	// ViewProj 상수 버퍼 설정
-	FMatrix InvView = View->ViewMatrix.InverseAffine();
-	FMatrix InvProj = View->ProjectionMatrix.Inverse();
-	ViewProjBufferType ViewProjBuffer = ViewProjBufferType(View->ViewMatrix, View->ProjectionMatrix, InvView, InvProj);
-	RHIDevice->SetAndUpdateConstantBuffer(ViewProjBuffer);
-
-	// Sky 메시 배치 수집
-	TArray<FMeshBatchElement> SkyBatches;
-	SkyComponent->CollectMeshBatches(SkyBatches, View);
-
-	if (SkyBatches.IsEmpty())
-	{
-		return;
-	}
-
-	DrawMeshBatches(SkyBatches, true);
 }
 
 void FSceneRenderer::RenderPostProcessingPasses()
@@ -1518,7 +1533,9 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 
 	// PS 리소스 초기화
 	ID3D11ShaderResourceView* nullSRVs[2] = { nullptr, nullptr };
-	RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, nullSRVs);
+	RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, nullSRVs); // t0, t1
+	ID3D11ShaderResourceView* nullEmissiveSRV = nullptr;
+	RHIDevice->GetDeviceContext()->PSSetShaderResources(6, 1, &nullEmissiveSRV); // t6
 	ID3D11SamplerState* nullSamplers[2] = { nullptr, nullptr };
 	RHIDevice->GetDeviceContext()->PSSetSamplers(0, 2, nullSamplers);
 	FPixelConstBufferType DefaultPixelConst{};
@@ -1579,6 +1596,7 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 		{
 			ID3D11ShaderResourceView* DiffuseTextureSRV = nullptr; // t0
 			ID3D11ShaderResourceView* NormalTextureSRV = nullptr;  // t1
+			ID3D11ShaderResourceView* EmissiveTextureSRV = nullptr; // t6 (t2-t4는 타일 라이트 컬링)
 			FPixelConstBufferType PixelConst{};
 
 			if (Batch.Material)
@@ -1631,12 +1649,20 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 						PixelConst.bHasNormalTexture = (NormalTextureSRV != nullptr);
 					}
 				}
+				if (!MaterialInfo.EmissiveTextureFileName.empty())
+				{
+					if (UTexture* TextureData = Batch.Material->GetTexture(EMaterialTextureSlot::Emissive))
+					{
+						EmissiveTextureSRV = TextureData->GetShaderResourceView();
+					}
+				}
 			}
-			
+
 			// --- RHI 상태 업데이트 ---
 			// 1. 텍스처(SRV) 바인딩
 			ID3D11ShaderResourceView* Srvs[2] = { DiffuseTextureSRV, NormalTextureSRV };
-			RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, Srvs);
+			RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, Srvs); // t0, t1
+			RHIDevice->GetDeviceContext()->PSSetShaderResources(6, 1, &EmissiveTextureSRV); // t6 (Emissive)
 
 			// 2. 샘플러 바인딩
 			ID3D11SamplerState* Samplers[4] = { DefaultSampler, DefaultSampler, ShadowSampler, VSMSampler };
