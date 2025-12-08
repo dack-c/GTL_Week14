@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <FxCompile Include="Shaders\Effects\ParticleBeam.hlsl" />
@@ -475,7 +475,8 @@
     <ClCompile Include="Source\Runtime\Engine\GameFramework\SkySphereActor.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\MotionBlurPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\RenderTexture.cpp" />
-  </ItemGroup>
+    <ClCompile Include="Source\Runtime\Engine\Components\MotionBlurComponent.cpp" />
+  <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
   <ItemGroup>
     <ClInclude Include="Generated\AActor.generated.h">
       <Filter>Generated</Filter>
@@ -970,7 +971,8 @@
     <ClInclude Include="Source\Runtime\Engine\GameFramework\SkySphereActor.h" />
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\MotionBlurPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\RenderTexture.h" />
-  </ItemGroup>
+    <ClInclude Include="Source\Runtime\Engine\Components\MotionBlurComponent.h" />
+  <ClInclude Include="Generated\UMotionBlurComponent.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />
