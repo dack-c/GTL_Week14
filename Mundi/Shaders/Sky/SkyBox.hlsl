@@ -46,7 +46,6 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
 {
     // direction should be normalized for proper sampling
     float3 dir = normalize(input.Dir.yzx);
-
     // Sample the cubemap; assume cubemap uses same coordinate convention as your cube verts.
     float4 color = SkyCube.Sample(LinearSampler, dir);
 

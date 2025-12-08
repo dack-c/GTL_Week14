@@ -45,7 +45,7 @@ if TutorialMoveSuccess == true then
 return
 end
 TutorialMoveSuccess = true
-TutorialImagePath = "Data/Textures/MoveTutorial.png"
+TutorialImagePath = "Data/Textures/MoveTutorialTemp.png"
 TutorialImageTime = 5
 end
 
@@ -56,7 +56,7 @@ if TutorialJumpSuccess == true then
 return
 end
 TutorialJumpSuccess = true
-TutorialImagePath = "Data/Textures/JumpTutorial.png"
+TutorialImagePath = "Data/Textures/JumpTutorialTemp.png"
 TutorialImageTime = 5
 end
 
@@ -67,7 +67,8 @@ if TutorialSlideSuccess == true then
 return
 end
 TutorialSlideSuccess = true
---움직임 튜토리얼 사진 띄우기
+TutorialImagePath = "Data/Textures/SlideTutorialTemp.png"
+TutorialImageTime = 5
 end
 
 
@@ -77,5 +78,6 @@ if TutorialEndSuccess == true then
 return
 end
 TutorialEndSuccess = true
---움직임 튜토리얼 사진 띄우기
+TutorialImagePath = "Data/Textures/QETutorialTemp.png"
+TutorialImageTime = 5
 end
