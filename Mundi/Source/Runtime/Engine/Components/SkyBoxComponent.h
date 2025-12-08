@@ -8,6 +8,8 @@ class USkyBoxComponent : public UPrimitiveComponent
 {
 	GENERATED_REFLECTION_BODY()
 
+	static const FWideString SkyBoxPath;
+
 public:
 
 	USkyBoxComponent() = default;

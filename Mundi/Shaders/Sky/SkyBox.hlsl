@@ -50,6 +50,9 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
     // Sample the cubemap; assume cubemap uses same coordinate convention as your cube verts.
     float4 color = SkyCube.Sample(LinearSampler, dir);
 
+    color.r = pow(color.r, 2.2f);
+    color.g = pow(color.g, 2.2f);
+    color.b = pow(color.b, 2.2f);
     // No tonemapping here — apply later in your postprocess if needed.
-    return color;
+    return float4(color.rgb,1);
 }

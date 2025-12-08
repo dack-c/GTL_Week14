@@ -11,6 +11,7 @@
 
 #include <filesystem>
 #include <cwctype>
+#include "SkyBoxComponent.h"
 
 IMPLEMENT_CLASS(UResourceManager)
 
@@ -40,7 +41,7 @@ void UResourceManager::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
     Context = InContext;
     //CreateGridMesh(GRIDNUM,"Grid");
     //CreateAxisMesh(AXISLENGTH,"Axis");
-    LoadCubeMap(L"Data/Cubemap/Cubemap.dds");
+    LoadCubeMap(USkyBoxComponent::SkyBoxPath);
     InitShaderILMap();
 
     InitTexToShaderMap();
