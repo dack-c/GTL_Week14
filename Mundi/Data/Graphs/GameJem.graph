@@ -317,8 +317,8 @@
     }, {
       "FromNodeID" : 101,
       "FromPinName" : "Result",
-      "ToNodeID" : 97,
-      "ToPinName" : "Can Transition"
+      "ToNodeID" : 141,
+      "ToPinName" : "B"
     }, {
       "FromNodeID" : 102,
       "FromPinName" : "Value",
@@ -473,6 +473,26 @@
       "FromNodeID" : 137,
       "FromPinName" : "Is Finished",
       "ToNodeID" : 131,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 138,
+      "FromPinName" : "Height",
+      "ToNodeID" : 140,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 139,
+      "FromPinName" : "Value",
+      "ToNodeID" : 140,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 140,
+      "FromPinName" : "Result",
+      "ToNodeID" : 141,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 141,
+      "FromPinName" : "Result",
+      "ToNodeID" : 97,
       "ToPinName" : "Can Transition"
     }],
   "Nodes" : [{
@@ -1250,8 +1270,8 @@
     }, {
       "ClassName" : "UK2Node_AnimTransition",
       "NodeID" : 97,
-      "NodePosX" : 3790.000000,
-      "NodePosY" : 516.000000,
+      "NodePosX" : 3854.000000,
+      "NodePosY" : 548.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -1333,8 +1353,8 @@
       "ClassName" : "UK2Node_IsPressed",
       "KeyName" : "E",
       "NodeID" : 101,
-      "NodePosX" : 3274.000000,
-      "NodePosY" : 608.000000,
+      "NodePosX" : 4138.000000,
+      "NodePosY" : 480.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 1,
@@ -1783,6 +1803,76 @@
           "PinCategory" : "bool",
           "PinName" : "Is Finished"
         }]
+    }, {
+      "ClassName" : "UK2Node_GetForwardObjHeight",
+      "NodeID" : 138,
+      "NodePosX" : 3662.000000,
+      "NodePosY" : 416.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Height"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Has Object"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 139,
+      "NodePosX" : 3857.000000,
+      "NodePosY" : 352.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 1.000000
+    }, {
+      "ClassName" : "UK2Node_Greater_FloatFloat",
+      "NodeID" : 140,
+      "NodePosX" : 4120.000000,
+      "NodePosY" : 340.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_And_BoolBool",
+      "NodeID" : 141,
+      "NodePosX" : 4472.000000,
+      "NodePosY" : 388.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
     }],
-  "UniqueIDCounter" : 138
+  "UniqueIDCounter" : 142
 }
