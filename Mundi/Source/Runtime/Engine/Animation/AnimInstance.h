@@ -1,34 +1,13 @@
 ﻿#pragma once
 #include "Object.h"
 #include "AnimTypes.h"
+//#include "AnimStateTypes.h"
+#include "UAnimInstance.generated.h"
 
 // Forward declarations
 class UAnimationStateMachine;
 class UAnimSequence;
 class USkeletalMeshComponent;
-
-/**
- * @brief 애니메이션 재생 상태를 관리하는 구조체
- * @note 포즈 제공자 기반으로 리팩터링됨 - AnimSequence, BlendSpace 등 모두 지원
- */
-struct FAnimationPlayState
-{
-    /** 포즈를 제공하는 소스 (AnimSequence, BlendSpace1D 등) */
-    IAnimPoseProvider* PoseProvider = nullptr;
-
-    /** 기존 호환성을 위한 AnimSequence 참조 (노티파이 등에서 사용) */
-    UAnimSequence* Sequence = nullptr;
-
-    /** BlendSpace용 파라미터 값 */
-    float BlendParameter = 0.0f;
-
-    float CurrentTime = 0.0f;
-    float PlayRate = 1.0f;
-    float BlendWeight = 1.0f;
-    bool bIsLooping = false;
-    bool bIsPlaying = false;
-    uint32 loopCount = 1; // 몇 번째 루프인지
-};
 
 /**
  * @brief 애니메이션 인스턴스
@@ -104,9 +83,9 @@ struct FAnimationPlayState
  */
 class UAnimInstance : public UObject
 {
-    DECLARE_CLASS(UAnimInstance, UObject)
-
 public:
+    GENERATED_REFLECTION_BODY()
+
     UAnimInstance() = default;
     virtual ~UAnimInstance() = default;
 

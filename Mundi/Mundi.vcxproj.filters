@@ -476,7 +476,7 @@
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\MotionBlurPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\RenderTexture.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\MotionBlurComponent.cpp" />
-  <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
+  <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\UAnimationStateMachine.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\UAnimInstance.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
   <ItemGroup>
     <ClInclude Include="Generated\AActor.generated.h">
       <Filter>Generated</Filter>
@@ -972,7 +972,7 @@
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\MotionBlurPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\RenderTexture.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\MotionBlurComponent.h" />
-  <ClInclude Include="Generated\UMotionBlurComponent.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
+  <ClInclude Include="Generated\UMotionBlurComponent.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\UAnimationStateMachine.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\UAnimInstance.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />
