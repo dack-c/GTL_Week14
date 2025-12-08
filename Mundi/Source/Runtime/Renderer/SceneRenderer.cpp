@@ -54,6 +54,7 @@
 #include "SkinningStats.h"
 #include "StatsOverlayD2D.h"
 #include "Source/Runtime/Engine/Particle/ParticleStats.h"
+#include "MotionBlurComponent.h"
 
 FSceneRenderer::FSceneRenderer(UWorld* InWorld, FSceneView* InView, URenderer* InOwnerRenderer)
 	: World(InWorld)
@@ -670,6 +671,7 @@ void FSceneRenderer::GatherVisibleProxies()
 	const bool bDrawSkeletalMeshes = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_SkeletalMeshes);
 	const bool bDrawDecals = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Decals);
 	const bool bDrawFog = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Fog);
+	const bool bDrawMotionBlur = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_MotionBlur);
 	const bool bDrawLight = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Lighting);
 	const bool bUseAntiAliasing = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_FXAA);
 	const bool bUseBillboard = World->GetRenderSettings().IsShowFlagEnabled(EEngineShowFlags::SF_Billboard);
@@ -775,6 +777,10 @@ void FSceneRenderer::GatherVisibleProxies()
 					if (UHeightFogComponent* FogComponent = Cast<UHeightFogComponent>(Component); FogComponent && bDrawFog)
 					{
 						SceneGlobals.Fogs.Add(FogComponent);
+					}
+					else if (UMotionBlurComponent* MBComp = Cast<UMotionBlurComponent>(Component); MBComp && bDrawMotionBlur)
+					{
+						SceneGlobals.MotionBlurs.Add(MBComp);
 					}
 
 					else if (UDirectionalLightComponent* LightComponent = Cast<UDirectionalLightComponent>(Component); LightComponent && bDrawLight)
@@ -1229,7 +1235,19 @@ void FSceneRenderer::RenderPostProcessingPasses()
 			PostProcessModifiers.Add(FogPostProc);
 		}
 	}
-	
+	if (0 < SceneGlobals.MotionBlurs.Num())
+	{
+		UMotionBlurComponent* MBComp = SceneGlobals.MotionBlurs[0];
+		if (MBComp)
+		{
+			FPostProcessModifier MBPostProc;
+			MBPostProc.Type = EPostProcessEffectType::MotionBlur;
+			MBPostProc.bEnabled = MBComp->IsActive() && MBComp->IsVisible();
+			MBPostProc.SourceObject = MBComp;
+			MBPostProc.Priority = -1;
+			PostProcessModifiers.Add(MBPostProc);
+		}
+	}
 	PostProcessModifiers.Sort([](const FPostProcessModifier& LHS, const FPostProcessModifier& RHS)
 	{
 		if (LHS.Priority == RHS.Priority)
@@ -1263,6 +1281,9 @@ void FSceneRenderer::RenderPostProcessingPasses()
 				DOFBlurPass.Execute(Modifier, View, RHIDevice);
 				DOFRecombinePass.Execute(Modifier, View, RHIDevice);
 			}
+			break;
+		case EPostProcessEffectType::MotionBlur:
+			MotionBlurPass.Execute(Modifier, View, RHIDevice);
 			break;
 		} 
 	}
