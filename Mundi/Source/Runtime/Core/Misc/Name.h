@@ -30,6 +30,10 @@ struct FName
     uint32 DisplayIndex = -1;
     uint32 ComparisonIndex = -1;
 
+#if defined(DEBUG) || defined(_DEBUG)
+    FString DebugStr;
+#endif
+
     FName() = default;
     FName(const char* InStr) { Init(FString(InStr)); }
     FName(const FString& InStr) { Init(InStr); }
@@ -39,6 +43,8 @@ struct FName
         int32_t Index = FNamePool::Add(InStr);
         DisplayIndex = Index;
         ComparisonIndex = Index; // 필요시 다른 규칙 적용 가능
+
+        DebugStr = InStr;
     }
 
     bool operator==(const FName& Other) const { return ComparisonIndex == Other.ComparisonIndex; }
