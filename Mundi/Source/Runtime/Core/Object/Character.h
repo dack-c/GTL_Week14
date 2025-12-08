@@ -5,6 +5,7 @@
 class UCapsuleComponent;
 class USkeletalMeshComponent;
 class UCharacterMovementComponent;
+class UParticleSystemComponent;
  
 UCLASS(DisplayName = "캐릭터", Description = "캐릭터 액터")
 class ACharacter : public APawn
@@ -27,6 +28,7 @@ public:
 	 
 	UCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
 	UCharacterMovementComponent* GetCharacterMovement() const { return CharacterMovement; }
+	UParticleSystemComponent* GetSlidingParticleComponent() const { return SlidingParticleComponent; }
 
 	// APawn 인터페이스: 파생 클래스의 MovementComponent를 노출
 	virtual UPawnMovementComponent* GetMovementComponent() const override { return reinterpret_cast<UPawnMovementComponent*>(CharacterMovement); }
@@ -38,6 +40,7 @@ public:
 
 protected:
     UCapsuleComponent* CapsuleComponent;
+	USkeletalMeshComponent* SkeletalMeshComp;
     UCharacterMovementComponent* CharacterMovement;
-
+	UParticleSystemComponent* SlidingParticleComponent;
 };
