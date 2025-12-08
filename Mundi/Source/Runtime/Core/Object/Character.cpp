@@ -2,7 +2,8 @@
 #include "Character.h"
 #include "CapsuleComponent.h"
 #include "SkeletalMeshComponent.h"
-#include "CharacterMovementComponent.h" 
+#include "CharacterMovementComponent.h"
+#include "Source/Runtime/Engine/Components/ParticleSystemComponent.h"
 #include "ObjectMacros.h" 
 #include "Source/Runtime/Engine/Collision/Collision.h" 
 #include "TriggerComponent.h"
@@ -43,6 +44,11 @@ void ACharacter::Tick(float DeltaSecond)
 void ACharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+	if (SlidingParticleComponent)
+	{
+		SlidingParticleComponent->bSuppressSpawning = true;
+	}
 }
 
 void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
@@ -53,7 +59,9 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
     {
         // Rebind important component pointers after load (prefab/scene)
         CapsuleComponent = nullptr;
+		SkeletalMeshComp = nullptr;
         CharacterMovement = nullptr;
+		SlidingParticleComponent = nullptr;
 
         for (UActorComponent* Comp : GetOwnedComponents())
         {
@@ -61,10 +69,22 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
             {
                 CapsuleComponent = Cap;
             }
+			else if (auto* Skel = Cast<USkeletalMeshComponent>(Comp))
+			{
+				SkeletalMeshComp = Skel;
+			}
             else if (auto* Move = Cast<UCharacterMovementComponent>(Comp))
             {
                 CharacterMovement = Move;
             }
+			else if (auto* Particle = Cast<UParticleSystemComponent>(Comp))
+			{
+				// TODO: Find a better way to distinguish particle components
+				if (Comp->GetName() == "SlidingParticle")
+				{
+					SlidingParticleComponent = Particle;
+				}
+			}
         }
 
         if (CharacterMovement)
@@ -81,7 +101,9 @@ void ACharacter::DuplicateSubObjects()
     Super::DuplicateSubObjects();
      
     CapsuleComponent = nullptr;
+	SkeletalMeshComp = nullptr;
     CharacterMovement = nullptr;
+	SlidingParticleComponent = nullptr;
 
     for (UActorComponent* Comp : GetOwnedComponents())
     {
@@ -89,10 +111,21 @@ void ACharacter::DuplicateSubObjects()
         {
             CapsuleComponent = Cap;
         }
+		else if (auto* Skel = Cast<USkeletalMeshComponent>(Comp))
+		{
+			SkeletalMeshComp = Skel;
+		}
         else if (auto* Move = Cast<UCharacterMovementComponent>(Comp))
         {
             CharacterMovement = Move;
         }
+		else if (auto* Particle = Cast<UParticleSystemComponent>(Comp))
+		{
+			if (Comp->GetName() == "SlidingParticle")
+			{
+				SlidingParticleComponent = Particle;
+			}
+		}
     }
 
     // Ensure movement component tracks the correct updated component
