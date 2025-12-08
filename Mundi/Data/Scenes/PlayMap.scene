@@ -84,7 +84,7 @@
           "ObjectName" : "UStaticMeshComponent_1",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [14.280866, 235.262146, -95.923607],
+          "RelativeLocation" : [4.782555, 228.047272, -102.280182],
           "RelativeRotationEuler" : [0.000000, -3.704814, 7.530885],
           "RelativeScale" : [0.020000, 0.020000, 0.020000],
           "RestitutionCombineModeOverride" : 2,
@@ -161,6 +161,33 @@
       "RootComponentId" : 19593,
       "Tag" : "",
       "Type" : "ADecalActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "203474" : {
+      "ObjectName" : "플레이어 시작 위치_2",
+      "OwnedComponents" : [{
+          "CollisionEnabled_Internal" : 2,
+          "Id" : 203475,
+          "ObjectName" : "UBillboardComponent_29",
+          "ParentId" : 0,
+          "RelativeLocation" : [-6.086611, -0.954217, 80.813042],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Texture" : "Data/Icon/PlayerStart_64.dds",
+          "Type" : "UBillboardComponent",
+          "bBlockComponent" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : true,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bTickEnabled" : true
+        }],
+      "PlayerStartTag" : "Invalid",
+      "RootComponentId" : 203475,
+      "Tag" : "",
+      "Type" : "APlayerStart",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
@@ -514,7 +541,7 @@
           "ObjectName" : "UStaticMeshComponent_1",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [168.783997, 39.319199, -74.119499],
+          "RelativeLocation" : [158.856186, 39.319191, -74.119499],
           "RelativeRotationEuler" : [0.000000, -0.000000, -179.999954],
           "RelativeScale" : [0.030000, 0.030000, 0.030000],
           "RestitutionCombineModeOverride" : 2,
@@ -768,61 +795,6 @@
       "RootComponentId" : 5754,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
-      "bActorHiddenInGame" : false,
-      "bActorIsActive" : true
-    },
-    "5759" : {
-      "ObjectName" : "플레이어 시작 위치_0",
-      "OwnedComponents" : [{
-          "CollisionEnabled_Internal" : 2,
-          "Id" : 5761,
-          "ObjectName" : "UBillboardComponent_5",
-          "ParentId" : 0,
-          "RelativeLocation" : [77.124077, 209.541809, -3.806724],
-          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-          "RelativeScale" : [1.000000, 1.000000, 1.000000],
-          "Texture" : "Data/Icon/PlayerStart_64.dds",
-          "Type" : "UBillboardComponent",
-          "bBlockComponent" : false,
-          "bGenerateOverlapEvents" : true,
-          "bHiddenInGame" : true,
-          "bIsActive" : true,
-          "bIsVisible" : true,
-          "bOverrideCollisionSetting" : false,
-          "bTickEnabled" : true
-        }],
-      "PlayerStartTag" : "Invalid",
-      "RootComponentId" : 5761,
-      "Tag" : "",
-      "Type" : "APlayerStart",
-      "bActorHiddenInGame" : false,
-      "bActorIsActive" : true
-    },
-    "5762" : {
-      "ObjectName" : "높이 안개_0",
-      "OwnedComponents" : [{
-          "FogCutoffDistance" : 6000.000000,
-          "FogDensity" : 0.130000,
-          "FogHeightFalloff" : 0.050000,
-          "FogInscatteringColor" : [0.598977, 0.620915, 0.633205, 1.000000],
-          "FogMaxOpacity" : 0.833000,
-          "HeightFogShader" : "Shaders/PostProcess/HeightFog_PS.hlsl",
-          "Id" : 5764,
-          "ObjectName" : "UHeightFogComponent_1",
-          "ParentId" : 0,
-          "RelativeLocation" : [3.557944, -3.144556, -43.518162],
-          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-          "RelativeScale" : [1.000000, 1.000000, 1.000000],
-          "StartDistance" : 0.000000,
-          "Type" : "UHeightFogComponent",
-          "bHiddenInGame" : false,
-          "bIsActive" : true,
-          "bIsVisible" : true,
-          "bTickEnabled" : true
-        }],
-      "RootComponentId" : 5764,
-      "Tag" : "",
-      "Type" : "AHeightFogActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
     },
@@ -2684,13 +2656,13 @@
       "bActorIsActive" : true
     }
   },
-  "NextUUID" : 131821,
+  "NextUUID" : 203476,
   "PerspectiveCamera" : {
     "FOV" : [60.000000],
     "FarClip" : [2000.000000],
-    "Location" : [-157.221130, 266.212830, 15.691668],
+    "Location" : [-13.368443, -3.212808, 92.899521],
     "NearClip" : [0.100000],
-    "Rotation" : [0.000000, 7.600501, -43.184578]
+    "Rotation" : [0.000000, 37.199593, 8.908626]
   },
   "Version" : 1
 }
