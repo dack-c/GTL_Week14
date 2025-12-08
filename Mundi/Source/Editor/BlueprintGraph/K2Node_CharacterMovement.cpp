@@ -122,6 +122,86 @@ void UK2Node_GetIsSliding::GetMenuActions(FBlueprintActionDatabaseRegistrar& Act
 }
 
 // ----------------------------------------------------------------
+//	[GetIsJumping] 
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetIsJumping)
+
+UK2Node_GetIsJumping::UK2Node_GetIsJumping()
+{
+    TitleColor = ImColor(100, 200, 100); // Pure Node Green
+}
+
+void UK2Node_GetIsJumping::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Is Jumping");
+}
+
+FBlueprintValue UK2Node_GetIsJumping::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    UCharacterMovementComponent* MoveComp = GetMovementFromContext(Context);
+
+    if (OutputPin->PinName == "Is Jumping")
+    {
+        if (!MoveComp)
+        {
+            return FBlueprintValue(false);
+        }
+        return FBlueprintValue(MoveComp->IsJumping());
+    }
+
+    return FBlueprintValue{};
+}
+
+void UK2Node_GetIsJumping::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
+//	[GetNeedRolling] 
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetNeedRolling)
+
+UK2Node_GetNeedRolling::UK2Node_GetNeedRolling()
+{
+    TitleColor = ImColor(100, 200, 100); // Pure Node Green
+}
+
+void UK2Node_GetNeedRolling::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Need Rolling");
+}
+
+FBlueprintValue UK2Node_GetNeedRolling::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    UCharacterMovementComponent* MoveComp = GetMovementFromContext(Context);
+
+    if (OutputPin->PinName == "Need Rolling")
+    {
+        if (!MoveComp)
+        {
+            return FBlueprintValue(false);
+        }
+        return FBlueprintValue(MoveComp->NeedRolling());
+    }
+
+    return FBlueprintValue{};
+}
+
+void UK2Node_GetNeedRolling::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
 //	[GetVelocity] 
 // ----------------------------------------------------------------
 

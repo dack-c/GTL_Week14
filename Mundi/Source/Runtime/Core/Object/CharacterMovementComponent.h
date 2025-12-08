@@ -40,6 +40,8 @@ public:
 	void TryStartSliding();
 	bool IsFalling() const { return bIsFalling; }
 	bool IsSliding() const { return bIsSliding; }
+	bool IsJumping() const { return bIsJumping; }
+	bool NeedRolling() const { return bNeedRolling; }
 	bool IsOnGround() const { return !bIsFalling; }
 	const FHitResult& GetCurrentFloorResult() const { return CurrentFloor; }
 
@@ -123,10 +125,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Move")
 	float MinFloorNormalZ = 0.7f;	// 평지로 인식하는 최소 normal Z
 
+	UPROPERTY(EditAnywhere, Category = "Move")
+	float NeedRollingAirTime = 2.0f;	// 해당 시간 동안 체공 시 구르기로 착지
+
 protected:
 	ACharacter* CharacterOwner = nullptr;
+	bool bIsJumping = false;
 	bool bIsFalling = false;
 	bool bIsSliding = false;
+	bool bNeedRolling = false;
+	float AirTime = 0.0f;
 	FHitResult CurrentFloor;
 
 	const float GLOBAL_GRAVITY_Z = -9.8f;
