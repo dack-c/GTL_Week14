@@ -134,6 +134,7 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
                 };
 
                 OutStateMachine->AddTransition(FStateTransition(FromName, ToName, Condition, BlendTime));
+				UE_LOG("FAnimBlueprintCompiler::Compile: 전이 추가 %s -> %s", FromName.ToString().c_str(), ToName.ToString().c_str());
             }
         }
     }
