@@ -9,6 +9,7 @@
 #include "PostProcessing/DOFSetupPass.h"
 #include "PostProcessing/DOFBlurPass.h"
 #include "PostProcessing/DOFRecombinePass.h"
+#include "PostProcessing/MotionBlurPass.h"
 
 // 전방 선언 (헤더 파일 의존성 최소화)
 class UWorld;
@@ -16,6 +17,7 @@ class ACameraActor;
 class FViewport;
 class URenderer;
 class D3D11RHI;
+class UMotionBlurComponent;
 class UPrimitiveComponent;
 class UDecalComponent;
 class UHeightFogComponent;
@@ -57,8 +59,7 @@ struct FVisibleRenderProxySet
 struct FSceneLocals
 {
 	TArray<UPointLightComponent*> PointLights;
-	TArray<USpotLightComponent*> SpotLights;
-};
+	TArray<USpotLightComponent*> SpotLights;};
 
 // NOTE: 추후 UWorld로 이동해서 등록/해지 방식으로 변경?
 // 전역 효과 및 설정을 담는 구조체
@@ -68,6 +69,7 @@ struct FSceneGlobals
 	TArray<UAmbientLightComponent*> AmbientLights;
 	TArray<UHeightFogComponent*> Fogs;	// 첫 번째로 찾은 Fog를 사용함
 	TArray<USkySphereComponent*> SkySpheres;  // 첫 번째로 찾은 SkySphere를 사용함
+	TArray<UMotionBlurComponent*> MotionBlurs;
 };
 
 /**
@@ -167,4 +169,5 @@ private:
 	FDOFSetupPass DOFSetupPass;
 	FDOFBlurPass DOFBlurPass;
 	FDOFRecombinePass DOFRecombinePass;
+	FMotionBlurPass MotionBlurPass;
 };
