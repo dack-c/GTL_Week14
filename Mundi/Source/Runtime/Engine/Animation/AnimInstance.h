@@ -204,6 +204,7 @@ public:
     /**
      * @brief 상태머신 가져오기
      */
+    UFUNCTION(LuaBind, DisplayName = "GetStateMachine")
     UAnimationStateMachine* GetStateMachine() const { return AnimStateMachine; }
 
     /**
