@@ -60,33 +60,43 @@ void FBXMaterialLoader::ParseMaterial(FbxSurfaceMaterial* Material, FMaterialInf
 	}
 
 
+	UE_LOG("FBXMaterialLoader: ParseMaterial: Processing material '%s'", MaterialInfo.MaterialName.c_str());
+
 	FbxProperty Property;
 
 	Property = Material->FindProperty(FbxSurfaceMaterial::sDiffuse);
 	MaterialInfo.DiffuseTextureFileName = ParseTexturePath(Property);
+	UE_LOG("FBXMaterialLoader: ParseMaterial: Diffuse texture = '%s'", MaterialInfo.DiffuseTextureFileName.c_str());
 
 	Property = Material->FindProperty(FbxSurfaceMaterial::sNormalMap);
 	MaterialInfo.NormalTextureFileName = ParseTexturePath(Property);
+	UE_LOG("FBXMaterialLoader: ParseMaterial: Normal texture = '%s'", MaterialInfo.NormalTextureFileName.c_str());
 
 	Property = Material->FindProperty(FbxSurfaceMaterial::sAmbient);
 	MaterialInfo.AmbientTextureFileName = ParseTexturePath(Property);
+	UE_LOG("FBXMaterialLoader: ParseMaterial: Ambient texture = '%s'", MaterialInfo.AmbientTextureFileName.c_str());
 
 	Property = Material->FindProperty(FbxSurfaceMaterial::sSpecular);
 	MaterialInfo.SpecularTextureFileName = ParseTexturePath(Property);
+	UE_LOG("FBXMaterialLoader: ParseMaterial: Specular texture = '%s'", MaterialInfo.SpecularTextureFileName.c_str());
 
 	Property = Material->FindProperty(FbxSurfaceMaterial::sEmissive);
 	MaterialInfo.EmissiveTextureFileName = ParseTexturePath(Property);
+	UE_LOG("FBXMaterialLoader: ParseMaterial: Emissive texture = '%s'", MaterialInfo.EmissiveTextureFileName.c_str());
 
 	Property = Material->FindProperty(FbxSurfaceMaterial::sTransparencyFactor);
 	MaterialInfo.TransparencyTextureFileName = ParseTexturePath(Property);
+	UE_LOG("FBXMaterialLoader: ParseMaterial: Transparency texture = '%s'", MaterialInfo.TransparencyTextureFileName.c_str());
 
 	Property = Material->FindProperty(FbxSurfaceMaterial::sShininess);
 	MaterialInfo.SpecularExponentTextureFileName = ParseTexturePath(Property);
+	UE_LOG("FBXMaterialLoader: ParseMaterial: SpecularExponent texture = '%s'", MaterialInfo.SpecularExponentTextureFileName.c_str());
 
 	UMaterial* Default = UResourceManager::GetInstance().GetDefaultMaterial();
 	NewMaterial->SetMaterialInfo(MaterialInfo);
 	NewMaterial->SetShader(Default->GetShader());
 	NewMaterial->SetShaderMacros(Default->GetShaderMacros());
+	NewMaterial->ResolveTextures(); // MaterialInfo의 텍스처 경로들을 기반으로 실제 UTexture 로드
 
 	MaterialInfos.Add(MaterialInfo);
 	UResourceManager::GetInstance().Add<UMaterial>(MaterialInfo.MaterialName, NewMaterial);
@@ -96,27 +106,77 @@ FString FBXMaterialLoader::ParseTexturePath(FbxProperty& Property)
 {
 	if (Property.IsValid())
 	{
-		if (Property.GetSrcObjectCount<FbxFileTexture>() > 0)
+		int32 TextureCount = Property.GetSrcObjectCount<FbxFileTexture>();
+		UE_LOG("FBXMaterialLoader: ParseTexturePath: Property='%s', TextureCount=%d", Property.GetName().Buffer(), TextureCount);
+
+		if (TextureCount > 0)
 		{
 			FbxFileTexture* Texture = Property.GetSrcObject<FbxFileTexture>(0);
 			if (Texture)
 			{
 				const char* AcpPath = Texture->GetRelativeFileName();
-				if (!AcpPath || strlen(AcpPath) == 0)
+				bool bUsedRelative = (AcpPath && strlen(AcpPath) > 0);
+				if (!bUsedRelative)
 				{
 					AcpPath = Texture->GetFileName();
 				}
 
 				if (!AcpPath)
 				{
+					UE_LOG("FBXMaterialLoader: ParseTexturePath: No filename found in FbxFileTexture");
 					return FString();
 				}
 
 				FString TexturePath = ACPToUTF8(AcpPath);
 				const FString& CurrentFbxBaseDir = UFbxLoader::GetInstance().GetCurrentFbxBaseDir();
-				return ResolveAssetRelativePath(TexturePath, CurrentFbxBaseDir);
+				FString ResolvedPath = ResolveAssetRelativePath(TexturePath, CurrentFbxBaseDir);
+
+				UE_LOG("FBXMaterialLoader: ParseTexturePath: RawPath='%s' (Relative=%d), BaseDir='%s', ResolvedPath='%s'",
+					TexturePath.c_str(), bUsedRelative, CurrentFbxBaseDir.c_str(), ResolvedPath.c_str());
+
+				// Smart Texture Matching: 경로 해석 실패 시 또는 파일이 존재하지 않으면 파일명으로 폴백 검색
+				bool bNeedsFallback = ResolvedPath.empty();
+				if (!bNeedsFallback)
+				{
+					// ResolvedPath가 있어도 실제 파일이 존재하지 않으면 폴백 필요
+					FWideString WResolvedPath = UTF8ToWide(ResolvedPath);
+					if (!std::filesystem::exists(WResolvedPath))
+					{
+						bNeedsFallback = true;
+						UE_LOG("FBXMaterialLoader: ParseTexturePath: Resolved path does not exist, attempting smart matching");
+					}
+				}
+
+				if (bNeedsFallback)
+				{
+					// RawPath에서 파일명(basename)만 추출 (경로 구분자 처리: / 또는 \)
+					size_t LastSlash = TexturePath.find_last_of("/\\");
+					FString FileName = (LastSlash != FString::npos) ? TexturePath.substr(LastSlash + 1) : TexturePath;
+
+					const TMap<FString, FString>& TextureMap = UFbxLoader::GetTextureFileNameMap();
+					auto It = TextureMap.find(FileName);
+					if (It != TextureMap.end())
+					{
+						ResolvedPath = It->second;
+						UE_LOG("FBXMaterialLoader: ParseTexturePath: Smart matching found '%s' -> '%s'", FileName.c_str(), ResolvedPath.c_str());
+					}
+					else
+					{
+						UE_LOG("FBXMaterialLoader: ParseTexturePath: Smart matching failed, filename '%s' not found in texture map", FileName.c_str());
+					}
+				}
+
+				return ResolvedPath;
 			}
 		}
+		else
+		{
+			UE_LOG("FBXMaterialLoader: ParseTexturePath: Property '%s' has no FbxFileTexture objects", Property.GetName().Buffer());
+		}
+	}
+	else
+	{
+		UE_LOG("FBXMaterialLoader: ParseTexturePath: Property is invalid");
 	}
 	return FString();
 }
