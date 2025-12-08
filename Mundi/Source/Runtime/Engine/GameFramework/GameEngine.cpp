@@ -216,7 +216,7 @@ bool UGameEngine::Startup(HINSTANCE hInstance)
     ///////////////////////////////////
 
     // 시작 scene(level)을 직접 로드 
-    const FString StartupScenePath = GDataDir + "/Scenes/Final.scene";
+    const FString StartupScenePath = GDataDir + "/Scenes/PlayMap.scene";
     if (!GWorld->LoadLevelFromFile(UTF8ToWide(StartupScenePath)))
     {
         UE_LOG("Failed to load startup scene: %s", StartupScenePath.c_str());
