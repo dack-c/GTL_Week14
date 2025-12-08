@@ -73,6 +73,9 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         BlendTimeRemaining = FMath::Max(BlendTimeRemaining - DeltaSeconds, 0.0f);
         if (BlendTimeRemaining <= 1e-4f)
         {
+            UE_LOG("UAnimInstance::NativeUpdateAnimation - 1e-4f Blend complete to: %s",
+				BlendTargetState.Sequence ? BlendTargetState.Sequence->ObjectName.ToString().c_str() : "PoseProvider");
+
             CurrentPlayState = BlendTargetState;
             CurrentPlayState.BlendWeight = 1.0f;
 
@@ -145,6 +148,10 @@ void UAnimInstance::PlaySequence(UAnimSequence* Sequence, bool bLoop, float InPl
     CurrentPlayState.BlendWeight = 1.0f;
 
     PreviousPlayTime = 0.0f;
+
+    BlendTargetState = FAnimationPlayState();
+    BlendTimeRemaining = 0.0f;
+    BlendTotalTime = 0.0f;
 
     UE_LOG("UAnimInstance::PlaySequence - Playing: %s (Loop: %d, PlayRate: %.2f)",
         Sequence->ObjectName.ToString().c_str(), bLoop, InPlayRate);
@@ -244,6 +251,10 @@ void UAnimInstance::PlayPoseProvider(IAnimPoseProvider* Provider, bool bLoop, fl
     CurrentPlayState.BlendWeight = 1.0f;
 
     PreviousPlayTime = 0.0f;
+
+    BlendTargetState = FAnimationPlayState();
+    BlendTimeRemaining = 0.0f;
+    BlendTotalTime = 0.0f;
 
     UE_LOG("UAnimInstance::PlayPoseProvider - Playing PoseProvider (Loop: %d, PlayRate: %.2f)",
         bLoop, InPlayRate);

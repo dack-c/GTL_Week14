@@ -46,6 +46,8 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 	{
 		FVector Dummy = CharacterOwner->ConsumeMovementInputVector();
 		Velocity = FVector::Zero();
+
+		//UE_LOG("CapsuleOffset: %.2f, %.2f, %.2f", CapsuleOffset.X, CapsuleOffset.Y, CapsuleOffset.Z);
 	}
 
 	if (bIsSliding)
@@ -550,7 +552,10 @@ void UCharacterMovementComponent::GetCapsuleSize(float& OutRadius, float& OutHal
 
 FVector UCharacterMovementComponent::GetSnapDownStart() const
 {
-	FVector Result = UpdatedComponent->GetWorldLocation() + CapsuleOffset;
+	// CapsuleOffset을 UpdatedComponent의 로컬 좌표계 기준으로 변환하여 적용
+	FTransform ComponentTransform = UpdatedComponent->GetWorldTransform();
+	FVector WorldCapsuleOffset = ComponentTransform.TransformVector(CapsuleOffset);
+	FVector Result = UpdatedComponent->GetWorldLocation() + WorldCapsuleOffset;
 	return Result;
 }
 
