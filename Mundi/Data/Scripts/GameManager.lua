@@ -1,5 +1,6 @@
 function BeginPlay()
     InitGame()
+    GlobalConfig.GameState = "Init"
     -- GlobalConfig.Camera1 = FindObjectByName("Camera1")
     -- GlobalConfig.Camera2 = FindObjectByName("Camera2")
     -- GlobalConfig.Camera3 = FindObjectByName("Camera3")
@@ -43,38 +44,67 @@ end
 function OnEndOverlap(OtherActor)
 end
 
+
+-- 게임 상태 초기화
+function InitGame()
+    -- TODO: 플레이어 생성
+    GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0.05
+    GetPlayer().Location = GetStartPosition()
+    GetComponent(GetPlayer(), "UCharacterMovementComponent"):ResetVelocity()
+end
+
+
 CurVisibilty = true
 function Tick(dt)
+
+    -- 강제 리플레이
+    if InputManager:IsKeyDown("P") then
+        InitGame()
+        GlobalConfig.GameState = "Init"
+    end
+
     if GlobalConfig.GameState == "Init" then
         RenderInitUI()
 
         if InputManager:IsKeyDown(" ") then
             GlobalConfig.GameState = "Start"
-            StartCoroutine(StartCutscene)
+            InitGame()
         end
     
     elseif GlobalConfig.GameState == "Start" then
         -- 시작 연출 이 끝나면 Playing 으로 전환됨
+        GlobalConfig.bIsGameClear = false
         GlobalConfig.bIsPlayerDeath = false
+        GlobalConfig.GameState = "Playing"
 
     elseif GlobalConfig.GameState == "Playing" then
-        if GlobalConfig.bIsPlayerDeath == true then
-            -- 사망 처리
+        RenderInGameUI()
+
+        -- 클리어
+        if GlobalConfig.bIsGameClear == true then
+            GlobalConfig.GameState = "Clear"
+            GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
+        -- 사망
+        elseif GlobalConfig.bIsPlayerDeath == true then
             GlobalConfig.GameState = "Death"
+            GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
         end
-        -- 인게임 UI 출력
 
     elseif GlobalConfig.GameState == "Death" then
-        -- 카메라 스프링암 0 으로
         RenderDeathUI()
-        -- 사망 연출?
         
-    elseif GlobalConfig.GameState == "Fail" then
-        -- 실패 UI 출력
-        
+        if InputManager:IsKeyDown("R") then
+            GlobalConfig.GameState = "Init"
+        end
+
     elseif GlobalConfig.GameState == "Clear" then
         -- 클리어 타임 표시
+        RenderClearUI()
         
+        if InputManager:IsKeyDown("R") then
+            GlobalConfig.GameState = "Init"
+        end
+
     end
 end
 
@@ -87,21 +117,6 @@ function SetCursorVisible(Show)
     InputManager:SetCursorVisible(Show)
     CurVisibilty = Show
 end
-
--- 시작 연출
-function StartCutscene()
-    -- TODO: 플레이어 생성
-    coroutine.yield("wait_time", 4)
-    GlobalConfig.GameState = "Playing"
-end
-
--- 게임 초기화
-function InitGame()
-    --TODO: 플레이어 위치 정리
-    -- 카메라 스프링암 정상화
-    GlobalConfig.GameState = "Init"
-end
-
 
 -- 시작 UI 출력
 function RenderInitUI()
@@ -126,7 +141,19 @@ function RenderInitUI()
     DrawUIText(Rect, "Press [Space Bar] To Start", Color, 60)
 end
 
--- 시작 UI 출력
+-- 인게임 UI 출력
+function RenderInGameUI()
+    local Rect = RectTransform()
+    local Color = Vector4(1,1,1,1)
+
+    AnchorMin = Vector2D(0,0)
+    AnchorMax = Vector2D(0.3,0.2)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+    Rect.ZOrder = 1;
+    DrawUIText(Rect, "남은 거리: 50m", Color, 30)
+end
+
+-- 사망 UI 출력
 function RenderDeathUI()
     local Rect = RectTransform()
     local Color = Vector4(1,1,1,1)
@@ -147,4 +174,27 @@ function RenderDeathUI()
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
     DrawUIText(Rect, "낙사", Color, 80)
+end
+
+-- 클리어 UI 출력
+function RenderClearUI()
+    local Rect = RectTransform()
+    local Color = Vector4(1,1,1,1)
+
+    -- local AnchorMin = Vector2D(0,0)
+    -- local AnchorMax = Vector2D(1,1)
+    -- Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+    -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
+
+    -- -- Rect.Pos = Vector2D(0.0,0.0)
+    -- -- Rect.Size = Vector2D(1264.0,848.0)
+    -- -- Rect.Pivot = Vector2D(0.0,0.0)
+    -- -- Rect.ZOrder = 0;
+    -- -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
+    
+    AnchorMin = Vector2D(0,0)
+    AnchorMax = Vector2D(1,1)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+    Rect.ZOrder = 1;
+    DrawUIText(Rect, "클리어!", Color, 80)
 end

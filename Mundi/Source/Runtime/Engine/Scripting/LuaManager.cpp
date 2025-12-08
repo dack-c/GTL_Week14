@@ -10,6 +10,9 @@
 #include "StatsOverlayD2D.h"
 #include "SkeletalMeshComponent.h"
 #include "AnimInstance.h"
+#include "GameModeBase.h"
+#include "PlayerController.h"
+#include "Pawn.h"
 #include <tuple>
 
 sol::object MakeCompProxy(sol::state_view SolState, void* Instance, UClass* Class) {
@@ -278,6 +281,26 @@ FLuaManager::FLuaManager()
                 return nullptr;
             }
             return GWorld->GetPlayerCameraManager();
+        }
+    );
+    SharedLib.set_function("GetStartPosition",
+        []() -> FVector
+        {
+            if (!GWorld || !GWorld->GetGameMode())
+            {
+                return FVector::Zero();
+            }
+            return GWorld->GetGameMode()->GetStartPosition();
+        }
+    );
+    SharedLib.set_function("GetPlayer",
+        []() -> FGameObject*
+        {
+            if (!GWorld || !GWorld->GetGameMode() || !GWorld->GetGameMode()->PlayerController || !GWorld->GetGameMode()->PlayerController->GetPawn())
+            {
+                return nullptr;
+            }
+            return GWorld->GetGameMode()->PlayerController->GetPawn()->GetGameObject();
         }
     );
     SharedLib.set_function("SetPlayerForward",

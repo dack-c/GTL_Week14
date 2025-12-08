@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -730,7 +730,7 @@
     <ClCompile Include="Generated\AHeightFogActor.generated.cpp" />
     <ClCompile Include="Generated\APlayerStart.generated.cpp" />
     <ClCompile Include="Generated\USkyBoxComponent.generated.cpp" />
-  </ItemGroup>
+  <ClCompile Include="Generated\UMovementComponent.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -1254,7 +1254,7 @@
     <ClInclude Include="Generated\AHeightFogActor.generated.h" />
     <ClInclude Include="Generated\APlayerStart.generated.h" />
     <ClInclude Include="Generated\USkyBoxComponent.generated.h" />
-  </ItemGroup>
+  <ClInclude Include="Generated\UMovementComponent.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

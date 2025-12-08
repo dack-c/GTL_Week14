@@ -191,74 +191,74 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         static float CurrentSpeed = 0.0f;
         static float LastLoggedSpeed = -1.0f;
 
-        // W 키: 속도 증가 (Walk -> Run 전환 테스트)
-        if (InputManager.IsKeyDown('W'))
-        {
-            CurrentSpeed += DeltaTime * 5.0f; // 초당 5.0 증가
-            CurrentSpeed = FMath::Min(CurrentSpeed, 10.0f); // 최대 10.0
-            AnimInstance->SetMovementSpeed(CurrentSpeed);
+        //// W 키: 속도 증가 (Walk -> Run 전환 테스트)
+        //if (InputManager.IsKeyDown('W'))
+        //{
+        //    CurrentSpeed += DeltaTime * 5.0f; // 초당 5.0 증가
+        //    CurrentSpeed = FMath::Min(CurrentSpeed, 10.0f); // 최대 10.0
+        //    AnimInstance->SetMovementSpeed(CurrentSpeed);
 
-            // 0.5 단위로 속도가 변경될 때마다 로그 출력
-            if (FMath::Abs(CurrentSpeed - LastLoggedSpeed) >= 0.5f)
-            {
-                //UE_LOG("[Team2AnimInstance] Speed: %.2f (W key - Increasing)", CurrentSpeed);
-                LastLoggedSpeed = CurrentSpeed;
-            }
-        }
-        // S 키: 속도 감소 (Run -> Walk 전환 테스트)
-        else if (InputManager.IsKeyDown('S'))
-        {
-            CurrentSpeed -= DeltaTime * 5.0f; // 초당 5.0 감소
-            CurrentSpeed = FMath::Max(CurrentSpeed, 0.0f); // 최소 0.0
-            AnimInstance->SetMovementSpeed(CurrentSpeed);
+        //    // 0.5 단위로 속도가 변경될 때마다 로그 출력
+        //    if (FMath::Abs(CurrentSpeed - LastLoggedSpeed) >= 0.5f)
+        //    {
+        //        //UE_LOG("[Team2AnimInstance] Speed: %.2f (W key - Increasing)", CurrentSpeed);
+        //        LastLoggedSpeed = CurrentSpeed;
+        //    }
+        //}
+        //// S 키: 속도 감소 (Run -> Walk 전환 테스트)
+        //else if (InputManager.IsKeyDown('S'))
+        //{
+        //    CurrentSpeed -= DeltaTime * 5.0f; // 초당 5.0 감소
+        //    CurrentSpeed = FMath::Max(CurrentSpeed, 0.0f); // 최소 0.0
+        //    AnimInstance->SetMovementSpeed(CurrentSpeed);
 
-            // 0.5 단위로 속도가 변경될 때마다 로그 출력
-            if (FMath::Abs(CurrentSpeed - LastLoggedSpeed) >= 0.5f)
-            {
-                //UE_LOG("[Team2AnimInstance] Speed: %.2f (S key - Decreasing)", CurrentSpeed);
-                LastLoggedSpeed = CurrentSpeed;
-            }
-        }
-        // R 키: 속도 리셋 (한 번만 눌렀을 때)
-        else if (InputManager.IsKeyPressed('R'))
-        {
-            CurrentSpeed = 0.0f;
-            AnimInstance->SetMovementSpeed(CurrentSpeed);
-            //UE_LOG("[Team2AnimInstance] Speed RESET to 0.0");
-            LastLoggedSpeed = CurrentSpeed;
-        }
+        //    // 0.5 단위로 속도가 변경될 때마다 로그 출력
+        //    if (FMath::Abs(CurrentSpeed - LastLoggedSpeed) >= 0.5f)
+        //    {
+        //        //UE_LOG("[Team2AnimInstance] Speed: %.2f (S key - Decreasing)", CurrentSpeed);
+        //        LastLoggedSpeed = CurrentSpeed;
+        //    }
+        //}
+        //// R 키: 속도 리셋 (한 번만 눌렀을 때)
+        //else if (InputManager.IsKeyPressed('R'))
+        //{
+        //    CurrentSpeed = 0.0f;
+        //    AnimInstance->SetMovementSpeed(CurrentSpeed);
+        //    //UE_LOG("[Team2AnimInstance] Speed RESET to 0.0");
+        //    LastLoggedSpeed = CurrentSpeed;
+        //}
 
-        // P 키: PhysicsState 전환 (AnimationDriven <-> PhysicsDriven) - 플레이어만
-        if (InputManager.IsKeyPressed('P'))
-        {
-            // 플레이어 컨트롤러가 제어하는 Pawn인지 확인
-            bool bIsPlayerControlled = false;
-            if (AActor* Owner = GetOwner())
-            {
-                if (APawn* OwnerPawn = Cast<APawn>(Owner))
-                {
-                    if (AController* Controller = OwnerPawn->GetController())
-                    {
-                        bIsPlayerControlled = Cast<APlayerController>(Controller) != nullptr;
-                    }
-                }
-            }
+        //// P 키: PhysicsState 전환 (AnimationDriven <-> PhysicsDriven) - 플레이어만
+        //if (InputManager.IsKeyPressed('P'))
+        //{
+        //    // 플레이어 컨트롤러가 제어하는 Pawn인지 확인
+        //    bool bIsPlayerControlled = false;
+        //    if (AActor* Owner = GetOwner())
+        //    {
+        //        if (APawn* OwnerPawn = Cast<APawn>(Owner))
+        //        {
+        //            if (AController* Controller = OwnerPawn->GetController())
+        //            {
+        //                bIsPlayerControlled = Cast<APlayerController>(Controller) != nullptr;
+        //            }
+        //        }
+        //    }
 
-            if (bIsPlayerControlled)
-            {
-                if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
-                {
-                    SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
-                    //UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
-                }
-                else
-                {
-                    SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
-                    ResetToBindPose();
-                    //UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
-                }
-            }
-        }
+        //    if (bIsPlayerControlled)
+        //    {
+        //        if (PhysicsState == EPhysicsAnimationState::AnimationDriven)
+        //        {
+        //            SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
+        //            //UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: PhysicsDriven (Ragdoll)");
+        //        }
+        //        else
+        //        {
+        //            SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
+        //            ResetToBindPose();
+        //            //UE_LOG("[SkeletalMeshComponent] PhysicsState changed to: AnimationDriven");
+        //        }
+        //    }
+        //}
 
         // 현재 속도 상태를 주기적으로 로그 (5초마다)
         static float LogTimer = 0.0f;

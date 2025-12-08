@@ -49,7 +49,7 @@ extern "C" void LuaBind_Anchor_UCharacterMovementComponent() {}
 
 LUA_BIND_BEGIN(UCharacterMovementComponent)
 {
-    // No functions to bind
+    AddAlias<UCharacterMovementComponent>(
+        T, "ResetVelocity", &UCharacterMovementComponent::ResetVelocity);
 }
 LUA_BIND_END()
-

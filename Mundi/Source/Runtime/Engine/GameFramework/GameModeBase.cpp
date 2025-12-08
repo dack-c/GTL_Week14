@@ -29,6 +29,20 @@ void AGameModeBase::StartPlay()
 	PostLogin(PlayerController);
 }
 
+FVector AGameModeBase::GetStartPosition()
+{
+	if (PlayerController)
+	{
+		AActor* PlayerStart = FindPlayerStart(PlayerController);
+		if (PlayerStart)
+		{
+			return PlayerStart->GetActorLocation();
+		}
+	}
+
+	return FVector::Zero();
+}
+
 APlayerController* AGameModeBase::Login()
 {
 	if (PlayerControllerClass)

@@ -34,6 +34,13 @@ public:
 	//float MaxSwimSpeed;
 	//float MaxFlySpeed;
 
+	UFUNCTION(LuaBind, DisplayName = "ResetVelocity")
+	void ResetVelocity()
+	{
+		Velocity = FVector::Zero();
+		Acceleration = FVector::Zero();
+	}
+
 	// 상태 제어 
 	void DoJump();
 	void StopJump();

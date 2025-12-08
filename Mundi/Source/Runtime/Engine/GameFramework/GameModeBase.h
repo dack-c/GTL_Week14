@@ -31,7 +31,9 @@ public:
 	  
 
 	// 플레이어 리스폰할 때 사용
-	//virtual void RestartPlayer(APlayerController* NewPlayer); 		 
+	//virtual void RestartPlayer(APlayerController* NewPlayer); 	
+	 
+	FVector GetStartPosition();
 
 protected:
 	

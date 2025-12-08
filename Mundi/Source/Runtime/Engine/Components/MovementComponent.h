@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "ActorComponent.h"
 #include "Vector.h"
+#include "UMovementComponent.generated.h"
 
 class USceneComponent;
 
@@ -12,8 +13,7 @@ class USceneComponent;
 class UMovementComponent : public UActorComponent
 {
 public:
-    DECLARE_CLASS(UMovementComponent, UActorComponent)
-    DECLARE_DUPLICATE(UMovementComponent)
+    GENERATED_REFLECTION_BODY()
     
     UMovementComponent();
 
@@ -32,7 +32,7 @@ public:
     FVector GetAcceleration() const { return Acceleration; }
 
     // 속도와 가속도를 0으로 설정하여 이동 중지
-    virtual void StopMovement();
+    void StopMovement();
 
     // 업데이트 대상 컴포넌트
     void SetUpdatedComponent(USceneComponent* NewUpdatedComponent);
