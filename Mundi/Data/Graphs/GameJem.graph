@@ -120,16 +120,6 @@
       "ToNodeID" : 50,
       "ToPinName" : "Enter"
     }, {
-      "FromNodeID" : 49,
-      "FromPinName" : "Result",
-      "ToNodeID" : 48,
-      "ToPinName" : "Can Transition"
-    }, {
-      "FromNodeID" : 49,
-      "FromPinName" : "Result",
-      "ToNodeID" : 59,
-      "ToPinName" : "A"
-    }, {
       "FromNodeID" : 50,
       "FromPinName" : "Exit",
       "ToNodeID" : 69,
@@ -138,6 +128,11 @@
       "FromNodeID" : 50,
       "FromPinName" : "Exit",
       "ToNodeID" : 97,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 50,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 112,
       "ToPinName" : "Execute"
     }, {
       "FromNodeID" : 51,
@@ -165,9 +160,14 @@
       "ToNodeID" : 69,
       "ToPinName" : "Blend Time"
     }, {
+      "FromNodeID" : 64,
+      "FromPinName" : "Value",
+      "ToNodeID" : 112,
+      "ToPinName" : "Blend Time"
+    }, {
       "FromNodeID" : 69,
       "FromPinName" : "Transition To",
-      "ToNodeID" : 11,
+      "ToNodeID" : 34,
       "ToPinName" : "Enter"
     }, {
       "FromNodeID" : 74,
@@ -202,8 +202,8 @@
     }, {
       "FromNodeID" : 78,
       "FromPinName" : "Result",
-      "ToNodeID" : 69,
-      "ToPinName" : "Can Transition"
+      "ToNodeID" : 115,
+      "ToPinName" : "A"
     }, {
       "FromNodeID" : 79,
       "FromPinName" : "Result",
@@ -364,6 +364,41 @@
       "FromPinName" : "Value",
       "ToNodeID" : 34,
       "ToPinName" : "Looping"
+    }, {
+      "FromNodeID" : 110,
+      "FromPinName" : "Is Jumping",
+      "ToNodeID" : 59,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 110,
+      "FromPinName" : "Is Jumping",
+      "ToNodeID" : 48,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 112,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 11,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 113,
+      "FromPinName" : "Is Jumping",
+      "ToNodeID" : 114,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 113,
+      "FromPinName" : "Is Jumping",
+      "ToNodeID" : 115,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 114,
+      "FromPinName" : "Result",
+      "ToNodeID" : 112,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 115,
+      "FromPinName" : "Result",
+      "ToNodeID" : 69,
+      "ToPinName" : "Can Transition"
     }],
   "Nodes" : [{
       "ClassName" : "UK2Node_BlendSpace1D",
@@ -472,8 +507,8 @@
     }, {
       "ClassName" : "UK2Node_AnimState",
       "NodeID" : 34,
-      "NodePosX" : 2798.000000,
-      "NodePosY" : 448.000000,
+      "NodePosX" : 2920.000000,
+      "NodePosY" : 416.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -582,8 +617,8 @@
     }, {
       "ClassName" : "UK2Node_GetIsFalling",
       "NodeID" : 44,
-      "NodePosX" : 2129.000000,
-      "NodePosY" : 464.000000,
+      "NodePosX" : 1793.000000,
+      "NodePosY" : 656.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 1,
@@ -651,22 +686,10 @@
           "PinName" : "Blend Time"
         }]
     }, {
-      "ClassName" : "UK2Node_IsPressed",
-      "KeyName" : "Space",
-      "NodeID" : 49,
-      "NodePosX" : 1706.000000,
-      "NodePosY" : 1072.000000,
-      "Pins" : [{
-          "DefaultValue" : "",
-          "Direction" : 1,
-          "PinCategory" : "bool",
-          "PinName" : "Result"
-        }]
-    }, {
       "ClassName" : "UK2Node_AnimState",
       "NodeID" : 50,
-      "NodePosX" : 2830.000000,
-      "NodePosY" : 928.000000,
+      "NodePosX" : 2856.000000,
+      "NodePosY" : 948.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -722,7 +745,7 @@
       "ClassName" : "UK2Node_Not_Bool",
       "NodeID" : 59,
       "NodePosX" : 1849.000000,
-      "NodePosY" : 852.000000,
+      "NodePosY" : 820.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -737,8 +760,8 @@
     }, {
       "ClassName" : "UK2Node_And_BoolBool",
       "NodeID" : 60,
-      "NodePosX" : 2232.000000,
-      "NodePosY" : 576.000000,
+      "NodePosX" : 2217.000000,
+      "NodePosY" : 548.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -758,8 +781,8 @@
     }, {
       "ClassName" : "UK2Node_Literal_Float",
       "NodeID" : 64,
-      "NodePosX" : 3329.000000,
-      "NodePosY" : 1216.000000,
+      "NodePosX" : 3265.000000,
+      "NodePosY" : 1136.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 1,
@@ -848,12 +871,12 @@
           "PinCategory" : "float",
           "PinName" : "Value"
         }],
-      "Value" : 0.200000
+      "Value" : 0.000000
     }, {
       "ClassName" : "UK2Node_Or_BoolBool",
       "NodeID" : 78,
-      "NodePosX" : 3352.000000,
-      "NodePosY" : 1376.000000,
+      "NodePosX" : 3273.000000,
+      "NodePosY" : 1408.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -1206,7 +1229,7 @@
       "ClassName" : "UK2Node_AnimState",
       "NodeID" : 98,
       "NodePosX" : 4216.000000,
-      "NodePosY" : 652.000000,
+      "NodePosY" : 692.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -1376,6 +1399,91 @@
           "PinName" : "Value"
         }],
       "Value" : true
+    }, {
+      "ClassName" : "UK2Node_GetIsJumping",
+      "NodeID" : 110,
+      "NodePosX" : 1525.000000,
+      "NodePosY" : 1024.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Is Jumping"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 112,
+      "NodePosX" : 4206.000000,
+      "NodePosY" : 1284.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_GetIsJumping",
+      "NodeID" : 113,
+      "NodePosX" : 3493.000000,
+      "NodePosY" : 1472.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Is Jumping"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Not_Bool",
+      "NodeID" : 114,
+      "NodePosX" : 3796.000000,
+      "NodePosY" : 1548.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_And_BoolBool",
+      "NodeID" : 115,
+      "NodePosX" : 3608.000000,
+      "NodePosY" : 1664.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
     }],
-  "UniqueIDCounter" : 110
+  "UniqueIDCounter" : 116
 }
