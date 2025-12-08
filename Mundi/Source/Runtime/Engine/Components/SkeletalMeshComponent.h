@@ -149,6 +149,7 @@ public:
     /**
      * @brief AnimInstance 가져오기
      */
+    UFUNCTION(LuaBind, DisplayName = "GetAnimInstance")
     UAnimInstance* GetAnimInstance() const { return AnimInstance; }
 
     /**

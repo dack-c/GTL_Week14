@@ -6,6 +6,8 @@
 #include "Source/Runtime/Core/Object/ObjectMacros.h"
 #include "Source/Runtime/Engine/Scripting/LuaBindHelpers.h"
 
+#include "AnimInstance.h"
+
 // ===== Class Factory Registration (IMPLEMENT_CLASS) =====
 
 // IMPLEMENT_CLASS(USkeletalMeshComponent) expansion
@@ -46,7 +48,7 @@ extern "C" void LuaBind_Anchor_USkeletalMeshComponent() {}
 
 LUA_BIND_BEGIN(USkeletalMeshComponent)
 {
-    // No functions to bind
+    AddMethodR<UAnimInstance*, USkeletalMeshComponent>(
+        T, "GetAnimInstance", &USkeletalMeshComponent::GetAnimInstance);
 }
 LUA_BIND_END()
-
