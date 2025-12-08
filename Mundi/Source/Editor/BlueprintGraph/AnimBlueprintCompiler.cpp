@@ -108,33 +108,37 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
             UEdGraphPin* InputExec = TransitionNode->FindPin("Execute", EEdGraphPinDirection::EGPD_Input);
             UEdGraphPin* OutputExec = TransitionNode->FindPin("Transition To", EEdGraphPinDirection::EGPD_Output);
 
-            UEdGraphNode* FromNode = GetConnectedNode(InputExec);
+			TArray<UEdGraphNode*> FromNodes = GetConnectedNodes(InputExec);
             UEdGraphNode* ToNode = GetConnectedNode(OutputExec);
 
-            if (FromNode && ToNode && NodeToStateMap.Contains(FromNode) && NodeToStateMap.Contains(ToNode))
+            for (UEdGraphNode* FromNode : FromNodes)
             {
-                FName FromName = NodeToStateMap[FromNode];
-                FName ToName = NodeToStateMap[ToNode];
-
-                float BlendTime = FBlueprintEvaluator::EvaluateInput<float>(TransitionNode->FindPin("Blend Time"), &Context);
-
-                auto Condition = [TransitionNode, InAnimInstance]() -> bool
+                if (FromNode && ToNode && NodeToStateMap.Contains(FromNode) && NodeToStateMap.Contains(ToNode))
                 {
-                    if (!TransitionNode || !InAnimInstance)
-                    {
-                        return false;
-                    }
+                    FName FromName = NodeToStateMap[FromNode];
+                    FName ToName = NodeToStateMap[ToNode];
 
-                    FBlueprintContext RuntimeContext(InAnimInstance);
+                    float BlendTime = FBlueprintEvaluator::EvaluateInput<float>(TransitionNode->FindPin("Blend Time"), &Context);
 
-                    return FBlueprintEvaluator::EvaluateInput<bool>(
-                        TransitionNode->FindPin("Can Transition"),
-                        &RuntimeContext
-                    );
-                };
+                    auto Condition = [TransitionNode, InAnimInstance]() -> bool
+                        {
+                            if (!TransitionNode || !InAnimInstance)
+                            {
+                                return false;
+                            }
 
-                OutStateMachine->AddTransition(FStateTransition(FromName, ToName, Condition, BlendTime));
-            }
+                            FBlueprintContext RuntimeContext(InAnimInstance);
+
+                            return FBlueprintEvaluator::EvaluateInput<bool>(
+                                TransitionNode->FindPin("Can Transition"),
+                                &RuntimeContext
+                            );
+                        };
+
+                    OutStateMachine->AddTransition(FStateTransition(FromName, ToName, Condition, BlendTime));
+                    UE_LOG("FAnimBlueprintCompiler::Compile: 전이 추가 %s -> %s", FromName.ToString().c_str(), ToName.ToString().c_str());
+                }
+            } 
         }
     }
 }
@@ -146,4 +150,23 @@ UEdGraphNode* FAnimBlueprintCompiler::GetConnectedNode(UEdGraphPin* Pin)
         return nullptr;
     }
     return Pin->LinkedTo[0]->OwningNode;
+}
+
+TArray<UEdGraphNode*> FAnimBlueprintCompiler::GetConnectedNodes(UEdGraphPin* Pin)
+{
+   
+    TArray<UEdGraphNode*> ConnectedNodes;
+    if (!Pin)
+    {
+        return TArray<UEdGraphNode*>();
+    }
+
+    for (UEdGraphPin* LinkedPin : Pin->LinkedTo)
+    {
+        if (LinkedPin && LinkedPin->OwningNode)
+        {
+            ConnectedNodes.Add(LinkedPin->OwningNode);
+        }
+    }
+    return ConnectedNodes;
 }

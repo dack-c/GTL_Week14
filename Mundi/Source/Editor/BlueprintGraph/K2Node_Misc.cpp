@@ -94,6 +94,12 @@ FBlueprintValue UK2Node_IsPressed::EvaluatePin(const UEdGraphPin* OutputPin, FBl
             return false;
         }
         bool bIsPressed = UInputManager::GetInstance().IsKeyPressed(KeyCode);
+		//UE_LOG("[UK2Node_IsPressed]: 키 코드 %d에 대한 눌림 상태: %s", KeyCode, bIsPressed ? "눌림" : "안눌림");
+
+        if (bIsPressed)
+        {
+			UE_LOG("[UK2Node_IsPressed]: 키 '%s'가 눌렸습니다.", KeyName.c_str());
+        }
 
         return bIsPressed;
     }

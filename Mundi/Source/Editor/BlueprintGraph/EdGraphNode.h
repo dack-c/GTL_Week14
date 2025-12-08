@@ -77,4 +77,24 @@ public:
         UE_LOG("UEdGraphPin::FindPin: 핀 '%s'를 찾는데 실패했습니다.", PinName.c_str());
         return nullptr;
     }
+
+    /** @brief 이름으로 핀을 찾는다. */
+    TArray<UEdGraphPin*> FindPins(const FString& PinName, EEdGraphPinDirection OptionalDirection = EEdGraphPinDirection::EGPD_MAX) const
+    {
+		TArray<UEdGraphPin*> FoundPins;
+        for (UEdGraphPin* Pin : Pins)
+        {
+            if (Pin->PinName == PinName && (OptionalDirection == EEdGraphPinDirection::EGPD_MAX || Pin->Direction == OptionalDirection))
+            {
+				FoundPins.Add(Pin);
+            }
+        }
+
+        if (FoundPins.Num() > 0)
+        {
+            return FoundPins;
+        }
+        UE_LOG("UEdGraphPin::FindPin: 핀 '%s'를 찾는데 실패했습니다.", PinName.c_str());
+        return TArray<UEdGraphPin*>();
+    }
 };
