@@ -14,6 +14,7 @@ function BeginPlay()
     -- GetCameraManager():StartFade(5.0, 0, 1.0, Color(0.0, 0.2, 0.4, 1.0), 0)
     -- GetCameraManager():StartLetterBox(2.0, 1.777, 0, Color(0.0, 0.2, 0.4, 1.0))
     -- GetCameraManager():StartVignette(4.0, 0.2, 0.5, 10.0, 2.0, Color(0.9, 0.0, 0.2, 0.0), 0)
+    PlaySound2DByFile("Data/Audio/pakourBGM.wav")
 end
 
 function MoveCameras()    
@@ -36,6 +37,7 @@ function MoveCameras()
 end
 
 function EndPlay()
+    StopAllSounds()
 end
 
 function OnBeginOverlap(OtherActor)

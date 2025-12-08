@@ -49,8 +49,7 @@ function BeginPlay()
   -- InitializeAudiddo()
   -- PlaySound2DByFile("Data/Audio/pakourBGM.wav")
     -- 함수가 존재하는지 확인
-  PlaySound2DByFile("Data/Audio/pakourBGM.wav")
-  print("Playing sound: pakourBGM.wav")
+  
   -- AnimStateStr = AnimInstance:GetCurrentStateName()
   -- print("Current Animation State Name: " .. AnimStateStr)
 
@@ -62,10 +61,11 @@ function BeginPlay()
   --     print("[Warning] AnimStateMachine is nil.")
   -- end
 
+  -- PlaySound2DByFile("Data/Audio/pakourBGM.wav")
 end
 
 function EndPlay()
-  StopAllSounds()
+  -- StopAllSounds()
 end
 
 function OnBeginOverlap(OtherActor)
