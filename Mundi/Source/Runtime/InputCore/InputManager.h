@@ -38,7 +38,7 @@ public:
 
     // 생명주기
     void Initialize(HWND hWindow);
-    void Update(); // 매 프레임 호출
+    void Update(float DeltaTime); // 매 프레임 호출
     void ProcessMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     // 마우스 함수들

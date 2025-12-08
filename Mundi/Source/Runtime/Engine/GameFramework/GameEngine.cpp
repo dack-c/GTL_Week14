@@ -261,7 +261,7 @@ void UGameEngine::Tick(float DeltaSeconds)
     {
         WorldContext.World->Tick(DeltaSeconds);
     }
-    INPUT.Update();
+    INPUT.Update(DeltaSeconds);
 
     FAudioDevice::Update(); 
 }
