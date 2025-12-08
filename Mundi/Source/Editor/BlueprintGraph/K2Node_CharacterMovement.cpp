@@ -490,12 +490,17 @@ FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* Outp
 
     if (OutputPin->PinName == "Remain Length")
     {
-        const FAnimationPlayState& CurrentState = AnimInstance->GetCurrentPlayState();
-        
-        // PoseProvider가 있으면 그것을 사용 (BlendSpace 등)
-        if (CurrentState.PoseProvider)
+        FAnimationPlayState CurrentState = AnimInstance->GetCurrentPlayState();
+        if (AnimInstance->GetBlendTargetState().PoseProvider)
         {
-            float PlayLength = CurrentState.PoseProvider->GetPlayLength();
+            CurrentState = AnimInstance->GetBlendTargetState();
+        }
+
+        
+        // Sequence 직접 사용
+        if (CurrentState.Sequence)
+        {
+            float PlayLength = CurrentState.Sequence->GetPlayLength();
             float CurrentTime = CurrentState.CurrentTime;
             float RemainTime = PlayLength - CurrentTime;
             
@@ -507,11 +512,11 @@ FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* Outp
             
             return FBlueprintValue(RemainTime);
         }
-        
-        // Sequence 직접 사용
-        if (CurrentState.Sequence)
+
+        // PoseProvider가 있으면 그것을 사용 (BlendSpace 등)
+        if (CurrentState.PoseProvider)
         {
-            float PlayLength = CurrentState.Sequence->GetPlayLength();
+            float PlayLength = CurrentState.PoseProvider->GetPlayLength();
             float CurrentTime = CurrentState.CurrentTime;
             float RemainTime = PlayLength - CurrentTime;
             
