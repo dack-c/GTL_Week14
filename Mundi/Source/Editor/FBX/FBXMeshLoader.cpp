@@ -594,11 +594,19 @@ void FBXMeshLoader::LoadMesh(FbxMesh* InMesh, FSkeletalMeshData& MeshData, TMap<
 			TArray<uint32>& GroupIndexList = Elem.second;
 
 			// 인덱스 리스트를 3개씩(트라이앵글 단위로) 순회합니다.
-			for (int32 i = 0; i < GroupIndexList.Num(); i += 3)
+			for (int32 i = 0; i + 2 < GroupIndexList.Num(); i += 3)
 			{
 				uint32 i0 = GroupIndexList[i];
 				uint32 i1 = GroupIndexList[i + 1];
 				uint32 i2 = GroupIndexList[i + 2];
+
+				// 인덱스 범위 검증 (MeshData.Vertices, TempTangents, TempBitangents 모두 같은 크기)
+				if (i0 >= MeshData.Vertices.Num() || i1 >= MeshData.Vertices.Num() || i2 >= MeshData.Vertices.Num())
+				{
+					UE_LOG("[FBX ERROR] Invalid vertex index: i0=%u, i1=%u, i2=%u (Vertices.Num=%d)",
+						i0, i1, i2, MeshData.Vertices.Num());
+					continue; // 이 삼각형 건너뜀
+				}
 
 				// 트라이앵글을 구성하는 3개의 정점 데이터를 가져옵니다.
 				// 이 정점들은 MeshData.Vertices에 있는 *유일한* 정점입니다.
