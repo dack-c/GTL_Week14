@@ -93,7 +93,7 @@ function Tick(Delta)
       bChangedFromClimb = false
       PostDelta = 0.0
     else
-      CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
+      CharacterMoveComp.CapsuleOffset = Vector(0.3,0,0.0)
     end
   end
 
@@ -109,15 +109,22 @@ function Tick(Delta)
     -- print("Vaulting - Adjusting Capsule  Z Offset: " .. CharacterMoveComp.CapsuleOffset.Z)
   elseif AnimStateStr == "Climb" then
     PreAnimStateStr = "Climb"
-    if AnimInstance:GetCurrentPlayTime() > 3.8 then
-      CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.2)
+    if AnimInstance:GetCurrentPlayTime() > 2.53 then
+      CharacterMoveComp.CapsuleOffset = CharacterMoveComp.CapsuleOffset
+    elseif AnimInstance:GetCurrentPlayTime() > 1.75 then
+      -- CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.2)
+      -- CharacterMoveComp.CapsuleOffset = Vector(1.0,0,1.5)
+      CharacterMoveComp.CapsuleOffset = CharacterMoveComp.CapsuleOffset + Vector(0.0,0.0, -1.5) * Delta;
     else
-      CharacterMoveComp.CapsuleOffset = Vector(0.0,0,2.0)
+      CharacterMoveComp.CapsuleOffset = Vector(1.0,0,2.0)
     end
+  -- else
+  --   CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
+  -- end
   elseif AnimStateStr ~= "Climb" and PreAnimStateStr == "Climb" then
     bChangedFromClimb = true
     PreAnimStateStr = AnimStateStr
-    CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
+    CharacterMoveComp.CapsuleOffset = Vector(0.3,0,0.0)
   elseif bChangedFromClimb == false then
     CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
   end
