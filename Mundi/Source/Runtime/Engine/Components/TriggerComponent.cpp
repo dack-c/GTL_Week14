@@ -39,7 +39,6 @@ void UTriggerComponent::TickComponent(float DeltaTime)
 				Lua->CallFunction(LuaFunctionName.c_str());
 			}
 		}
-		SetActive(false);
 	}
 }
 
