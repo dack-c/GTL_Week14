@@ -875,4 +875,6 @@ void UResourceManager::LoadCubeMap(const FWideString& Path)
     srvDesc.TextureCube.MipLevels = -1;
 
     GetDevice()->CreateShaderResourceView(tex, &srvDesc, &CubeMapSRV);
+    image.Release();
+    tex->Release();
 }

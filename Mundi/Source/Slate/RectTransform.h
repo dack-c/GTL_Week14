@@ -4,6 +4,8 @@
 struct FRectTransform
 {
 public:
+    FVector2D AnchorMax = FVector2D(0, 0);
+    FVector2D AnchorMin = FVector2D(0, 0);
     FVector2D Anchor = FVector2D(0, 0);
     FVector2D Pivot = FVector2D(0.5f, 0.5f);
     FVector2D Pos;
