@@ -36,7 +36,8 @@ function BeginPlay()
         -- else
         --     print("[Error] SkeletalMesh does not have GetAnimInstance function.")
         -- end
-        AnimInstance = SkeletalMesh:GetAnimInstance()
+        -- AnimInstance = SkeletalMesh:GetAnimInstance()
+        AnimInstance = GetAnimInstanceOfSkeletal(SkeletalMesh)
   end
 
   if AnimInstance ~= nil then
@@ -45,13 +46,16 @@ function BeginPlay()
       print("[Warning] AnimInstance is nil. Check if Animation Blueprint is assigned.")
   end
 
-  AnimStateMachine = AnimInstance:GetStateMachine()
+  -- AnimStateStr = AnimInstance:GetCurrentStateName()
+  -- print("Current Animation State Name: " .. AnimStateStr)
 
-  if AnimStateMachine then
-      print(" -> AnimStateMachine found.")
-  else
-      print("[Warning] AnimStateMachine is nil.")
-  end
+  -- AnimStateMachine = AnimInstance:GetStateMachine()
+
+  -- if AnimStateMachine then
+  --     print(" -> AnimStateMachine found.")
+  -- else
+  --     print("[Warning] AnimStateMachine is nil.")
+  -- end
 
 end
 
@@ -69,6 +73,14 @@ function OnEndOverlap(OtherActor)
 end
 
 function Tick(Delta)
-  local CurAnimName = AnimStateMachine:GetCurrentState()
-  print("Current Animation State: " .. CurAnimName)
+  -- local CurAnimName = AnimStateMachine:GetCurrentState()
+  -- print("Current Animation State: " .. CurAnimName)
+  AnimStateStr = AnimInstance:GetCurrentStateName()
+  print("Current Animation State Name: " .. AnimStateStr)
+
+  if AnimStateStr == "Vault" then
+      CharacterMoveComp.CapsuleOffset = Vector(0,0,0.3)
+  else
+      CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
+  end
 end

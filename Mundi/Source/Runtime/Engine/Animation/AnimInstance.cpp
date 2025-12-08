@@ -432,6 +432,11 @@ void UAnimInstance::UpdateAnimationCurves()
 // State Machine & Parameters
 // ============================================================
 
+FString UAnimInstance::GetCurrentStateName() const
+{
+	return GetStateMachine() ? GetStateMachine()->GetCurrentState().ToString() : "NoStateMachine";
+}
+
 void UAnimInstance::SetStateMachine(UAnimationStateMachine* InStateMachine)
 {
     AnimStateMachine = InStateMachine;
