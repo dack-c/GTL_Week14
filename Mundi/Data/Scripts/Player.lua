@@ -102,7 +102,7 @@ function Tick(Delta)
     if AnimInstance:GetCurrentPlayTime() > 3.8 then
       CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
     else
-      CharacterMoveComp.CapsuleOffset = Vector(-1.0,0,0.9)
+      CharacterMoveComp.CapsuleOffset = Vector(0.0,0,2.0)
     end
   elseif AnimStateStr ~= "Climb" and PreAnimStateStr == "Climb" then
     bChangedFromClimb = true
