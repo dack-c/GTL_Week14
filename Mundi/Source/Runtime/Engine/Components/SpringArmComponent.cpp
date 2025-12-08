@@ -44,7 +44,7 @@ void USpringArmComponent::TickComponent(float DeltaTime)
     MoveDis -= CurMoveDis;
     LastPos = CurPos;
     FQuat ArmRotation = GetWorldRotation();
-    UE_LOG("%f, %f, %f", MoveDis.X, MoveDis.Y, MoveDis.Z);
+    //UE_LOG("%f, %f, %f", MoveDis.X, MoveDis.Y, MoveDis.Z);
 
     // 자식 컴포넌트(카메라)의 로컬 위치를 암 끝으로 설정
     // SpringArm의 로컬 좌표계에서 -X 방향(뒤쪽)으로 CurrentArmLength만큼
