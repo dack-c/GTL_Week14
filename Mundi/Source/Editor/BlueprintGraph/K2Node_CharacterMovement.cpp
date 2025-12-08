@@ -861,7 +861,7 @@ FBlueprintValue UK2Node_GetForwardObjHeight::EvaluatePin(const UEdGraphPin* Outp
 
     if (OutputPin->PinName == "Height")
     {
-		UE_LOG("UK2Node_GetForwardObjHeight: ResultHeight = %.2f, HasObject = %s", ResultHeight, bHasObject ? "True" : "False");
+		//UE_LOG("UK2Node_GetForwardObjHeight: ResultHeight = %.2f, HasObject = %s", ResultHeight, bHasObject ? "True" : "False");
         return FBlueprintValue(ResultHeight);
     }
     else if (OutputPin->PinName == "Has Object")

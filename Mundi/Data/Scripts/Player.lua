@@ -46,6 +46,11 @@ function BeginPlay()
       print("[Warning] AnimInstance is nil. Check if Animation Blueprint is assigned.")
   end
 
+  -- InitializeAudiddo()
+  -- PlaySound2DByFile("Data/Audio/pakourBGM.wav")
+    -- 함수가 존재하는지 확인
+  PlaySound2DByFile("Data/Audio/pakourBGM.wav")
+  print("Playing sound: pakourBGM.wav")
   -- AnimStateStr = AnimInstance:GetCurrentStateName()
   -- print("Current Animation State Name: " .. AnimStateStr)
 
@@ -60,7 +65,7 @@ function BeginPlay()
 end
 
 function EndPlay()
-
+  StopAllSounds()
 end
 
 function OnBeginOverlap(OtherActor)

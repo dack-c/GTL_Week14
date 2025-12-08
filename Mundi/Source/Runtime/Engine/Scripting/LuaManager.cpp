@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "LuaManager.h"
 #include "LuaComponentProxy.h"
 #include "GameObject.h"
@@ -10,6 +10,7 @@
 #include "StatsOverlayD2D.h"
 #include "SkeletalMeshComponent.h"
 #include "AnimInstance.h"
+#include "Source/Runtime/Engine/GameFramework/FAudioDevice.h"
 #include "GameModeBase.h"
 #include "PlayerController.h"
 #include "Pawn.h"
@@ -442,6 +443,63 @@ FLuaManager::FLuaManager()
         "B", &FLinearColor::B,
         "A", &FLinearColor::A
     );
+
+    // === FAudioDevice bindings ===
+    SharedLib.set_function("InitializeAudio", []() -> bool {
+        return FAudioDevice::Initialize();
+    });
+
+    SharedLib.set_function("ShutdownAudio", []() {
+        FAudioDevice::Shutdown();
+    });
+
+    SharedLib.set_function("StopAllSounds", []() {
+        FAudioDevice::StopAllSounds();
+	});
+
+    SharedLib.set_function("IsAudioInitialized", []() -> bool {
+        return FAudioDevice::IsInitialized();
+    });
+
+    SharedLib.set_function("SetListenerPosition", [](const FVector& Position, const FVector& ForwardVec, const FVector& UpVec) {
+        FAudioDevice::SetListenerPosition(Position, ForwardVec, UpVec);
+    });
+
+    SharedLib.set_function("PlaySoundAtLocation", sol::overload(
+        [](USound* Sound, const FVector& Pos) {
+            FAudioDevice::PlaySoundAtLocationOneShot(Sound, Pos, 1.0f, 1.0f);
+        },
+        [](USound* Sound, const FVector& Pos, float Volume) {
+            FAudioDevice::PlaySoundAtLocationOneShot(Sound, Pos, Volume, 1.0f);
+        },
+        [](USound* Sound, const FVector& Pos, float Volume, float Pitch) {
+            FAudioDevice::PlaySoundAtLocationOneShot(Sound, Pos, Volume, Pitch);
+        }
+    ));
+
+    SharedLib.set_function("PlaySoundByFile", sol::overload(
+        [](const FString& FilePath, const FVector& Pos) {
+            FAudioDevice::PlaySoundOneShotByFile(FilePath, Pos, 1.0f, 1.0f);
+        },
+        [](const FString& FilePath, const FVector& Pos, float Volume) {
+            FAudioDevice::PlaySoundOneShotByFile(FilePath, Pos, Volume, 1.0f);
+        },
+        [](const FString& FilePath, const FVector& Pos, float Volume, float Pitch) {
+            FAudioDevice::PlaySoundOneShotByFile(FilePath, Pos, Volume, Pitch);
+        }
+    ));
+
+    SharedLib.set_function("PlaySound2DByFile", sol::overload(
+        [](const FString& FilePath) {
+            FAudioDevice::PlaySound2DOneShotByFile(FilePath, 1.0f, 1.0f);
+        },
+        [](const FString& FilePath, float Volume) {
+            FAudioDevice::PlaySound2DOneShotByFile(FilePath, Volume, 1.0f);
+        },
+        [](const FString& FilePath, float Volume, float Pitch) {
+            FAudioDevice::PlaySound2DOneShotByFile(FilePath, Volume, Pitch);
+        }
+    ));
 
     RegisterComponentProxy(*Lua);
     ExposeGlobalFunctions();

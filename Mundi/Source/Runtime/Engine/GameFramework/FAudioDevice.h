@@ -24,12 +24,17 @@ public:
     static bool IsInitialized() { return pXAudio2 != nullptr && !bIsShuttingDown; }
 
     static IXAudio2SourceVoice* PlaySound3D(USound* SoundToPlay, const FVector& EmitterPosition, float Volume = 1.0f, bool bIsLooping = false);
+    static IXAudio2SourceVoice* PlaySound2D(USound* SoundToPlay, float Volume = 1.0f, bool bIsLooping = false);
     static void StopSound(IXAudio2SourceVoice* pSourceVoice);
+	static void StopAllSounds();
 
     static void SetListenerPosition(const FVector& Position, const FVector& ForwardVec, const FVector& UpVec);
     static void UpdateSoundPosition(IXAudio2SourceVoice* pSourceVoice, const FVector& EmitterPosition);
 
     static void PlaySoundAtLocationOneShot(USound* Sound, const FVector& Pos, float Volume = 1.f, float Pitch = 1.f);
+    static void PlaySound2DOneShot(USound* Sound, float Volume = 1.f, float Pitch = 1.f);
+    static void PlaySoundOneShotByFile(const FString& FilePath, const FVector& Pos, float Volume = 1.f, float Pitch = 1.f);
+    static void PlaySound2DOneShotByFile(const FString& FilePath, float Volume = 1.f, float Pitch = 1.f);
 
     // Voice 등록/해제 (AudioComponent용)
     static void RegisterVoice(IXAudio2SourceVoice* Voice);
