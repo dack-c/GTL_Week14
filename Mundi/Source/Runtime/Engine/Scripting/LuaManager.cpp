@@ -396,11 +396,14 @@ FLuaManager::FLuaManager()
     SharedLib.new_usertype<FRectTransform>("FRectTransform",
         sol::no_constructor,
         // Properties
+        "AnchorMin", &FRectTransform::AnchorMin,
+        "AnchorMax", &FRectTransform::AnchorMax,
         "Anchor", &FRectTransform::Anchor,
         "Pivot", &FRectTransform::Pivot,
         "Pos", &FRectTransform::Pos,
         "Size", &FRectTransform::Size,
-        "ZOrder", &FRectTransform::ZOrder);
+        "ZOrder", &FRectTransform::ZOrder,
+        "CreateAnchorRange", &FRectTransform::CreateAnchorRange);
 
     SharedLib.set_function("DrawUIText", [](const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize) 
         { UStatsOverlayD2D::Get().RegisterTextUI(InRectTransform, Text, Color, InFontSize); });

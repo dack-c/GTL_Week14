@@ -11,18 +11,39 @@ public:
     FVector2D Pos;
     FVector2D Size;
     int ZOrder = 0;
+    static FRectTransform CreateAnchorRange(const FVector2D& InAnchorMin, const  FVector2D& InAnchorMax)
+    {
+        FRectTransform Rect;
+        Rect.AnchorMin = InAnchorMin;
+        Rect.AnchorMax = InAnchorMax;
+        return Rect;
+    }
     FRectTransform(const FVector2D& InPos, const FVector2D& InSize) : Pos(InPos), Size(InSize){}
     D2D1_RECT_F GetRect(const FVector2D& ViewportSize, const FVector2D& ViewportLTop) const
     {
         D2D1_RECT_F Rect;
-        FVector2D AnchorPos = FVector2D(ViewportSize.X * Anchor.X, ViewportSize.Y * Anchor.Y) + ViewportLTop;
-        FVector2D PivotPos = AnchorPos + Pos;
-        Rect.left = PivotPos.X - Pivot.X * Size.X;
-        Rect.right = PivotPos.X + (1 - Pivot.X) * Size.X;
-        Rect.bottom = PivotPos.Y - Pivot.Y * Size.Y;
-        Rect.top = PivotPos.Y + (1 - Pivot.Y) * Size.Y;
-        return Rect;
+        if (AnchorMax != FVector2D::Zero() || AnchorMin != FVector2D::Zero())
+        {
+            Rect.left = ViewportLTop.X + AnchorMin.X * ViewportSize.X;
+            Rect.right = ViewportLTop.X + AnchorMax.X * ViewportSize.X;
+            Rect.bottom = ViewportLTop.Y + AnchorMin.Y * ViewportSize.Y;
+            Rect.top = ViewportLTop.Y + AnchorMax.Y * ViewportSize.Y;
+            return Rect;
+        }
+        else 
+        {
+            FVector2D AnchorPos = FVector2D(ViewportSize.X * Anchor.X, ViewportSize.Y * Anchor.Y) + ViewportLTop;
+            FVector2D PivotPos = AnchorPos + Pos;
+            Rect.left = PivotPos.X - Pivot.X * Size.X;
+            Rect.right = PivotPos.X + (1 - Pivot.X) * Size.X;
+            Rect.bottom = PivotPos.Y - Pivot.Y * Size.Y;
+            Rect.top = PivotPos.Y + (1 - Pivot.Y) * Size.Y;
+            return Rect;
+        }
     }
+
+private:
+    FRectTransform() = default;
 };
 
 struct FDrawInfo
