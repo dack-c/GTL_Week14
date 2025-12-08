@@ -1,10 +1,21 @@
 {
   "ObjectName" : "캐릭터_0",
   "OwnedComponents" : [{
+      "MinFloorNormalZ" : 0.700000,
+      "MinSlidingSpeed" : 0.200000,
+      "NeedRollingAirTime" : 2.000000,
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "SlidingRotateSpeed" : 10.000000,
+      "SlidingSpeed" : 30.000000,
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
       "CapsuleHalfHeight" : 1.000000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 0,
-      "Id" : 11536,
+      "Id" : 4959,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [-10.182528, -13.650158, 9.774999],
@@ -23,7 +34,7 @@
     }, {
       "AnimGraphPath" : "Data/Graphs/GameJem.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 11537,
+      "Id" : 4960,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -37,7 +48,7 @@
           "Type" : "UMaterial"
         }],
       "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 11536,
+      "ParentId" : 4959,
       "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
       "RelativeLocation" : [0.000000, 0.000000, -1.000000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
@@ -53,13 +64,35 @@
       "bOverrideCollisionSetting" : false,
       "bTickEnabled" : true
     }, {
-      "ObjectName" : "UCharacterMovementComponent_1",
-      "Type" : "UCharacterMovementComponent",
+      "CollisionEnabled_Internal" : 0,
+      "Id" : 5111,
+      "ObjectName" : "SlidingParticle",
+      "ParentId" : 4959,
+      "RelativeLocation" : [0.223943, 0.000000, -0.900000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Template" : "Data/Particle/Slide.particle",
+      "Type" : "UParticleSystemComponent",
+      "bAutoActivate" : true,
+      "bAutoDestroy" : false,
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true,
+      "bUseAsyncSimulation" : true,
+      "bUseGpuInstancing" : false
+    }, {
+      "ObjectName" : "ULuaScriptComponent_1",
+      "ScriptFilePath" : "",
+      "Type" : "ULuaScriptComponent",
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bTickEnabled" : true
     }],
-  "RootComponentId" : 11536,
+  "RootComponentId" : 4959,
   "Tag" : "",
   "Type" : "ACharacter",
   "bActorHiddenInGame" : false,
