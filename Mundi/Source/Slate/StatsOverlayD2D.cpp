@@ -271,8 +271,8 @@ void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& In
 
 		if (UITextFormat)
 		{
-			UITextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-			UITextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+			UITextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+			UITextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		}
 	}
 	UIColorBrush->SetColor(D2D1_COLOR_F(Color.X, Color.Y, Color.Z, Color.W));

@@ -391,6 +391,7 @@ FLuaManager::FLuaManager()
         [](float R, float G, float B, float A) { return FLinearColor(R, G, B, A); }
     ));
     SharedLib.set_function("RectTransform", sol::overload(
+        []() { return FRectTransform(FVector2D::Zero(), FVector2D::Zero()); },
         [](const FVector2D& InPos, const FVector2D& InSize) { return FRectTransform(InPos, InSize); }
     ));
     SharedLib.new_usertype<FRectTransform>("FRectTransform",

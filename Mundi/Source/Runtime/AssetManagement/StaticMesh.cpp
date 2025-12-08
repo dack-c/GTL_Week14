@@ -67,7 +67,7 @@ bool UStaticMesh::Load(const FString& InFilePath, ID3D11Device* InDevice, EVerte
         // FBX 파일 로드
         FSkeletalMeshData* SkeletalData = UFbxLoader::GetInstance().LoadFbxMeshAsset(InFilePath);
 
-        if (SkeletalData->Vertices.empty() || SkeletalData->Indices.empty())
+        if (!SkeletalData || SkeletalData->Vertices.empty() || SkeletalData->Indices.empty())
         {
             UE_LOG("ERROR: Failed to load FBX mesh from '%s'", InFilePath.c_str());
             delete SkeletalData;

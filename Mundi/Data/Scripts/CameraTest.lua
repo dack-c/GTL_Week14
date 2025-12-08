@@ -26,9 +26,9 @@ function OnEndOverlap(OtherActor)
 end
 
 function Tick(Delta)
- local Pos = Vector2D(500.0,500.0)
-local Size = Vector2D(300.0,400.0)
-local RectTransform = RectTransform(Pos,Size)
+local RectTransform = RectTransform()
+RectTransform.Pos = Vector2D(500.0,500.0)
+RectTransform.Size = Vector2D(300.0,400.0)
 local Color = Vector4(1,1,1,1)
 RectTransform.Pivot = Vector2D(0.5,0.5)
 DrawUIText(RectTransform, "asdf", Color, 50)
@@ -47,7 +47,7 @@ RectTransform.Pivot = Vector2D(0.5,0.5)
 
 AnchorMin = Vector2D(0,0)
 AnchorMax = Vector2D(1,1)
- local FullScreenRect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+local FullScreenRect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
 DrawUISprite(FullScreenRect, "Data/Textures/GreenLight.png", 0.5)
 
 end
