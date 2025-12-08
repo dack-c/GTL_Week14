@@ -6,6 +6,7 @@
 #include "World.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
 #include "Collision.h"
+#include "ParticleSystemComponent.h"
 
 UCharacterMovementComponent::UCharacterMovementComponent()
 {
@@ -70,7 +71,7 @@ void UCharacterMovementComponent::DoJump()
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		bIsSliding = false;
+		SetSliding(false);
 		CurrentFloor.Reset();
 	}
 }
@@ -87,7 +88,7 @@ void UCharacterMovementComponent::TryStartSliding()
 {
 	if (CheckFloor(CurrentFloor))
 	{
-		bIsSliding = true;
+		SetSliding(true);
 	}
 }
 
@@ -111,7 +112,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		// 슬라이딩 속도가 일정 량 이하로 떨어지면 종료
 		if (SlidingVector.SizeSquared() < MinSlidingSpeed)
 		{
-			bIsSliding = false;
+			SetSliding(false);
 			return;
 		}
 
@@ -130,7 +131,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		else
 		{
 			// 움직이지 않는 경우 슬라이딩 종료
-			bIsSliding = false;
+			SetSliding(false);
 		}
 	}
 	else
@@ -139,7 +140,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		bIsSliding = false;
+		SetSliding(false);
 	}
 }
 
@@ -526,6 +527,31 @@ FPhysScene* UCharacterMovementComponent::GetPhysScene() const
 		}
 	}
 	return nullptr;
+}
+
+void UCharacterMovementComponent::SetSliding(bool bNewIsSliding)
+{
+	if (bIsSliding == bNewIsSliding)
+	{
+		return;
+	}
+
+	bIsSliding = bNewIsSliding;
+
+	if (CharacterOwner)
+	{
+		if (UParticleSystemComponent* ParticleComp = CharacterOwner->GetSlidingParticleComponent())
+		{
+			if (bIsSliding)
+			{
+				ParticleComp->bSuppressSpawning = false;
+			}
+			else
+			{
+				ParticleComp->bSuppressSpawning = true;
+			}
+		}
+	}
 }
 
 bool UCharacterMovementComponent::ResolveOverlaps()
