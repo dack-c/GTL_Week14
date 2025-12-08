@@ -106,10 +106,8 @@ void FAnimBlueprintCompiler::Compile(UAnimationGraph* InGraph, UAnimInstance* In
         if (UK2Node_AnimTransition* TransitionNode = Cast<UK2Node_AnimTransition>(Node))
         {
             UEdGraphPin* InputExec = TransitionNode->FindPin("Execute", EEdGraphPinDirection::EGPD_Input);
-            //TArray<UEdGraphPin*> InputExecs = TransitionNode->FindPins("Execute", EEdGraphPinDirection::EGPD_Input);
             UEdGraphPin* OutputExec = TransitionNode->FindPin("Transition To", EEdGraphPinDirection::EGPD_Output);
 
-            //UEdGraphNode* FromNode = GetConnectedNode(InputExec);
 			TArray<UEdGraphNode*> FromNodes = GetConnectedNodes(InputExec);
             UEdGraphNode* ToNode = GetConnectedNode(OutputExec);
 
