@@ -35,10 +35,9 @@ const bool UMotionBlurComponent::bPropertiesRegistered = []() {
 
 BEGIN_PROPERTIES(UMotionBlurComponent)
     MARK_AS_COMPONENT("Depth Of Field", "피사계 심도")
-    ADD_PROPERTY_RANGE(float, FocusDistance, "DepthOfField", 0.01f, 1000.0f, true)
-    ADD_PROPERTY_RANGE(float, FocusRange, "DepthOfField", 0.01f, 1000.0f, true)
-    ADD_PROPERTY_RANGE(float, GaussianBlurWeight, "DepthOfField", 1.0f, 30.0f, true)
-    ADD_PROPERTY(bool, bUseDownSampling, "DepthOfField", true)
+    ADD_PROPERTY_RANGE(float, MaxVelocity, "MotionBlur", 0.0f, 2.0f, true)
+    ADD_PROPERTY_RANGE(int, SampleCount, "MotionBlur", 1.0f, 32.0f, true)
+    ADD_PROPERTY_RANGE(float, GaussianBlurWeight, "MotionBlur", 1.0f, 30.0f, true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====

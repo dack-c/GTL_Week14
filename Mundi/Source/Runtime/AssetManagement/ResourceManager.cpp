@@ -12,7 +12,8 @@
 #include <cwctype>
 
 IMPLEMENT_CLASS(UResourceManager)
-
+const char* UResourceManager::FullScreenVSPath = "Shaders/Utility/FullScreenTriangle_VS.hlsl";
+const char* UResourceManager::BlitPSPath = "Shaders/Utility/Blit_PS.hlsl";
 #define GRIDNUM 100
 #define AXISLENGTH 100
 

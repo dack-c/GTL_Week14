@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <FxCompile Include="Shaders\Effects\ParticleBeam.hlsl" />
@@ -25,6 +25,7 @@
     <FxCompile Include="Shaders\UI\TextBillboard.hlsl" />
     <FxCompile Include="Shaders\Effects\ParticleSprite.hlsl" />
     <FxCompile Include="Shaders\PostProcess\MB_CalcScreenVelocity_PS.hlsl" />
+    <FxCompile Include="Shaders\PostProcess\MB_MotionBlur_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Generated\AActor.generated.cpp">
@@ -476,7 +477,16 @@
     <ClCompile Include="Source\Runtime\Renderer\PostProcessing\MotionBlurPass.cpp" />
     <ClCompile Include="Source\Runtime\Renderer\RenderTexture.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\MotionBlurComponent.cpp" />
-  <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\UAnimationStateMachine.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\UAnimInstance.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
+    <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp">
+      <Filter>Generated</Filter>
+    </ClCompile>
+    <ClCompile Include="Generated\UAnimationStateMachine.generated.cpp">
+      <Filter>Generated</Filter>
+    </ClCompile>
+    <ClCompile Include="Generated\UAnimInstance.generated.cpp">
+      <Filter>Generated</Filter>
+    </ClCompile>
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Generated\AActor.generated.h">
       <Filter>Generated</Filter>
@@ -972,13 +982,28 @@
     <ClInclude Include="Source\Runtime\Renderer\PostProcessing\MotionBlurPass.h" />
     <ClInclude Include="Source\Runtime\Renderer\RenderTexture.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\MotionBlurComponent.h" />
-  <ClInclude Include="Generated\UMotionBlurComponent.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\UAnimationStateMachine.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\UAnimInstance.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
+    <ClInclude Include="Generated\UMotionBlurComponent.generated.h">
+      <Filter>Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="Generated\UAnimationStateMachine.generated.h">
+      <Filter>Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="Generated\UAnimInstance.generated.h">
+      <Filter>Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Runtime\Core\Object\ObjectMacros.h" />
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimStateTypes.h" />
+    <ClInclude Include="Source\Runtime\Engine\Scripting\LuaPhysicsTypes.h" />
+    <ClInclude Include="Source\Runtime\Renderer\LightStats.h" />
+    <ClInclude Include="Source\Runtime\Renderer\ShadowStats.h" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />
     <None Include="Tools\CodeGenerator\lua_generator.py" />
     <None Include="Tools\CodeGenerator\parser.py" />
     <None Include="Tools\CodeGenerator\property_generator.py" />
+    <None Include="Shaders\PostProcess\Test.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Tools\CodeGenerator\requirements.txt" />

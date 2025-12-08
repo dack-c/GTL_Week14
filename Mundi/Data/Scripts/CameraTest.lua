@@ -33,18 +33,18 @@ local Color = Vector4(1,1,1,1)
 RectTransform.Pivot = Vector2D(0.5,0.5)
 --DrawUIText(RectTransform, "asdf", Color, 50)
 RectTransform.ZOrder = 0;
-DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
+--DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
 
 RectTransform.ZOrder = 1;
 
-DrawUISprite(RectTransform, "Data/Textures/Boom.png", 1.0)
+--DrawUISprite(RectTransform, "Data/Textures/Boom.png", 1.0)
 RectTransform.ZOrder = 2;
 RectTransform.Anchor = Vector2D(0.5,0.5)
 RectTransform.Pivot = Vector2D(1,1)
 RectTransform.Pos = Vector2D(0,0)
-DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
+--DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
 RectTransform.Pivot = Vector2D(0.5,0.5)
-DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
+--DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
 
 
 

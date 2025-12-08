@@ -1,6 +1,6 @@
 // Input Textures (Near 또는 Far 분리 텍스처)
 Texture2D g_SceneColor : register(t0);
-Texture2D g_SceneDepth : register(t1);
+Texture2D g_VelocityTex : register(t1);
 
 SamplerState g_LinearClampSample : register(s0);
 SamplerState g_PointClampSample : register(s1);
@@ -25,7 +25,7 @@ cbuffer MotionBlurLastVPCB : register(b2)
     row_major float4x4 LastFrameVP;
     float GaussianWeight;
     float MaxVelocity;
-    int SampleCount;
+    uint SampleCount;
     float2 MotionBlurLastVPCB_padding;
 };
 cbuffer ViewportConstants : register(b10)
@@ -34,8 +34,10 @@ cbuffer ViewportConstants : register(b10)
     float4 ScreenSize;
 }
 
-#define PI 3.14159265359
-#define COC_THRESHOLD 0.001
+float GetGaussian(float dis)
+{
+    return exp(-dis * dis / (2 * GaussianWeight * GaussianWeight));
+}
 
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
@@ -43,18 +45,22 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
     g_SceneColor.GetDimensions(TexWidth, TexHeight);
     float2 InvTexSize = float2(1.0f / TexWidth, 1.0f / TexHeight);
     float2 uv = input.position.xy * InvTexSize;
-    float2 ndc = uv * 2 - 1;
-    float depth = g_SceneDepth.Sample(g_PointClampSample, uv).r;
-    float4 WorldVt4 = mul(float4(ndc, depth, 1), CurInvVP);
-    float3 World = WorldVt4.xyz / WorldVt4.w;
 
-    float4 LastScreenNDCVt4 = mul(float4(World, 1), LastFrameVP);
-    float2 LastScreenNDC = LastScreenNDCVt4.xy / LastScreenNDCVt4.w;
+    float2 Velocity = (g_VelocityTex.Sample(g_PointClampSample, uv).rg * 2 - 1) * MaxVelocity;
+    float2 VelocityDir = normalize(Velocity);
+    float VelocityLength = length(Velocity);
 
-    float2 LastUV = LastScreenNDC * 0.5f + 0.5f;
-    float2 VelocityUV = uv - LastUV;
-    VelocityUV /= MaxVelocity;
-    VelocityUV = VelocityUV * 0.5f + 0.5f;
-    VelocityUV = saturate(VelocityUV);
-    return float4(VelocityUV, 0, 1);
+    float3 TotalColor = float3(0, 0, 0);
+    float TotalWeight = 0;
+    for (int i = -SampleCount; i <= SampleCount; i++)
+    {
+        float t = float(i) / float(SampleCount * 2); // -SampleCount ~ SampleCount => -0.5 ~ 0.5
+        float2 CurUV = uv + t * Velocity;
+        float CurGaussian = GetGaussian(i);
+        float3 CurColor = g_SceneColor.Sample(g_LinearClampSample, CurUV).rgb;
+        TotalColor += CurColor * CurGaussian;
+        TotalWeight += CurGaussian;
+    }
+
+    return float4(TotalColor / TotalWeight, 1);
 }

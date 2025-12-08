@@ -31,17 +31,15 @@ public:
 
 public:
 
-    UPROPERTY(EditAnywhere, Category = "DepthOfField", Range = "0.01, 1000.0")
-    float FocusDistance = 0.0f;
+    UPROPERTY(EditAnywhere, Category = "MotionBlur", Range = "0.00, 2.0")
+    float MaxVelocity = 0.2f;
 
-    UPROPERTY(EditAnywhere, Category = "DepthOfField", Range = "0.01, 1000.0")
-    float FocusRange = 0.0f;
+    UPROPERTY(EditAnywhere, Category = "MotionBlur", Range = "1, 32")
+    int SampleCount = 8;
 
-    UPROPERTY(EditAnywhere, Category = "DepthOfField", Range = "1.0, 30.0")
+    UPROPERTY(EditAnywhere, Category = "MotionBlur", Range = "1.0, 30.0")
     float GaussianBlurWeight = 1;
 
-    UPROPERTY(EditAnywhere, Category = "DepthOfField")
-    bool bUseDownSampling = false;
 private:
 
 };

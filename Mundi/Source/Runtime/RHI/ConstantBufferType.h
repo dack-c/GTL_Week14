@@ -307,6 +307,17 @@ struct alignas(16) FSkyConstantBuffer
 	{}
 };
 
+
+struct FMotionBlurCBuffer
+{
+    FMatrix CurInvVP;
+    FMatrix LastFrameVP;
+    float GaussianWeight;
+    float MaxVelocity;
+    uint32 SampleCount;
+    float Padding[1];
+};
+
 #define CONSTANT_BUFFER_INFO(TYPE, SLOT, VS, PS) \
 constexpr uint32 TYPE##Slot = SLOT;\
 constexpr bool TYPE##IsVS = VS;\
@@ -336,6 +347,7 @@ MACRO(FTileCullingBufferType)       \
 MACRO(FPointLightShadowBufferType)  \
 MACRO(FSubUVBufferType) \
 MACRO(FParticleEmitterType) \
+MACRO(FMotionBlurCBuffer) \
 MACRO(FSkyConstantBuffer)
 
 // 16 바이트 패딩 어썰트
@@ -368,6 +380,7 @@ CONSTANT_BUFFER_INFO(FPointLightShadowBufferType, 12, true, true)  // b12, VS+PS
 CONSTANT_BUFFER_INFO(FSubUVBufferType, 2, true, true)  // b2, VS+PS (ParticleSprite.hlsl용)
 CONSTANT_BUFFER_INFO(FParticleEmitterType, 3, true, false)  // b3, VS (ParticleSprite.hlsl용)
 CONSTANT_BUFFER_INFO(FSkyConstantBuffer, 9, false, true)  // b9, PS only (Sky.hlsl용)
+CONSTANT_BUFFER_INFO(FMotionBlurCBuffer, 2, false, true)  // b2, PS only
 
 
 

@@ -17,10 +17,10 @@ public:
 	URenderTexture() = default;
 	~URenderTexture() = default;
 
-	void InitResolution(ID3D11Device* Device, const float InResolution, ID3D11Texture2D* FrameBufferTex);
-	void InitResolution(D3D11RHI* RHIDevice, const float InResolution);
-	void InitFixedSize(ID3D11Device* Device, const uint32 InWidth, const uint32 InHeight);
-	void InitFixedSize(D3D11RHI* RHIDevice, const uint32 InWidth, const uint32 InHeight);
+	void InitResolution(ID3D11Device* Device, const float InResolution, ID3D11Texture2D* FrameBufferTex, DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN);
+	void InitResolution(D3D11RHI* RHIDevice, const float InResolution, DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN);
+	void InitFixedSize(ID3D11Device* Device, const uint32 InWidth, const uint32 InHeight, DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN);
+	void InitFixedSize(D3D11RHI* RHIDevice, const uint32 InWidth, const uint32 InHeight, DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN);
 
 	float GetResolution() const { return Resolution; }
 	ERenderTexSizeType GetType() const { return RenderTexSizeType; }
@@ -36,6 +36,7 @@ private:
 	uint32 TexWidth = 0;
 	uint32 TexHeight = 0;
 	ERenderTexSizeType RenderTexSizeType = ERenderTexSizeType::Resolution;
+	DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN;
 
-	void CreateResources(ID3D11Device* Device, const uint32 Width, const uint32 Height);
+	void CreateResources(ID3D11Device* Device, const uint32 Width, const uint32 Height, DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN);
 };
