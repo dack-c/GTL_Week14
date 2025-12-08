@@ -5,6 +5,8 @@
 #include "CharacterMovementComponent.h"
 #include "SkeletalMeshComponent.h"
 #include "Source/Runtime/Engine/Animation/AnimInstance.h"
+#include "Source/Runtime/Engine/Animation/AnimationStateMachine.h"
+#include "ImGui/imgui_stdlib.h"
 #include "Character.h"
 #include "CapsuleComponent.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
@@ -399,9 +401,30 @@ UK2Node_GetIsFinishAnim::UK2Node_GetIsFinishAnim()
     TitleColor = ImColor(100, 200, 100); // Pure Node Green
 }
 
+void UK2Node_GetIsFinishAnim::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadString(InOutHandle, "StateName", StateName);
+    }
+    else
+    {
+        InOutHandle["StateName"] = StateName;
+    }
+}
+
 void UK2Node_GetIsFinishAnim::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Bool, "Is Finished");
+}
+
+void UK2Node_GetIsFinishAnim::RenderBody()
+{
+    ImGui::PushItemWidth(150.0f);
+    ImGui::InputText("State Name", &StateName);
+    ImGui::PopItemWidth();
 }
 
 FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
@@ -420,6 +443,23 @@ FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPi
 
     if (OutputPin->PinName == "Is Finished")
     {
+        // StateName이 비어있지 않으면 해당 상태일 때만 검사
+        if (!StateName.empty())
+        {
+            UAnimationStateMachine* StateMachine = AnimInstance->GetStateMachine();
+            if (!StateMachine)
+            {
+                return FBlueprintValue(false);
+            }
+
+            // 현재 상태가 지정된 상태와 다르면 false 반환
+            FName CurrentState = StateMachine->GetCurrentState();
+            if (CurrentState.ToString() != StateName)
+            {
+                return FBlueprintValue(false);
+            }
+        }
+
         // 현재 재생 중인지 확인
         IAnimPoseProvider* PoseProvider = nullptr;
         PoseProvider = AnimInstance->GetCurrentPlayState().PoseProvider;
@@ -433,12 +473,6 @@ FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPi
         {
 			PlayState = AnimInstance->GetBlendTargetState();
         }
-
-        /*if (PoseProvider->GetCurrentPlayTime() >= PoseProvider->GetPlayLength() || AnimInstance->GetCurrentPlayState().loopCount > 1)
-        {
-			UE_LOG("Animation is finished. Name: %s, CurPlaytime: %.2f, Playalength: %.2f, loopCount: %.2f", PoseProvider->GetDominantSequence()->GetFilePath().c_str(), PoseProvider->GetCurrentPlayTime(), PoseProvider->GetPlayLength(), AnimInstance->GetCurrentPlayState().loopCount);
-            return FBlueprintValue(true);
-        }*/
 
         if (PlayState.bIsPlaying == false || PlayState.loopCount > 1)
         {
@@ -469,9 +503,30 @@ UK2Node_GetRemainAnimLength::UK2Node_GetRemainAnimLength()
     TitleColor = ImColor(100, 200, 100); // Pure Node Green
 }
 
+void UK2Node_GetRemainAnimLength::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+    UK2Node::Serialize(bInIsLoading, InOutHandle);
+
+    if (bInIsLoading)
+    {
+        FJsonSerializer::ReadString(InOutHandle, "StateName", StateName);
+    }
+    else
+    {
+        InOutHandle["StateName"] = StateName;
+    }
+}
+
 void UK2Node_GetRemainAnimLength::AllocateDefaultPins()
 {
     CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "Remain Length");
+}
+
+void UK2Node_GetRemainAnimLength::RenderBody()
+{
+    ImGui::PushItemWidth(150.0f);
+    ImGui::InputText("State Name", &StateName);
+    ImGui::PopItemWidth();
 }
 
 FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
@@ -490,6 +545,23 @@ FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* Outp
 
     if (OutputPin->PinName == "Remain Length")
     {
+        // StateName이 비어있지 않으면 해당 상태일 때만 검사
+        if (!StateName.empty())
+        {
+            UAnimationStateMachine* StateMachine = AnimInstance->GetStateMachine();
+            if (!StateMachine)
+            {
+                return FBlueprintValue(0.0f);
+            }
+
+            // 현재 상태가 지정된 상태와 다르면 0 반환
+            FName CurrentState = StateMachine->GetCurrentState();
+            if (CurrentState.ToString() != StateName)
+            {
+                return FBlueprintValue(0.0f);
+            }
+        }
+
         FAnimationPlayState CurrentState = AnimInstance->GetCurrentPlayState();
         if (AnimInstance->GetBlendTargetState().PoseProvider)
         {
