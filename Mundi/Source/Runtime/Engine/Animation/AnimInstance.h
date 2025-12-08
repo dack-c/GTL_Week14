@@ -244,6 +244,9 @@ public:
 	const FAnimationPlayState& GetCurrentPlayState() const { return CurrentPlayState; }
 	const FAnimationPlayState& GetBlendTargetState() const { return BlendTargetState; }
 
+    UFUNCTION(LuaBind, DisplayName = "GetCurrentPlayTime")
+	float GetCurrentPlayTime() const { return CurrentPlayState.CurrentTime; }
+
 protected:
     // PlayState 헬퍼
     void EvaluatePoseForState(const FAnimationPlayState& PlayState, TArray<FTransform>& OutPose, float DeltaTime = 0.0f) const;

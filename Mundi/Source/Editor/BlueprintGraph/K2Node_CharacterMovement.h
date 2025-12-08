@@ -196,11 +196,17 @@ class UK2Node_GetIsFinishAnim : public UK2Node
 public:
     UK2Node_GetIsFinishAnim();
 
+    /** 검사할 상태의 이름 */
+    FString StateName = "";
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Is Animation Finished"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
     virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
 
     // --- UK2Node 인터페이스 ---
@@ -220,11 +226,17 @@ class UK2Node_GetRemainAnimLength : public UK2Node
 public:
     UK2Node_GetRemainAnimLength();
 
+    /** 검사할 상태의 이름 */
+    FString StateName = "";
+
+    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Get Remain Animation Length"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
+    virtual void RenderBody() override;
     virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
 
     // --- UK2Node 인터페이스 ---

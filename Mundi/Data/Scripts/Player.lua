@@ -72,15 +72,46 @@ function OnEndOverlap(OtherActor)
 
 end
 
+local PreAnimStateStr = ""
+local bChangedFromClimb = false
+local PostDelta = 0.0
 function Tick(Delta)
+  AnimInstance = GetAnimInstanceOfSkeletal(SkeletalMesh)
   -- local CurAnimName = AnimStateMachine:GetCurrentState()
   -- print("Current Animation State: " .. CurAnimName)
   AnimStateStr = AnimInstance:GetCurrentStateName()
   -- print("Current Animation State Name: " .. AnimStateStr)
 
-  if AnimStateStr == "Vault" then
-      CharacterMoveComp.CapsuleOffset = Vector(0,0,0.3)
-  else
-      CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
+  if bChangedFromClimb == true then
+    PostDelta = PostDelta + Delta
+    if PostDelta > 0.35 then
+      bChangedFromClimb = false
+      PostDelta = 0.0
+    else
+      CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
+    end
   end
+
+  if AnimStateStr == "Vault" then
+    PreAnimStateStr = "Vault"
+    CharacterMoveComp.CapsuleOffset = Vector(0,0,0.3)
+    -- CharacterMoveComp.CapsuleOffset = Vector(0,0,5.0)
+    -- print("Vaulting - Adjusting Capsule  Z Offset: " .. CharacterMoveComp.CapsuleOffset.Z)
+  elseif AnimStateStr == "Climb" then
+    PreAnimStateStr = "Climb"
+    if AnimInstance:GetCurrentPlayTime() > 3.8 then
+      CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
+    else
+      CharacterMoveComp.CapsuleOffset = Vector(-1.0,0,0.9)
+    end
+  elseif AnimStateStr ~= "Climb" and PreAnimStateStr == "Climb" then
+    bChangedFromClimb = true
+    PreAnimStateStr = AnimStateStr
+    CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
+  elseif bChangedFromClimb == false then
+    CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
+  end
+
+
+  -- print("AnimStateStr: " .. AnimStateStr .. " | Capsule Z Offset: " .. CharacterMoveComp.CapsuleOffset.Z)
 end

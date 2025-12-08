@@ -132,6 +132,8 @@ public:
      */
     void Clear();
 
+	const TArray<FAnimationState>& GetStates() const { return States; }
+
 protected:
     /**
      * @brief 상태 전이 평가
