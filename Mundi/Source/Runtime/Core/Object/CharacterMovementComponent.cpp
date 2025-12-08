@@ -84,7 +84,7 @@ void UCharacterMovementComponent::StopJump()
 	//}
 }
 
-void UCharacterMovementComponent::TryStartSliding()
+bool UCharacterMovementComponent::TryStartSliding()
 {
 	if (CheckFloor(CurrentFloor))
 	{
@@ -92,8 +92,11 @@ void UCharacterMovementComponent::TryStartSliding()
 		if (CurrentFloor.ImpactNormal.Z < SlideFloorMaxNormalZ)
 		{
 			SetSliding(true);
+			return true;
 		}
 	}
+
+	return false;
 }
 
 void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
@@ -291,6 +294,15 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsJumping = false;
 			bIsFalling = false;
 			CurrentFloor = Hit;
+			
+			// 구르기가 필요할 정도의 높이에서 떨어지면 슬라이딩 시도
+			if (bNeedRolling)
+			{
+				if (TryStartSliding())
+				{
+					bNeedRolling = false;
+				}
+			}
 			// SafeMoveUpdatedComponent에서 이미 SkinWidth 적용된 위치로 설정됨
 			// Hit.Location으로 덮어쓰면 경사면에 박힘
 		}
@@ -338,6 +350,15 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			bIsJumping = false;
 			bIsFalling = false;
 			CurrentFloor = FloorHit;
+
+			// 구르기가 필요할 정도의 높이에서 떨어지면 슬라이딩 시도
+			if (bNeedRolling)
+			{
+				if (TryStartSliding())
+				{
+					bNeedRolling = false;
+				}
+			}
 
 			UE_LOG("[CharacterMovement] Landed on floor at Z=%.3f", FloorHit.ImpactPoint.Z);
 

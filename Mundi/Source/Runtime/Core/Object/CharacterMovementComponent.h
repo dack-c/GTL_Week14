@@ -37,7 +37,7 @@ public:
 	// 상태 제어 
 	void DoJump();
 	void StopJump();
-	void TryStartSliding();
+	bool TryStartSliding();
 	bool IsFalling() const { return bIsFalling; }
 	bool IsSliding() const { return bIsSliding; }
 	bool IsJumping() const { return bIsJumping; }
@@ -140,8 +140,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Capsule")
 	FVector CapsuleOffset = FVector::Zero(); // 캡슐 콜라이더 오프셋
 
-	UPROPERTY(EditAnywhere, Category = "Move")
-	float SlideFloorMaxNormalZ = 0.95f;	// 미끄러 질 수 있는 바닥의 최대 normal Z
+	//UPROPERTY(EditAnywhere, Category = "Move")
+	float SlideFloorMaxNormalZ = 0.96f;	// 미끄러 질 수 있는 바닥의 최대 normal Z
 
 protected:
 	ACharacter* CharacterOwner = nullptr;
