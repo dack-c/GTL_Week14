@@ -231,14 +231,14 @@ bool UGameEngine::Startup(HINSTANCE hInstance)
     }
 
     GWorld->GetGameMode()->StartPlay();
-    //// PIE가 시작되면, 마우스를 숨기고 위치를 락건다.
-    //// F11을 통해서 풀 수 있다. 
-    //{
-    //    UInputManager& Input = UInputManager::GetInstance();
-    //    Input.SetCursorVisible(false);
-    //    Input.LockCursor();
-    //    Input.LockCursorToCenter();
-    //}
+    // PIE가 시작되면, 마우스를 숨기고 위치를 락건다.
+    // F11을 통해서 풀 수 있다. 
+    {
+        UInputManager& Input = UInputManager::GetInstance();
+        Input.SetCursorVisible(false);
+        Input.LockCursor();
+        Input.LockCursorToCenter();
+    }
 
     // 로드된 월드의 모든 액터에 대해 BeginPlay() 호출
     TArray<AActor*> LevelActors = GWorld->GetLevel()->GetActors();

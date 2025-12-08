@@ -69,7 +69,6 @@ void UInputManager::Update()
 {
     // 마우스 휠 델타 초기화 (프레임마다 리셋)
     MouseWheelDelta = 0.0f;
-
     // 매 프레임마다 실시간 마우스 위치 업데이트
     if (WindowHandle)
     {
@@ -77,10 +76,29 @@ void UInputManager::Update()
         if (GetCursorPos(&CursorPos))
         {
             ScreenToClient(WindowHandle, &CursorPos);
+            if (IsKeyPressed('I'))
+            {
+                if (IsCursorLocked())
+                {
+                    INPUT.SetCursorVisible(true);
+                    INPUT.ReleaseCursor();
+                }
+                else
+                {
+                    INPUT.SetCursorVisible(false);
+                    INPUT.LockCursor();
+                }
+            }
+
 
             // 커서 잠금 모드: 무한 드래그 처리
             // ImGui가 마우스를 사용 중이면 커서 잠금 모드를 비활성화
-            if (bIsCursorLocked && !ImGui::GetIO().WantCaptureMouse)
+#ifdef _EDITOR
+            bool MouseLock = bIsCursorLocked && !ImGui::GetIO().WantCaptureMouse;
+#else
+            bool MouseLock = bIsCursorLocked;
+#endif
+            if (MouseLock)
             {
                 MousePosition.X = static_cast<float>(CursorPos.x);
                 MousePosition.Y = static_cast<float>(CursorPos.y);
