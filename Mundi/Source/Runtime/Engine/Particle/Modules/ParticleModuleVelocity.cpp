@@ -3,6 +3,7 @@
 #include "../ParticleEmitter.h"
 #include "../ParticleHelper.h"
 #include "Source/Runtime/Engine/Particle/ParticleEmitterInstance.h"
+#include "Source/Runtime/Engine/Components/ParticleSystemComponent.h"
 
 IMPLEMENT_CLASS(UParticleModuleVelocity)
 
@@ -18,10 +19,14 @@ void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offse
         return;
 
     // 초기 속도 설정
-    FVector Velocity = StartVelocity.GetValue({Owner->GetRandomFloat(), Owner->GetRandomFloat(),Owner->GetRandomFloat()});
+    FVector LocalVelocity = StartVelocity.GetValue({Owner->GetRandomFloat(), Owner->GetRandomFloat(),Owner->GetRandomFloat()});
     float Multiplier = VelocityMultiplier.GetValue(Owner->GetRandomFloat());
 
-    ParticleBase->Velocity = Velocity * Multiplier;
+    // 컴포넌트의 월드 회전을 적용하여 월드 공간 속도 벡터 계산
+    FQuat ComponentRot = Owner->Component->GetWorldRotation();
+    FVector WorldVelocity = ComponentRot.RotateVector(LocalVelocity);
+
+    ParticleBase->Velocity = WorldVelocity * Multiplier;
     ParticleBase->BaseVelocity = ParticleBase->Velocity;
 }
 

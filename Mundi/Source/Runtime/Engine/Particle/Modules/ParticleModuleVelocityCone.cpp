@@ -2,6 +2,7 @@
 #include "ParticleModuleVelocityCone.h"
 #include "../ParticleEmitterInstance.h"
 #include "Source/Runtime/Engine/Particle/ParticleHelper.h"
+#include "Source/Runtime/Engine/Components/ParticleSystemComponent.h"
 
 IMPLEMENT_CLASS(UParticleModuleVelocityCone)
 
@@ -42,7 +43,12 @@ void UParticleModuleVelocityCone::Spawn(FParticleEmitterInstance* Owner, int32 O
     LocalDir.Z = Z;
     
     FQuat Rot = FQuat::FindBetweenNormals({0,0,1}, Dir);
+
+    FVector LocalVelocityDir = Rot.RotateVector(LocalDir);
+
+    // 컴포넌트의 월드 회전을 적용하여 월드 공간 속도 벡터 계산
+    FQuat ComponentRot = Owner->Component->GetWorldRotation();
+    FVector FinalVelocityDir = ComponentRot.RotateVector(LocalVelocityDir);
     
-    FVector FinalVelocityDir = Rot.RotateVector(LocalDir);
     ParticleBase->Velocity += FinalVelocityDir * Speed;
 }
