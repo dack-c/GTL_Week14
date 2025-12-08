@@ -44,7 +44,9 @@ struct FName
         DisplayIndex = Index;
         ComparisonIndex = Index; // 필요시 다른 규칙 적용 가능
 
+#if defined(DEBUG) || defined(_DEBUG)
         DebugStr = InStr;
+#endif
     }
 
     bool operator==(const FName& Other) const { return ComparisonIndex == Other.ComparisonIndex; }
