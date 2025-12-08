@@ -88,11 +88,16 @@ private:
 
     /** 충돌 체크용 구체 반지름 */
     UPROPERTY(EditAnywhere, Category="SpringArm", Range="0.1, 50.0")
-    float ProbeSize;
+    float ProbeSize = 0.1f;
 
     /** PlayerController의 ControlRotation을 사용할지 여부 */
     UPROPERTY(EditAnywhere, Category="SpringArm")
     bool bUsePawnControlRotation;
+
+    FVector MoveDis;
+    FVector LastPos;
+    UPROPERTY(EditAnywhere, Category = "LocationLag", Range = "0.001, 1.0")
+    float CameraLagSpeed = 0.05f;
 
     UPROPERTY(EditAnywhere, Category = "SpringArm")
     float ShrinkSpeed = 15.0f;  // 충돌 시 줄어드는 속도
