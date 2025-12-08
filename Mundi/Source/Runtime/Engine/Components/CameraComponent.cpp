@@ -21,7 +21,7 @@ UCameraComponent::UCameraComponent()
     : FieldOfView(60.0f)
     , AspectRatio(1.0f / 1.0f)
     , NearClip(0.1f)
-    , FarClip(50000.0f)  // Sky Sphere를 위해 퓨쳐엔진과 동일하게 설정
+    , FarClip(1000.0f)  // Sky Sphere를 위해 퓨쳐엔진과 동일하게 설정
     , ProjectionMode(ECameraProjectionMode::Perspective)
     , ZoomFactor(1.0f)
 

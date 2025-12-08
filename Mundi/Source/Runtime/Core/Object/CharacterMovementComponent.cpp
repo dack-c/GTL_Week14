@@ -71,7 +71,6 @@ void UCharacterMovementComponent::DoJump()
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		UE_LOG("B");
 		SetSliding(false);
 		CurrentFloor.Reset();
 	}
@@ -89,7 +88,11 @@ void UCharacterMovementComponent::TryStartSliding()
 {
 	if (CheckFloor(CurrentFloor))
 	{
-		SetSliding(true);
+		// 너무 평지 같지 않는 곳에서만 슬라이딩 가능
+		if (CurrentFloor.ImpactNormal.Z < SlideFloorMaxNormalZ)
+		{
+			SetSliding(true);
+		}
 	}
 }
 
@@ -140,7 +143,6 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		// 현재 바닥이 없으면 isfalling으로
 		bIsFalling = true;
 		AirTime = 0.0f;
-		UE_LOG("C");
 		bNeedRolling = false;
 		SetSliding(false);
 	}
@@ -246,7 +248,6 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		UE_LOG("A");
 		CurrentFloor.Reset();
 	}
 }
