@@ -3,7 +3,7 @@
 #include "ResourceManager.h"
 #include "VertexData.h"
 #include "ConstantBufferType.h"
-
+#include "RenderTexture.h"
 
 #define DECLARE_CONSTANT_BUFFER(TYPE)\
 ID3D11Buffer* TYPE##Buffer{};
@@ -143,7 +143,10 @@ public:
 	void OMSetDepthStencilState(EComparisonFunc Func);
 
 	void CreateShader(ID3D11InputLayout** OutSimpleInputLayout, ID3D11VertexShader** OutSimpleVertexShader, ID3D11PixelShader** OutSimplePixelShader);
-
+	URenderTexture* GetRenderTexture(FName Name);
+	void ResizeRenderTextures();
+	void OMSetRenderTargets(URenderTexture* RenderTexture);
+	ID3D11Texture2D* GetFrameBufferTex() { return FrameBuffer; }
 	void OnResize(UINT NewWidth, UINT NewHeight);
 
 	void CreateBackBufferAndDepthStencil(UINT width, UINT height);
@@ -261,6 +264,8 @@ private:
 private:
 	//24
 	D3D11_VIEWPORT ViewportInfo{};
+
+	TMap<FName, std::unique_ptr<URenderTexture>> RenderTextures;
 
 	//8
 	ID3D11Device* Device{};//
