@@ -263,13 +263,42 @@ void FBodyInstance::InitDynamic(FPhysScene& World, const FTransform& WorldTransf
                     continue;
                 }
             }
-            
+
             PxConvexMeshGeometry Geom(Convex.ConvexMesh, PxMeshScale(ToPx(AbsScale)));
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(PxTransform(PxIdentity)); // Convex meshes are typically in local space already
+                Shape->setSimulationFilterData(FilterData);
+                DynamicActor->attachShape(*Shape);
+                Shape->release();
+            }
+        }
+
+        // 5) Triangle Meshes
+        for (FKTriangleMeshElem& TriMesh : Agg.TriangleMeshElements)
+        {
+            if (TriMesh.CookedData.IsEmpty()) continue;
+
+            // Create PxTriangleMesh from cooked data if not already created
+            if (!TriMesh.TriangleMesh)
+            {
+                PxDefaultMemoryInputData input(TriMesh.CookedData.GetData(), TriMesh.CookedData.Num());
+                TriMesh.TriangleMesh = Physics->createTriangleMesh(input);
+                if (!TriMesh.TriangleMesh)
+                {
+                    UE_LOG("Failed to create PxTriangleMesh from cooked data for component %s", OwnerComponent ? OwnerComponent->GetName().c_str() : "Unknown");
+                    continue;
+                }
+            }
+
+            PxTriangleMeshGeometry Geom(TriMesh.TriangleMesh, PxMeshScale(ToPx(AbsScale * TriMesh.Scale)));
+            PxShape* Shape = Physics->createShape(Geom, *Material);
+            if (Shape)
+            {
+                SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
+                Shape->setLocalPose(PxTransform(PxIdentity));
                 Shape->setSimulationFilterData(FilterData);
                 DynamicActor->attachShape(*Shape);
                 Shape->release();
@@ -471,13 +500,41 @@ void FBodyInstance::InitStatic(FPhysScene& World, const FTransform& WorldTransfo
                     continue;
                 }
             }
-            
+
             PxConvexMeshGeometry Geom(Convex.ConvexMesh, PxMeshScale(ToPx(AbsScale)));
             PxShape* Shape = Physics->createShape(Geom, *Material);
             if (Shape)
             {
                 SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
                 Shape->setLocalPose(PxTransform(PxIdentity)); // Convex meshes are typically in local space already
+                StaticActor->attachShape(*Shape);
+                Shape->release();
+            }
+        }
+
+        // 5) Triangle Meshes
+        for (FKTriangleMeshElem& TriMesh : Agg.TriangleMeshElements)
+        {
+            if (TriMesh.CookedData.IsEmpty()) continue;
+
+            // Create PxTriangleMesh from cooked data if not already created
+            if (!TriMesh.TriangleMesh)
+            {
+                PxDefaultMemoryInputData input(TriMesh.CookedData.GetData(), TriMesh.CookedData.Num());
+                TriMesh.TriangleMesh = Physics->createTriangleMesh(input);
+                if (!TriMesh.TriangleMesh)
+                {
+                    UE_LOG("Failed to create PxTriangleMesh from cooked data for component %s", OwnerComponent ? OwnerComponent->GetName().c_str() : "Unknown");
+                    continue;
+                }
+            }
+
+            PxTriangleMeshGeometry Geom(TriMesh.TriangleMesh, PxMeshScale(ToPx(AbsScale * TriMesh.Scale)));
+            PxShape* Shape = Physics->createShape(Geom, *Material);
+            if (Shape)
+            {
+                SetShapeCollisionFlags(Shape, OwnerComponent, BodySetup);
+                Shape->setLocalPose(PxTransform(PxIdentity));
                 StaticActor->attachShape(*Shape);
                 Shape->release();
             }

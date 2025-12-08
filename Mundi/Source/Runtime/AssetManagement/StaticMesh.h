@@ -39,6 +39,9 @@ public:
     
     const FString& GetCacheFilePath() const { return CacheFilePath; }
 
+    // Triangle Mesh 충돌용 헬퍼 함수
+    bool GetCollisionMeshData(TArray<FVector>& OutVertices, TArray<uint32>& OutIndices) const;
+
 private:
     void CreateVertexBuffer(FMeshData* InMeshData, ID3D11Device* InDevice, EVertexLayoutType InVertexType);
 	void CreateVertexBuffer(FStaticMesh* InStaticMesh, ID3D11Device* InDevice, EVertexLayoutType InVertexType);
@@ -48,6 +51,7 @@ private:
     void CreateLocalBound(const FStaticMesh* InStaticMesh);
     void CreateBodySetupFromBounds();
     void InitConvexMesh();
+    void InitTriangleMesh();
     void ReleaseResources();
 
 public:

@@ -97,6 +97,7 @@ bool UStaticMesh::Load(const FString& InFilePath, ID3D11Device* InDevice, EVerte
         CreateLocalBound(StaticMeshAsset);
         CreateBodySetupFromBounds();
         InitConvexMesh();
+        InitTriangleMesh();
         VertexCount = static_cast<uint32>(StaticMeshAsset->Vertices.size());
         IndexCount = static_cast<uint32>(StaticMeshAsset->Indices.size());
     }
@@ -342,6 +343,128 @@ void UStaticMesh::InitConvexMesh()
 	}
 }
 
+void UStaticMesh::InitTriangleMesh()
+{
+	if (!BodySetup || !StaticMeshAsset || StaticMeshAsset->Vertices.empty() || StaticMeshAsset->Indices.empty())
+	{
+		return;
+	}
+
+	FString trimeshCachePath = ConvertDataPathToCachePath(GetAssetPathFileName()) + ".trimesh.bin";
+
+	bool bShouldRegenerate = true;
+	if (std::filesystem::exists(trimeshCachePath))
+	{
+		try
+		{
+			auto cacheTime = std::filesystem::last_write_time(trimeshCachePath);
+			auto originalTime = std::filesystem::last_write_time(GetAssetPathFileName());
+			if (cacheTime >= originalTime)
+			{
+				bShouldRegenerate = false;
+			}
+		}
+		catch (const std::filesystem::filesystem_error& e)
+		{
+			UE_LOG("Filesystem error during cache validation: %s. Forcing regeneration.", e.what());
+			bShouldRegenerate = true;
+		}
+	}
+
+	FKTriangleMeshElem TriMeshElem;
+
+	if (!bShouldRegenerate)
+	{
+		try
+		{
+			FWindowsBinReader reader(trimeshCachePath);
+			if (reader.IsOpen())
+			{
+				Serialization::ReadArray(reader, TriMeshElem.CookedData);
+				reader.Close();
+				UE_LOG("Loaded triangle mesh from cache: %s", trimeshCachePath.c_str());
+			}
+			else
+			{
+				bShouldRegenerate = true;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			UE_LOG("Error loading triangle mesh cache: %s. Forcing regeneration.", e.what());
+			bShouldRegenerate = true;
+		}
+	}
+
+	if (bShouldRegenerate)
+	{
+		// Triangle Mesh는 복잡한 메시도 처리 가능하지만, 너무 큰 메시는 경고
+		const uint32 MAX_TRIMESH_VERTICES = 500000;
+		if (StaticMeshAsset->Vertices.size() > MAX_TRIMESH_VERTICES)
+		{
+			UE_LOG("Warning: Very large mesh for triangle collision (%zu vertices), may impact performance: %s",
+				   StaticMeshAsset->Vertices.size(), GetAssetPathFileName().c_str());
+		}
+
+		UE_LOG("Cooking triangle mesh for: %s", GetAssetPathFileName().c_str());
+
+		physx::PxDefaultAllocator      gAllocator;
+		physx::PxDefaultErrorCallback  gErrorCallback;
+		physx::PxFoundation*           gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
+		if (!gFoundation) { UE_LOG("PxCreateFoundation failed!"); return; }
+
+		physx::PxPhysics*              gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), false, nullptr);
+		if (!gPhysics) { UE_LOG("PxCreatePhysics failed!"); gFoundation->release(); return; }
+
+		physx::PxCooking*              gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, physx::PxCookingParams(gPhysics->getTolerancesScale()));
+		if (!gCooking) { UE_LOG("PxCreateCooking failed!"); gPhysics->release(); gFoundation->release(); return; }
+
+		// 정점 데이터 변환
+		TArray<physx::PxVec3> pxVertices;
+		pxVertices.Reserve(StaticMeshAsset->Vertices.size());
+		for (const auto& vert : StaticMeshAsset->Vertices)
+		{
+			pxVertices.Add(physx::PxVec3(vert.pos.X, vert.pos.Y, vert.pos.Z));
+		}
+
+		// Triangle Mesh Descriptor 설정
+		physx::PxTriangleMeshDesc triMeshDesc;
+		triMeshDesc.points.count = static_cast<uint32>(pxVertices.size());
+		triMeshDesc.points.stride = sizeof(physx::PxVec3);
+		triMeshDesc.points.data = pxVertices.GetData();
+
+		triMeshDesc.triangles.count = static_cast<uint32>(StaticMeshAsset->Indices.size() / 3);
+		triMeshDesc.triangles.stride = 3 * sizeof(uint32);
+		triMeshDesc.triangles.data = StaticMeshAsset->Indices.GetData();
+
+		physx::PxDefaultMemoryOutputStream buf;
+		physx::PxTriangleMeshCookingResult::Enum result;
+		if (!gCooking->cookTriangleMesh(triMeshDesc, buf, &result))
+		{
+			UE_LOG("Failed to cook triangle mesh for %s", GetAssetPathFileName().c_str());
+			gCooking->release();
+			gPhysics->release();
+			gFoundation->release();
+			return;
+		}
+
+		TriMeshElem.CookedData.SetNum(buf.getSize());
+		memcpy(TriMeshElem.CookedData.GetData(), buf.getData(), buf.getSize());
+
+		FWindowsBinWriter writer(trimeshCachePath);
+		Serialization::WriteArray(writer, TriMeshElem.CookedData);
+		writer.Close();
+		UE_LOG("Saved cooked triangle mesh to cache: %s", trimeshCachePath.c_str());
+
+		gCooking->release();
+		gPhysics->release();
+		gFoundation->release();
+	}
+
+	// BodySetup에 Triangle Mesh 추가
+	BodySetup->AggGeom.TriangleMeshElements.Add(TriMeshElem);
+}
+
 void UStaticMesh::ReleaseResources()
 {
     if (VertexBuffer)
@@ -359,4 +482,27 @@ void UStaticMesh::ReleaseResources()
         ObjectFactory::DeleteObject(BodySetup);
         BodySetup = nullptr;
     }
+}
+
+bool UStaticMesh::GetCollisionMeshData(TArray<FVector>& OutVertices, TArray<uint32>& OutIndices) const
+{
+    if (!StaticMeshAsset)
+    {
+        return false;
+    }
+
+    OutVertices.Empty();
+    OutIndices.Empty();
+
+    // FNormalVertex에서 Position만 추출
+    OutVertices.reserve(StaticMeshAsset->Vertices.size());
+    for (const FNormalVertex& Vtx : StaticMeshAsset->Vertices)
+    {
+        OutVertices.Add(Vtx.pos);
+    }
+
+    // 인덱스 복사
+    OutIndices = StaticMeshAsset->Indices;
+
+    return true;
 }

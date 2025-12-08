@@ -2247,16 +2247,17 @@ bool UPropertyRenderer::RenderCollisionShapeTypeProperty(const FProperty& Prop, 
 	bool bChanged = false;
 
 	static const char* ModeNames[] = {
-		"Sphere",   // 0
-		"Box",       // 1
-		"Capsule",  // 2
-		"Convex"    // 3
+		"Sphere",       // 0
+		"Box",          // 1
+		"Capsule",      // 2
+		"Convex",       // 3
+		"TriangleMesh"  // 4
 	};
 	static const int NumModes = sizeof(ModeNames) / sizeof(ModeNames[0]);
 
 	int CurrentIndex = static_cast<int>(*ValuePtr);
 	if (CurrentIndex < 0 || CurrentIndex >= NumModes)
-		CurrentIndex = 2; // Default to Multiply
+		CurrentIndex = 1; // Default to Box
 
 	const char* PreviewText = ModeNames[CurrentIndex];
 
@@ -2278,16 +2279,17 @@ bool UPropertyRenderer::RenderCollisionShapeTypeProperty(const FProperty& Prop, 
 		ImGui::EndCombo();
 	}
 
-	// 툴팁으로 합성 모드 설명
+	// 툴팁으로 충돌 타입 설명
 	if (ImGui::IsItemHovered())
 	{
 		const char* Description = "";
 		switch (CurrentIndex)
 		{
-		case 0: Description = "박스"; break;
-		case 1: Description = "스피어"; break;
+		case 0: Description = "스피어 (구)"; break;
+		case 1: Description = "박스"; break;
 		case 2: Description = "캡슐"; break;
-		case 3: Description = "다각형"; break;
+		case 3: Description = "Convex (볼록 다각형)"; break;
+		case 4: Description = "Triangle Mesh (정밀 충돌)"; break;
 		}
 		ImGui::SetTooltip("%s", Description);
 	}

@@ -1,0 +1,255 @@
+{
+  "Actors" : {
+    "1561" : {
+      "ObjectName" : "ADirectionalLightActor_1",
+      "OwnedComponents" : [{
+          "CascadedAreaColorDebugValue" : 0.000000,
+          "CascadedAreaShadowDebugValue" : -1,
+          "CascadedCount" : 4,
+          "CascadedLinearBlendingValue" : 0.500000,
+          "CascadedOverlapValue" : 0.200000,
+          "Id" : 1562,
+          "Intensity" : 1.000000,
+          "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
+          "ObjectName" : "UDirectionalLightComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [-62.900280, 16.769619, -62.900280],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "ShadowBias" : 0.000010,
+          "ShadowResolutionScale" : 2048,
+          "ShadowSharpen" : 0.500000,
+          "ShadowSlopeBias" : 0.000010,
+          "Temperature" : 6500.000000,
+          "Type" : "UDirectionalLightComponent",
+          "bCascaded" : true,
+          "bCastShadows" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1562,
+      "Tag" : "",
+      "Type" : "ADirectionalLightActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1563" : {
+      "ObjectName" : "AAmbientLightActor_1",
+      "OwnedComponents" : [{
+          "Id" : 1564,
+          "Intensity" : 0.100000,
+          "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
+          "ObjectName" : "UAmbientLightComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "ShadowBias" : 0.000010,
+          "ShadowResolutionScale" : 1024,
+          "ShadowSharpen" : 0.500000,
+          "ShadowSlopeBias" : 0.000010,
+          "Temperature" : 6500.000000,
+          "Type" : "UAmbientLightComponent",
+          "bCastShadows" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1564,
+      "Tag" : "",
+      "Type" : "AAmbientLightActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1575" : {
+      "ObjectName" : "APlayerCameraManager_1",
+      "OwnedComponents" : [{
+          "Id" : 1576,
+          "ObjectName" : "USceneComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "USceneComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1576,
+      "Tag" : "",
+      "Type" : "APlayerCameraManager",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2199" : {
+      "ObjectName" : "스태틱 메시_0",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 3,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 2200,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "Type" : "None"
+            }, {
+              "Overrides" : {
+                "Scalars" : {
+
+                },
+                "Textures" : {
+                  "0" : "Data/Untracked/FBX/fbx/textures/Hotel_Hous_AO.png"
+                },
+                "Vectors" : {
+
+                }
+              },
+              "ParentPath" : "ground",
+              "Type" : "UMaterialInstanceDynamic"
+            }, {
+              "Overrides" : {
+                "Scalars" : {
+
+                },
+                "Textures" : {
+                  "0" : "None",
+                  "1" : "None"
+                },
+                "Vectors" : {
+
+                }
+              },
+              "ParentPath" : "hotel_glas",
+              "Type" : "UMaterialInstanceDynamic"
+            }],
+          "ObjectName" : "UStaticMeshComponent_1",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -90.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Untracked/FBX/fbx/Residential Buildings 009.fbx",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : true,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2200,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2203" : {
+      "ObjectName" : "플레이어 시작 위치_0",
+      "OwnedComponents" : [{
+          "CollisionEnabled_Internal" : 2,
+          "Id" : 2204,
+          "ObjectName" : "UBillboardComponent_5",
+          "ParentId" : 0,
+          "RelativeLocation" : [6.172435, 0.658992, 82.683685],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Texture" : "Data/Icon/PlayerStart_64.dds",
+          "Type" : "UBillboardComponent",
+          "bBlockComponent" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : true,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bTickEnabled" : true
+        }],
+      "PlayerStartTag" : "Invalid",
+      "RootComponentId" : 2204,
+      "Tag" : "",
+      "Type" : "APlayerStart",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "6000" : {
+      "ObjectName" : "높이 안개_0",
+      "OwnedComponents" : [{
+          "FogCutoffDistance" : 6000.000000,
+          "FogDensity" : 0.130000,
+          "FogHeightFalloff" : 0.050000,
+          "FogInscatteringColor" : [0.598977, 0.620915, 0.633205, 1.000000],
+          "FogMaxOpacity" : 0.833000,
+          "HeightFogShader" : "Shaders/PostProcess/HeightFog_PS.hlsl",
+          "Id" : 6001,
+          "ObjectName" : "UHeightFogComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [3.557944, -3.144556, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "StartDistance" : 0.000000,
+          "Type" : "UHeightFogComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 6001,
+      "Tag" : "",
+      "Type" : "AHeightFogActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "7522" : {
+      "ObjectName" : "데칼_0",
+      "OwnedComponents" : [{
+          "CollisionEnabled_Internal" : 2,
+          "DecalOpacity" : 1.000000,
+          "DecalTexture" : "Data/Icon/PlayControlsNoLooping.png",
+          "FadeSpeed" : 0.500000,
+          "Id" : 7523,
+          "ObjectName" : "UDecalComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [7.064624, -0.861620, 81.398026],
+          "RelativeRotationEuler" : [0.000022, -85.555069, -86.925255],
+          "RelativeScale" : [1.000000, 3.000000, 3.000000],
+          "Type" : "UDecalComponent",
+          "bBlockComponent" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 7523,
+      "Tag" : "",
+      "Type" : "ADecalActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    }
+  },
+  "NextUUID" : 12094,
+  "PerspectiveCamera" : {
+    "FOV" : [60.000000],
+    "FarClip" : [2000.000000],
+    "Location" : [-23.665533, -13.129499, 97.762268],
+    "NearClip" : [0.100000],
+    "Rotation" : [0.000000, 36.499863, 45.505161]
+  },
+  "Version" : 1
+}
