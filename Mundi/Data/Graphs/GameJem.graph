@@ -50,11 +50,6 @@
       "ToNodeID" : 36,
       "ToPinName" : "Execute"
     }, {
-      "FromNodeID" : 34,
-      "FromPinName" : "Exit",
-      "ToNodeID" : 97,
-      "ToPinName" : "Execute"
-    }, {
       "FromNodeID" : 35,
       "FromPinName" : "Value",
       "ToNodeID" : 34,

@@ -44,7 +44,7 @@ extern "C" void LuaBind_Anchor_UAnimInstance() {}
 
 LUA_BIND_BEGIN(UAnimInstance)
 {
-    // No functions to bind
+    AddMethodR<FString, UAnimInstance>(
+        T, "GetCurrentStateName", &UAnimInstance::GetCurrentStateName);
 }
 LUA_BIND_END()
-
