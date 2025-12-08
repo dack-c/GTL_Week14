@@ -108,6 +108,13 @@ protected:
 	FPhysScene* GetPhysScene() const;
 
 	/**
+	 * @brief 캐릭터의 슬라이딩 상태를 설정합니다.
+	 * 상태 변경에 따라 파티클 효과를 활성화/비활성화합니다.
+	 * @param bNewIsSliding 새로운 슬라이딩 상태
+	 */
+	void SetSliding(bool bNewIsSliding);
+
+	/**
 	 * @brief 현재 위치에서 관통(Penetration) 해결
 	 * 반복적으로 MTD를 계산하여 겹친 상태에서 탈출
 	 * @return 탈출에 성공하면 true, 최대 반복 후에도 실패하면 false
