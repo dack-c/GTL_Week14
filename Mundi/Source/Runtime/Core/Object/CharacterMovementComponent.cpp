@@ -256,7 +256,12 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 	AirTime += DeltaSecond;
 	if (NeedRollingAirTime < AirTime)
 	{
-		UE_LOG("D");
+		static int LogCount = 0;
+		if (LogCount < 1)
+		{
+			UE_LOG("CharacterMovement: Rolling animation triggered (AirTime=%.2f)", AirTime);
+			++LogCount;
+		}
 		bNeedRolling = true;
 	}
 
