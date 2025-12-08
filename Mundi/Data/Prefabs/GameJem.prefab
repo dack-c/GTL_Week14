@@ -1,9 +1,10 @@
 {
   "ObjectName" : "캐릭터_0",
   "OwnedComponents" : [{
+      "CapsuleOffset" : [0.000000, 0.000000, 0.000000],
       "MinFloorNormalZ" : 0.700000,
       "MinSlidingSpeed" : 0.200000,
-      "NeedRollingAirTime" : 2.000000,
+      "NeedRollingAirTime" : 1.000000,
       "ObjectName" : "UCharacterMovementComponent_1",
       "SlidingRotateSpeed" : 10.000000,
       "SlidingSpeed" : 30.000000,
@@ -12,10 +13,31 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }, {
+      "CollisionEnabled_Internal" : 0,
+      "Id" : 2399,
+      "ObjectName" : "SlidingParticle",
+      "ParentId" : 2151,
+      "RelativeLocation" : [0.223943, 0.000000, -0.900000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Template" : "Data/Particle/Slide.particle",
+      "Type" : "UParticleSystemComponent",
+      "bAutoActivate" : true,
+      "bAutoDestroy" : false,
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true,
+      "bUseAsyncSimulation" : true,
+      "bUseGpuInstancing" : false
+    }, {
       "CapsuleHalfHeight" : 1.000000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 0,
-      "Id" : 2183,
+      "Id" : 2151,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
       "RelativeLocation" : [-2.584370, -0.887859, 0.994539],
@@ -34,7 +56,7 @@
     }, {
       "AnimGraphPath" : "Data/Graphs/GameJem.graph",
       "CollisionEnabled_Internal" : 2,
-      "Id" : 2184,
+      "Id" : 2152,
       "MaterialSlots" : [{
           "Type" : "None"
         }, {
@@ -48,7 +70,7 @@
           "Type" : "UMaterial"
         }],
       "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 2183,
+      "ParentId" : 2151,
       "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
       "RelativeLocation" : [0.000000, 0.000000, -1.000000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
@@ -66,9 +88,9 @@
     }, {
       "CameraLagSpeed" : 0.040000,
       "GrowSpeed" : 5.000000,
-      "Id" : 2488,
+      "Id" : 2398,
       "ObjectName" : "USpringArmComponent_1",
-      "ParentId" : 2183,
+      "ParentId" : 2151,
       "ProbeSize" : 0.100000,
       "RelativeLocation" : [0.000000, 0.000000, 1.999998],
       "RelativeRotationEuler" : [-0.000001, 41.003941, 45.443493],
@@ -85,27 +107,6 @@
       "bTickEnabled" : true,
       "bUsePawnControlRotation" : true
     }, {
-      "CollisionEnabled_Internal" : 0,
-      "Id" : 2335,
-      "ObjectName" : "SlidingParticle",
-      "ParentId" : 2183,
-      "RelativeLocation" : [0.223943, 0.000000, -0.900000],
-      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "Template" : "Data/Particle/Slide.particle",
-      "Type" : "UParticleSystemComponent",
-      "bAutoActivate" : true,
-      "bAutoDestroy" : false,
-      "bBlockComponent" : false,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
-      "bTickEnabled" : true,
-      "bUseAsyncSimulation" : true,
-      "bUseGpuInstancing" : false
-    }, {
       "ObjectName" : "ULuaScriptComponent_1",
       "ScriptFilePath" : "Data/Scripts/Player.lua",
       "Type" : "ULuaScriptComponent",
@@ -116,10 +117,10 @@
       "AspectRatio" : 1.000000,
       "FarClip" : 50000.000000,
       "FieldOfView" : 60.000000,
-      "Id" : 2489,
+      "Id" : 2401,
       "NearClip" : 0.100000,
       "ObjectName" : "UCameraComponent_7",
-      "ParentId" : 2488,
+      "ParentId" : 2398,
       "ProjectionMode" : 0,
       "RelativeLocation" : [-10.000002, -0.000000, 0.000000],
       "RelativeRotationEuler" : [0.000103, 0.000133, -0.000623],
@@ -131,7 +132,7 @@
       "bIsVisible" : true,
       "bTickEnabled" : true
     }],
-  "RootComponentId" : 2183,
+  "RootComponentId" : 2151,
   "Tag" : "",
   "Type" : "ACharacter",
   "bActorHiddenInGame" : false,

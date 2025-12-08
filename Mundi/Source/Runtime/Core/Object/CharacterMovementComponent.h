@@ -135,7 +135,7 @@ public:
 	float MinFloorNormalZ = 0.7f;	// 평지로 인식하는 최소 normal Z
 
 	UPROPERTY(EditAnywhere, Category = "Move")
-	float NeedRollingAirTime = 2.0f;	// 해당 시간 동안 체공 시 구르기로 착지
+	float NeedRollingAirTime = 1.0f;	// 해당 시간 동안 체공 시 구르기로 착지
 
 	UPROPERTY(EditAnywhere, Category = "Capsule")
 	FVector CapsuleOffset = FVector::Zero(); // 캡슐 콜라이더 오프셋

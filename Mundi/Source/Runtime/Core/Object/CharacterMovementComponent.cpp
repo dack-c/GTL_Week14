@@ -71,6 +71,7 @@ void UCharacterMovementComponent::DoJump()
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
+		UE_LOG("B");
 		SetSliding(false);
 		CurrentFloor.Reset();
 	}
@@ -139,6 +140,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		// 현재 바닥이 없으면 isfalling으로
 		bIsFalling = true;
 		AirTime = 0.0f;
+		UE_LOG("C");
 		bNeedRolling = false;
 		SetSliding(false);
 	}
@@ -244,6 +246,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
+		UE_LOG("A");
 		CurrentFloor.Reset();
 	}
 }
@@ -253,6 +256,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 	AirTime += DeltaSecond;
 	if (NeedRollingAirTime < AirTime)
 	{
+		UE_LOG("D");
 		bNeedRolling = true;
 	}
 
