@@ -516,6 +516,12 @@ void UCharacterMovementComponent::GetCapsuleSize(float& OutRadius, float& OutHal
 	}
 }
 
+FVector UCharacterMovementComponent::GetSnapDownStart() const
+{
+	FVector Result = UpdatedComponent->GetWorldLocation() + CapsuleOffset;
+	return Result;
+}
+
 FPhysScene* UCharacterMovementComponent::GetPhysScene() const
 {
 	if (CharacterOwner)
