@@ -31,7 +31,7 @@ local Size = Vector2D(300.0,400.0)
 local RectTransform = RectTransform(Pos,Size)
 local Color = Vector4(1,1,1,1)
 RectTransform.Pivot = Vector2D(0.5,0.5)
---DrawUIText(RectTransform, "asdf", Color, 50)
+DrawUIText(RectTransform, "asdf", Color, 50)
 RectTransform.ZOrder = 0;
 DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
 
@@ -44,9 +44,11 @@ RectTransform.Pivot = Vector2D(1,1)
 RectTransform.Pos = Vector2D(0,0)
 DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
 RectTransform.Pivot = Vector2D(0.5,0.5)
-DrawUISprite(RectTransform, "Data/Textures/GreenLight.png", 0.5)
 
-
+AnchorMin = Vector2D(0,0)
+AnchorMax = Vector2D(1,1)
+ local FullScreenRect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+DrawUISprite(FullScreenRect, "Data/Textures/GreenLight.png", 0.5)
 
 end
 
