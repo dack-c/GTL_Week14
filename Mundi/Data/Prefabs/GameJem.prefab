@@ -107,7 +107,7 @@
       "bUseGpuInstancing" : false
     }, {
       "ObjectName" : "ULuaScriptComponent_1",
-      "ScriptFilePath" : "",
+      "ScriptFilePath" : "Data/Scripts/Player.lua",
       "Type" : "ULuaScriptComponent",
       "bHiddenInGame" : false,
       "bIsActive" : true,

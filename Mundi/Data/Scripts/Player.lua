@@ -17,4 +17,5 @@ function OnEndOverlap(OtherActor)
 end
 
 function Tick(Delta)
+  
 end
