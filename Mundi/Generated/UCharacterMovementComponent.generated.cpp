@@ -40,6 +40,7 @@ BEGIN_PROPERTIES(UCharacterMovementComponent)
     ADD_PROPERTY(float, MinSlidingSpeed, "Move", true)
     ADD_PROPERTY(float, MinFloorNormalZ, "Move", true)
     ADD_PROPERTY(float, NeedRollingAirTime, "Move", true)
+    ADD_PROPERTY(FVector, CapsuleOffset, "Capsule", true)
 END_PROPERTIES()
 
 // ===== Lua Binding =====
