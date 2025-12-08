@@ -1042,7 +1042,8 @@
           "Direction" : 1,
           "PinCategory" : "float",
           "PinName" : "Remain Length"
-        }]
+        }],
+      "StateName" : "Jump"
     }, {
       "ClassName" : "UK2Node_Literal_Float",
       "NodeID" : 77,
@@ -1303,14 +1304,15 @@
     }, {
       "ClassName" : "UK2Node_GetRemainAnimLength",
       "NodeID" : 92,
-      "NodePosX" : 3067.000000,
-      "NodePosY" : -592.000000,
+      "NodePosX" : 2904.000000,
+      "NodePosY" : -512.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 1,
           "PinCategory" : "float",
           "PinName" : "Remain Length"
-        }]
+        }],
+      "StateName" : "Sliding Start"
     }, {
       "ClassName" : "UK2Node_Literal_Float",
       "NodeID" : 93,
@@ -1517,14 +1519,15 @@
     }, {
       "ClassName" : "UK2Node_GetRemainAnimLength",
       "NodeID" : 104,
-      "NodePosX" : 4331.000000,
-      "NodePosY" : 1024.000000,
+      "NodePosX" : 4184.000000,
+      "NodePosY" : 1056.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 1,
           "PinCategory" : "float",
           "PinName" : "Remain Length"
-        }]
+        }],
+      "StateName" : "Vault"
     }, {
       "ClassName" : "UK2Node_Literal_Float",
       "NodeID" : 105,
@@ -1917,7 +1920,8 @@
           "Direction" : 1,
           "PinCategory" : "bool",
           "PinName" : "Is Finished"
-        }]
+        }],
+      "StateName" : "Roll"
     }, {
       "ClassName" : "UK2Node_GetForwardObjHeight",
       "NodeID" : 138,
@@ -2278,7 +2282,8 @@
           "Direction" : 1,
           "PinCategory" : "float",
           "PinName" : "Remain Length"
-        }]
+        }],
+      "StateName" : "Climb"
     }, {
       "ClassName" : "UK2Node_Literal_Float",
       "NodeID" : 160,

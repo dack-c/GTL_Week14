@@ -444,24 +444,53 @@ FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPi
     if (OutputPin->PinName == "Is Finished")
     {
         // StateName이 비어있지 않으면 해당 상태일 때만 검사
+        UAnimationStateMachine* StateMachine = nullptr;
         if (!StateName.empty())
         {
-            UAnimationStateMachine* StateMachine = AnimInstance->GetStateMachine();
+            StateMachine = AnimInstance->GetStateMachine();
             if (!StateMachine)
             {
-                return FBlueprintValue(false);
-            }
-
-            // 현재 상태가 지정된 상태와 다르면 false 반환
-            FName CurrentState = StateMachine->GetCurrentState();
-            if (CurrentState.ToString() != StateName)
-            {
+                assert(false);
                 return FBlueprintValue(false);
             }
         }
+        else
+        {
+            assert(false);
+        }
+
+        const TArray<FAnimationState>& States = StateMachine->GetStates();
+        FAnimationState TargetState;
+        for (const FAnimationState& State : States)
+        {
+            if (State.Name.ToString() == StateName)
+            {
+                TargetState = State;
+                break;
+			}
+        }
+
+		FAnimationPlayState CurrentPlayState = AnimInstance->GetCurrentPlayState();
+		FAnimationPlayState BlendTargetState = AnimInstance->GetBlendTargetState();
+
+        FAnimationPlayState PlayState;
+        if (CurrentPlayState.PoseProvider == TargetState.PoseProvider)
+        {
+			PlayState = CurrentPlayState;
+        }
+        else if (BlendTargetState.PoseProvider == TargetState.PoseProvider)
+        {
+			PlayState = BlendTargetState;
+        }
+        else
+        {
+			//assert(false && "Specified StateName not found in current animation states.");
+			return FBlueprintValue(false);
+        }
+
 
         // 현재 재생 중인지 확인
-        IAnimPoseProvider* PoseProvider = nullptr;
+        /*IAnimPoseProvider* PoseProvider = nullptr;
         PoseProvider = AnimInstance->GetCurrentPlayState().PoseProvider;
         if (AnimInstance->GetBlendTargetState().PoseProvider)
         {
@@ -472,11 +501,12 @@ FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPi
         if (AnimInstance->GetBlendTargetState().PoseProvider)
         {
 			PlayState = AnimInstance->GetBlendTargetState();
-        }
+        }*/
 
         if (PlayState.bIsPlaying == false || PlayState.loopCount > 1)
         {
-            UE_LOG("Animation is finished. Name: %s, CurPlaytime: %.2f, Playalength: %.2f, loopCount: %.2f", PoseProvider->GetDominantSequence()->GetFilePath().c_str(), PoseProvider->GetCurrentPlayTime(), PoseProvider->GetPlayLength(), AnimInstance->GetCurrentPlayState().loopCount);
+            // UE_LOG("Animation is finished. Name: %s, CurPlaytime: %.2f, Playalength: %.2f, loopCount: %.2f", PoseProvider->GetDominantSequence()->GetFilePath().c_str(), PoseProvider->GetCurrentPlayTime(), PoseProvider->GetPlayLength(), AnimInstance->GetCurrentPlayState().loopCount);
+			//UE_LOG("Animation is finished. StateName: %s, CurrentTime: %.2f", StateName.c_str(), PlayState.CurrentTime);
             return FBlueprintValue(true);
         }
     }
@@ -533,47 +563,96 @@ FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* Outp
 {
     if (!Context || !Context->SourceObject)
     {
-        return FBlueprintValue(0.0f);
+        return FBlueprintValue(100.0f);
     }
 
     // Context에서 AnimInstance 가져오기
     UAnimInstance* AnimInstance = Cast<UAnimInstance>(Context->SourceObject);
     if (!AnimInstance)
     {
-        return FBlueprintValue(0.0f);
+        return FBlueprintValue(100.0f);
     }
 
     if (OutputPin->PinName == "Remain Length")
     {
         // StateName이 비어있지 않으면 해당 상태일 때만 검사
+        UAnimationStateMachine* StateMachine = nullptr;
         if (!StateName.empty())
         {
-            UAnimationStateMachine* StateMachine = AnimInstance->GetStateMachine();
+            StateMachine = AnimInstance->GetStateMachine();
             if (!StateMachine)
             {
-                return FBlueprintValue(0.0f);
-            }
-
-            // 현재 상태가 지정된 상태와 다르면 0 반환
-            FName CurrentState = StateMachine->GetCurrentState();
-            if (CurrentState.ToString() != StateName)
-            {
-                return FBlueprintValue(0.0f);
+                assert(false);
+                return FBlueprintValue(100.0f);
             }
         }
-
-        FAnimationPlayState CurrentState = AnimInstance->GetCurrentPlayState();
-        if (AnimInstance->GetBlendTargetState().PoseProvider)
+        else
         {
-            CurrentState = AnimInstance->GetBlendTargetState();
+            assert(false);
         }
+
+        const TArray<FAnimationState>& States = StateMachine->GetStates();
+        FAnimationState TargetState;
+        for (const FAnimationState& State : States)
+        {
+            if (State.Name.ToString() == StateName)
+            {
+                TargetState = State;
+                break;
+            }
+        }
+
+        FAnimationPlayState CurrentPlayState = AnimInstance->GetCurrentPlayState();
+        FAnimationPlayState BlendTargetState = AnimInstance->GetBlendTargetState();
+
+        FAnimationPlayState PlayState;
+		bool bIsCurrentState = false;
+        if (CurrentPlayState.PoseProvider == TargetState.PoseProvider || CurrentPlayState.Sequence == TargetState.Sequence)
+        {
+            PlayState = CurrentPlayState;
+			bIsCurrentState = true;
+        }
+        else if (BlendTargetState.PoseProvider == TargetState.PoseProvider || BlendTargetState.Sequence == TargetState.Sequence)
+        {
+            PlayState = BlendTargetState;
+			bIsCurrentState = false;
+        }
+        else
+        {
+            //assert(false && "Specified StateName not found in current animation states.");
+			UE_LOG("Specified StateName not found in current animation states: %s", StateName.c_str());
+            return FBlueprintValue(100.0f);
+        }
+
+        // StateName이 비어있지 않으면 해당 상태일 때만 검사
+        //if (!StateName.empty())
+        //{
+        //    UAnimationStateMachine* StateMachine = AnimInstance->GetStateMachine();
+        //    if (!StateMachine)
+        //    {
+        //        return FBlueprintValue(0.0f);
+        //    }
+
+        //    // 현재 상태가 지정된 상태와 다르면 0 반환
+        //    FName CurrentState = StateMachine->GetCurrentState();
+        //    if (CurrentState.ToString() != StateName)
+        //    {
+        //        return FBlueprintValue(0.0f);
+        //    }
+        //}
+
+        //FAnimationPlayState PlayState = AnimInstance->GetCurrentPlayState();
+        //if (AnimInstance->GetBlendTargetState().PoseProvider)
+        //{
+        //    PlayState = AnimInstance->GetBlendTargetState();
+        //}
 
         
         // Sequence 직접 사용
-        if (CurrentState.Sequence)
+        if (PlayState.Sequence)
         {
-            float PlayLength = CurrentState.Sequence->GetPlayLength();
-            float CurrentTime = CurrentState.CurrentTime;
+            float PlayLength = PlayState.Sequence->GetPlayLength();
+            float CurrentTime = PlayState.CurrentTime;
             float RemainTime = PlayLength - CurrentTime;
             
             // 음수 방지
@@ -581,15 +660,17 @@ FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* Outp
             {
                 RemainTime = 0.0f;
             }
+
+			//UE_LOG("Remain Time from Sequence: %.2f, State Name: %s, bIsCurrent: %s", RemainTime, StateName.c_str(), bIsCurrentState ? "true" : "false");
             
             return FBlueprintValue(RemainTime);
         }
 
         // PoseProvider가 있으면 그것을 사용 (BlendSpace 등)
-        if (CurrentState.PoseProvider)
+        if (PlayState.PoseProvider)
         {
-            float PlayLength = CurrentState.PoseProvider->GetPlayLength();
-            float CurrentTime = CurrentState.CurrentTime;
+            float PlayLength = PlayState.PoseProvider->GetPlayLength();
+            float CurrentTime = PlayState.CurrentTime;
             float RemainTime = PlayLength - CurrentTime;
             
             // 음수 방지
@@ -597,12 +678,14 @@ FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* Outp
             {
                 RemainTime = 0.0f;
             }
+
+            //UE_LOG("Remain Time from Sequence: %.2f, State Name: %s, bIsCurrent: %s", RemainTime, StateName.c_str(), bIsCurrentState ? "true" : "false");
             
             return FBlueprintValue(RemainTime);
         }
     }
 
-    return FBlueprintValue(0.0f);
+    return FBlueprintValue(100.0f);
 }
 
 void UK2Node_GetRemainAnimLength::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
