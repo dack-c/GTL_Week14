@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -236,48 +236,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Generated\AActor.generated.cpp" />
-    <ClCompile Include="Generated\AAmbientLightActor.generated.cpp" />
-    <ClCompile Include="Generated\ACameraActor.generated.cpp" />
-    <ClCompile Include="Generated\ADecalActor.generated.cpp" />
-    <ClCompile Include="Generated\ADirectionalLightActor.generated.cpp" />
-    <ClCompile Include="Generated\AEmptyActor.generated.cpp" />
-    <ClCompile Include="Generated\AFakeSpotLightActor.generated.cpp" />
-    <ClCompile Include="Generated\AFireBallActor.generated.cpp" />
-    <ClCompile Include="Generated\AHeightFogActor.generated.cpp" />
-    <ClCompile Include="Generated\APlayerCameraManager.generated.cpp" />
-    <ClCompile Include="Generated\APointLightActor.generated.cpp" />
-    <ClCompile Include="Generated\ASpotLightActor.generated.cpp" />
-    <ClCompile Include="Generated\AStaticMeshActor.generated.cpp" />
-    <ClCompile Include="Generated\ASkeletalMeshActor.generated.cpp" />
-    <ClCompile Include="Generated\UActorComponent.generated.cpp" />
-    <ClCompile Include="Generated\UAmbientLightComponent.generated.cpp" />
-    <ClCompile Include="Generated\UAudioComponent.generated.cpp" />
-    <ClCompile Include="Generated\UBillboardComponent.generated.cpp" />
-    <ClCompile Include="Generated\UBoxComponent.generated.cpp" />
-    <ClCompile Include="Generated\UCameraComponent.generated.cpp" />
-    <ClCompile Include="Generated\UCapsuleComponent.generated.cpp" />
-    <ClCompile Include="Generated\UDecalComponent.generated.cpp" />
-    <ClCompile Include="Generated\UDirectionalLightComponent.generated.cpp" />
-    <ClCompile Include="Generated\UHeightFogComponent.generated.cpp" />
-    <ClCompile Include="Generated\ULightComponent.generated.cpp" />
-    <ClCompile Include="Generated\ULightComponentBase.generated.cpp" />
-    <ClCompile Include="Generated\ULocalLightComponent.generated.cpp" />
-    <ClCompile Include="Generated\ULuaScriptComponent.generated.cpp" />
-    <ClCompile Include="Generated\UPerspectiveDecalComponent.generated.cpp" />
-    <ClCompile Include="Generated\UPointLightComponent.generated.cpp" />
-    <ClCompile Include="Generated\UPrimitiveComponent.generated.cpp" />
-    <ClCompile Include="Generated\UProjectileMovementComponent.generated.cpp" />
-    <ClCompile Include="Generated\URotatingMovementComponent.generated.cpp" />
-    <ClCompile Include="Generated\USceneComponent.generated.cpp" />
-    <ClCompile Include="Generated\UShapeComponent.generated.cpp" />
-    <ClCompile Include="Generated\USphereComponent.generated.cpp" />
-    <ClCompile Include="Generated\USpotLightComponent.generated.cpp" />
-    <ClCompile Include="Generated\UStaticMeshComponent.generated.cpp" />
-    <ClCompile Include="Generated\USkinnedMeshComponent.generated.cpp" />
-    <ClCompile Include="Generated\USkeletalMeshComponent.generated.cpp" />
-    <ClCompile Include="Generated\UTestAutoBindComponent.generated.cpp" />
-    <ClCompile Include="Generated\UTextRenderComponent.generated.cpp" />
     <FxCompile Include="Shaders\Effects\ParticleBeam.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -293,10 +251,12 @@
     <ClCompile Include="Source\Runtime\Core\Object\MyCar.cpp" />
     <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimTypes.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Components\SkySphereComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\TriggerComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_DOF.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_Gamma.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\GameFramework\SkySphereActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\TriggerActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleEventReceiverSpawn.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Modules\ParticleModuleRibbon.cpp" />
@@ -693,21 +653,7 @@
     <ClCompile Include="Source\Slate\Windows\SSplitterV.cpp" />
     <ClCompile Include="Source\Slate\Windows\SViewportWindow.cpp" />
     <ClCompile Include="Source\Slate\Windows\SWindow.cpp" />
-    <ClCompile Include="Source\Slate\Windows\UIWindow.cpp" />
-    <ClCompile Include="Generated\UMeshComponent.generated.cpp" />
-    <ClCompile Include="Generated\APawn.generated.cpp" />
-    <ClCompile Include="Generated\AController.generated.cpp" />
-    <ClCompile Include="Generated\APlayerController.generated.cpp" />
-    <ClCompile Include="Generated\AGameModeBase.generated.cpp" />
-    <ClCompile Include="Generated\ACharacter.generated.cpp" />
-    <ClCompile Include="Generated\UCharacterMovementComponent.generated.cpp" />
-    <ClCompile Include="Generated\UPawnMovementComponent.generated.cpp" />
-    <ClCompile Include="Generated\UParticleSystemComponent.generated.cpp" />
-    <ClCompile Include="Generated\AMyCar.generated.cpp" />
-    <ClCompile Include="Generated\USpringArmComponent.generated.cpp" />
-    <ClCompile Include="Generated\UTriggerComponent.generated.cpp" />
-    <ClCompile Include="Generated\ATriggerActor.generated.cpp" />
-  </ItemGroup>
+    <ClCompile Include="Source\Slate\Windows\UIWindow.cpp" /><ClCompile Include="Generated\AActor.generated.cpp" /><ClCompile Include="Generated\UActorComponent.generated.cpp" /><ClCompile Include="Generated\ACharacter.generated.cpp" /><ClCompile Include="Generated\UCharacterMovementComponent.generated.cpp" /><ClCompile Include="Generated\AController.generated.cpp" /><ClCompile Include="Generated\AFireBallActor.generated.cpp" /><ClCompile Include="Generated\AMyCar.generated.cpp" /><ClCompile Include="Generated\APawn.generated.cpp" /><ClCompile Include="Generated\APlayerController.generated.cpp" /><ClCompile Include="Generated\UAmbientLightComponent.generated.cpp" /><ClCompile Include="Generated\UAudioComponent.generated.cpp" /><ClCompile Include="Generated\UBillboardComponent.generated.cpp" /><ClCompile Include="Generated\UBoxComponent.generated.cpp" /><ClCompile Include="Generated\UCameraComponent.generated.cpp" /><ClCompile Include="Generated\UCapsuleComponent.generated.cpp" /><ClCompile Include="Generated\UDecalComponent.generated.cpp" /><ClCompile Include="Generated\UDirectionalLightComponent.generated.cpp" /><ClCompile Include="Generated\UHeightFogComponent.generated.cpp" /><ClCompile Include="Generated\ULightComponent.generated.cpp" /><ClCompile Include="Generated\ULightComponentBase.generated.cpp" /><ClCompile Include="Generated\ULocalLightComponent.generated.cpp" /><ClCompile Include="Generated\ULuaScriptComponent.generated.cpp" /><ClCompile Include="Generated\UMeshComponent.generated.cpp" /><ClCompile Include="Generated\UParticleSystemComponent.generated.cpp" /><ClCompile Include="Generated\UPawnMovementComponent.generated.cpp" /><ClCompile Include="Generated\UPerspectiveDecalComponent.generated.cpp" /><ClCompile Include="Generated\UPointLightComponent.generated.cpp" /><ClCompile Include="Generated\UPrimitiveComponent.generated.cpp" /><ClCompile Include="Generated\UProjectileMovementComponent.generated.cpp" /><ClCompile Include="Generated\URotatingMovementComponent.generated.cpp" /><ClCompile Include="Generated\USceneComponent.generated.cpp" /><ClCompile Include="Generated\UShapeComponent.generated.cpp" /><ClCompile Include="Generated\USkeletalMeshComponent.generated.cpp" /><ClCompile Include="Generated\USkinnedMeshComponent.generated.cpp" /><ClCompile Include="Generated\USkySphereComponent.generated.cpp" /><ClCompile Include="Generated\USphereComponent.generated.cpp" /><ClCompile Include="Generated\USpotLightComponent.generated.cpp" /><ClCompile Include="Generated\USpringArmComponent.generated.cpp" /><ClCompile Include="Generated\UStaticMeshComponent.generated.cpp" /><ClCompile Include="Generated\UTestAutoBindComponent.generated.cpp" /><ClCompile Include="Generated\UTextRenderComponent.generated.cpp" /><ClCompile Include="Generated\UTriggerComponent.generated.cpp" /><ClCompile Include="Generated\AAmbientLightActor.generated.cpp" /><ClCompile Include="Generated\ACameraActor.generated.cpp" /><ClCompile Include="Generated\ADecalActor.generated.cpp" /><ClCompile Include="Generated\ADirectionalLightActor.generated.cpp" /><ClCompile Include="Generated\AEmptyActor.generated.cpp" /><ClCompile Include="Generated\AFakeSpotLightActor.generated.cpp" /><ClCompile Include="Generated\AGameModeBase.generated.cpp" /><ClCompile Include="Generated\AHeightFogActor.generated.cpp" /><ClCompile Include="Generated\APlayerCameraManager.generated.cpp" /><ClCompile Include="Generated\APointLightActor.generated.cpp" /><ClCompile Include="Generated\ASkeletalMeshActor.generated.cpp" /><ClCompile Include="Generated\ASkySphereActor.generated.cpp" /><ClCompile Include="Generated\ASpotLightActor.generated.cpp" /><ClCompile Include="Generated\AStaticMeshActor.generated.cpp" /><ClCompile Include="Generated\ATriggerActor.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -827,47 +773,6 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Generated\AActor.generated.h" />
-    <ClInclude Include="Generated\AAmbientLightActor.generated.h" />
-    <ClInclude Include="Generated\ACameraActor.generated.h" />
-    <ClInclude Include="Generated\ADecalActor.generated.h" />
-    <ClInclude Include="Generated\ADirectionalLightActor.generated.h" />
-    <ClInclude Include="Generated\AEmptyActor.generated.h" />
-    <ClInclude Include="Generated\AFakeSpotLightActor.generated.h" />
-    <ClInclude Include="Generated\AFireBallActor.generated.h" />
-    <ClInclude Include="Generated\AHeightFogActor.generated.h" />
-    <ClInclude Include="Generated\APlayerCameraManager.generated.h" />
-    <ClInclude Include="Generated\APointLightActor.generated.h" />
-    <ClInclude Include="Generated\ASpotLightActor.generated.h" />
-    <ClInclude Include="Generated\AStaticMeshActor.generated.h" />
-    <ClInclude Include="Generated\UActorComponent.generated.h" />
-    <ClInclude Include="Generated\UAmbientLightComponent.generated.h" />
-    <ClInclude Include="Generated\UAudioComponent.generated.h" />
-    <ClInclude Include="Generated\UBillboardComponent.generated.h" />
-    <ClInclude Include="Generated\UBoxComponent.generated.h" />
-    <ClInclude Include="Generated\UCameraComponent.generated.h" />
-    <ClInclude Include="Generated\UCapsuleComponent.generated.h" />
-    <ClInclude Include="Generated\UDecalComponent.generated.h" />
-    <ClInclude Include="Generated\UDirectionalLightComponent.generated.h" />
-    <ClInclude Include="Generated\UHeightFogComponent.generated.h" />
-    <ClInclude Include="Generated\ULightComponent.generated.h" />
-    <ClInclude Include="Generated\ULightComponentBase.generated.h" />
-    <ClInclude Include="Generated\ULocalLightComponent.generated.h" />
-    <ClInclude Include="Generated\ULuaScriptComponent.generated.h" />
-    <ClInclude Include="Generated\UPerspectiveDecalComponent.generated.h" />
-    <ClInclude Include="Generated\UPointLightComponent.generated.h" />
-    <ClInclude Include="Generated\UPrimitiveComponent.generated.h" />
-    <ClInclude Include="Generated\UProjectileMovementComponent.generated.h" />
-    <ClInclude Include="Generated\URotatingMovementComponent.generated.h" />
-    <ClInclude Include="Generated\USceneComponent.generated.h" />
-    <ClInclude Include="Generated\UShapeComponent.generated.h" />
-    <ClInclude Include="Generated\USphereComponent.generated.h" />
-    <ClInclude Include="Generated\USpotLightComponent.generated.h" />
-    <ClInclude Include="Generated\UStaticMeshComponent.generated.h" />
-    <ClInclude Include="Generated\USkinnedMeshComponent.generated.h" />
-    <ClInclude Include="Generated\USkeletalMeshComponent.generated.h" />
-    <ClInclude Include="Generated\UTestAutoBindComponent.generated.h" />
-    <ClInclude Include="Generated\UTextRenderComponent.generated.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimationGraph.h" />
     <ClInclude Include="Source\Editor\BlueprintGraph\AnimBlueprintCompiler.h" />
@@ -938,8 +843,10 @@
     <ClInclude Include="Source\Runtime\Engine\Components\ShapeComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SkeletalMeshComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SkinnedMeshComponent.h" />
+    <ClInclude Include="Source\Runtime\Engine\Components\SkySphereComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SphereComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SpringArmComponent.h" />
+    <ClInclude Include="Source\Runtime\Engine\Components\TestAutoBindComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\TriggerComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\AmbientLightActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_DOF.h" />
@@ -959,6 +866,7 @@
     <ClInclude Include="Source\Runtime\Engine\GameFramework\Info.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\PointLightActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\SkeletalMeshActor.h" />
+    <ClInclude Include="Source\Runtime\Engine\GameFramework\SkySphereActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\SpotLightActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\TriggerActor.h" />
     <ClInclude Include="Source\Runtime\Engine\Particle\Async\ParticleAsyncUpdater.h" />
@@ -1187,23 +1095,7 @@
     <ClInclude Include="ThirdParty\Lua\include\lua.h" />
     <ClInclude Include="ThirdParty\Lua\include\lua.hpp" />
     <ClInclude Include="ThirdParty\Lua\include\luaconf.h" />
-    <ClInclude Include="ThirdParty\Lua\include\lualib.h" />
-    <ClInclude Include="Generated\UMeshComponent.generated.h" />
-    <ClInclude Include="Generated\ASkinnedMeshActor.generated.h" />
-    <ClInclude Include="Generated\ASkeletalMeshActor.generated.h" />
-    <ClInclude Include="Generated\APawn.generated.h" />
-    <ClInclude Include="Generated\AController.generated.h" />
-    <ClInclude Include="Generated\APlayerController.generated.h" />
-    <ClInclude Include="Generated\AGameModeBase.generated.h" />
-    <ClInclude Include="Generated\ACharacter.generated.h" />
-    <ClInclude Include="Generated\UCharacterMovementComponent.generated.h" />
-    <ClInclude Include="Generated\UPawnMovementComponent.generated.h" />
-    <ClInclude Include="Generated\UParticleSystemComponent.generated.h" />
-    <ClInclude Include="Generated\AMyCar.generated.h" />
-    <ClInclude Include="Generated\USpringArmComponent.generated.h" />
-    <ClInclude Include="Generated\UTriggerComponent.generated.h" />
-    <ClInclude Include="Generated\ATriggerActor.generated.h" />
-  </ItemGroup>
+    <ClInclude Include="ThirdParty\Lua\include\lualib.h" /><ClInclude Include="Generated\AActor.generated.h" /><ClInclude Include="Generated\UActorComponent.generated.h" /><ClInclude Include="Generated\ACharacter.generated.h" /><ClInclude Include="Generated\UCharacterMovementComponent.generated.h" /><ClInclude Include="Generated\AController.generated.h" /><ClInclude Include="Generated\AFireBallActor.generated.h" /><ClInclude Include="Generated\AMyCar.generated.h" /><ClInclude Include="Generated\APawn.generated.h" /><ClInclude Include="Generated\APlayerController.generated.h" /><ClInclude Include="Generated\UAmbientLightComponent.generated.h" /><ClInclude Include="Generated\UAudioComponent.generated.h" /><ClInclude Include="Generated\UBillboardComponent.generated.h" /><ClInclude Include="Generated\UBoxComponent.generated.h" /><ClInclude Include="Generated\UCameraComponent.generated.h" /><ClInclude Include="Generated\UCapsuleComponent.generated.h" /><ClInclude Include="Generated\UDecalComponent.generated.h" /><ClInclude Include="Generated\UDirectionalLightComponent.generated.h" /><ClInclude Include="Generated\UHeightFogComponent.generated.h" /><ClInclude Include="Generated\ULightComponent.generated.h" /><ClInclude Include="Generated\ULightComponentBase.generated.h" /><ClInclude Include="Generated\ULocalLightComponent.generated.h" /><ClInclude Include="Generated\ULuaScriptComponent.generated.h" /><ClInclude Include="Generated\UMeshComponent.generated.h" /><ClInclude Include="Generated\UParticleSystemComponent.generated.h" /><ClInclude Include="Generated\UPawnMovementComponent.generated.h" /><ClInclude Include="Generated\UPerspectiveDecalComponent.generated.h" /><ClInclude Include="Generated\UPointLightComponent.generated.h" /><ClInclude Include="Generated\UPrimitiveComponent.generated.h" /><ClInclude Include="Generated\UProjectileMovementComponent.generated.h" /><ClInclude Include="Generated\URotatingMovementComponent.generated.h" /><ClInclude Include="Generated\USceneComponent.generated.h" /><ClInclude Include="Generated\UShapeComponent.generated.h" /><ClInclude Include="Generated\USkeletalMeshComponent.generated.h" /><ClInclude Include="Generated\USkinnedMeshComponent.generated.h" /><ClInclude Include="Generated\USkySphereComponent.generated.h" /><ClInclude Include="Generated\USphereComponent.generated.h" /><ClInclude Include="Generated\USpotLightComponent.generated.h" /><ClInclude Include="Generated\USpringArmComponent.generated.h" /><ClInclude Include="Generated\UStaticMeshComponent.generated.h" /><ClInclude Include="Generated\UTestAutoBindComponent.generated.h" /><ClInclude Include="Generated\UTextRenderComponent.generated.h" /><ClInclude Include="Generated\UTriggerComponent.generated.h" /><ClInclude Include="Generated\AAmbientLightActor.generated.h" /><ClInclude Include="Generated\ACameraActor.generated.h" /><ClInclude Include="Generated\ADecalActor.generated.h" /><ClInclude Include="Generated\ADirectionalLightActor.generated.h" /><ClInclude Include="Generated\AEmptyActor.generated.h" /><ClInclude Include="Generated\AFakeSpotLightActor.generated.h" /><ClInclude Include="Generated\AGameModeBase.generated.h" /><ClInclude Include="Generated\AHeightFogActor.generated.h" /><ClInclude Include="Generated\APlayerCameraManager.generated.h" /><ClInclude Include="Generated\APointLightActor.generated.h" /><ClInclude Include="Generated\ASkeletalMeshActor.generated.h" /><ClInclude Include="Generated\ASkySphereActor.generated.h" /><ClInclude Include="Generated\ASpotLightActor.generated.h" /><ClInclude Include="Generated\AStaticMeshActor.generated.h" /><ClInclude Include="Generated\ATriggerActor.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

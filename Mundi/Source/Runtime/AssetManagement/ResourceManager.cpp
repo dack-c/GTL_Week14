@@ -484,6 +484,13 @@ void UResourceManager::InitShaderILMap()
 	ShaderToInputLayoutMap["Shaders/Shadows/DepthOnly_VS.hlsl"] = layout;
     layout.clear();
 
+    // Sky Sphere 렌더링용 (POSITION, NORMAL, TEXCOORD)
+    layout.Add({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+    layout.Add({ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+    layout.Add({ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+    ShaderToInputLayoutMap["Shaders/Sky/Sky.hlsl"] = layout;
+    layout.clear();
+
     layout.Add({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 });
     layout.Add({ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 });
     layout.Add({ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 });

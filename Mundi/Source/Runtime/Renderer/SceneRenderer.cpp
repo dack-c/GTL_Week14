@@ -26,6 +26,8 @@
 #include "OBB.h"
 #include "BoundingSphere.h"
 #include "HeightFogComponent.h"
+#include "SkySphereComponent.h"
+#include "SkySphereActor.h"
 #include "Gizmo/GizmoArrowComponent.h"
 #include "Gizmo/GizmoRotateComponent.h"
 #include "Gizmo/GizmoScaleComponent.h"
@@ -173,6 +175,7 @@ void FSceneRenderer::RenderLitPath()
         RHIDevice->ClearDepthBuffer(1.0f, 0);
     }
     // Base Pass
+    RenderSkyPass();  // Sky를 먼저 렌더링 (배경)
     RenderOpaquePass(View->RenderSettings->GetViewMode());
 	RenderDecalPass();
 }
@@ -676,7 +679,21 @@ void FSceneRenderer::GatherVisibleProxies()
 	// Helper lambda to collect components from an actor
 	auto CollectComponentsFromActor = [&](AActor* Actor, bool bIsEditorActor)
 		{
-			if (!Actor || !Actor->IsActorVisible() || !Actor->IsActorActive())
+			if (!Actor)
+			{
+				return;
+			}
+
+			// SkySphere 디버깅
+			if (false && (Actor->GetName().find("스카이") != std::string::npos || Actor->GetName().find("Sky") != std::string::npos))
+			{
+				UE_LOG("[Sky Debug] Processing actor: %s, Visible=%d, Active=%d",
+					Actor->GetName().c_str(),
+					Actor->IsActorVisible(),
+					Actor->IsActorActive());
+			}
+
+			if (!Actor->IsActorVisible() || !Actor->IsActorActive())
 			{
 				return;
 			}
@@ -751,6 +768,7 @@ void FSceneRenderer::GatherVisibleProxies()
 					{
 						if (bDrawParticle) { Proxies.Particles.Add(ParticleComponent); }
 					}
+					// SkySphere는 RenderSkyPass에서 직접 찾음 (퓨쳐엔진 방식)
 				}
 				else
 				{
@@ -1154,6 +1172,41 @@ void FSceneRenderer::RenderDecalPass()
 	RHIDevice->RSSetState(ERasterizerMode::Solid);
 	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
 	RHIDevice->OMSetBlendState(false);
+}
+
+void FSceneRenderer::RenderSkyPass()
+{
+	GPU_TIME_PROFILE("Sky_Draw")
+
+	// 퓨쳐엔진과 동일: World에서 SkySphereActor 직접 찾기
+	ASkySphereActor* SkyActor = World->FindActor<ASkySphereActor>();
+	if (!SkyActor)
+	{
+		return;
+	}
+
+	USkySphereComponent* SkyComponent = SkyActor->GetSkySphereComponent();
+	if (!SkyComponent)
+	{
+		return;
+	}
+
+	// ViewProj 상수 버퍼 설정
+	FMatrix InvView = View->ViewMatrix.InverseAffine();
+	FMatrix InvProj = View->ProjectionMatrix.Inverse();
+	ViewProjBufferType ViewProjBuffer = ViewProjBufferType(View->ViewMatrix, View->ProjectionMatrix, InvView, InvProj);
+	RHIDevice->SetAndUpdateConstantBuffer(ViewProjBuffer);
+
+	// Sky 메시 배치 수집
+	TArray<FMeshBatchElement> SkyBatches;
+	SkyComponent->CollectMeshBatches(SkyBatches, View);
+
+	if (SkyBatches.IsEmpty())
+	{
+		return;
+	}
+
+	DrawMeshBatches(SkyBatches, true);
 }
 
 void FSceneRenderer::RenderPostProcessingPasses()
@@ -1664,7 +1717,23 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 			ParticleEmitterType.ScreenAlignment = static_cast<uint32>(Batch.ScreenAlignment);
 			RHIDevice->SetAndUpdateConstantBuffer(ParticleEmitterType);
 		}
-		
+
+		// Sky 렌더링을 위한 특수 렌더 상태 설정
+		if (Batch.bIsSky)
+		{
+			// Depth Test Always (Sky는 항상 통과, 불투명 객체가 앞에 그려짐)
+			RHIDevice->OMSetDepthStencilState(EComparisonFunc::Always);
+
+			// Inside-Facing Sphere이므로 Cull 없음
+			RHIDevice->RSSetState(ERasterizerMode::Solid_NoCull);
+
+			// Sky 전용 상수 버퍼 설정 (b9)
+			if (Batch.SkyParams)
+			{
+				RHIDevice->SetAndUpdateConstantBuffer(*Batch.SkyParams);
+			}
+		}
+
 		if (Batch.bInstancedDraw)
 		{
 			if (Batch.IndexBuffer && Batch.VertexBuffer && Batch.VertexStride > 0)
@@ -1679,6 +1748,13 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 		else
 		{
 			RHIDevice->GetDeviceContext()->DrawIndexed(Batch.IndexCount, Batch.StartIndex, Batch.BaseVertexIndex);
+		}
+
+		// Sky 렌더링 후 상태 복원
+		if (Batch.bIsSky)
+		{
+			RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
+			RHIDevice->RSSetState(ERasterizerMode::Solid);
 		}
 	}
 
