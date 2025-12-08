@@ -620,7 +620,7 @@ FBlueprintValue UK2Node_GetRemainAnimLength::EvaluatePin(const UEdGraphPin* Outp
         else
         {
             //assert(false && "Specified StateName not found in current animation states.");
-			UE_LOG("Specified StateName not found in current animation states: %s", StateName.c_str());
+			//UE_LOG("Specified StateName not found in current animation states: %s", StateName.c_str());
             return FBlueprintValue(100.0f);
         }
 
