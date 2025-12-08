@@ -121,13 +121,15 @@ function Tick(Delta)
   -- else
   --   CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
   -- end
+    CharacterMoveComp:SetUseGravity(false)
     if AnimInstance:GetCurrentPlayTime() > 3.8 then
       CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
     elseif AnimInstance:GetCurrentPlayTime() > 0.5 then
+      -- CharacterMoveComp.CapsuleOffset = Vector(1.0,0,1.3)
       CharacterMoveComp:SetUseGravity(false)
     else
       -- CharacterMoveComp:SetUseGravity(false)
-      CharacterMoveComp.CapsuleOffset = Vector(1.0,0,2.0)
+      CharacterMoveComp.CapsuleOffset = Vector(1.0,0,1.8)
     end
   elseif AnimStateStr ~= "Climb" and PreAnimStateStr == "Climb" then
     CharacterMoveComp:SetUseGravity(true)
