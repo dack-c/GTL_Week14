@@ -66,6 +66,54 @@ public:
 };
 
 // ----------------------------------------------------------------
+//	[GetIsJumping] 캐릭터 슬라이딩 상태 확인 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Is Jumping", Description = "캐릭터가 현재 공중에 떠있는지(낙하 중인지) 확인합니다.")
+class UK2Node_GetIsJumping : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetIsJumping, UK2Node);
+
+public:
+    UK2Node_GetIsJumping();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Is Jumping"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "캐릭터 무브먼트"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+// ----------------------------------------------------------------
+//	[GetNeedRolling] 캐릭터 슬라이딩 상태 확인 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Need Rolling", Description = "캐릭터가 현재 공중에 떠있는지(낙하 중인지) 확인합니다.")
+class UK2Node_GetNeedRolling : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetNeedRolling, UK2Node);
+
+public:
+    UK2Node_GetNeedRolling();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Need Rolling"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "캐릭터 무브먼트"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+// ----------------------------------------------------------------
 //	[GetVelocity] 이동 속도 벡터 반환 노드
 // ----------------------------------------------------------------
 UCLASS(DisplayName = "Get Velocity", Description = "캐릭터의 현재 이동 속도 벡터(X, Y, Z)를 반환합니다.")

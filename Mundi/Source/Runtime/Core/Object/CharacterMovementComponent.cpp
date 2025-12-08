@@ -66,7 +66,10 @@ void UCharacterMovementComponent::DoJump()
 	if (!bIsFalling)
 	{
 		Velocity.Z = JumpZVelocity;
+		bIsJumping = true;
 		bIsFalling = true;
+		AirTime = 0.0f;
+		bNeedRolling = false;
 		bIsSliding = false;
 		CurrentFloor.Reset();
 	}
@@ -134,6 +137,8 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 	{
 		// 현재 바닥이 없으면 isfalling으로
 		bIsFalling = true;
+		AirTime = 0.0f;
+		bNeedRolling = false;
 		bIsSliding = false;
 	}
 }
@@ -236,12 +241,20 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 
 		// 바닥 못 찾음 - Falling
 		bIsFalling = true;
+		AirTime = 0.0f;
+		bNeedRolling = false;
 		CurrentFloor.Reset();
 	}
 }
 
 void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 {
+	AirTime += DeltaSecond;
+	if (NeedRollingAirTime < AirTime)
+	{
+		bNeedRolling = true;
+	}
+
 	// 중력 적용
 	if (bUseGravity)
 	{
@@ -264,6 +277,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 		{
 			// 착지
 			Velocity.Z = 0.0f;
+			bIsJumping = false;
 			bIsFalling = false;
 			CurrentFloor = Hit;
 			// SafeMoveUpdatedComponent에서 이미 SkinWidth 적용된 위치로 설정됨
@@ -310,6 +324,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 		{
 			// 바닥에 닿음
 			Velocity.Z = 0.0f;
+			bIsJumping = false;
 			bIsFalling = false;
 			CurrentFloor = FloorHit;
 
