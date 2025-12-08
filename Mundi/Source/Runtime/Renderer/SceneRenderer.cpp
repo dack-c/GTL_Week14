@@ -1533,7 +1533,9 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 
 	// PS 리소스 초기화
 	ID3D11ShaderResourceView* nullSRVs[2] = { nullptr, nullptr };
-	RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, nullSRVs);
+	RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, nullSRVs); // t0, t1
+	ID3D11ShaderResourceView* nullEmissiveSRV = nullptr;
+	RHIDevice->GetDeviceContext()->PSSetShaderResources(6, 1, &nullEmissiveSRV); // t6
 	ID3D11SamplerState* nullSamplers[2] = { nullptr, nullptr };
 	RHIDevice->GetDeviceContext()->PSSetSamplers(0, 2, nullSamplers);
 	FPixelConstBufferType DefaultPixelConst{};
@@ -1594,6 +1596,7 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 		{
 			ID3D11ShaderResourceView* DiffuseTextureSRV = nullptr; // t0
 			ID3D11ShaderResourceView* NormalTextureSRV = nullptr;  // t1
+			ID3D11ShaderResourceView* EmissiveTextureSRV = nullptr; // t6 (t2-t4는 타일 라이트 컬링)
 			FPixelConstBufferType PixelConst{};
 
 			if (Batch.Material)
@@ -1646,12 +1649,20 @@ void FSceneRenderer::DrawMeshBatches(TArray<FMeshBatchElement>& InMeshBatches, b
 						PixelConst.bHasNormalTexture = (NormalTextureSRV != nullptr);
 					}
 				}
+				if (!MaterialInfo.EmissiveTextureFileName.empty())
+				{
+					if (UTexture* TextureData = Batch.Material->GetTexture(EMaterialTextureSlot::Emissive))
+					{
+						EmissiveTextureSRV = TextureData->GetShaderResourceView();
+					}
+				}
 			}
-			
+
 			// --- RHI 상태 업데이트 ---
 			// 1. 텍스처(SRV) 바인딩
 			ID3D11ShaderResourceView* Srvs[2] = { DiffuseTextureSRV, NormalTextureSRV };
-			RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, Srvs);
+			RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 2, Srvs); // t0, t1
+			RHIDevice->GetDeviceContext()->PSSetShaderResources(6, 1, &EmissiveTextureSRV); // t6 (Emissive)
 
 			// 2. 샘플러 바인딩
 			ID3D11SamplerState* Samplers[4] = { DefaultSampler, DefaultSampler, ShadowSampler, VSMSampler };

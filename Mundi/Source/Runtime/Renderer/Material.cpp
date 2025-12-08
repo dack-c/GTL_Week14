@@ -107,6 +107,8 @@ bool UMaterial::HasTexture(EMaterialTextureSlot Slot) const
 		return !MaterialInfo.DiffuseTextureFileName.empty();
 	case EMaterialTextureSlot::Normal:
 		return !MaterialInfo.NormalTextureFileName.empty();
+	case EMaterialTextureSlot::Emissive:
+		return !MaterialInfo.EmissiveTextureFileName.empty();
 	default:
 		return false;
 	}
@@ -133,6 +135,11 @@ void UMaterial::ResolveTextures()
 		ResolvedTextures[static_cast<int32>(EMaterialTextureSlot::Normal)] = RM.Load<UTexture>(MaterialInfo.NormalTextureFileName, false);
 	else
 		ResolvedTextures[static_cast<int32>(EMaterialTextureSlot::Normal)] = nullptr; // 또는 기본 노멀 텍스처
+
+	if (!MaterialInfo.EmissiveTextureFileName.empty())
+		ResolvedTextures[static_cast<int32>(EMaterialTextureSlot::Emissive)] = RM.Load<UTexture>(MaterialInfo.EmissiveTextureFileName, true);
+	else
+		ResolvedTextures[static_cast<int32>(EMaterialTextureSlot::Emissive)] = nullptr; // Emissive 텍스처 없음
 }
 
 void UMaterial::SetMaterialInfo(const FMaterialInfo& InMaterialInfo)
