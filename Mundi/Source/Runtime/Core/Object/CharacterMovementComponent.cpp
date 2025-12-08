@@ -45,8 +45,16 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 	if (!bUseInput)
 	{
 		FVector Dummy = CharacterOwner->ConsumeMovementInputVector();
-		Velocity.X = 0.0f;
-		Velocity.Y = 0.0f;
+		if (bUseGravity)
+		{
+			Velocity.X = 0.0f;
+			Velocity.Y = 0.0f;
+		}
+		else
+		{
+			Velocity = FVector::Zero();
+		}
+		
 
 		//UE_LOG("CapsuleOffset: %.2f, %.2f, %.2f", CapsuleOffset.X, CapsuleOffset.Y, CapsuleOffset.Z);
 	}
