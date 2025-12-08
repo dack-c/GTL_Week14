@@ -30,6 +30,11 @@
       "ToNodeID" : 97,
       "ToPinName" : "Execute"
     }, {
+      "FromNodeID" : 11,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 146,
+      "ToPinName" : "Execute"
+    }, {
       "FromNodeID" : 31,
       "FromPinName" : "Transition To",
       "ToNodeID" : 34,
@@ -53,6 +58,11 @@
       "FromNodeID" : 34,
       "FromPinName" : "Exit",
       "ToNodeID" : 121,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 34,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 146,
       "ToPinName" : "Execute"
     }, {
       "FromNodeID" : 35,
@@ -123,6 +133,11 @@
       "FromNodeID" : 50,
       "FromPinName" : "Exit",
       "ToNodeID" : 112,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 50,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 146,
       "ToPinName" : "Execute"
     }, {
       "FromNodeID" : 51,
@@ -493,6 +508,106 @@
       "FromNodeID" : 141,
       "FromPinName" : "Result",
       "ToNodeID" : 97,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 142,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 156,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 143,
+      "FromPinName" : "Value",
+      "ToNodeID" : 142,
+      "ToPinName" : "Animation"
+    }, {
+      "FromNodeID" : 144,
+      "FromPinName" : "Value",
+      "ToNodeID" : 142,
+      "ToPinName" : "Looping"
+    }, {
+      "FromNodeID" : 145,
+      "FromPinName" : "Value",
+      "ToNodeID" : 142,
+      "ToPinName" : "PlayRate"
+    }, {
+      "FromNodeID" : 146,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 142,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 147,
+      "FromPinName" : "Value",
+      "ToNodeID" : 146,
+      "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 148,
+      "FromPinName" : "Height",
+      "ToNodeID" : 149,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 148,
+      "FromPinName" : "Height",
+      "ToNodeID" : 154,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 149,
+      "FromPinName" : "Result",
+      "ToNodeID" : 152,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 150,
+      "FromPinName" : "Value",
+      "ToNodeID" : 149,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 151,
+      "FromPinName" : "Result",
+      "ToNodeID" : 153,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 152,
+      "FromPinName" : "Result",
+      "ToNodeID" : 153,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 153,
+      "FromPinName" : "Result",
+      "ToNodeID" : 146,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 154,
+      "FromPinName" : "Result",
+      "ToNodeID" : 152,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 155,
+      "FromPinName" : "Value",
+      "ToNodeID" : 154,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 156,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 11,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 158,
+      "FromPinName" : "Value",
+      "ToNodeID" : 156,
+      "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 159,
+      "FromPinName" : "Remain Length",
+      "ToNodeID" : 161,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 160,
+      "FromPinName" : "Value",
+      "ToNodeID" : 161,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 161,
+      "FromPinName" : "Result",
+      "ToNodeID" : 156,
       "ToPinName" : "Can Transition"
     }],
   "Nodes" : [{
@@ -1873,6 +1988,330 @@
           "PinCategory" : "bool",
           "PinName" : "Result"
         }]
+    }, {
+      "ClassName" : "UK2Node_AnimState",
+      "NodeID" : 142,
+      "NodePosX" : 5662.000000,
+      "NodePosY" : -680.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Enter"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Exit"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Animation"
+        }, {
+          "DefaultValue" : "false",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Looping"
+        }, {
+          "DefaultValue" : "1.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "PlayRate"
+        }],
+      "StateName" : "Climb"
+    }, {
+      "AnimPath" : "Data/animations/Parkour/P_Climbing.fbx_mixamo.com",
+      "ClassName" : "UK2Node_AnimSequence",
+      "NodeID" : 143,
+      "NodePosX" : 5008.000000,
+      "NodePosY" : -560.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Value"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Bool",
+      "NodeID" : 144,
+      "NodePosX" : 5286.000000,
+      "NodePosY" : -320.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Value"
+        }],
+      "Value" : false
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 145,
+      "NodePosX" : 5521.000000,
+      "NodePosY" : -240.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 1.000000
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 146,
+      "NodePosX" : 5198.000000,
+      "NodePosY" : -1212.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 147,
+      "NodePosX" : 4913.000000,
+      "NodePosY" : -848.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.200000
+    }, {
+      "ClassName" : "UK2Node_GetForwardObjHeight",
+      "NodeID" : 148,
+      "NodePosX" : 4094.000000,
+      "NodePosY" : -784.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Height"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Has Object"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Greater_FloatFloat",
+      "NodeID" : 149,
+      "NodePosX" : 4456.000000,
+      "NodePosY" : -908.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 150,
+      "NodePosX" : 4081.000000,
+      "NodePosY" : -944.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 2.200000
+    }, {
+      "ClassName" : "UK2Node_IsPressed",
+      "KeyName" : "Q",
+      "NodeID" : 151,
+      "NodePosX" : 4266.000000,
+      "NodePosY" : -1504.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_And_BoolBool",
+      "NodeID" : 152,
+      "NodePosX" : 4713.000000,
+      "NodePosY" : -1120.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_And_BoolBool",
+      "NodeID" : 153,
+      "NodePosX" : 4857.000000,
+      "NodePosY" : -1360.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Greater_FloatFloat",
+      "NodeID" : 154,
+      "NodePosX" : 4472.000000,
+      "NodePosY" : -1200.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 155,
+      "NodePosX" : 4145.000000,
+      "NodePosY" : -1120.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 1.500000
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 156,
+      "NodePosX" : 6366.000000,
+      "NodePosY" : -660.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 158,
+      "NodePosX" : 6354.000000,
+      "NodePosY" : -334.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.200000
+    }, {
+      "ClassName" : "UK2Node_GetRemainAnimLength",
+      "NodeID" : 159,
+      "NodePosX" : 5931.000000,
+      "NodePosY" : -80.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Remain Length"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 160,
+      "NodePosX" : 5857.000000,
+      "NodePosY" : -256.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.200000
+    }, {
+      "ClassName" : "UK2Node_Greater_FloatFloat",
+      "NodeID" : 161,
+      "NodePosX" : 6121.000000,
+      "NodePosY" : -252.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
     }],
-  "UniqueIDCounter" : 142
+  "UniqueIDCounter" : 162
 }

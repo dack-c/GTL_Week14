@@ -648,7 +648,7 @@ FBlueprintValue UK2Node_GetForwardObjHeight::EvaluatePin(const UEdGraphPin* Outp
     float SearchDistance = CapsuleRadius * 2.0f; // 약 1.0 거리
     float BoxHalfExtentX = SearchDistance * 0.5f; // 전방 방향 반크기
     float BoxHalfExtentY = CapsuleRadius; // 좌우 폭
-    float BoxHalfExtentZ = CapsuleHalfHeight * 1.0f; // 높이 (캡슐 높이의 2배까지 검사)
+    float BoxHalfExtentZ = CapsuleHalfHeight * 1.2f; // 높이 (캡슐 높이의 2배까지 검사)
 
     // 박스 중심 위치 (캡슐 앞쪽 중간 지점)
 	FVector BoxCenter = CapsuleLocation + ForwardDir * (CapsuleRadius + BoxHalfExtentX) + FVector(0.0f, 0.0f, 0.2f);
@@ -701,7 +701,7 @@ FBlueprintValue UK2Node_GetForwardObjHeight::EvaluatePin(const UEdGraphPin* Outp
 
     if (OutputPin->PinName == "Height")
     {
-		UE_LOG("UK2Node_GetForwardObjHeight: ResultHeight = %.2f, HasObject = %s", ResultHeight, bHasObject ? "True" : "False");
+		//UE_LOG("UK2Node_GetForwardObjHeight: ResultHeight = %.2f, HasObject = %s", ResultHeight, bHasObject ? "True" : "False");
         return FBlueprintValue(ResultHeight);
     }
     else if (OutputPin->PinName == "Has Object")

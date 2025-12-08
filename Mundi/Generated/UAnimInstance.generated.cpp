@@ -46,5 +46,7 @@ LUA_BIND_BEGIN(UAnimInstance)
 {
     AddMethodR<FString, UAnimInstance>(
         T, "GetCurrentStateName", &UAnimInstance::GetCurrentStateName);
+    AddMethodR<float, UAnimInstance>(
+        T, "GetCurrentPlayTime", &UAnimInstance::GetCurrentPlayTime);
 }
 LUA_BIND_END()

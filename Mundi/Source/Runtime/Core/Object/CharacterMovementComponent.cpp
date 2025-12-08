@@ -71,7 +71,7 @@ void UCharacterMovementComponent::DoJump()
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		UE_LOG("B");
+		//UE_LOG("B");
 		SetSliding(false);
 		CurrentFloor.Reset();
 	}
@@ -140,7 +140,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		// 현재 바닥이 없으면 isfalling으로
 		bIsFalling = true;
 		AirTime = 0.0f;
-		UE_LOG("C");
+		//UE_LOG("C");
 		bNeedRolling = false;
 		SetSliding(false);
 	}
@@ -246,7 +246,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		UE_LOG("A");
+		//UE_LOG("A");
 		CurrentFloor.Reset();
 	}
 }
@@ -256,7 +256,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 	AirTime += DeltaSecond;
 	if (NeedRollingAirTime < AirTime)
 	{
-		UE_LOG("D");
+		//UE_LOG("D");
 		bNeedRolling = true;
 	}
 
@@ -523,7 +523,10 @@ void UCharacterMovementComponent::GetCapsuleSize(float& OutRadius, float& OutHal
 
 FVector UCharacterMovementComponent::GetSnapDownStart() const
 {
-	FVector Result = UpdatedComponent->GetWorldLocation() + CapsuleOffset;
+	// CapsuleOffset을 UpdatedComponent의 로컬 좌표계 기준으로 변환하여 적용
+	FTransform ComponentTransform = UpdatedComponent->GetWorldTransform();
+	FVector WorldCapsuleOffset = ComponentTransform.TransformVector(CapsuleOffset);
+	FVector Result = UpdatedComponent->GetWorldLocation() + WorldCapsuleOffset;
 	return Result;
 }
 
