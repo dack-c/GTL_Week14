@@ -317,8 +317,8 @@
     }, {
       "FromNodeID" : 101,
       "FromPinName" : "Result",
-      "ToNodeID" : 119,
-      "ToPinName" : "B"
+      "ToNodeID" : 97,
+      "ToPinName" : "Can Transition"
     }, {
       "FromNodeID" : 102,
       "FromPinName" : "Value",
@@ -1771,7 +1771,7 @@
           "PinCategory" : "float",
           "PinName" : "Value"
         }],
-      "Value" : 0.100000
+      "Value" : 0.200000
     }, {
       "ClassName" : "UK2Node_GetIsFinishAnim",
       "NodeID" : 137,

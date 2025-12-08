@@ -421,8 +421,28 @@ FBlueprintValue UK2Node_GetIsFinishAnim::EvaluatePin(const UEdGraphPin* OutputPi
     if (OutputPin->PinName == "Is Finished")
     {
         // 현재 재생 중인지 확인
-        if (!AnimInstance->IsPlaying() || AnimInstance->GetCurrentPlayState().loopCount > 1)
+        IAnimPoseProvider* PoseProvider = nullptr;
+        PoseProvider = AnimInstance->GetCurrentPlayState().PoseProvider;
+        if (AnimInstance->GetBlendTargetState().PoseProvider)
         {
+			PoseProvider = AnimInstance->GetBlendTargetState().PoseProvider;
+        }
+
+		FAnimationPlayState PlayState = AnimInstance->GetCurrentPlayState();
+        if (AnimInstance->GetBlendTargetState().PoseProvider)
+        {
+			PlayState = AnimInstance->GetBlendTargetState();
+        }
+
+        /*if (PoseProvider->GetCurrentPlayTime() >= PoseProvider->GetPlayLength() || AnimInstance->GetCurrentPlayState().loopCount > 1)
+        {
+			UE_LOG("Animation is finished. Name: %s, CurPlaytime: %.2f, Playalength: %.2f, loopCount: %.2f", PoseProvider->GetDominantSequence()->GetFilePath().c_str(), PoseProvider->GetCurrentPlayTime(), PoseProvider->GetPlayLength(), AnimInstance->GetCurrentPlayState().loopCount);
+            return FBlueprintValue(true);
+        }*/
+
+        if (PlayState.bIsPlaying == false || PlayState.loopCount > 1)
+        {
+            UE_LOG("Animation is finished. Name: %s, CurPlaytime: %.2f, Playalength: %.2f, loopCount: %.2f", PoseProvider->GetDominantSequence()->GetFilePath().c_str(), PoseProvider->GetCurrentPlayTime(), PoseProvider->GetPlayLength(), AnimInstance->GetCurrentPlayState().loopCount);
             return FBlueprintValue(true);
         }
     }
