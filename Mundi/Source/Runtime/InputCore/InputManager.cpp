@@ -67,7 +67,7 @@ void UInputManager::Initialize(HWND hWindow)
     }
 }
 
-void UInputManager::Update()
+void UInputManager::Update(float DeltaTime)
 {
     // 마우스 휠 델타 초기화 (프레임마다 리셋)
     MouseWheelDelta = 0.0f;
@@ -95,7 +95,7 @@ void UInputManager::Update()
 
     DWORD result = XInputGetState(0, &state);
     bool bPadMoveMouse = false;
-    const float PadMouseSen = 10.0f;
+    const float PadMouseSen = 90.0f;
     FVector2D PadMouseMoveVt2 = FVector2D::Zero();
     if (result == ERROR_SUCCESS)
     {
@@ -158,12 +158,12 @@ void UInputManager::Update()
         if (state.Gamepad.sThumbRY / 32767.0f > 0.3f || state.Gamepad.sThumbRY / 32767.0f < -0.3f)
         {
             bPadMoveMouse = true;
-            PadMouseMoveVt2.Y -= state.Gamepad.sThumbRY / 32767.0f * PadMouseSen; //-임 주의
+            PadMouseMoveVt2.Y -= state.Gamepad.sThumbRY / 32767.0f * PadMouseSen * DeltaTime; //-임 주의
         }
         if (state.Gamepad.sThumbRX / 32767.0f > 0.3f || state.Gamepad.sThumbRX / 32767.0f < -0.3f)
         {
             bPadMoveMouse = true;
-            PadMouseMoveVt2.X += state.Gamepad.sThumbRX / 32767.0f * PadMouseSen;
+            PadMouseMoveVt2.X += state.Gamepad.sThumbRX / 32767.0f * PadMouseSen * DeltaTime;
         }
 
         //진동
