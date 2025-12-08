@@ -233,3 +233,27 @@ public:
     virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 };
 
+// ----------------------------------------------------------------
+//	[GetForwardObjHeight] 캐릭터 앞 오브젝트 높이 확인 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Get Forward Object Height", Description = "캐릭터 앞 방향의 가장 가까운 오브젝트의 높이를 반환합니다. 벽 등반 가능 여부 판단에 사용됩니다.")
+class UK2Node_GetForwardObjHeight : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetForwardObjHeight, UK2Node);
+
+public:
+    UK2Node_GetForwardObjHeight();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Get Forward Object Height"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "캐릭터 무브먼트"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+

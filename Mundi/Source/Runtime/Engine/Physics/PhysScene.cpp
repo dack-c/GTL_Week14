@@ -1236,3 +1236,69 @@ bool FPhysScene::OverlapCapsuleWithMTD(
 
     return false;
 }
+
+bool FPhysScene::OverlapBoxGetBounds(
+    const FVector& Position,
+    const FVector& HalfExtents,
+    const FQuat& Rotation,
+    TArray<FAABB>& OutBounds,
+    AActor* IgnoreActor) const
+{
+    OutBounds.Empty();
+
+    if (!Scene)
+    {
+        UE_LOG("[PhysScene] OverlapBoxGetBounds: Scene is null");
+        return false;
+    }
+
+    // PhysX Box 설정
+    PxBoxGeometry BoxGeom(HalfExtents.X, HalfExtents.Y, HalfExtents.Z);
+    PxQuat PxRot(Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+    PxTransform BoxPose(PxVec3(Position.X, Position.Y, Position.Z), PxRot);
+
+    // Overlap 쿼리 설정 - 여러 개의 겹침을 감지
+    const PxU32 MaxOverlaps = 32;
+    PxOverlapHit OverlapHits[MaxOverlaps];
+    PxOverlapBuffer OverlapBuffer(OverlapHits, MaxOverlaps);
+
+    FSweepQueryFilterCallback FilterCallback(IgnoreActor);
+    PxQueryFilterData FilterData;
+    FilterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
+
+    {
+        SCOPED_PHYSX_READ_LOCK(*Scene);
+
+        bool bOverlap = Scene->overlap(
+            BoxGeom,
+            BoxPose,
+            OverlapBuffer,
+            FilterData,
+            &FilterCallback
+        );
+
+        if (!bOverlap || OverlapBuffer.getNbAnyHits() == 0)
+            return false;
+
+        PxU32 NumHits = OverlapBuffer.getNbAnyHits();
+
+        for (PxU32 i = 0; i < NumHits; ++i)
+        {
+            const PxOverlapHit& Hit = OverlapBuffer.getAnyHit(i);
+
+            if (!Hit.shape || !Hit.actor)
+                continue;
+
+            // Actor의 World Bounds 가져오기
+            PxBounds3 ActorBounds = Hit.actor->getWorldBounds();
+            
+            FAABB Bounds;
+            Bounds.Min = FVector(ActorBounds.minimum.x, ActorBounds.minimum.y, ActorBounds.minimum.z);
+            Bounds.Max = FVector(ActorBounds.maximum.x, ActorBounds.maximum.y, ActorBounds.maximum.z);
+            
+            OutBounds.Add(Bounds);
+        }
+    }
+
+    return OutBounds.Num() > 0;
+}

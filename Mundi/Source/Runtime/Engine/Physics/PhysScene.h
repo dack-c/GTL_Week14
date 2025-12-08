@@ -235,6 +235,23 @@ public:
         AActor* IgnoreActor = nullptr
     ) const;
 
+    /**
+     * @brief 박스 영역과 겹치는 모든 액터의 Shape 정보를 조회
+     * @param Position 박스 중심 위치
+     * @param HalfExtents 박스 반크기
+     * @param Rotation 박스 회전
+     * @param OutHits 겹치는 Shape들의 AABB 정보 (Min, Max Z 포함)
+     * @param IgnoreActor 무시할 액터
+     * @return 겹치는 오브젝트가 있으면 true
+     */
+    bool OverlapBoxGetBounds(
+        const FVector& Position,
+        const FVector& HalfExtents,
+        const FQuat& Rotation,
+        TArray<FAABB>& OutBounds,
+        AActor* IgnoreActor = nullptr
+    ) const;
+
 private:
     // Per-Scene 리소스 (인스턴스별로 고유)
     PxScene*                Scene           = nullptr;

@@ -317,8 +317,8 @@
     }, {
       "FromNodeID" : 101,
       "FromPinName" : "Result",
-      "ToNodeID" : 97,
-      "ToPinName" : "Can Transition"
+      "ToNodeID" : 119,
+      "ToPinName" : "B"
     }, {
       "FromNodeID" : 102,
       "FromPinName" : "Value",

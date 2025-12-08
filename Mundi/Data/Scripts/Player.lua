@@ -76,7 +76,7 @@ function Tick(Delta)
   -- local CurAnimName = AnimStateMachine:GetCurrentState()
   -- print("Current Animation State: " .. CurAnimName)
   AnimStateStr = AnimInstance:GetCurrentStateName()
-  print("Current Animation State Name: " .. AnimStateStr)
+  -- print("Current Animation State Name: " .. AnimStateStr)
 
   if AnimStateStr == "Vault" then
       CharacterMoveComp.CapsuleOffset = Vector(0,0,0.3)
