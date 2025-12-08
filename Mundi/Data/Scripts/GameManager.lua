@@ -68,7 +68,7 @@ function Tick(dt)
     if GlobalConfig.GameState == "Init" then
         RenderInitUI()
 
-        if InputManager:IsKeyDown(" ") then
+        if InputManager:IsKeyDown("Q") then
             GlobalConfig.GameState = "Start"
             InitGame()
         end
@@ -95,7 +95,7 @@ function Tick(dt)
     elseif GlobalConfig.GameState == "Death" then
         RenderDeathUI()
         
-        if InputManager:IsKeyDown("R") then
+        if InputManager:IsKeyDown("E") then
             GlobalConfig.GameState = "Init"
         end
 
@@ -103,7 +103,7 @@ function Tick(dt)
         -- 클리어 타임 표시
         RenderClearUI()
         
-        if InputManager:IsKeyDown("R") then
+        if InputManager:IsKeyDown("E") then
             GlobalConfig.GameState = "Init"
         end
 
@@ -140,25 +140,31 @@ function RenderInitUI()
     AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "Press [Space Bar] To Start", Color, 60)
+    DrawUIText(Rect, "Press [Q] To Start", Color, 60)
 end
 
 -- 인게임 UI 출력
 function RenderInGameUI()
     local Rect = RectTransform()
-    local Color = Vector4(1,1,1,1)
+    local Color = Vector4(0,1,0,1)
 
     AnchorMin = Vector2D(0,0)
     AnchorMax = Vector2D(0.3,0.2)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "남은 거리: 50m", Color, 30)
+
+    local RemainHeight = (-39 - GetPlayer().Location.Z) * -1;
+    if RemainHeight < 0 then
+        RemainHeight = 0
+    end
+
+    DrawUIText(Rect, "남은 높이: "..string.format("%.1f", RemainHeight).."m", Color, 30)
 end
 
 -- 사망 UI 출력
 function RenderDeathUI()
     local Rect = RectTransform()
-    local Color = Vector4(1,1,1,1)
+    local Color = Vector4(1,0,0,1)
 
     -- local AnchorMin = Vector2D(0,0)
     -- local AnchorMax = Vector2D(1,1)
@@ -175,13 +181,13 @@ function RenderDeathUI()
     AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "낙사", Color, 80)
+    DrawUIText(Rect, "낙사", Color, 100)
 end
 
 -- 클리어 UI 출력
 function RenderClearUI()
     local Rect = RectTransform()
-    local Color = Vector4(1,1,1,1)
+    local Color = Vector4(0,1,1,1)
 
     -- local AnchorMin = Vector2D(0,0)
     -- local AnchorMax = Vector2D(1,1)

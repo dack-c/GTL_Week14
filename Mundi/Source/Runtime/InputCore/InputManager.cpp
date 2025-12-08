@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
 #include <windowsx.h> // GET_X_LPARAM / GET_Y_LPARAM
+#include <Xinput.h>
+#pragma comment(lib, "Xinput.lib")
 
 #ifndef GET_X_LPARAM
 #define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
@@ -65,10 +67,123 @@ void UInputManager::Initialize(HWND hWindow)
     }
 }
 
-void UInputManager::Update()
+void UInputManager::Update(float DeltaTime)
 {
     // 마우스 휠 델타 초기화 (프레임마다 리셋)
     MouseWheelDelta = 0.0f;
+
+    if (IsKeyPressed('I'))
+    {
+        if (IsCursorLocked())
+        {
+            INPUT.SetCursorVisible(true);
+            INPUT.ReleaseCursor();
+        }
+        else
+        {
+            INPUT.SetCursorVisible(false);
+            INPUT.LockCursor();
+        }
+    }
+
+    memcpy(PreviousMouseButtons, MouseButtons, sizeof(MouseButtons));
+    memcpy(PreviousKeyStates, KeyStates, sizeof(KeyStates));
+
+
+    XINPUT_STATE state;
+    ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+    DWORD result = XInputGetState(0, &state);
+    bool bPadMoveMouse = false;
+    const float PadMouseSen = 90.0f;
+    FVector2D PadMouseMoveVt2 = FVector2D::Zero();
+    if (result == ERROR_SUCCESS)
+    {
+        // 패드 연결됨
+
+        WORD buttons = state.Gamepad.wButtons;
+
+        if (KeyStates[32] != ((buttons & XINPUT_GAMEPAD_A) != 0))
+        {
+            UpdateKeyState(32, ((buttons & XINPUT_GAMEPAD_A) != 0)); // 스페이스 32
+        }
+        if (KeyStates[16] != ((buttons & XINPUT_GAMEPAD_B) != 0))
+        {
+            UpdateKeyState(16, ((buttons & XINPUT_GAMEPAD_B) != 0)); // 쉬프트 16
+        }
+        if (KeyStates[81] != ((buttons & XINPUT_GAMEPAD_X) != 0))
+        {
+            UpdateKeyState(81, ((buttons & XINPUT_GAMEPAD_X) != 0)); // Q 81
+        }
+        if (KeyStates[69] != ((buttons & XINPUT_GAMEPAD_Y) != 0))
+        {
+            UpdateKeyState(69, ((buttons & XINPUT_GAMEPAD_Y) != 0)); // E 69
+        }
+
+        if (KeyStates[87] != state.Gamepad.sThumbLY / 32767.0f > 0.3f)
+        {
+            UpdateKeyState(87, state.Gamepad.sThumbLY / 32767.0f > 0.3f); // W = 87
+        }
+        if (KeyStates[83] != state.Gamepad.sThumbLY / 32767.0f < -0.3f)
+        {
+            UpdateKeyState(83, state.Gamepad.sThumbLY / 32767.0f < -0.3f); // S = 87
+        }
+        if (KeyStates[65] != state.Gamepad.sThumbLX / 32767.0f < -0.3f)
+        {
+            UpdateKeyState(65, state.Gamepad.sThumbLX / 32767.0f < -0.3f); // A = 87
+        }
+        if (KeyStates[68] != state.Gamepad.sThumbLX / 32767.0f > 0.3f)
+        {
+            UpdateKeyState(68, state.Gamepad.sThumbLX / 32767.0f > 0.3f); // D = 87
+        }
+
+
+        if (KeyStates[87] != state.Gamepad.sThumbLY / 32767.0f > 0.3f)
+        {
+            UpdateKeyState(87, state.Gamepad.sThumbLY / 32767.0f > 0.3f); // W = 87
+        }
+        if (KeyStates[83] != state.Gamepad.sThumbLY / 32767.0f < -0.3f)
+        {
+            UpdateKeyState(83, state.Gamepad.sThumbLY / 32767.0f < -0.3f); // S = 87
+        }
+        if (KeyStates[65] != state.Gamepad.sThumbLX / 32767.0f < -0.3f)
+        {
+            UpdateKeyState(65, state.Gamepad.sThumbLX / 32767.0f < -0.3f); // A = 87
+        }
+        if (KeyStates[68] != state.Gamepad.sThumbLX / 32767.0f > 0.3f)
+        {
+            UpdateKeyState(68, state.Gamepad.sThumbLX / 32767.0f > 0.3f); // D = 87
+        }
+
+        if (state.Gamepad.sThumbRY / 32767.0f > 0.3f || state.Gamepad.sThumbRY / 32767.0f < -0.3f)
+        {
+            bPadMoveMouse = true;
+            PadMouseMoveVt2.Y -= state.Gamepad.sThumbRY / 32767.0f * PadMouseSen * DeltaTime; //-임 주의
+        }
+        if (state.Gamepad.sThumbRX / 32767.0f > 0.3f || state.Gamepad.sThumbRX / 32767.0f < -0.3f)
+        {
+            bPadMoveMouse = true;
+            PadMouseMoveVt2.X += state.Gamepad.sThumbRX / 32767.0f * PadMouseSen * DeltaTime;
+        }
+
+        //진동
+        //XINPUT_VIBRATION vib;
+        //ZeroMemory(&vib, sizeof(XINPUT_VIBRATION));
+
+        //vib.wLeftMotorSpeed = 30000;  // 0 ~ 65535
+        //vib.wRightMotorSpeed = 30000;
+
+        //XInputSetState(0, &vib);
+    }
+    else
+    {
+        // 패드 없음
+    }
+
+
+
+
+
     // 매 프레임마다 실시간 마우스 위치 업데이트
     if (WindowHandle)
     {
@@ -76,19 +191,7 @@ void UInputManager::Update()
         if (GetCursorPos(&CursorPos))
         {
             ScreenToClient(WindowHandle, &CursorPos);
-            if (IsKeyPressed('I'))
-            {
-                if (IsCursorLocked())
-                {
-                    INPUT.SetCursorVisible(true);
-                    INPUT.ReleaseCursor();
-                }
-                else
-                {
-                    INPUT.SetCursorVisible(false);
-                    INPUT.LockCursor();
-                }
-            }
+           
 
 
             // 커서 잠금 모드: 무한 드래그 처리
@@ -100,8 +203,15 @@ void UInputManager::Update()
 #endif
             if (MouseLock)
             {
-                MousePosition.X = static_cast<float>(CursorPos.x);
-                MousePosition.Y = static_cast<float>(CursorPos.y);
+                if (bPadMoveMouse)
+                {
+                    MousePosition = MousePosition + PadMouseMoveVt2;
+                }
+                else 
+                {
+                    MousePosition.X = static_cast<float>(CursorPos.x);
+                    MousePosition.Y = static_cast<float>(CursorPos.y);
+                }
 
                 POINT lockedPoint = { static_cast<int>(LockedCursorPosition.X), static_cast<int>(LockedCursorPosition.Y) };
                 ClientToScreen(WindowHandle, &lockedPoint);
@@ -112,8 +222,15 @@ void UInputManager::Update()
             else
             {
                 PreviousMousePosition = MousePosition;
-                MousePosition.X = static_cast<float>(CursorPos.x);
-                MousePosition.Y = static_cast<float>(CursorPos.y);
+                if (bPadMoveMouse)
+                {
+                    MousePosition = MousePosition + PadMouseMoveVt2;
+                }
+                else 
+                {
+                    MousePosition.X = static_cast<float>(CursorPos.x);
+                    MousePosition.Y = static_cast<float>(CursorPos.y);
+                }
             }
         }
 
@@ -128,8 +245,6 @@ void UInputManager::Update()
         }
     }
 
-    memcpy(PreviousMouseButtons, MouseButtons, sizeof(MouseButtons));
-    memcpy(PreviousKeyStates, KeyStates, sizeof(KeyStates));
 }
 
 void UInputManager::ProcessMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

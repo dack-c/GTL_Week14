@@ -19,7 +19,7 @@ function Tick(Delta)
 
 if TutorialImageTime > 0 then
  local Pos = Vector2D(0.0,300.0)
-local Size = Vector2D(300.0,400.0)
+local Size = Vector2D(700.0,300.0)
 local RectTransform = RectTransform(Pos,Size)
 RectTransform.Pivot = Vector2D(0.5,0.5)
 RectTransform.Anchor = Vector2D(0.5,0)
@@ -31,8 +31,8 @@ end
 
 
 function GetOpacity(Time)
-if Time > 4 then
-return 1 - (Time - 4)
+if Time > 3 then
+return 1 - (Time - 3)
 elseif Time > 1 then
 return 1
 else
@@ -46,18 +46,7 @@ return
 end
 TutorialMoveSuccess = true
 TutorialImagePath = "Data/Textures/MoveTutorial.png"
-TutorialImageTime = 5
-end
-
-
-local TutorialJumpSuccess = false
-function TutorialJump()
-if TutorialJumpSuccess == true then
-return
-end
-TutorialJumpSuccess = true
-TutorialImagePath = "Data/Textures/JumpTutorial.png"
-TutorialImageTime = 5
+TutorialImageTime = 4
 end
 
 
@@ -67,15 +56,6 @@ if TutorialSlideSuccess == true then
 return
 end
 TutorialSlideSuccess = true
---움직임 튜토리얼 사진 띄우기
-end
-
-
-local TutorialEndSuccess = false
-function TutorialEnd()
-if TutorialEndSuccess == true then
-return
-end
-TutorialEndSuccess = true
---움직임 튜토리얼 사진 띄우기
+TutorialImagePath = "Data/Textures/SlideTutorial.png"
+TutorialImageTime = 4
 end

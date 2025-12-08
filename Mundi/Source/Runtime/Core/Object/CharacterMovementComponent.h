@@ -153,6 +153,8 @@ public:
 	//UPROPERTY(EditAnywhere, Category = "Move")
 	float SlideFloorMaxNormalZ = 0.96f;	// 미끄러 질 수 있는 바닥의 최대 normal Z
 
+	const float LateralSpeed = 10.0f; // 슬라이딩 중 좌우 이동 속도
+
 protected:
 	ACharacter* CharacterOwner = nullptr;
 	bool bIsJumping = false;

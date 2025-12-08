@@ -1,6 +1,47 @@
 {
   "ObjectName" : "캐릭터_0",
   "OwnedComponents" : [{
+      "CapsuleHalfHeight" : 1.000000,
+      "CapsuleRadius" : 0.300000,
+      "CollisionEnabled_Internal" : 0,
+      "Id" : 30690,
+      "ObjectName" : "UCapsuleComponent_1",
+      "ParentId" : 0,
+      "RelativeLocation" : [0.000000, -20.827669, 1.000000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "UCapsuleComponent",
+      "bBlockComponent" : false,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bShapeHiddenInGame" : false,
+      "bShapeIsVisible" : true,
+      "bTickEnabled" : true
+    }, {
+      "CameraLagSpeed" : 0.040000,
+      "GrowSpeed" : 5.000000,
+      "Id" : 30365,
+      "ObjectName" : "USpringArmComponent_1",
+      "ParentId" : 30690,
+      "ProbeSize" : 0.100000,
+      "RelativeLocation" : [0.000000, 0.000000, 1.999998],
+      "RelativeRotationEuler" : [0.000000, 39.506496, 103.587914],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "ShrinkSpeed" : 15.000000,
+      "SocketOffset" : [0.000000, 0.000000, 0.000000],
+      "TargetArmLength" : 10.000000,
+      "TargetOffset" : [0.000000, 0.000000, 0.000000],
+      "Type" : "USpringArmComponent",
+      "bDoCollisionTest" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bTickEnabled" : true,
+      "bUsePawnControlRotation" : true
+    }, {
       "ObjectName" : "ULuaScriptComponent_4",
       "ScriptFilePath" : "Data/Scripts/PlayerCamera.lua",
       "Type" : "ULuaScriptComponent",
@@ -8,10 +49,61 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }, {
+      "CapsuleOffset" : [0.000000, 0.000000, 0.000000],
+      "MinFloorNormalZ" : 0.700000,
+      "MinSlidingSpeed" : 0.200000,
+      "NeedRollingAirTime" : 1.000000,
+      "ObjectName" : "UCharacterMovementComponent_1",
+      "SlidingRotateSpeed" : 10.000000,
+      "SlidingSpeed" : 20.000000,
+      "Type" : "UCharacterMovementComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "ObjectName" : "ULuaScriptComponent_1",
+      "ScriptFilePath" : "Data/Scripts/Player.lua",
+      "Type" : "ULuaScriptComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "AnimGraphPath" : "Data/Graphs/GameJem.graph",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 30366,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "AssetPath" : "Ch06_body",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_eyelashes",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_body1",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_1",
+      "ParentId" : 30690,
+      "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
+      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "SkeletalMesh" : "Data/FBX/James_Mixamo_Idle.fbx",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bTickEnabled" : true
+    }, {
       "CollisionEnabled_Internal" : 0,
-      "Id" : 2980,
+      "Id" : 30363,
       "ObjectName" : "SlidingParticle",
-      "ParentId" : 2981,
+      "ParentId" : 30690,
       "RelativeLocation" : [0.223943, 0.000000, -0.900000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
@@ -29,47 +121,13 @@
       "bUseAsyncSimulation" : true,
       "bUseGpuInstancing" : false
     }, {
-      "CapsuleOffset" : [0.000000, 0.000000, 0.000000],
-      "MinFloorNormalZ" : 0.700000,
-      "MinSlidingSpeed" : 0.200000,
-      "NeedRollingAirTime" : 1.000000,
-      "ObjectName" : "UCharacterMovementComponent_1",
-      "SlideFloorMaxNormalZ" : 0.950000,
-      "SlidingRotateSpeed" : 10.000000,
-      "SlidingSpeed" : 20.000000,
-      "Type" : "UCharacterMovementComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bTickEnabled" : true
-    }, {
-      "CameraLagSpeed" : 0.040000,
-      "GrowSpeed" : 5.000000,
-      "Id" : 2979,
-      "ObjectName" : "USpringArmComponent_1",
-      "ParentId" : 2981,
-      "ProbeSize" : 0.100000,
-      "RelativeLocation" : [0.000000, 0.000000, 1.999998],
-      "RelativeRotationEuler" : [0.000000, 39.506496, 103.587914],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "ShrinkSpeed" : 15.000000,
-      "SocketOffset" : [0.000000, 0.000000, 0.000000],
-      "TargetArmLength" : 10.000000,
-      "TargetOffset" : [0.000000, 0.000000, 0.000000],
-      "Type" : "USpringArmComponent",
-      "bDoCollisionTest" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bTickEnabled" : true,
-      "bUsePawnControlRotation" : true
-    }, {
       "AspectRatio" : 1.000000,
       "FarClip" : 1000.000000,
       "FieldOfView" : 60.000000,
-      "Id" : 2982,
+      "Id" : 30364,
       "NearClip" : 0.100000,
       "ObjectName" : "UCameraComponent_7",
-      "ParentId" : 2979,
+      "ParentId" : 30365,
       "ProjectionMode" : 0,
       "RelativeLocation" : [-9.999987, -0.000002, 0.000000],
       "RelativeRotationEuler" : [0.000073, -0.000012, -0.000635],
@@ -80,67 +138,8 @@
       "bIsActive" : true,
       "bIsVisible" : true,
       "bTickEnabled" : true
-    }, {
-      "CapsuleHalfHeight" : 1.000000,
-      "CapsuleRadius" : 0.300000,
-      "CollisionEnabled_Internal" : 0,
-      "Id" : 2981,
-      "ObjectName" : "UCapsuleComponent_1",
-      "ParentId" : 0,
-      "RelativeLocation" : [0.000000, 0.000000, 1.000000],
-      "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "Type" : "UCapsuleComponent",
-      "bBlockComponent" : false,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
-      "bShapeHiddenInGame" : false,
-      "bShapeIsVisible" : true,
-      "bTickEnabled" : true
-    }, {
-      "ObjectName" : "ULuaScriptComponent_1",
-      "ScriptFilePath" : "Data/Scripts/Player.lua",
-      "Type" : "ULuaScriptComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bTickEnabled" : true
-    }, {
-      "AnimGraphPath" : "Data/Graphs/GameJem.graph",
-      "CollisionEnabled_Internal" : 2,
-      "Id" : 2984,
-      "MaterialSlots" : [{
-          "Type" : "None"
-        }, {
-          "AssetPath" : "Ch06_body",
-          "Type" : "UMaterial"
-        }, {
-          "AssetPath" : "Ch06_eyelashes",
-          "Type" : "UMaterial"
-        }, {
-          "AssetPath" : "Ch06_body1",
-          "Type" : "UMaterial"
-        }],
-      "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 2981,
-      "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
-      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
-      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "SkeletalMesh" : "Data/FBX/James_Mixamo_Idle.fbx",
-      "Type" : "USkeletalMeshComponent",
-      "bBlockComponent" : false,
-      "bCastShadows" : true,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
-      "bTickEnabled" : true
     }],
-  "RootComponentId" : 2981,
+  "RootComponentId" : 30690,
   "Tag" : "",
   "Type" : "ACharacter",
   "bActorHiddenInGame" : false,

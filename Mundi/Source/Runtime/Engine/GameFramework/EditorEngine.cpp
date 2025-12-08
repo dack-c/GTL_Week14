@@ -251,7 +251,7 @@ void UEditorEngine::Tick(float DeltaSeconds)
     
     SLATE.Update(DeltaSeconds);
     UI.Update(DeltaSeconds);
-    INPUT.Update();
+    INPUT.Update(DeltaSeconds);
 }
 
 void UEditorEngine::Render()

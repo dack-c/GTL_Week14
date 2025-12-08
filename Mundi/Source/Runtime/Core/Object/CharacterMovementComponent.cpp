@@ -116,6 +116,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 	// 해당 방향으로 이동 시키기?
 	// 좌우 정도는 입력에 따라 그쪽 방향으로 조금 더 이동함?
 	FVector InputVector = CharacterOwner->ConsumeMovementInputVector();
+	InputVector.Normalize();
 
 	if (CheckFloor(CurrentFloor))
 	{
@@ -134,7 +135,26 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 			return;
 		}
 
-		Velocity = SlidingVector * SlidingSpeed;
+		// 슬라이딩 기준 '우측' 벡터 계산
+		// 슬라이딩 진행 방향(Forward)과 바닥 법선(Up)을 외적(Cross)하면 우측(Right) 벡터가 나옴
+		// 언리얼 좌표계(LHS) 기준: Cross(Forward, Up) = Right
+		FVector SlidingRightVector = FVector::Cross(SlidingVector, FloorNormal);
+		SlidingRightVector.Normalize();
+
+		// 입력 벡터에서 좌우 성분 추출 (내적)
+		// 입력 벡터가 SlidingRightVector와 얼마나 일치하는지 계산 (-1.0 ~ 1.0)
+		const float LateralInputMagnitude = FVector::Dot(InputVector, SlidingRightVector);
+
+		// 속도 계산
+		// 전진 속도: 기존의 중력 가속 기반 속도 (SlidingSpeed)
+		FVector ForwardVelocity = SlidingVector * SlidingSpeed;
+
+		// 좌우 속도: 추출한 입력 크기 * 좌우 이동 속도(또는 가속도)
+		// DeltaSecond를 곱하는 것은 가속도 처리를 위함이나, 여기서는 즉각적인 속도 반영을 예시로 함
+		FVector LateralVelocity = SlidingRightVector * (LateralInputMagnitude * LateralSpeed);
+
+		// 최종 속도 합성
+		Velocity = ForwardVelocity + LateralVelocity;
 
 		FHitResult Hit;
 		bool bMoved = SafeMoveUpdatedComponent(Velocity * DeltaSecond, Hit);
@@ -142,7 +162,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		if (bMoved)
 		{
 			// 내려가는 방향으로 회전
-			float TargetRadian = atan2(SlidingVector.Y, SlidingVector.X);
+			float TargetRadian = atan2(Velocity.Y, Velocity.X);
 			FQuat TargetQuat = FQuat::MakeFromEulerZYX(FVector(0, 0, RadiansToDegrees(TargetRadian)));
 			CharacterOwner->SetActorRotation(FQuat::Slerp(CharacterOwner->GetActorRotation(), TargetQuat, DeltaSecond * SlidingRotateSpeed));
 		}
