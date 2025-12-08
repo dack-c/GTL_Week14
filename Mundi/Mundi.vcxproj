@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -252,6 +252,7 @@
     <ClCompile Include="Source\Editor\FBX\BlendSpace\BlendSpace2D.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimTypes.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\MotionBlurComponent.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Components\SkyBoxComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\SkySphereComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\TriggerComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\Camera\CamMod_DOF.cpp" />
@@ -726,7 +727,10 @@
     <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp" />
     <ClCompile Include="Generated\UAnimationStateMachine.generated.cpp" />
     <ClCompile Include="Generated\UAnimInstance.generated.cpp" />
-  <ClCompile Include="Generated\AHeightFogActor.generated.cpp" /><ClCompile Include="Generated\APlayerStart.generated.cpp" /></ItemGroup>
+    <ClCompile Include="Generated\AHeightFogActor.generated.cpp" />
+    <ClCompile Include="Generated\APlayerStart.generated.cpp" />
+    <ClCompile Include="Generated\USkyBoxComponent.generated.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -777,6 +781,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_StandAlone|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\Sky\SkyBox.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release_StandAlone|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_StandAlone|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_StandAlone|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\UI\Billboard.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -919,6 +933,7 @@
     <ClInclude Include="Source\Runtime\Engine\Components\ShapeComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SkeletalMeshComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SkinnedMeshComponent.h" />
+    <ClInclude Include="Source\Runtime\Engine\Components\SkyBoxComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SkySphereComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SphereComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SpringArmComponent.h" />
@@ -1236,7 +1251,10 @@
     <ClInclude Include="Generated\UMotionBlurComponent.generated.h" />
     <ClInclude Include="Generated\UAnimationStateMachine.generated.h" />
     <ClInclude Include="Generated\UAnimInstance.generated.h" />
-  <ClInclude Include="Generated\AHeightFogActor.generated.h" /><ClInclude Include="Generated\APlayerStart.generated.h" /></ItemGroup>
+    <ClInclude Include="Generated\AHeightFogActor.generated.h" />
+    <ClInclude Include="Generated\APlayerStart.generated.h" />
+    <ClInclude Include="Generated\USkyBoxComponent.generated.h" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

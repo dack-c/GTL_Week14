@@ -35,6 +35,7 @@ class FTileLightCuller;
 class ULineComponent;
 class UParticleSystemComponent;
 class USkySphereComponent;
+class USkyBoxComponent;
 
 struct FCandidateDrawable;
 
@@ -65,10 +66,10 @@ struct FSceneLocals
 // 전역 효과 및 설정을 담는 구조체
 struct FSceneGlobals
 {
+	TArray<USkyBoxComponent*> SkyBoxes;
 	TArray<UDirectionalLightComponent*> DirectionalLights;
 	TArray<UAmbientLightComponent*> AmbientLights;
 	TArray<UHeightFogComponent*> Fogs;	// 첫 번째로 찾은 Fog를 사용함
-	TArray<USkySphereComponent*> SkySpheres;  // 첫 번째로 찾은 SkySphere를 사용함
 	TArray<UMotionBlurComponent*> MotionBlurs;
 };
 
@@ -90,7 +91,7 @@ private:
 	void RenderLitPath();
 	void RenderWireframePath();
 	void RenderSceneDepthPath();
-
+	void RenderSkybox();
 	void RenderShadowMaps();
 	void RenderShadowDepthPass(FShadowRenderRequest& ShadowRequest, const TArray<FMeshBatchElement>& InShadowBatches);
 
@@ -116,7 +117,6 @@ private:
 
 	void RenderParticlePass();
 	void RenderDecalPass();
-	void RenderSkyPass();
 
 	void RenderPostProcessingPasses();
 	void RenderSceneDepthPostProcess();

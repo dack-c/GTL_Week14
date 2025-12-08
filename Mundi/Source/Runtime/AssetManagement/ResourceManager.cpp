@@ -7,6 +7,7 @@
 #include "Quad.h"
 #include "MeshBVH.h"
 #include "Enums.h"
+#include <DirectXTex.h>
 
 #include <filesystem>
 #include <cwctype>
@@ -39,7 +40,7 @@ void UResourceManager::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
     Context = InContext;
     //CreateGridMesh(GRIDNUM,"Grid");
     //CreateAxisMesh(AXISLENGTH,"Axis");
-
+    LoadCubeMap(L"Data/Cubemap/Cubemap.dds");
     InitShaderILMap();
 
     InitTexToShaderMap();
@@ -55,6 +56,7 @@ void UResourceManager::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
 void UResourceManager::Clear()
 {
     {////////////// Deprecated //////////////
+        CubeMapSRV->Release();
         for (auto& [Key, Data] : ResourceMap)
         {
             if (Data)
@@ -482,6 +484,7 @@ void UResourceManager::InitShaderILMap()
 	ShaderToInputLayoutMap["Shaders/Materials/Fireball.hlsl"] = layout; // Use same vertex format as UberLit
 	ShaderToInputLayoutMap["Shaders/Shadow/PointLightShadow.hlsl"] = layout;  // Shadow map rendering uses same vertex format
 	ShaderToInputLayoutMap["Shaders/Shadows/DepthOnly_VS.hlsl"] = layout;
+	ShaderToInputLayoutMap["Shaders/Sky/SkyBox.hlsl"] = layout;
     layout.clear();
 
     // Sky Sphere 렌더링용 (POSITION, NORMAL, TEXCOORD)
@@ -854,4 +857,21 @@ for (auto& ch : ext) ch = static_cast<wchar_t>(::towlower(ch));
 
     TextureMap[FilePath] = Data;
     return Data;
+}
+
+void UResourceManager::LoadCubeMap(const FWideString& Path)
+{
+    ScratchImage image;
+    LoadFromDDSFile(Path.c_str(), DDS_FLAGS_NONE, nullptr, image);
+
+    ID3D11Texture2D* tex = nullptr;
+    CreateTexture(GetDevice(), image.GetImages(), image.GetImageCount(), image.GetMetadata(), (ID3D11Resource**)&tex);
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = image.GetMetadata().format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip = 0;
+    srvDesc.TextureCube.MipLevels = -1;
+
+    GetDevice()->CreateShaderResourceView(tex, &srvDesc, &CubeMapSRV);
 }
