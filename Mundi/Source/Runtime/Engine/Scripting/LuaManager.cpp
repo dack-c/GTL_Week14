@@ -8,6 +8,8 @@
 #include "CameraComponent.h"
 #include "PlayerCameraManager.h"
 #include "StatsOverlayD2D.h"
+#include "SkeletalMeshComponent.h"
+#include "AnimInstance.h"
 #include <tuple>
 
 sol::object MakeCompProxy(sol::state_view SolState, void* Instance, UClass* Class) {
@@ -491,6 +493,41 @@ void FLuaManager::ExposeAllComponentsToLua()
             if (!Comp) return sol::make_object(*Lua, sol::nil); 
             
             return MakeCompProxy(*Lua, Comp, Class);
+        }
+    );
+
+    SharedLib.set_function("GetAnimInstanceOfSkeletal",
+        [this](sol::object Obj) -> sol::object
+        {
+            // Check if the object is a LuaComponentProxy
+            if (!Obj.is<LuaComponentProxy>()) {
+                UE_LOG("[Lua][error] Error: Expected Component (LuaComponentProxy)\n");
+                return sol::make_object(*Lua, sol::nil);
+            }
+
+            LuaComponentProxy& Proxy = Obj.as<LuaComponentProxy>();
+
+            // Check if Instance and Class are valid
+            if (!Proxy.Instance || !Proxy.Class) {
+                return sol::make_object(*Lua, sol::nil);
+            }
+
+            // Check if it's a SkeletalMeshComponent
+            if (!Proxy.Class->IsChildOf(USkeletalMeshComponent::StaticClass())) {
+                UE_LOG("[Lua][error] Error: Component is not a SkeletalMeshComponent\n");
+                return sol::make_object(*Lua, sol::nil);
+            }
+
+            // Cast to SkeletalMeshComponent and get AnimInstance
+            USkeletalMeshComponent* SkelMeshComp = static_cast<USkeletalMeshComponent*>(Proxy.Instance);
+            UAnimInstance* AnimInstance = SkelMeshComp->GetAnimInstance();
+
+            if (!AnimInstance) {
+                return sol::make_object(*Lua, sol::nil);
+            }
+
+            // Return the AnimInstance as a proxy
+            return MakeCompProxy(*Lua, AnimInstance, AnimInstance->GetClass());
         }
     );
 }

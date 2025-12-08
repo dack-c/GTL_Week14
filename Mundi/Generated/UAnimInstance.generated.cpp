@@ -6,8 +6,6 @@
 #include "Source/Runtime/Core/Object/ObjectMacros.h"
 #include "Source/Runtime/Engine/Scripting/LuaBindHelpers.h"
 
-#include "AnimationStateMachine.h"
-
 // ===== Class Factory Registration (IMPLEMENT_CLASS) =====
 
 // IMPLEMENT_CLASS(UAnimInstance) expansion
@@ -46,7 +44,7 @@ extern "C" void LuaBind_Anchor_UAnimInstance() {}
 
 LUA_BIND_BEGIN(UAnimInstance)
 {
-    AddMethodR<UAnimationStateMachine*, UAnimInstance>(
-        T, "GetStateMachine", &UAnimInstance::GetStateMachine);
+    AddMethodR<FString, UAnimInstance>(
+        T, "GetCurrentStateName", &UAnimInstance::GetCurrentStateName);
 }
 LUA_BIND_END()
