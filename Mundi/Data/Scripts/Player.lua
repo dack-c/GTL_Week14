@@ -76,6 +76,7 @@ local PreAnimStateStr = ""
 local bChangedFromClimb = false
 local PostDelta = 0.0
 function Tick(Delta)
+  AnimInstance = GetAnimInstanceOfSkeletal(SkeletalMesh)
   -- local CurAnimName = AnimStateMachine:GetCurrentState()
   -- print("Current Animation State: " .. CurAnimName)
   AnimStateStr = AnimInstance:GetCurrentStateName()
@@ -93,8 +94,9 @@ function Tick(Delta)
 
   if AnimStateStr == "Vault" then
     PreAnimStateStr = "Vault"
-    -- CharacterMoveComp.CapsuleOffset = Vector(0,0,0.3)
-    CharacterMoveComp.CapsuleOffset = Vector(0,0,5.0)
+    CharacterMoveComp.CapsuleOffset = Vector(0,0,0.3)
+    -- CharacterMoveComp.CapsuleOffset = Vector(0,0,5.0)
+    -- print("Vaulting - Adjusting Capsule  Z Offset: " .. CharacterMoveComp.CapsuleOffset.Z)
   elseif AnimStateStr == "Climb" then
     PreAnimStateStr = "Climb"
     if AnimInstance:GetCurrentPlayTime() > 3.8 then
@@ -109,4 +111,7 @@ function Tick(Delta)
   elseif bChangedFromClimb == false then
     CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
   end
+
+
+  -- print("AnimStateStr: " .. AnimStateStr .. " | Capsule Z Offset: " .. CharacterMoveComp.CapsuleOffset.Z)
 end

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CharacterMovementComponent.h"
 #include "Character.h"
 #include "SceneComponent.h"
@@ -46,6 +46,8 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 	{
 		FVector Dummy = CharacterOwner->ConsumeMovementInputVector();
 		Velocity = FVector::Zero();
+
+		//UE_LOG("CapsuleOffset: %.2f, %.2f, %.2f", CapsuleOffset.X, CapsuleOffset.Y, CapsuleOffset.Z);
 	}
 
 	if (bIsSliding)
