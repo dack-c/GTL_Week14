@@ -472,7 +472,7 @@
     <ClCompile Include="Source\Runtime\Engine\Animation\AnimTypes.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Components\SkySphereComponent.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\SkySphereActor.cpp" />
-  </ItemGroup>
+  <ClCompile Include="Generated\UAnimationStateMachine.generated.cpp"><Filter>Generated</Filter></ClCompile><ClCompile Include="Generated\UAnimInstance.generated.cpp"><Filter>Generated</Filter></ClCompile></ItemGroup>
   <ItemGroup>
     <ClInclude Include="Generated\AActor.generated.h">
       <Filter>Generated</Filter>
@@ -962,10 +962,11 @@
     <ClInclude Include="Generated\ASkySphereActor.generated.h">
       <Filter>Generated</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Runtime\Engine\Animation\AnimStateTypes.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\SkySphereComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\Components\TestAutoBindComponent.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\SkySphereActor.h" />
-  </ItemGroup>
+  <ClInclude Include="Generated\UAnimationStateMachine.generated.h"><Filter>Generated</Filter></ClInclude><ClInclude Include="Generated\UAnimInstance.generated.h"><Filter>Generated</Filter></ClInclude></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />
