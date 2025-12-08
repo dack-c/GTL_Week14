@@ -275,6 +275,38 @@ struct FParticleEmitterType
     FVector Padding0;        // 16바이트 정렬
 };
 
+// b9: Sky Sphere 상수 버퍼
+struct alignas(16) FSkyConstantBuffer
+{
+	FLinearColor ZenithColor;
+	FLinearColor HorizonColor;
+	FLinearColor GroundColor;
+
+	FVector SunDirection;
+	float SunDiskSize;
+
+	FLinearColor SunColor;
+
+	float HorizonFalloff;
+	float SunHeight;
+	float OverallBrightness;
+	float CloudOpacity;
+
+	// 생성자에서 기본값 초기화
+	FSkyConstantBuffer()
+		: ZenithColor(0.0343f, 0.1236f, 0.4f, 1.0f)
+		, HorizonColor(0.6471f, 0.8235f, 0.9451f, 1.0f)
+		, GroundColor(0.3f, 0.25f, 0.2f, 1.0f)
+		, SunDirection(0.0f, 0.5f, 0.866f)
+		, SunDiskSize(0.001f)
+		, SunColor(1.0f, 0.95f, 0.8f, 5.0f)
+		, HorizonFalloff(3.0f)
+		, SunHeight(0.866f)
+		, OverallBrightness(1.0f)
+		, CloudOpacity(0.0f)
+	{}
+};
+
 #define CONSTANT_BUFFER_INFO(TYPE, SLOT, VS, PS) \
 constexpr uint32 TYPE##Slot = SLOT;\
 constexpr bool TYPE##IsVS = VS;\
@@ -303,7 +335,8 @@ MACRO(FViewportConstants)           \
 MACRO(FTileCullingBufferType)       \
 MACRO(FPointLightShadowBufferType)  \
 MACRO(FSubUVBufferType) \
-MACRO(FParticleEmitterType)
+MACRO(FParticleEmitterType) \
+MACRO(FSkyConstantBuffer)
 
 // 16 바이트 패딩 어썰트
 #define STATIC_ASSERT_CBUFFER_ALIGNMENT(Type) \
@@ -334,6 +367,7 @@ CONSTANT_BUFFER_INFO(FTileCullingBufferType, 11, false, true)  // b11, PS only (
 CONSTANT_BUFFER_INFO(FPointLightShadowBufferType, 12, true, true)  // b12, VS+PS
 CONSTANT_BUFFER_INFO(FSubUVBufferType, 2, true, true)  // b2, VS+PS (ParticleSprite.hlsl용)
 CONSTANT_BUFFER_INFO(FParticleEmitterType, 3, true, false)  // b3, VS (ParticleSprite.hlsl용)
+CONSTANT_BUFFER_INFO(FSkyConstantBuffer, 9, false, true)  // b9, PS only (Sky.hlsl용)
 
 
 

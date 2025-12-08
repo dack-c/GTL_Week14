@@ -6,6 +6,7 @@
 // 전방 선언
 class UShader;
 class UMaterial;
+struct FSkyConstantBuffer;
 
 /**
  * @struct FMeshBatchElement
@@ -80,6 +81,10 @@ struct FMeshBatchElement
 	
 	// RenderParticlePass에서 Sprite / Mesh 구분을 위해 쓴다
 	bool bIsDepthWrite = false;
+
+	// Sky 렌더링 플래그 및 파라미터
+	bool bIsSky = false;
+	struct FSkyConstantBuffer* SkyParams = nullptr;
 
 	// --- 4. GPU Instancing 여부 ---
 	bool bInstancedDraw = false;

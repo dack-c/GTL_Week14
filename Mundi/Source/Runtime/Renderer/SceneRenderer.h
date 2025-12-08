@@ -32,6 +32,7 @@ class FSceneView;
 class FTileLightCuller;
 class ULineComponent;
 class UParticleSystemComponent;
+class USkySphereComponent;
 
 struct FCandidateDrawable;
 
@@ -66,6 +67,7 @@ struct FSceneGlobals
 	TArray<UDirectionalLightComponent*> DirectionalLights;
 	TArray<UAmbientLightComponent*> AmbientLights;
 	TArray<UHeightFogComponent*> Fogs;	// 첫 번째로 찾은 Fog를 사용함
+	TArray<USkySphereComponent*> SkySpheres;  // 첫 번째로 찾은 SkySphere를 사용함
 };
 
 /**
@@ -112,6 +114,7 @@ private:
 
 	void RenderParticlePass();
 	void RenderDecalPass();
+	void RenderSkyPass();
 
 	void RenderPostProcessingPasses();
 	void RenderSceneDepthPostProcess();

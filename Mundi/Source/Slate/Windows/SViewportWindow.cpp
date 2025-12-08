@@ -913,13 +913,13 @@ void SViewportWindow::RenderCameraOptionDropdownMenu()
 
 			float fov = camComp->GetFOV();
 			ImGui::SetNextItemWidth(180);
-			if (ImGui::SliderFloat("##FOV", &fov, 30.0f, 120.0f, "%.1f"))
+			if (ImGui::SliderFloat("##FOV", &fov, 1.0f, 179.0f, "%.1f"))
 			{
 				camComp->SetFOV(fov);
 			}
 			if (ImGui::IsItemHovered())
 			{
-				ImGui::SetTooltip("카메라 시야각 (30-120도)\n값이 클수록 넓은 범위가 보입니다");
+				ImGui::SetTooltip("카메라 시야각 (1-179도)\n값이 클수록 넓은 범위가 보입니다\nCtrl+클릭으로 직접 입력 가능");
 			}
 
 			// 근평면
@@ -932,13 +932,13 @@ void SViewportWindow::RenderCameraOptionDropdownMenu()
 
 			float nearClip = camComp->GetNearClip();
 			ImGui::SetNextItemWidth(180);
-			if (ImGui::SliderFloat("##NearClip", &nearClip, 0.01f, 10.0f, "%.2f"))
+			if (ImGui::SliderFloat("##NearClip", &nearClip, 0.01f, 100.0f, "%.2f"))
 			{
 				camComp->SetClipPlanes(nearClip, camComp->GetFarClip());
 			}
 			if (ImGui::IsItemHovered())
 			{
-				ImGui::SetTooltip("카메라에서 가장 가까운 렌더링 거리 (0.01-10)\n이 값보다 가까운 오브젝트는 보이지 않습니다");
+				ImGui::SetTooltip("카메라에서 가장 가까운 렌더링 거리 (0.01-100)\n이 값보다 가까운 오브젝트는 보이지 않습니다\nCtrl+클릭으로 직접 입력 가능");
 			}
 
 			// 원평면
@@ -951,13 +951,13 @@ void SViewportWindow::RenderCameraOptionDropdownMenu()
 
 			float farClip = camComp->GetFarClip();
 			ImGui::SetNextItemWidth(180);
-			if (ImGui::SliderFloat("##FarClip", &farClip, 10.0f, 1000.0f, "%.0f"))
+			if (ImGui::SliderFloat("##FarClip", &farClip, 100.0f, 100000.0f, "%.0f"))
 			{
 				camComp->SetClipPlanes(camComp->GetNearClip(), farClip);
 			}
 			if (ImGui::IsItemHovered())
 			{
-				ImGui::SetTooltip("카메라에서 가장 먼 렌더링 거리 (100-10000)\n이 값보다 먼 오브젝트는 보이지 않습니다");
+				ImGui::SetTooltip("카메라에서 가장 먼 렌더링 거리 (100-100000)\n이 값보다 먼 오브젝트는 보이지 않습니다\nCtrl+클릭으로 직접 입력 가능");
 			}
 		}
 
