@@ -28,6 +28,7 @@ void USpringArmComponent::OnRegister(UWorld* InWorld)
 
     // 초기 암 길이 설정
     CurrentArmLength = TargetArmLength;
+    LastPos = GetWorldLocation();
 }
 
 void USpringArmComponent::TickComponent(float DeltaTime)
@@ -36,6 +37,14 @@ void USpringArmComponent::TickComponent(float DeltaTime)
 
     // 매 프레임 암 위치 업데이트 (보간 포함)
     UpdateDesiredArmLocation(DeltaTime);
+
+    FVector CurPos = GetWorldLocation();
+    MoveDis += CurPos - LastPos; //현재 이동량 추가
+    FVector CurMoveDis = FVector::Lerp(FVector(0, 0, 0), MoveDis, CameraLagSpeed);
+    MoveDis -= CurMoveDis;
+    LastPos = CurPos;
+    FQuat ArmRotation = GetWorldRotation();
+    UE_LOG("%f, %f, %f", MoveDis.X, MoveDis.Y, MoveDis.Z);
 
     // 자식 컴포넌트(카메라)의 로컬 위치를 암 끝으로 설정
     // SpringArm의 로컬 좌표계에서 -X 방향(뒤쪽)으로 CurrentArmLength만큼
@@ -46,6 +55,8 @@ void USpringArmComponent::TickComponent(float DeltaTime)
         if (Child)
         {
             Child->SetRelativeLocation(SocketLocalLocation);
+            FVector ChildWorldLoc = Child->GetWorldLocation() - MoveDis;
+            Child->SetWorldLocation(ChildWorldLoc);
         }
     }
 
