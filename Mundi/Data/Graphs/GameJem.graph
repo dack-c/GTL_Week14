@@ -25,6 +25,11 @@
       "ToNodeID" : 84,
       "ToPinName" : "Execute"
     }, {
+      "FromNodeID" : 11,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 97,
+      "ToPinName" : "Execute"
+    }, {
       "FromNodeID" : 31,
       "FromPinName" : "Transition To",
       "ToNodeID" : 34,
@@ -43,6 +48,11 @@
       "FromNodeID" : 34,
       "FromPinName" : "Exit",
       "ToNodeID" : 36,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 34,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 97,
       "ToPinName" : "Execute"
     }, {
       "FromNodeID" : 35,
@@ -85,6 +95,11 @@
       "ToNodeID" : 80,
       "ToPinName" : "PlayRate"
     }, {
+      "FromNodeID" : 40,
+      "FromPinName" : "Value",
+      "ToNodeID" : 98,
+      "ToPinName" : "PlayRate"
+    }, {
       "FromNodeID" : 44,
       "FromPinName" : "Is Falling",
       "ToNodeID" : 60,
@@ -118,6 +133,11 @@
       "FromNodeID" : 50,
       "FromPinName" : "Exit",
       "ToNodeID" : 69,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 50,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 97,
       "ToPinName" : "Execute"
     }, {
       "FromNodeID" : 51,
@@ -284,6 +304,66 @@
       "FromPinName" : "Value",
       "ToNodeID" : 89,
       "ToPinName" : "PlayRate"
+    }, {
+      "FromNodeID" : 97,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 98,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 98,
+      "FromPinName" : "Exit",
+      "ToNodeID" : 103,
+      "ToPinName" : "Execute"
+    }, {
+      "FromNodeID" : 99,
+      "FromPinName" : "Value",
+      "ToNodeID" : 98,
+      "ToPinName" : "Animation"
+    }, {
+      "FromNodeID" : 100,
+      "FromPinName" : "Value",
+      "ToNodeID" : 98,
+      "ToPinName" : "Looping"
+    }, {
+      "FromNodeID" : 101,
+      "FromPinName" : "Result",
+      "ToNodeID" : 97,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 102,
+      "FromPinName" : "Value",
+      "ToNodeID" : 97,
+      "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 103,
+      "FromPinName" : "Transition To",
+      "ToNodeID" : 11,
+      "ToPinName" : "Enter"
+    }, {
+      "FromNodeID" : 104,
+      "FromPinName" : "Remain Length",
+      "ToNodeID" : 107,
+      "ToPinName" : "B"
+    }, {
+      "FromNodeID" : 105,
+      "FromPinName" : "Value",
+      "ToNodeID" : 107,
+      "ToPinName" : "A"
+    }, {
+      "FromNodeID" : 107,
+      "FromPinName" : "Result",
+      "ToNodeID" : 103,
+      "ToPinName" : "Can Transition"
+    }, {
+      "FromNodeID" : 108,
+      "FromPinName" : "Value",
+      "ToNodeID" : 103,
+      "ToPinName" : "Blend Time"
+    }, {
+      "FromNodeID" : 109,
+      "FromPinName" : "Value",
+      "ToNodeID" : 34,
+      "ToPinName" : "Looping"
     }],
   "Nodes" : [{
       "ClassName" : "UK2Node_BlendSpace1D",
@@ -502,8 +582,8 @@
     }, {
       "ClassName" : "UK2Node_GetIsFalling",
       "NodeID" : 44,
-      "NodePosX" : 2161.000000,
-      "NodePosY" : 496.000000,
+      "NodePosX" : 2129.000000,
+      "NodePosY" : 464.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 1,
@@ -547,7 +627,7 @@
     }, {
       "ClassName" : "UK2Node_AnimTransition",
       "NodeID" : 48,
-      "NodePosX" : 2408.000000,
+      "NodePosX" : 2398.000000,
       "NodePosY" : 852.000000,
       "Pins" : [{
           "DefaultValue" : "",
@@ -793,8 +873,8 @@
     }, {
       "ClassName" : "UK2Node_Equal_FloatFloat",
       "NodeID" : 79,
-      "NodePosX" : 3032.000000,
-      "NodePosY" : 1344.000000,
+      "NodePosX" : 2968.000000,
+      "NodePosY" : 1396.000000,
       "Pins" : [{
           "DefaultValue" : "",
           "Direction" : 0,
@@ -1096,6 +1176,206 @@
           "PinName" : "Value"
         }],
       "Value" : 1.500000
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 97,
+      "NodePosX" : 3790.000000,
+      "NodePosY" : 516.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_AnimState",
+      "NodeID" : 98,
+      "NodePosX" : 4216.000000,
+      "NodePosY" : 652.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Enter"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Exit"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Animation"
+        }, {
+          "DefaultValue" : "false",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Looping"
+        }, {
+          "DefaultValue" : "1.0",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "PlayRate"
+        }],
+      "StateName" : "Vault"
+    }, {
+      "AnimPath" : "Data/animations/Parkour/P_Jumping.fbx_mixamo.com",
+      "ClassName" : "UK2Node_AnimSequence",
+      "NodeID" : 99,
+      "NodePosX" : 3443.000000,
+      "NodePosY" : 800.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "UAnimSequence",
+          "PinName" : "Value"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Bool",
+      "NodeID" : 100,
+      "NodePosX" : 3654.000000,
+      "NodePosY" : 896.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Value"
+        }],
+      "Value" : false
+    }, {
+      "ClassName" : "UK2Node_IsPressed",
+      "KeyName" : "E",
+      "NodeID" : 101,
+      "NodePosX" : 3274.000000,
+      "NodePosY" : 608.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 102,
+      "NodePosX" : 3553.000000,
+      "NodePosY" : 688.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.000000
+    }, {
+      "ClassName" : "UK2Node_AnimTransition",
+      "NodeID" : 103,
+      "NodePosX" : 4840.000000,
+      "NodePosY" : 652.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "exec",
+          "PinName" : "Execute"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "exec",
+          "PinName" : "Transition To"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "bool",
+          "PinName" : "Can Transition"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "Blend Time"
+        }]
+    }, {
+      "ClassName" : "UK2Node_GetRemainAnimLength",
+      "NodeID" : 104,
+      "NodePosX" : 4331.000000,
+      "NodePosY" : 1024.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Remain Length"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 105,
+      "NodePosX" : 4289.000000,
+      "NodePosY" : 896.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.100000
+    }, {
+      "ClassName" : "UK2Node_Greater_FloatFloat",
+      "NodeID" : 107,
+      "NodePosX" : 4681.000000,
+      "NodePosY" : 932.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "A"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 0,
+          "PinCategory" : "float",
+          "PinName" : "B"
+        }, {
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Result"
+        }]
+    }, {
+      "ClassName" : "UK2Node_Literal_Float",
+      "NodeID" : 108,
+      "NodePosX" : 4785.000000,
+      "NodePosY" : 1152.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "float",
+          "PinName" : "Value"
+        }],
+      "Value" : 0.100000
+    }, {
+      "ClassName" : "UK2Node_Literal_Bool",
+      "NodeID" : 109,
+      "NodePosX" : 2954.000000,
+      "NodePosY" : 677.000000,
+      "Pins" : [{
+          "DefaultValue" : "",
+          "Direction" : 1,
+          "PinCategory" : "bool",
+          "PinName" : "Value"
+        }],
+      "Value" : true
     }],
-  "UniqueIDCounter" : 97
+  "UniqueIDCounter" : 110
 }
