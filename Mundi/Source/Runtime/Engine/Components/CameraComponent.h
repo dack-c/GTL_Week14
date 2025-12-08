@@ -20,6 +20,7 @@ public:
     void OnUnregister() override;
 
     // Projection settings
+    UFUNCTION(LuaBind, DisplayName = "SetFOV")
     void SetFOV(float NewFOV) { FieldOfView = NewFOV; }
     void SetAspectRatio(float NewAspect) { AspectRatio = NewAspect; }
     void SetClipPlanes(float NewNear, float NewFar) { NearClip = NewNear; FarClip = NewFar; }
@@ -27,7 +28,8 @@ public:
     void SetFarClipPlane(float NewFar) { FarClip = NewFar; }
     void SetProjectionMode(ECameraProjectionMode Mode) { ProjectionMode = Mode; }
     void SetZoomFactor(float InZoomFactor) { ZoomFactor = InZoomFactor; };
-    
+
+    UFUNCTION(LuaBind, DisplayName = "GetFOV")
     float GetFOV() const { return FieldOfView; }
     float GetAspectRatio() const { return AspectRatio; }
     float GetNearClip() const { return NearClip; }
