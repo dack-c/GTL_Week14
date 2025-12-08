@@ -792,11 +792,14 @@ void D3D11RHI::CreateRasterizerState()
     DecalRasterizerDesc.CullMode = D3D11_CULL_BACK; // 데칼 메시에 따라 D3D11_CULL_NONE이 필요할 수 있습니다.
     DecalRasterizerDesc.DepthClipEnable = TRUE;
 
-    // Z-Fighting 해결을 위한 핵심 설정
-    // 이 값들은 장면에 따라 조정이 필요할 수 있는 시작 값입니다.
-    DecalRasterizerDesc.DepthBias = -100; // 깊이 버퍼의 최소 단위만큼 밀어냅니다. (음수 = 카메라 쪽으로)
-    DecalRasterizerDesc.SlopeScaledDepthBias = -1.0f; // 폴리곤의 기울기에 비례하여 바이어스를 적용합니다.
-    DecalRasterizerDesc.DepthBiasClamp = 0.0f; // 바이어스 최댓값 (0.0f는 제한 없음)
+    // Z-Fighting 해결을 위한 설정
+    // DepthBias는 depth buffer 최소 단위 r (≈ 1/(2^24) ≈ 0.00000006)로 스케일링됨
+    // -5: 약 -0.0000003의 작은 음수 바이어스 (Z-fighting 방지, 앞 물체 뚫지 않음)
+    // 0: Z-fighting 발생
+    // 양수: 데칼을 뒤로 밀어 안 보이게 함
+    DecalRasterizerDesc.DepthBias = -5; // 작은 음수 바이어스로 Z-fighting 방지
+    DecalRasterizerDesc.SlopeScaledDepthBias = -0.02f; // 경사진 표면에서 Z-fighting 방지
+    DecalRasterizerDesc.DepthBiasClamp = 0.0f; // 바이어스 최댓값
 
     Device->CreateRasterizerState(&DecalRasterizerDesc, &DecalRasterizerState);
 
@@ -1069,6 +1072,7 @@ void D3D11RHI::OMSetDepthStencilState(EComparisonFunc Func)
         break;
     case EComparisonFunc::LessEqualReadOnly:
         DeviceContext->OMSetDepthStencilState(DepthStencilStateLessEqualReadOnly, 0);
+        break;
     case EComparisonFunc::Disable:
 		DeviceContext->OMSetDepthStencilState(DepthStencilStateDisable, 0);
         break;

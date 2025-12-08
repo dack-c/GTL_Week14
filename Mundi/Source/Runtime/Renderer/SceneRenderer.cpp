@@ -55,6 +55,7 @@
 #include "StatsOverlayD2D.h"
 #include "Source/Runtime/Engine/Particle/ParticleStats.h"
 #include "MotionBlurComponent.h"
+#include "SkeletalMeshComponent.h"
 
 FSceneRenderer::FSceneRenderer(UWorld* InWorld, FSceneView* InView, URenderer* InOwnerRenderer)
 	: World(InWorld)
@@ -1135,7 +1136,11 @@ void FSceneRenderer::RenderDecalPass()
 			// 기즈모에 데칼 입히면 안되므로 에디팅이 안되는 Component는 데칼 그리지 않음
 			if (!SMC || !SMC->IsEditable())
 				continue;
-			
+
+			// SkeletalMeshComponent는 데칼 적용 제외 (캐릭터 등)
+			if (SMC->IsA(USkeletalMeshComponent::StaticClass()))
+				continue;
+
 			AActor* Owner = SMC->GetOwner();
 			if (!Owner || !Owner->IsActorVisible())
 				continue;
