@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_StandAlone|x64">
@@ -413,7 +413,6 @@
     <ClCompile Include="Source\Runtime\Engine\GameFramework\DirectionalLightActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\EmptyActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\HeightFogActor.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\GameFramework\Info.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\PointLightActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\GameFramework\SpotLightActor.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Particle\Async\ParticleAsyncUpdater.cpp" />
@@ -716,7 +715,6 @@
     <ClCompile Include="Generated\AEmptyActor.generated.cpp" />
     <ClCompile Include="Generated\AFakeSpotLightActor.generated.cpp" />
     <ClCompile Include="Generated\AGameModeBase.generated.cpp" />
-    <ClCompile Include="Generated\AHeightFogActor.generated.cpp" />
     <ClCompile Include="Generated\APlayerCameraManager.generated.cpp" />
     <ClCompile Include="Generated\APointLightActor.generated.cpp" />
     <ClCompile Include="Generated\ASkeletalMeshActor.generated.cpp" />
@@ -727,7 +725,7 @@
     <ClCompile Include="Generated\UMotionBlurComponent.generated.cpp" />
     <ClCompile Include="Generated\UAnimationStateMachine.generated.cpp" />
     <ClCompile Include="Generated\UAnimInstance.generated.cpp" />
-  </ItemGroup>
+  <ClCompile Include="Generated\AHeightFogActor.generated.cpp" /></ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Common\LightingBuffers.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -940,7 +938,6 @@
     <ClInclude Include="Source\Runtime\Engine\GameFramework\DirectionalLightActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\EmptyActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\HeightFogActor.h" />
-    <ClInclude Include="Source\Runtime\Engine\GameFramework\Info.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\PointLightActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\SkeletalMeshActor.h" />
     <ClInclude Include="Source\Runtime\Engine\GameFramework\SkySphereActor.h" />
@@ -1227,7 +1224,6 @@
     <ClInclude Include="Generated\AEmptyActor.generated.h" />
     <ClInclude Include="Generated\AFakeSpotLightActor.generated.h" />
     <ClInclude Include="Generated\AGameModeBase.generated.h" />
-    <ClInclude Include="Generated\AHeightFogActor.generated.h" />
     <ClInclude Include="Generated\APlayerCameraManager.generated.h" />
     <ClInclude Include="Generated\APointLightActor.generated.h" />
     <ClInclude Include="Generated\ASkeletalMeshActor.generated.h" />
@@ -1238,7 +1234,7 @@
     <ClInclude Include="Generated\UMotionBlurComponent.generated.h" />
     <ClInclude Include="Generated\UAnimationStateMachine.generated.h" />
     <ClInclude Include="Generated\UAnimInstance.generated.h" />
-  </ItemGroup>
+  <ClInclude Include="Generated\AHeightFogActor.generated.h" /></ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="Tools\CodeGenerator\generate.py" />

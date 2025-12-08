@@ -14,11 +14,11 @@
 // Define class-specific body macro
 #define A_HEIGHT_FOG_ACTOR_BODY \
 public: \
-    using Super = AInfo; \
+    using Super = AActor; \
     using ThisClass_t = AHeightFogActor; \
     static UClass* StaticClass() \
     { \
-        static UClass Cls{ "AHeightFogActor", AInfo::StaticClass(), sizeof(AHeightFogActor) }; \
+        static UClass Cls{ "AHeightFogActor", AActor::StaticClass(), sizeof(AHeightFogActor) }; \
         static bool bRegistered = (UClass::SignUpClass(&Cls), true); \
         return &Cls; \
     } \
