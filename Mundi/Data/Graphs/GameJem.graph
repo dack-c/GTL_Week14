@@ -1969,7 +1969,7 @@
           "PinCategory" : "float",
           "PinName" : "Value"
         }],
-      "Value" : 0.700000
+      "Value" : 0.200000
     }, {
       "ClassName" : "UK2Node_Greater_FloatFloat",
       "NodeID" : 140,
