@@ -206,6 +206,7 @@ void FSceneRenderer::RenderLitPath()
 {
     RHIDevice->OMSetRenderTargets(ERTVMode::SceneColorTargetWithId);
 	RHIDevice->OMSetDepthStencilState(EComparisonFunc::LessEqual);
+	RHIDevice->RSSetState(ERasterizerMode::Solid);
 
 	// 이 뷰의 rect 영역에 대해 Scene Color를 클리어하여 불투명한 배경을 제공함
 	// 이렇게 해야 에디터 뷰포트 여러 개를 동시에 겹치게 띄워도 서로의 렌더링이 섞이지 않는다
