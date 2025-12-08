@@ -77,7 +77,7 @@ private:
     FVector2D ViewportSize;
 
     bool bInitialized = false;
-    bool bShowFPS = true;
+    bool bShowFPS = false;
     bool bShowMemory = false;
     bool bShowPicking = false;
     bool bShowDecal = false;
