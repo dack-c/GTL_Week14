@@ -206,6 +206,9 @@ public:
      */
     UAnimationStateMachine* GetStateMachine() const { return AnimStateMachine; }
 
+	UFUNCTION(LuaBind, DisplayName = "GetCurrentStateName")
+    FString GetCurrentStateName() const;
+
     /**
      * @brief 상태머신 설정
      */

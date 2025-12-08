@@ -6,6 +6,7 @@
 #include "World.h"
 #include "Source/Runtime/Engine/Physics/PhysScene.h"
 #include "Collision.h"
+#include "ParticleSystemComponent.h"
 
 UCharacterMovementComponent::UCharacterMovementComponent()
 {
@@ -70,7 +71,7 @@ void UCharacterMovementComponent::DoJump()
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		bIsSliding = false;
+		SetSliding(false);
 		CurrentFloor.Reset();
 	}
 }
@@ -87,7 +88,7 @@ void UCharacterMovementComponent::TryStartSliding()
 {
 	if (CheckFloor(CurrentFloor))
 	{
-		bIsSliding = true;
+		SetSliding(true);
 	}
 }
 
@@ -111,7 +112,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		// 슬라이딩 속도가 일정 량 이하로 떨어지면 종료
 		if (SlidingVector.SizeSquared() < MinSlidingSpeed)
 		{
-			bIsSliding = false;
+			SetSliding(false);
 			return;
 		}
 
@@ -130,7 +131,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		else
 		{
 			// 움직이지 않는 경우 슬라이딩 종료
-			bIsSliding = false;
+			SetSliding(false);
 		}
 	}
 	else
@@ -139,7 +140,7 @@ void UCharacterMovementComponent::PhysSliding(float DeltaSecond)
 		bIsFalling = true;
 		AirTime = 0.0f;
 		bNeedRolling = false;
-		bIsSliding = false;
+		SetSliding(false);
 	}
 }
 
@@ -212,7 +213,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 	{
 		// 경사면 내려가기: 더 긴 거리로 바닥 찾기
 		const float MaxStepDownHeight = 0.5f;
-		FVector StepDownStart = UpdatedComponent->GetWorldLocation();
+		FVector StepDownStart = GetSnapDownStart();
 		FVector StepDownEnd = StepDownStart - FVector(0, 0, MaxStepDownHeight);
 
 		float Radius, HalfHeight;
@@ -230,7 +231,7 @@ void UCharacterMovementComponent::PhysWalking(float DeltaSecond)
 				float SnapDistance = StepDownHit.Distance - SkinWidth;
 				if (SnapDistance > KINDA_SMALL_NUMBER && bUseInput)
 				{
-					FVector NewLoc = UpdatedComponent->GetWorldLocation();
+					FVector NewLoc = GetSnapDownStart();
 					NewLoc.Z -= SnapDistance;
 					UpdatedComponent->SetWorldLocation(NewLoc);
 				}
@@ -334,7 +335,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			float SnapDistance = FloorHit.Distance - SkinWidth;
 			if (SnapDistance > KINDA_SMALL_NUMBER && bUseInput)
 			{
-				FVector CurrentLoc = UpdatedComponent->GetWorldLocation();
+				FVector CurrentLoc = GetSnapDownStart();
 				CurrentLoc.Z -= SnapDistance;
 				UpdatedComponent->SetWorldLocation(CurrentLoc);
 			}
@@ -397,7 +398,7 @@ bool UCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& Delta,
 	float Radius, HalfHeight;
 	GetCapsuleSize(Radius, HalfHeight);
 
-	FVector Start = UpdatedComponent->GetWorldLocation();
+	FVector Start = GetSnapDownStart();
 	FVector End = Start + Delta;
 
 	// 자기 자신은 무시
@@ -466,13 +467,13 @@ bool UCharacterMovementComponent::CheckFloor(FHitResult& OutHit)
 	{
 		// PhysScene이 없으면 임시로 Z=0을 바닥으로 취급
 		//UE_LOG("[CharacterMovement] CheckFloor: PhysScene is null, using Z=0 fallback");
-		return UpdatedComponent->GetWorldLocation().Z <= 0.001f;
+		return GetSnapDownStart().Z <= 0.001f;
 	}
 
 	float Radius, HalfHeight;
 	GetCapsuleSize(Radius, HalfHeight);
 
-	FVector Start = UpdatedComponent->GetWorldLocation();
+	FVector Start = GetSnapDownStart();
 	// 바닥 검사는 캡슐 바닥에서 약간 아래로 Sweep
 	const float FloorCheckDistance = 0.01f;  // 검사 거리 증가
 	FVector End = Start - FVector(0, 0, FloorCheckDistance);
@@ -516,6 +517,12 @@ void UCharacterMovementComponent::GetCapsuleSize(float& OutRadius, float& OutHal
 	}
 }
 
+FVector UCharacterMovementComponent::GetSnapDownStart() const
+{
+	FVector Result = UpdatedComponent->GetWorldLocation() + CapsuleOffset;
+	return Result;
+}
+
 FPhysScene* UCharacterMovementComponent::GetPhysScene() const
 {
 	if (CharacterOwner)
@@ -526,6 +533,31 @@ FPhysScene* UCharacterMovementComponent::GetPhysScene() const
 		}
 	}
 	return nullptr;
+}
+
+void UCharacterMovementComponent::SetSliding(bool bNewIsSliding)
+{
+	if (bIsSliding == bNewIsSliding)
+	{
+		return;
+	}
+
+	bIsSliding = bNewIsSliding;
+
+	if (CharacterOwner)
+	{
+		if (UParticleSystemComponent* ParticleComp = CharacterOwner->GetSlidingParticleComponent())
+		{
+			if (bIsSliding)
+			{
+				ParticleComp->bSuppressSpawning = false;
+			}
+			else
+			{
+				ParticleComp->bSuppressSpawning = true;
+			}
+		}
+	}
 }
 
 bool UCharacterMovementComponent::ResolveOverlaps()
@@ -544,11 +576,11 @@ bool UCharacterMovementComponent::ResolveOverlaps()
 	const float MaxDepenetrationDistance = 2.0f;  // 최대 탈출 거리 제한
 
 	float TotalAdjustment = 0.0f;
-	FVector InitialLocation = UpdatedComponent->GetWorldLocation();
+	FVector InitialLocation = GetSnapDownStart();
 
 	for (int32 Iter = 0; Iter < MaxDepenetrationIterations; ++Iter)
 	{
-		FVector CurrentLocation = UpdatedComponent->GetWorldLocation();
+		FVector CurrentLocation = GetSnapDownStart();
 
 		FVector PenetrationNormal;
 		float PenetrationDepth;
@@ -567,7 +599,7 @@ bool UCharacterMovementComponent::ResolveOverlaps()
 			// 더 이상 관통 없음 - 성공
 			if (Iter > 0)
 			{
-				FVector FinalLocation = UpdatedComponent->GetWorldLocation();
+				FVector FinalLocation = GetSnapDownStart();
 				UE_LOG("[CharacterMovement] ResolveOverlaps: SUCCESS after %d iterations", Iter);
 				UE_LOG("[CharacterMovement] ResolveOverlaps: Moved from (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f), Total=%.3f",
 					InitialLocation.X, InitialLocation.Y, InitialLocation.Z,
@@ -600,7 +632,7 @@ bool UCharacterMovementComponent::ResolveOverlaps()
 	}
 
 	// 최대 반복 후에도 여전히 관통 중
-	FVector FinalLocation = UpdatedComponent->GetWorldLocation();
+	FVector FinalLocation = GetSnapDownStart();
 	UE_LOG("[CharacterMovement] ResolveOverlaps: FAILED after %d iterations", MaxDepenetrationIterations);
 	UE_LOG("[CharacterMovement] ResolveOverlaps: Stuck at (%.2f, %.2f, %.2f), moved %.3f from start",
 		FinalLocation.X, FinalLocation.Y, FinalLocation.Z, TotalAdjustment);

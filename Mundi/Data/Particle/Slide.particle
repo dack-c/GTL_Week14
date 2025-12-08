@@ -16,8 +16,8 @@
                     "bEnabled" : true
                   }, {
                     "Gravity" : [0.000000, 0.000000, 0.000000],
-                    "StartVelocity_Max" : [-3.000000, 1.000000, 1.000000],
-                    "StartVelocity_Min" : [-5.000000, -1.000000, 0.000000],
+                    "StartVelocity_Max" : [-2.000000, 0.500000, 1.000000],
+                    "StartVelocity_Min" : [-3.000000, -0.500000, 0.000000],
                     "StartVelocity_bUseRange" : true,
                     "Type" : "Velocity",
                     "bEnabled" : true
@@ -26,16 +26,16 @@
                     "AlphaOverLife_Min" : 1.000000,
                     "AlphaOverLife_bUseRange" : false,
                     "AlphaPoint1Time" : 0.000000,
-                    "AlphaPoint1Value" : 0.000000,
+                    "AlphaPoint1Value" : 0.330579,
                     "AlphaPoint2Time" : 1.000000,
-                    "AlphaPoint2Value" : 0.390244,
+                    "AlphaPoint2Value" : 0.000000,
                     "ColorOverLife_Max" : [1.000000, 1.000000, 1.000000, 1.000000],
-                    "ColorOverLife_Min" : [1.000000, 1.000000, 1.000000, 1.000000],
+                    "ColorOverLife_Min" : [0.362934, 0.362934, 0.362934, 1.000000],
                     "ColorOverLife_bUseRange" : false,
                     "Type" : "ColorOverLife",
                     "bEnabled" : true,
                     "bUseAlphaOverLife" : true,
-                    "bUseColorOverLife" : false
+                    "bUseColorOverLife" : true
                   }, {
                     "StartRotation_Max" : [6.283180, 0.000000, 0.000000],
                     "StartRotation_Min" : [0.000000, 0.000000, 0.000000],

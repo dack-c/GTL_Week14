@@ -102,8 +102,17 @@ protected:
 	/** 캡슐 컴포넌트 크기 가져오기 */
 	void GetCapsuleSize(float& OutRadius, float& OutHalfHeight) const;
 
+	FVector GetSnapDownStart() const;
+
 	/** PhysScene 가져오기 */
 	FPhysScene* GetPhysScene() const;
+
+	/**
+	 * @brief 캐릭터의 슬라이딩 상태를 설정합니다.
+	 * 상태 변경에 따라 파티클 효과를 활성화/비활성화합니다.
+	 * @param bNewIsSliding 새로운 슬라이딩 상태
+	 */
+	void SetSliding(bool bNewIsSliding);
 
 	/**
 	 * @brief 현재 위치에서 관통(Penetration) 해결
@@ -127,6 +136,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Move")
 	float NeedRollingAirTime = 2.0f;	// 해당 시간 동안 체공 시 구르기로 착지
+
+	UPROPERTY(EditAnywhere, Category = "Capsule")
+	FVector CapsuleOffset = FVector::Zero(); // 캡슐 콜라이더 오프셋
 
 protected:
 	ACharacter* CharacterOwner = nullptr;
