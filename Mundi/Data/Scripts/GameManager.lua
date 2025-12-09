@@ -1,39 +1,7 @@
 function BeginPlay()
     InitGame()
     GlobalConfig.GameState = "Init"
-    -- GlobalConfig.Camera1 = FindObjectByName("Camera1")
-    -- GlobalConfig.Camera2 = FindObjectByName("Camera2")
-    -- GlobalConfig.Camera3 = FindObjectByName("Camera3")
-    -- GlobalConfig.Camera4 = FindObjectByName("Camera4")
-    -- GlobalConfig.Camera5 = FindObjectByName("Camera5")
-
-    -- StartCoroutine(MoveCameras)
-
-    -- GetCameraManager():StartCameraShake(20, 0.1, 0.1,40)
-    -- Color(0.0, 0.2, 0.4, 1.0)
-    -- GetCameraManager():StartFade(5.0, 0, 1.0, Color(0.0, 0.2, 0.4, 1.0), 0)
-    -- GetCameraManager():StartLetterBox(2.0, 1.777, 0, Color(0.0, 0.2, 0.4, 1.0))
-    -- GetCameraManager():StartVignette(4.0, 0.2, 0.5, 10.0, 2.0, Color(0.9, 0.0, 0.2, 0.0), 0)
     PlaySound2DByFile("Data/Audio/pakourBGM.wav")
-end
-
-function MoveCameras()    
-    -- GetCameraManager():SetViewTarget(GetComponent(GlobalConfig.Camera1, "UCameraComponent"))
-    -- coroutine.yield("wait_time", 4)
-    -- DeleteObject(GlobalConfig.teamName)
-    -- GetCameraManager():SetViewTargetWithBlend(GetComponent(GlobalConfig.Camera2, "UCameraComponent"), 4)
-    -- coroutine.yield("wait_time", 4)
-    -- GetCameraManager():SetViewTargetWithBlend(GetComponent(GlobalConfig.Camera3, "UCameraComponent"), 4)
-    -- coroutine.yield("wait_time", 4)
-    -- GetCameraManager():SetViewTargetWithBlend(GetComponent(GlobalConfig.Camera4, "UCameraComponent"), 4)
-    -- coroutine.yield("wait_time", 2.5)
-    -- GetCameraManager():SetViewTargetWithBlend(GetComponent(GlobalConfig.Camera5, "UCameraComponent"), 2.5)
-    -- coroutine.yield("wait_time", 4)
-    -- GetCameraManager():SetViewTargetWithBlend(GetComponent(GlobalConfig.Camera1, "UCameraComponent"), 4)
-    -- coroutine.yield("wait_time", 4)
-    -- GlobalConfig.GameState = "Init"
-    
-    -- GetCameraManager():StartGamma(3.0 /2.2)
 end
 
 function EndPlay()
@@ -46,10 +14,12 @@ end
 function OnEndOverlap(OtherActor)
 end
 
+local PlayTime = 0
 
 -- 게임 상태 초기화
 function InitGame()
     -- TODO: 플레이어 생성
+    PlayTime = 0
     GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0.05
     GetPlayer().Location = GetStartPosition()
     GetComponent(GetPlayer(), "UCharacterMovementComponent"):ResetVelocity()
@@ -80,6 +50,7 @@ function Tick(dt)
         GlobalConfig.GameState = "Playing"
 
     elseif GlobalConfig.GameState == "Playing" then
+        PlayTime = PlayTime + dt
         RenderInGameUI()
 
         -- 클리어
@@ -159,6 +130,13 @@ function RenderInGameUI()
     end
 
     DrawUIText(Rect, "남은 높이: "..string.format("%.1f", RemainHeight).."m", Color, 30)
+
+    
+    AnchorMin = Vector2D(0.7,0)
+    AnchorMax = Vector2D(1,0.2)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+    Color = Vector4(1,0.5,0.5,1)
+    DrawUIText(Rect, "플레이 시간: "..string.format("%.1f", PlayTime).."초", Color, 30)
 end
 
 -- 사망 UI 출력
@@ -204,5 +182,5 @@ function RenderClearUI()
     AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "클리어!", Color, 80)
+    DrawUIText(Rect, "클리어!\n"..string.format("%.1f", PlayTime).."초", Color, 80)
 end
