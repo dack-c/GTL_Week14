@@ -659,3 +659,11 @@ void FAudioDevice::PlaySound2DOneShotByFile(const FString& FilePath, float Volum
     if (!sound) return;
     PlaySound2DOneShot(sound, Volume, Pitch);
 }
+
+void FAudioDevice::PlaySound2DByFile(const FString& FilePath, float Volume, float Pitch)
+{
+    if (bIsShuttingDown || !pXAudio2 || !pMasteringVoice) return;
+    USound* sound = UResourceManager::GetInstance().Load<USound>(FilePath);
+    if (!sound) return;
+    PlaySound2D(sound, Volume, Pitch);
+}

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "LuaManager.h"
 #include "LuaComponentProxy.h"
 #include "GameObject.h"
@@ -491,13 +491,13 @@ FLuaManager::FLuaManager()
 
     SharedLib.set_function("PlaySound2DByFile", sol::overload(
         [](const FString& FilePath) {
-            FAudioDevice::PlaySound2DOneShotByFile(FilePath, 1.0f, 1.0f);
+            FAudioDevice::PlaySound2DByFile(FilePath, 1.0f, 1.0f);
         },
         [](const FString& FilePath, float Volume) {
-            FAudioDevice::PlaySound2DOneShotByFile(FilePath, Volume, 1.0f);
+            FAudioDevice::PlaySound2DByFile(FilePath, Volume, 1.0f);
         },
         [](const FString& FilePath, float Volume, float Pitch) {
-            FAudioDevice::PlaySound2DOneShotByFile(FilePath, Volume, Pitch);
+            FAudioDevice::PlaySound2DByFile(FilePath, Volume, Pitch);
         }
     ));
 

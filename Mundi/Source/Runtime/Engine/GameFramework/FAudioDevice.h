@@ -35,6 +35,7 @@ public:
     static void PlaySound2DOneShot(USound* Sound, float Volume = 1.f, float Pitch = 1.f);
     static void PlaySoundOneShotByFile(const FString& FilePath, const FVector& Pos, float Volume = 1.f, float Pitch = 1.f);
     static void PlaySound2DOneShotByFile(const FString& FilePath, float Volume = 1.f, float Pitch = 1.f);
+    static void PlaySound2DByFile(const FString& FilePath, float Volume = 1.f, float Pitch = 1.f);
 
     // Voice 등록/해제 (AudioComponent용)
     static void RegisterVoice(IXAudio2SourceVoice* Voice);
