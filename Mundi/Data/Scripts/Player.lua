@@ -120,6 +120,7 @@ function Tick(Delta)
     PreAnimStateStr = AnimStateStr
     CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.0)
   elseif bChangedFromClimb == false then
+    CharacterMoveComp:SetUseGravity(true)
     CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
   end
 
