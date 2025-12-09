@@ -1341,12 +1341,12 @@ void USkeletalMeshComponent::ApplyRootMotion()
 
         if (bHasRootMotion)
         {
-			CharMoveComp->SetUseGravity(false);
+			//CharMoveComp->SetUseGravity(false);
 			CharMoveComp->SetUseInput(false);
         }
         else
         {
-            CharMoveComp->SetUseGravity(true);
+            //CharMoveComp->SetUseGravity(true);
             CharMoveComp->SetUseInput(true);
         }
     }
