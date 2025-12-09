@@ -78,7 +78,7 @@ void UCharacterMovementComponent::DoJump()
 {
 	if (!bIsFalling)
 	{
- 		FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Jump.wav", 3.0f, 1.0f);
+ 		FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Jump.wav", 1.0f, 1.0f);
 
 		Velocity.Z = JumpZVelocity;
 		bIsJumping = true;

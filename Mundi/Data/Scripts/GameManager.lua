@@ -131,11 +131,17 @@ function RenderInitUI()
     -- Rect.ZOrder = 0;
     -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
     
+    AnchorMin = Vector2D(0,0.6)
+    AnchorMax = Vector2D(1,0.8)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+    Rect.ZOrder = 1;
+    DrawUIText(Rect, "Press [Q] To Start", Color, 60)
+
     AnchorMin = Vector2D(0,0.8)
     AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "Press [Q] To Start", Color, 60)
+    DrawUIText(Rect, "김상천, 김진철, 김호민, 김희준", Color, 60)
 end
 
 -- 인게임 UI 출력
