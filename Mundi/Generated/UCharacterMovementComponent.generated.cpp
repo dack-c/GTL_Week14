@@ -51,5 +51,9 @@ LUA_BIND_BEGIN(UCharacterMovementComponent)
 {
     AddAlias<UCharacterMovementComponent>(
         T, "ResetVelocity", &UCharacterMovementComponent::ResetVelocity);
+    AddAlias<UCharacterMovementComponent, bool>(
+        T, "SetUseGravity", &UCharacterMovementComponent::SetUseGravity);
+    AddMethodR<bool, UCharacterMovementComponent>(
+        T, "IsUsingGravity", &UCharacterMovementComponent::IsUsingGravity);
 }
 LUA_BIND_END()

@@ -52,7 +52,10 @@ public:
 	bool IsOnGround() const { return !bIsFalling; }
 	const FHitResult& GetCurrentFloorResult() const { return CurrentFloor; }
 
+	UFUNCTION(LuaBind, DisplayName = "SetUseGravity")
 	void SetUseGravity(bool bEnable) { bUseGravity = bEnable; }
+
+	UFUNCTION(LuaBind, DisplayName = "IsUsingGravity")
 	bool IsUsingGravity() const { return bUseGravity; }
 	
 	void SetUseInput(bool bEnable)

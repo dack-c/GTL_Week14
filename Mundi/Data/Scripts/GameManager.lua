@@ -53,6 +53,23 @@ function Tick(dt)
         PlayTime = PlayTime + dt
         RenderInGameUI()
 
+        -- 골 높이보다 낮게 떨어지면 낙사 처리 (골 클리어되지 않은 경우)
+        local PlayerPos = GetPlayer().Location
+        local GoalHeight = -34.777500  -- 골 지점의 Z 좌표
+        local GoalPosX = -31.036255
+        local GoalPosY = 190.940994
+        local GoalRadius = 15.0  -- 골 트리거 범위 (BoxExtent 10 + 여유 5)
+
+        -- 골 트리거 영역 밖에 있는지 체크
+        local DistanceToGoal = math.sqrt((PlayerPos.X - GoalPosX)^2 + (PlayerPos.Y - GoalPosY)^2)
+        local bIsOutsideGoalArea = DistanceToGoal > GoalRadius
+
+        -- 골 영역 밖에서 골 높이보다 낮으면 낙사
+        if GlobalConfig.bIsGameClear == false and bIsOutsideGoalArea and PlayerPos.Z < GoalHeight then
+            GlobalConfig.bIsPlayerDeath = true
+            SetSlomo(1.5, 0.2)  -- 1.5초 동안 20% 속도로 슬로모션 (5배 느려짐)
+        end
+
         -- 클리어
         if GlobalConfig.bIsGameClear == true then
             GlobalConfig.GameState = "Clear"
@@ -66,16 +83,18 @@ function Tick(dt)
 
     elseif GlobalConfig.GameState == "Death" then
         RenderDeathUI()
-        
+
         if InputManager:IsKeyDown("E") then
+            SetSlomo(0, 1.0)  -- 슬로모션 해제 (즉시 정상 속도로 복원)
             GlobalConfig.GameState = "Init"
         end
 
     elseif GlobalConfig.GameState == "Clear" then
         -- 클리어 타임 표시
         RenderClearUI()
-        
+
         if InputManager:IsKeyDown("E") then
+            SetSlomo(0, 1.0)  -- 슬로모션 해제
             GlobalConfig.GameState = "Init"
         end
 
@@ -145,22 +164,20 @@ function RenderDeathUI()
     local Rect = RectTransform()
     local Color = Vector4(1,0,0,1)
 
-    -- local AnchorMin = Vector2D(0,0)
-    -- local AnchorMax = Vector2D(1,1)
-    -- Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
-    -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
-
-    -- -- Rect.Pos = Vector2D(0.0,0.0)
-    -- -- Rect.Size = Vector2D(1264.0,848.0)
-    -- -- Rect.Pivot = Vector2D(0.0,0.0)
-    -- -- Rect.ZOrder = 0;
-    -- -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
-    
-    AnchorMin = Vector2D(0,0)
-    AnchorMax = Vector2D(1,1)
+    -- 낙사 텍스트
+    local AnchorMin = Vector2D(0,0.4)
+    local AnchorMax = Vector2D(1,0.7)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
     DrawUIText(Rect, "낙사", Color, 100)
+
+    -- 재시작 안내 텍스트
+    AnchorMin = Vector2D(0,0.2)
+    AnchorMax = Vector2D(1,0.4)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+    Rect.ZOrder = 1;
+    local RestartColor = Vector4(0,0,0,1)  -- 검은색
+    DrawUIText(Rect, "Press [E] To Restart", RestartColor, 40)
 end
 
 -- 클리어 UI 출력
