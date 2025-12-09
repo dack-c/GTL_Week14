@@ -61,6 +61,7 @@ function Tick(dt)
         elseif GlobalConfig.bIsPlayerDeath == true then
             GlobalConfig.GameState = "Death"
             GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
+            PlaySound2DOneShotByFile("Data/Audio/Scream.wav")
         end
 
     elseif GlobalConfig.GameState == "Death" then

@@ -501,6 +501,18 @@ FLuaManager::FLuaManager()
         }
     ));
 
+    SharedLib.set_function("PlaySound2DOneShotByFile", sol::overload(
+        [](const FString& FilePath) {
+            FAudioDevice::PlaySound2DOneShotByFile(FilePath, 1.0f, 1.0f);
+        },
+        [](const FString& FilePath, float Volume) {
+            FAudioDevice::PlaySound2DOneShotByFile(FilePath, Volume, 1.0f);
+        },
+        [](const FString& FilePath, float Volume, float Pitch) {
+            FAudioDevice::PlaySound2DOneShotByFile(FilePath, Volume, Pitch);
+        }
+    ));
+
     RegisterComponentProxy(*Lua);
     ExposeGlobalFunctions();
     ExposeAllComponentsToLua();
