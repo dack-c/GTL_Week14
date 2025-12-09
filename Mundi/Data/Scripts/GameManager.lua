@@ -35,6 +35,13 @@ function Tick(dt)
         GlobalConfig.GameState = "Init"
     end
 
+    -- 히든 디버그: G 키로 골 근처 스폰
+    if InputManager:IsKeyDown("G") then
+        local GoalPos = Vector(20, 196, -25)  -- 골 근처 테스트 위치
+        GetPlayer().Location = GoalPos
+        GetComponent(GetPlayer(), "UCharacterMovementComponent"):ResetVelocity()
+    end
+
     if GlobalConfig.GameState == "Init" then
         RenderInitUI()
 
@@ -67,7 +74,6 @@ function Tick(dt)
         -- 골 영역 밖에서 골 높이보다 낮으면 낙사
         if GlobalConfig.bIsGameClear == false and bIsOutsideGoalArea and PlayerPos.Z < GoalHeight then
             GlobalConfig.bIsPlayerDeath = true
-            SetSlomo(1.5, 0.2)  -- 1.5초 동안 20% 속도로 슬로모션 (5배 느려짐)
         end
 
         -- 클리어
@@ -85,7 +91,6 @@ function Tick(dt)
         RenderDeathUI()
 
         if InputManager:IsKeyDown("E") then
-            SetSlomo(0, 1.0)  -- 슬로모션 해제 (즉시 정상 속도로 복원)
             GlobalConfig.GameState = "Init"
         end
 
@@ -94,7 +99,6 @@ function Tick(dt)
         RenderClearUI()
 
         if InputManager:IsKeyDown("E") then
-            SetSlomo(0, 1.0)  -- 슬로모션 해제
             GlobalConfig.GameState = "Init"
         end
 
