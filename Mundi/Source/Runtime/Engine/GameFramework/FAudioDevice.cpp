@@ -475,10 +475,11 @@ void FAudioDevice::StopAllSounds()
 {
     if (bIsShuttingDown || !pXAudio2) return;
 
-    // ActiveVoices 모두 정지
-    for (IXAudio2SourceVoice* voice : ActiveVoices)
+	// StopSound 함수 자체에서, ActiveVoices.RemoveAt을 통해 제거하므로 반복문에서 직접 제거하지 않음
+    while (!ActiveVoices.empty())
     {
-        StopSound(voice);
+        IXAudio2SourceVoice* voice = ActiveVoices.back();
+		StopSound(voice);
     }
     ActiveVoices.Empty();
 

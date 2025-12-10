@@ -55,7 +55,7 @@ private:
     UPROPERTY(EditAnywhere, Category="Fog", Range="0.0, 10.0")
     float FogHeightFalloff = 0.2f;
 
-    UPROPERTY(EditAnywhere, Category="Fog", Range="0.0, 10000.0")
+    UPROPERTY(EditAnywhere, Category="Fog", Range="-10000.0, 10000.0")
     float StartDistance = 0.0f;
 
     UPROPERTY(EditAnywhere, Category="Fog", Range="0.0, 100000.0")
