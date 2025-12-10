@@ -850,9 +850,9 @@
       "OwnedComponents" : [{
           "CascadedAreaColorDebugValue" : 0.000000,
           "CascadedAreaShadowDebugValue" : -1,
-          "CascadedCount" : 4,
+          "CascadedCount" : 8,
           "CascadedLinearBlendingValue" : 0.500000,
-          "CascadedOverlapValue" : 0.200000,
+          "CascadedOverlapValue" : 0.150000,
           "Id" : 2601,
           "Intensity" : 1.000000,
           "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
@@ -862,13 +862,13 @@
           "RelativeRotationEuler" : [-62.900280, 16.769619, -62.900280],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "ShadowBias" : 0.000010,
-          "ShadowResolutionScale" : 2048,
+          "ShadowResolutionScale" : 4096,
           "ShadowSharpen" : 0.500000,
           "ShadowSlopeBias" : 0.000010,
           "Temperature" : 6500.000000,
           "Type" : "UDirectionalLightComponent",
           "bCascaded" : true,
-          "bCastShadows" : false,
+          "bCastShadows" : true,
           "bHiddenInGame" : false,
           "bIsActive" : true,
           "bIsVisible" : true,
@@ -2922,13 +2922,13 @@
       "bActorIsActive" : true
     }
   },
-  "NextUUID" : 4258,
+  "NextUUID" : 2975,
   "PerspectiveCamera" : {
     "FOV" : [60.000000],
     "FarClip" : [2000.000000],
     "Location" : [-25.187284, 92.112419, 72.654190],
     "NearClip" : [0.100000],
-    "Rotation" : [0.000000, 39.802296, 82.740036]
+    "Rotation" : [0.000000, 29.502287, 50.140041]
   },
   "Version" : 1
 }
