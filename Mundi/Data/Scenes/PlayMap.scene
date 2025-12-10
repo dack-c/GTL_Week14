@@ -91,13 +91,6 @@
     "2524" : {
       "ObjectName" : "ATriggerActor_1",
       "OwnedComponents" : [{
-          "ObjectName" : "ULuaScriptComponent_24",
-          "ScriptFilePath" : "Data/Scripts/GameEvent.lua",
-          "Type" : "ULuaScriptComponent",
-          "bHiddenInGame" : false,
-          "bIsActive" : true,
-          "bTickEnabled" : true
-        }, {
           "BoxExtent" : [98.000000, 231.600006, 10.000000],
           "Id" : 2528,
           "LuaFunctionName" : "DoDeath",
@@ -110,6 +103,13 @@
           "bHiddenInGame" : false,
           "bIsActive" : true,
           "bIsVisible" : true,
+          "bTickEnabled" : true
+        }, {
+          "ObjectName" : "ULuaScriptComponent_24",
+          "ScriptFilePath" : "Data/Scripts/GameEvent.lua",
+          "Type" : "ULuaScriptComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
           "bTickEnabled" : true
         }],
       "RootComponentId" : 2528,
@@ -2925,10 +2925,10 @@
   "NextUUID" : 2975,
   "PerspectiveCamera" : {
     "FOV" : [60.000000],
-    "FarClip" : [2000.000000],
-    "Location" : [-25.187284, 92.112419, 72.654190],
+    "FarClip" : [709.000000],
+    "Location" : [-6.636883, -5.395606, 86.391373],
     "NearClip" : [0.100000],
-    "Rotation" : [0.000000, 29.502287, 50.140041]
+    "Rotation" : [0.000000, 31.602308, 9.939994]
   },
   "Version" : 1
 }
