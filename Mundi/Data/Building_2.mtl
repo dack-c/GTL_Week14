@@ -1,0 +1,22 @@
+# Blender 4.5.3 LTS MTL File: 'Building_2.blend'
+# www.blender.org
+
+newmtl ground
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd -s 0.1 0.1 1 C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/fbx/textures/Steel_C.jpg
+
+newmtl hotel_glas.001
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.344000 0.344000 0.344000
+Ni 1.500000
+d 0.300000
+illum 1
+map_Kd -s 1.2500001 1.2500001 1 C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/fbx/textures/REF 1.jpg

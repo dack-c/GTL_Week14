@@ -1,0 +1,57 @@
+{
+  "ObjectName" : "스태틱 메시_0",
+  "OwnedComponents" : [{
+      "AngularDampingOverride" : 0.050000,
+      "BoxExtent" : [50.000000, 0.000000, 0.000000],
+      "CapsuleHalfHeight" : 44.000000,
+      "CapsuleRadius" : 22.000000,
+      "CollisionEnabled_Internal" : 2,
+      "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+      "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+      "CollisionType" : 1,
+      "FrictionCombineModeOverride" : 2,
+      "Id" : 3067,
+      "LinearDampingOverride" : 0.010000,
+      "MassOverride" : 10.000000,
+      "MaterialSlots" : [{
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "1" : "None"
+            },
+            "Vectors" : {
+
+            }
+          },
+          "ParentPath" : "ground",
+          "Type" : "UMaterialInstanceDynamic"
+        }],
+      "ObjectName" : "UStaticMeshComponent_67",
+      "ParentId" : 0,
+      "PhysMaterialPreset" : 0,
+      "RelativeLocation" : [18.684477, -1.596775, 78.980667],
+      "RelativeRotationEuler" : [-87.603355, 0.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "RestitutionCombineModeOverride" : 2,
+      "SphereRadius" : 50.000000,
+      "StaticMesh" : "Data/Antenna.obj",
+      "Type" : "UStaticMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bEnableCollision" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bSimulatePhysics" : false,
+      "bTickEnabled" : true
+    }],
+  "RootComponentId" : 3067,
+  "Tag" : "",
+  "Type" : "AStaticMeshActor",
+  "bActorHiddenInGame" : false,
+  "bActorIsActive" : true
+}

@@ -1,0 +1,62 @@
+{
+  "ObjectName" : "AStaticMeshActor_0",
+  "OwnedComponents" : [{
+      "AngularDampingOverride" : 0.050000,
+      "BoxExtent" : [50.000000, 0.000000, 0.000000],
+      "CapsuleHalfHeight" : 44.000000,
+      "CapsuleRadius" : 22.000000,
+      "CollisionEnabled_Internal" : 2,
+      "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+      "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+      "CollisionType" : 4,
+      "FrictionCombineModeOverride" : 2,
+      "Id" : 2874,
+      "LinearDampingOverride" : 0.010000,
+      "MassOverride" : 10.000000,
+      "MaterialSlots" : [{
+          "Overrides" : {
+            "Scalars" : {
+
+            },
+            "Textures" : {
+              "1" : "None"
+            },
+            "Vectors" : {
+              "AmbientColor" : [0.984556, 0.821097, 0.911978, 1.000000],
+              "DiffuseColor" : [0.486275, 0.482353, 0.800000, 1.000000],
+              "SpecularColor" : [0.050980, 0.043137, 0.074510, 1.000000]
+            }
+          },
+          "ParentPath" : "ground",
+          "Type" : "UMaterialInstanceDynamic"
+        }, {
+          "AssetPath" : "hotel_glas.001",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "UStaticMeshComponent_1",
+      "ParentId" : 0,
+      "PhysMaterialPreset" : 0,
+      "RelativeLocation" : [25.572601, 0.773115, 16.172459],
+      "RelativeRotationEuler" : [-90.000008, -0.000000, 98.595917],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "RestitutionCombineModeOverride" : 2,
+      "SphereRadius" : 50.000000,
+      "StaticMesh" : "Data/Building_2.obj",
+      "Type" : "UStaticMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bEnableCollision" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bSimulatePhysics" : false,
+      "bTickEnabled" : true
+    }],
+  "RootComponentId" : 2874,
+  "Tag" : "",
+  "Type" : "AStaticMeshActor",
+  "bActorHiddenInGame" : false,
+  "bActorIsActive" : true
+}

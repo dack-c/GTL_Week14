@@ -1,0 +1,76 @@
+{
+  "ObjectName" : "AStaticMeshActor_5",
+  "OwnedComponents" : [{
+      "AngularDampingOverride" : 0.050000,
+      "BoxExtent" : [50.000000, 0.000000, 0.000000],
+      "CapsuleHalfHeight" : 44.000000,
+      "CapsuleRadius" : 22.000000,
+      "CollisionEnabled_Internal" : 2,
+      "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+      "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+      "CollisionType" : 4,
+      "FrictionCombineModeOverride" : 2,
+      "Id" : 2663,
+      "LinearDampingOverride" : 0.010000,
+      "MassOverride" : 10.000000,
+      "MaterialSlots" : [{
+          "AssetPath" : "MI_Panel_Basic_DarkGray",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_StreetTrim_Matte_DarkGray",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Panel_Basic_Cream",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_StreetTrim",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "M_Window01",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Window01_Blinds_LitWarm",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Window01_Blinds_White",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Window01_LitWarm",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Window01_LitCool",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_Window01_Blinds_LitCool",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "MI_UtilityTrim",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "UStaticMeshComponent_1",
+      "ParentId" : 0,
+      "PhysMaterialPreset" : 0,
+      "RelativeLocation" : [147.056473, 39.319191, -74.119499],
+      "RelativeRotationEuler" : [-90.000000, -0.000000, 90.000000],
+      "RelativeScale" : [3.200000, 3.200000, 3.200000],
+      "RestitutionCombineModeOverride" : 2,
+      "SphereRadius" : 50.000000,
+      "StaticMesh" : "Data/TokyoBuilding.obj",
+      "Type" : "UStaticMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bEnableCollision" : true,
+      "bGenerateOverlapEvents" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
+      "bSimulatePhysics" : false,
+      "bTickEnabled" : true
+    }],
+  "RootComponentId" : 2663,
+  "Tag" : "",
+  "Type" : "AStaticMeshActor",
+  "bActorHiddenInGame" : false,
+  "bActorIsActive" : true
+}
