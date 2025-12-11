@@ -1,0 +1,126 @@
+# Blender 4.5.3 LTS MTL File: 'Building_1.blend'
+# www.blender.org
+
+newmtl AC
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/issam/Pictures/texture_climatiseur.jpg
+
+newmtl brack
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/issam/Pictures/brick_texture___13_by_agf81-d3dyvzu.jpg
+map_Bump -bm 1.000000 C:/Users/issam/Pictures/rbrickwall-normal.jpg
+
+newmtl door
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/issam/Pictures/door_1_590x1200.png
+
+newmtl door2
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/issam/Pictures/c84c081c0a5cef521f166fe190aadcae.png
+
+newmtl iron
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/Jungle/Downloads/br0e6h1jamf4-building2/building2/texteur/iron.jpg
+
+newmtl store
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd -s 0.33333334 0.33333334 1 C:/Users/issam/Pictures/wall2.png
+map_Bump -s 0.33333334 0.33333334 1 -bm 1.000000 C:/Users/issam/Pictures/texture_and_normalmap.png
+
+newmtl top
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/issam/Pictures/road_damaged_0049_01_preview.jpg
+map_Bump -bm 1.000000 C:/Users/issam/Pictures/616-normal.jpg
+
+newmtl w2
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/Jungle/Downloads/br0e6h1jamf4-building2/building2/texteur/w2.png
+map_Bump -bm 1.000000 C:/Users/issam/Pictures/image20.png
+
+newmtl wf
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd -s 0.1 0.1 0.1 C:/Users/issam/Pictures/weathered-wood-grain-textures-new-hd-collection.jpg
+
+newmtl window1
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/Jungle/Downloads/br0e6h1jamf4-building2/building2/texteur/window1.jpg
+
+newmtl window2
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/issam/Pictures/DarkWindows-2.png
+
+newmtl window3
+Ns 96.078415
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd C:/Users/issam/Pictures/neoclassical_windows_english_style_4_20141211_1095895209.png
