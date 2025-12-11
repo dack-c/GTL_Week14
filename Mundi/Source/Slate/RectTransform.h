@@ -61,17 +61,18 @@ struct FDrawInfoText : public FDrawInfo
 {
     FVector4 Color;
     FWideString WText;
+    FWideString FontName;
     float FontSize;
     ~FDrawInfoText() override = default;
 
-    FDrawInfoText(const FRectTransform& InRT, const FString& InText, const FVector4& InColor, const float InFontSize) :
-        FDrawInfo(InRT), WText(UTF8ToWide(InText)), Color(InColor), FontSize(InFontSize)
+    FDrawInfoText(const FRectTransform& InRT, const FString& InText, const FVector4& InColor, const float InFontSize, const FString& InFontName = "Segoe UI") :
+        FDrawInfo(InRT), WText(UTF8ToWide(InText)), Color(InColor), FontSize(InFontSize), FontName(UTF8ToWide(InFontName))
     {
-    
+
     }
 
-    FDrawInfoText(const FRectTransform& InRT, const FWideString& InWText, const FVector4& InColor, const float InFontSize) :
-        FDrawInfo(InRT), WText(InWText), Color(InColor), FontSize(InFontSize)
+    FDrawInfoText(const FRectTransform& InRT, const FWideString& InWText, const FVector4& InColor, const float InFontSize, const FWideString& InFontName = L"Segoe UI") :
+        FDrawInfo(InRT), WText(InWText), Color(InColor), FontSize(InFontSize), FontName(InFontName)
     {
 
     }

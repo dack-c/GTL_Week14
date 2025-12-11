@@ -838,8 +838,8 @@ void USlateManager::OnMouseDown(FVector2D MousePos, uint32 Button)
 
 void USlateManager::OnMouseUp(FVector2D MousePos, uint32 Button)
 {
-    // 우클릭 해제 시 커서 복원 (ActiveViewport와 무관하게 처리)
-    if (Button == 1 && INPUT.IsCursorLocked())
+    // 우클릭 해제 시 커서 복원 (에디터 모드에서만, PIE 모드에서는 'I' 키 토글과 충돌 방지)
+    if (Button == 1 && INPUT.IsCursorLocked() && !bIsPIEMode)
     {
         INPUT.SetCursorVisible(true);
         INPUT.ReleaseCursor();

@@ -120,6 +120,8 @@ function RenderInitUI()
     local Rect = RectTransform()
     local Color = Vector4(1,1,1,1)
 
+    local NeonCyan = Vector4(0.0, 1.0, 1.0, 1.0)  -- 네온 시안
+
     local AnchorMin = Vector2D(0,0)
     local AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
@@ -130,12 +132,12 @@ function RenderInitUI()
     -- Rect.Pivot = Vector2D(0.0,0.0)
     -- Rect.ZOrder = 0;
     -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
-    
+
     AnchorMin = Vector2D(0,0.6)
     AnchorMax = Vector2D(1,0.8)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "Press [Q] To Start", Color, 60)
+    DrawUIText(Rect, "PRESS Q TO START", NeonCyan, 40, "Platinum Sign")
 
     AnchorMin = Vector2D(0,0.8)
     AnchorMax = Vector2D(1,1)
@@ -186,8 +188,8 @@ function RenderDeathUI()
     AnchorMax = Vector2D(1,0.4)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    local RestartColor = Vector4(0,0,0,1)  -- 검은색
-    DrawUIText(Rect, "Press [E] To Restart", RestartColor, 40)
+    local NeonPink = Vector4(1.0, 0.1, 0.7, 1.0)  -- 네온 핑크
+    DrawUIText(Rect, "PRESS E TO RESTART", NeonPink, 40, "Platinum Sign")
 end
 
 -- 클리어 UI 출력

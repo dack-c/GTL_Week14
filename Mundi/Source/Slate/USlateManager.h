@@ -67,6 +67,7 @@ public:
     }
 
     void SetPIEWorld(UWorld* InWorld);
+    void SetIsPIEMode(bool bInIsPIEMode) { bIsPIEMode = bInIsPIEMode; }
 
     // 콘솔 관리
     void ToggleConsole();
@@ -153,6 +154,9 @@ private:
     const float ContentBrowserAnimationDuration = 0.25f; // 초 단위
     const float ContentBrowserHeightRatio = 0.35f; // 화면 높이의 35%
     const float ContentBrowserHorizontalMargin = 10.0f; // 좌/우 여백
+
+    // PIE 모드 플래그
+    bool bIsPIEMode = false;
 
     // Shutdown 관련
     bool bIsShutdown = false;

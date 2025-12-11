@@ -1,8 +1,11 @@
 ﻿#pragma once
 #include <d2d1_1.h>
 #include <dwrite.h>
+#include <dwrite_3.h>
 #include <wincodec.h>
 #include "RectTransform.h"
+
+struct IDWriteFontCollection1;
 
 class UStatsOverlayD2D
 {
@@ -13,9 +16,11 @@ public:
 	void Shutdown();
     void Draw();
 
+    void LoadFontsFromDirectory(const FString& DirectoryPath);
+
     void ReadBitmap(const FWideString& FilePath);
     void ReadBitmap(const FString& FilePath);
-    void DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color, const float FontSize);
+    void DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color, const float FontSize, const wchar_t* FontName = L"Segoe UI");
     void DrawBitmap(const D2D1_RECT_F& InRect, const FString& FilePath, const float Opacity = 1.0f) const;
     void DrawBitmap(const D2D1_RECT_F& InRect, const FWideString& FilePath, const float Opacity = 1.0f) const;
 
@@ -47,7 +52,7 @@ public:
     bool IsSkinningVisible() const { return bShowSkinning; }
     bool IsParticleVisible() const { return bShowParticle; }
 
-    void RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize);
+    void RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize, const FString& InFontName = "Segoe UI");
     void RegisterSpriteUI(const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity = 1.0f);
 
     FVector2D GetViewportSize() const
@@ -97,6 +102,8 @@ private:
     IDWriteFactory* DWriteFactory = nullptr;
     IDWriteTextFormat* TextFormat = nullptr;
     IWICImagingFactory* WICFactory = nullptr;
+
+    IDWriteFontCollection1* CustomFontCollection = nullptr;
 
     ID2D1SolidColorBrush* BrushYellow = nullptr;
     ID2D1SolidColorBrush* BrushSkyBlue = nullptr;

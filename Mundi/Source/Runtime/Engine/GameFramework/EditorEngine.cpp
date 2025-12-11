@@ -332,6 +332,7 @@ void UEditorEngine::MainLoop()
             SLATE.SetPIEWorld(GWorld);
 
             bPIEActive = false;
+            SLATE.SetIsPIEMode(false);  // PIE 모드 종료
             UE_LOG("[info] END PIE");
 
             bChangedPieToEditor = false;
@@ -401,6 +402,7 @@ void UEditorEngine::StartPIE()
     SLATE.SetPIEWorld(GWorld);  // SLATE의 카메라를 가져와서 설정, TODO: 추후 월드의 카메라 컴포넌트를 가져와서 설정하도록 변경 필요
 
     bPIEActive = true;
+    SLATE.SetIsPIEMode(true);  // PIE 모드 플래그 설정 (커서 자동 복원 방지)
     AGameModeBase* GameMode = nullptr;
     if (GWorld->GetGameMode() == nullptr)
     {

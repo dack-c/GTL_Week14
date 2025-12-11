@@ -430,8 +430,16 @@ FLuaManager::FLuaManager()
         "ZOrder", &FRectTransform::ZOrder,
         "CreateAnchorRange", &FRectTransform::CreateAnchorRange);
 
-    SharedLib.set_function("DrawUIText", [](const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize) 
-        { UStatsOverlayD2D::Get().RegisterTextUI(InRectTransform, Text, Color, InFontSize); });
+    SharedLib.set_function("DrawUIText", sol::overload(
+        [](const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize)
+        {
+            UStatsOverlayD2D::Get().RegisterTextUI(InRectTransform, Text, Color, InFontSize);
+        },
+        [](const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize, const FString& FontName)
+        {
+            UStatsOverlayD2D::Get().RegisterTextUI(InRectTransform, Text, Color, InFontSize, FontName);
+        }
+    ));
 
     SharedLib.set_function("DrawUISprite", [](const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity)
         { UStatsOverlayD2D::Get().RegisterSpriteUI(InRectTransform, FilePath, Opacity); });

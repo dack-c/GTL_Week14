@@ -2,6 +2,7 @@
 
 #include <d2d1_1.h>
 #include <dwrite.h>
+#include <dwrite_3.h>
 #include <dxgi1_2.h>
 
 #include "StatsOverlayD2D.h"
@@ -115,6 +116,8 @@ void UStatsOverlayD2D::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
 	);
 
 	EnsureInitialized();
+
+	LoadFontsFromDirectory("Data/UI/Fonts");
 }
 
 void UStatsOverlayD2D::Shutdown()
@@ -180,6 +183,7 @@ void UStatsOverlayD2D::ReleaseD2DResources()
 	SafeRelease(UIColorBrush);
 	SafeRelease(UITextFormat);
 
+	SafeRelease(CustomFontCollection);
 	SafeRelease(TextFormat);
 	SafeRelease(DWriteFactory);
 	SafeRelease(D2DContext);
@@ -254,14 +258,20 @@ void UStatsOverlayD2D::ReadBitmap(const FWideString& FilePath)
 
 	BitmapMap[FilePath] = bitmap;
 }
-void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color, const float FontSize)
+void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color, const float FontSize, const wchar_t* FontName)
 {
-	if (FontSize != UITextFormat->GetFontSize()) 
+	static FWideString CachedFontName = L"";
+	static float CachedFontSize = 0.0f;
+
+	if (FontSize != CachedFontSize || wcscmp(FontName, CachedFontName.c_str()) != 0)
 	{
-		UITextFormat->Release();
+		SafeRelease(UITextFormat);
+
+		IDWriteFontCollection* FontCollection = CustomFontCollection ? CustomFontCollection : nullptr;
+
 		DWriteFactory->CreateTextFormat(
-			L"Segoe UI",
-			nullptr,
+			FontName,
+			FontCollection,
 			DWRITE_FONT_WEIGHT_NORMAL,
 			DWRITE_FONT_STYLE_NORMAL,
 			DWRITE_FONT_STRETCH_NORMAL,
@@ -274,6 +284,9 @@ void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& In
 			UITextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			UITextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		}
+
+		CachedFontName = FontName;
+		CachedFontSize = FontSize;
 	}
 	UIColorBrush->SetColor(D2D1_COLOR_F(Color.X, Color.Y, Color.Z, Color.W));
 	D2DContext->DrawTextW(
@@ -612,13 +625,104 @@ void UStatsOverlayD2D::Draw()
 
 
 
-void UStatsOverlayD2D::RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize)
+void UStatsOverlayD2D::RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize, const FString& InFontName)
 {
-	DrawInfose.Push(new FDrawInfoText(InRectTransform, Text, Color, InFontSize));
+	DrawInfose.Push(new FDrawInfoText(InRectTransform, Text, Color, InFontSize, InFontName));
 }
 
 void UStatsOverlayD2D::RegisterSpriteUI(const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity)
 {
 	ReadBitmap(FilePath);
 	DrawInfose.Push(new FDrawInfoSprite(InRectTransform, FilePath, Opacity));
+}
+
+void UStatsOverlayD2D::LoadFontsFromDirectory(const FString& DirectoryPath)
+{
+	FWideString WidePath = UTF8ToWide(DirectoryPath);
+	FWideString NormalizedPath = NormalizePath(WidePath);
+
+	if (!std::filesystem::exists(NormalizedPath) || !std::filesystem::is_directory(NormalizedPath))
+	{
+		UE_LOG("[UI][Font] Font directory not found: %s\n", DirectoryPath.c_str());
+		return;
+	}
+
+	TArray<FWideString> FontFiles;
+
+	for (const auto& Entry : std::filesystem::directory_iterator(NormalizedPath))
+	{
+		if (Entry.is_regular_file())
+		{
+			FWideString Extension = Entry.path().extension().wstring();
+			std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
+			if (Extension == L".ttf" || Extension == L".otf")
+			{
+				FontFiles.Push(Entry.path().wstring());
+			}
+		}
+	}
+
+	if (FontFiles.empty() || !DWriteFactory)
+	{
+		return;
+	}
+
+	IDWriteFactory3* Factory3 = nullptr;
+	HRESULT hr = DWriteFactory->QueryInterface(__uuidof(IDWriteFactory3), (void**)&Factory3);
+	if (FAILED(hr))
+	{
+		UE_LOG("[UI][Font] DirectWrite 3.0 not available, using system fonts only\n");
+		return;
+	}
+
+	IDWriteFontSetBuilder* FontSetBuilder = nullptr;
+	hr = Factory3->CreateFontSetBuilder(&FontSetBuilder);
+	if (FAILED(hr))
+	{
+		SafeRelease(Factory3);
+		return;
+	}
+
+	for (const FWideString& FontPath : FontFiles)
+	{
+		IDWriteFontFile* FontFile = nullptr;
+		hr = Factory3->CreateFontFileReference(FontPath.c_str(), nullptr, &FontFile);
+		if (SUCCEEDED(hr))
+		{
+			IDWriteFontFaceReference* FontFaceRef = nullptr;
+			hr = Factory3->CreateFontFaceReference(
+				FontFile,
+				0,
+				DWRITE_FONT_SIMULATIONS_NONE,
+				&FontFaceRef
+			);
+			if (SUCCEEDED(hr))
+			{
+				hr = FontSetBuilder->AddFontFaceReference(FontFaceRef);
+				if (SUCCEEDED(hr))
+				{
+					UE_LOG("[UI][Font] Added to DirectWrite collection: %s\n", WideToUTF8(FontPath).c_str());
+				}
+				SafeRelease(FontFaceRef);
+			}
+			SafeRelease(FontFile);
+		}
+	}
+
+	IDWriteFontSet* FontSet = nullptr;
+	hr = FontSetBuilder->CreateFontSet(&FontSet);
+	if (SUCCEEDED(hr))
+	{
+		SafeRelease(CustomFontCollection);
+		hr = Factory3->CreateFontCollectionFromFontSet(FontSet, &CustomFontCollection);
+		if (SUCCEEDED(hr))
+		{
+			UE_LOG("[UI][Font] DirectWrite custom font collection created successfully\n");
+		}
+		SafeRelease(FontSet);
+	}
+
+	SafeRelease(FontSetBuilder);
+	SafeRelease(Factory3);
 }
