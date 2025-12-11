@@ -50,5 +50,7 @@ LUA_BIND_BEGIN(USkeletalMeshComponent)
 {
     AddMethodR<UAnimInstance*, USkeletalMeshComponent>(
         T, "GetAnimInstance", &USkeletalMeshComponent::GetAnimInstance);
+    AddAlias<USkeletalMeshComponent, bool>(
+        T, "SetRagdoll", &USkeletalMeshComponent::SetRagdoll);
 }
 LUA_BIND_END()

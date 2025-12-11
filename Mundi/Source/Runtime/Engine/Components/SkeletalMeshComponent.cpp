@@ -862,9 +862,9 @@ void USkeletalMeshComponent::SetPhysicsAnimationState(EPhysicsAnimationState New
             // Dynamic 모드로 전환 (물리가 제어 - 래그돌)
             Dyn->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
 
-            // 속도 초기화 (튕김 방지)
-            Dyn->setLinearVelocity(PxVec3(0, 0, 0));
-            Dyn->setAngularVelocity(PxVec3(0, 0, 0));
+            // NOTE: 떨어지는 중에 자연스럽게 래그돌로 전환하기 위해서 속도는 유지
+            //Dyn->setLinearVelocity(PxVec3(0, 0, 0));
+            //Dyn->setAngularVelocity(PxVec3(0, 0, 0));
         }
     }
 }
@@ -1385,6 +1385,18 @@ void USkeletalMeshComponent::SetAnimationPose(const TArray<FTransform>& InPose)
 
     // 포즈 변경 사항을 스키닝에 반영
     ForceRecomputePose();
+}
+
+void USkeletalMeshComponent::SetRagdoll(bool bIsActive)
+{
+    if (bIsActive)
+    {
+        SetPhysicsAnimationState(EPhysicsAnimationState::PhysicsDriven);
+    }
+    else
+    {
+        SetPhysicsAnimationState(EPhysicsAnimationState::AnimationDriven);
+    }
 }
 
 void USkeletalMeshComponent::SetAnimInstance(UAnimInstance* InAnimInstance)

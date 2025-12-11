@@ -20,6 +20,7 @@ local PlayTime = 0
 function InitGame()
     -- TODO: 플레이어 생성
     PlayTime = 0
+    GetComponent(GetPlayer(), "USkeletalMeshComponent"):SetRagdoll(false)
     GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0.05
     GetPlayer().Location = GetStartPosition()
     GetComponent(GetPlayer(), "UCharacterMovementComponent"):ResetVelocity()
@@ -83,6 +84,7 @@ function Tick(dt)
         -- 사망
         elseif GlobalConfig.bIsPlayerDeath == true then
             GlobalConfig.GameState = "Death"
+            GetComponent(GetPlayer(), "USkeletalMeshComponent"):SetRagdoll(true)
             GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
             PlaySound2DOneShotByFile("Data/Audio/Scream.wav")
         end

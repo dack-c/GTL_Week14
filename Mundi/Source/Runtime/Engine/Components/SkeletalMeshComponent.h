@@ -152,6 +152,9 @@ public:
     UFUNCTION(LuaBind, DisplayName = "GetAnimInstance")
     UAnimInstance* GetAnimInstance() const { return AnimInstance; }
 
+    UFUNCTION(LuaBind, DisplayName = "SetRagdoll")
+    void SetRagdoll(bool bIsActive);
+
     /**
      * @brief AnimInstance 설정 (선택적)
      */
