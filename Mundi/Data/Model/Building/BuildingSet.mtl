@@ -9,7 +9,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_Basketball.png
+map_Kd LM_Basketball.png
 
 newmtl CityProps
 Ns 200.000000
@@ -19,7 +19,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/City_Props.png
+map_Kd City_Props.png
 
 newmtl CityProps1GLOW
 Ns 200.000000
@@ -29,7 +29,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/City_Props.png
+map_Kd City_Props.png
 
 newmtl Clinic
 Ns 200.000000
@@ -39,7 +39,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_Clinic.png
+map_Kd LM_Clinic.png
 
 newmtl FillerBuildings1
 Ns 200.000000
@@ -49,7 +49,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/Filler_Buildings_1.png
+map_Kd Filler_Buildings_1.png
 
 newmtl FillerBuildings1GLOW
 Ns 200.000000
@@ -59,7 +59,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/Filler_Buildings_1.png
+map_Kd Filler_Buildings_1.png
 
 newmtl FishFactory
 Ns 200.000000
@@ -69,7 +69,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_FishFactory.png
+map_Kd LM_FishFactory.png
 
 newmtl FishFactory1GLOW
 Ns 200.000000
@@ -79,7 +79,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_FishFactory.png
+map_Kd LM_FishFactory.png
 
 newmtl GreenGlow
 Ns 200.000000
@@ -99,7 +99,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_Projects.png
+map_Kd LM_Projects.png
 
 newmtl LMProjects1GLOW
 Ns 200.000000
@@ -109,7 +109,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_Projects.png
+map_Kd LM_Projects.png
 
 newmtl Laundrymat
 Ns 200.000000
@@ -119,7 +119,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_Laundrymat.png
+map_Kd LM_Laundrymat.png
 
 newmtl Paramount
 Ns 200.000000
@@ -129,7 +129,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/Paramount.png
+map_Kd Paramount.png
 
 newmtl Paramount1GLOW
 Ns 200.000000
@@ -139,7 +139,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/Paramount.png
+map_Kd Paramount.png
 
 newmtl Pawnshop
 Ns 200.000000
@@ -149,7 +149,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_Pawnshop.png
+map_Kd LM_Pawnshop.png
 
 newmtl Pawnshop1GLOW
 Ns 200.000000
@@ -159,7 +159,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/LM_Pawnshop.png
+map_Kd LM_Pawnshop.png
 
 newmtl RedGLOW
 Ns 200.000000
@@ -179,7 +179,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/Roads_Grounds.png
+map_Kd Roads_Grounds.png
 
 newmtl Tire
 Ns 200.000000
@@ -189,7 +189,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/Lotus_wheel_large.png
+map_Kd Lotus_wheel_large.png
 
 newmtl WhiteGlow
 Ns 200.000000
@@ -219,4 +219,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd ../../../../../../../Users/Jungle/Desktop/ccity-building-set-1/textures/Lotus_Yellow.png
+map_Kd Lotus_Yellow.png
