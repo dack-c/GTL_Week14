@@ -106,6 +106,7 @@ public:
 	void InitTexToShaderMap();
 
 	void LoadCubeMap(const FWideString& Path);
+	void LoadCubeMapFromCrossLayout(const FWideString& Path);  // 3x2 UV 레이아웃에서 큐브맵 생성
 	ID3D11ShaderResourceView* GetCubemap() { return CubeMapSRV; }
 protected:
 	// --- 소멸자 및 복사/대입 방지 ---

@@ -41,7 +41,14 @@ void UResourceManager::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
     Context = InContext;
     //CreateGridMesh(GRIDNUM,"Grid");
     //CreateAxisMesh(AXISLENGTH,"Axis");
-    LoadCubeMap(USkyBoxComponent::SkyBoxPath);
+
+    // 기존 DDS 큐브맵 방식 (6개 face + mipmap 배열)
+    //LoadCubeMap(USkyBoxComponent::SkyBoxPath);
+
+    // 새로운 3x2 크로스 레이아웃 방식 (단일 PNG/JPG 이미지를 6면으로 분할)
+    // 레이아웃: Row 0 [Bottom][Top][Back] / Row 1 [Left][Front][Right]
+    LoadCubeMapFromCrossLayout(L"Data/Cubemap/SkyTexture1.png");
+
     InitShaderILMap();
 
     InitTexToShaderMap();
@@ -57,7 +64,11 @@ void UResourceManager::Initialize(ID3D11Device* InDevice, ID3D11DeviceContext* I
 void UResourceManager::Clear()
 {
     {////////////// Deprecated //////////////
-        CubeMapSRV->Release();
+        if (CubeMapSRV)
+        {
+            CubeMapSRV->Release();
+            CubeMapSRV = nullptr;
+        }
         for (auto& [Key, Data] : ResourceMap)
         {
             if (Data)
@@ -877,4 +888,122 @@ void UResourceManager::LoadCubeMap(const FWideString& Path)
     GetDevice()->CreateShaderResourceView(tex, &srvDesc, &CubeMapSRV);
     image.Release();
     tex->Release();
+}
+
+void UResourceManager::LoadCubeMapFromCrossLayout(const FWideString& Path)
+{
+    // 1. PNG/JPG 이미지 로드
+    ScratchImage sourceImage;
+    HRESULT hr = LoadFromWICFile(Path.c_str(), WIC_FLAGS_NONE, nullptr, sourceImage);
+    if (FAILED(hr))
+    {
+        UE_LOG("[ResourceManager] Failed to load cross layout image: %s\n", WideToUTF8(Path).c_str());
+        return;
+    }
+
+    const Image* srcImg = sourceImage.GetImage(0, 0, 0);
+    const size_t srcWidth = srcImg->width;
+    const size_t srcHeight = srcImg->height;
+    const DXGI_FORMAT format = srcImg->format;
+
+    // 2. 각 면 크기 계산 (3x2 레이아웃)
+    const size_t faceWidth = srcWidth / 3;
+    const size_t faceHeight = srcHeight / 2;
+
+    if (faceWidth == 0 || faceHeight == 0 || faceWidth != faceHeight)
+    {
+        UE_LOG("[ResourceManager] Invalid cross layout dimensions: %dx%d (faces must be square)\n",
+               static_cast<int>(srcWidth), static_cast<int>(srcHeight));
+        sourceImage.Release();
+        return;
+    }
+
+    // 3. 6개 면을 저장할 큐브맵 배열 생성
+    ScratchImage cubeImages;
+    hr = cubeImages.InitializeCube(format, faceWidth, faceHeight, 1, 1);  // 6 faces, 1 mip
+    if (FAILED(hr))
+    {
+        UE_LOG("[ResourceManager] Failed to initialize cube image array\n");
+        sourceImage.Release();
+        return;
+    }
+
+    // 4. UV 레이아웃에서 6개 면 추출
+    // Row 0: [Bottom] [Top]   [Back]
+    // Row 1: [Left]   [Front] [Right]
+    struct FaceLayout
+    {
+        size_t srcX;
+        size_t srcY;
+        size_t faceIndex;  // D3D11 큐브맵 순서: +X, -X, +Y, -Y, +Z, -Z
+    };
+
+    FaceLayout layout[6] = {
+        { faceWidth * 2, faceHeight, 0 },  // Right  -> +X (Face 0)
+        { 0,             faceHeight, 1 },  // Left   -> -X (Face 1)
+        { faceWidth,     0,          2 },  // Top    -> +Y (Face 2)
+        { 0,             0,          3 },  // Bottom -> -Y (Face 3)
+        { faceWidth,     faceHeight, 4 },  // Front  -> +Z (Face 4)
+        { faceWidth * 2, 0,          5 }   // Back   -> -Z (Face 5)
+    };
+
+    const uint8_t* srcPixels = srcImg->pixels;
+    const size_t srcRowPitch = srcImg->rowPitch;
+    const size_t bytesPerPixel = (BitsPerPixel(format) / 8);
+
+    for (int32 i = 0; i < 6; ++i)
+    {
+        const Image* dstImg = cubeImages.GetImage(0, layout[i].faceIndex, 0);
+        uint8_t* dstPixels = dstImg->pixels;
+        const size_t dstRowPitch = dstImg->rowPitch;
+
+        // 픽셀 단위로 복사
+        for (size_t y = 0; y < faceHeight; ++y)
+        {
+            const uint8_t* srcRow = srcPixels + (layout[i].srcY + y) * srcRowPitch + layout[i].srcX * bytesPerPixel;
+            uint8_t* dstRow = dstPixels + y * dstRowPitch;
+            memcpy(dstRow, srcRow, faceWidth * bytesPerPixel);
+        }
+    }
+
+    // 5. DirectX 텍스처 생성
+    ID3D11Texture2D* cubeTex = nullptr;
+    hr = CreateTexture(GetDevice(), cubeImages.GetImages(), cubeImages.GetImageCount(),
+                       cubeImages.GetMetadata(), (ID3D11Resource**)&cubeTex);
+    if (FAILED(hr))
+    {
+        UE_LOG("[ResourceManager] Failed to create cube texture\n");
+        cubeImages.Release();
+        sourceImage.Release();
+        return;
+    }
+
+    // 6. ShaderResourceView 생성
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip = 0;
+    srvDesc.TextureCube.MipLevels = 1;
+
+    // 기존 큐브맵 해제
+    if (CubeMapSRV)
+    {
+        CubeMapSRV->Release();
+        CubeMapSRV = nullptr;
+    }
+
+    hr = GetDevice()->CreateShaderResourceView(cubeTex, &srvDesc, &CubeMapSRV);
+    if (FAILED(hr))
+    {
+        UE_LOG("[ResourceManager] Failed to create cube SRV\n");
+    }
+    else
+    {
+        UE_LOG("[ResourceManager] Cube map created from cross layout: %s (%dx%d per face)\n",
+               WideToUTF8(Path).c_str(), static_cast<int>(faceWidth), static_cast<int>(faceHeight));
+    }
+
+    cubeTex->Release();
+    cubeImages.Release();
+    sourceImage.Release();
 }
