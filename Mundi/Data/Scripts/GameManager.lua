@@ -180,17 +180,21 @@ function RenderInitUI()
     -- Rect.ZOrder = 0;
     -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
 
+    -- PRESS Q TO START 배경 박스
+    AnchorMin = Vector2D(0, 0.65)
+    AnchorMax = Vector2D(1, 0.75)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.3)
+
+    -- PRESS Q TO START 텍스트
     AnchorMin = Vector2D(0,0.6)
     AnchorMax = Vector2D(1,0.8)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
     DrawUIText(Rect, "PRESS Q TO START", NeonCyan, 40, "Platinum Sign")
 
-    AnchorMin = Vector2D(0,0.8)
-    AnchorMax = Vector2D(1,1)
-    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
-    Rect.ZOrder = 1;
-    DrawUIText(Rect, "김상천, 김진철, 김호민, 김희준", Color, 60, "THEFACESHOP INKLIPQUID")
+    RenderCredits()
 end
 
 -- 인게임 UI 출력
@@ -240,6 +244,28 @@ function RenderInGameUI()
     Rect.ZOrder = 1
     Color = Vector4(1,0.5,0.5,1)
     DrawUIText(Rect, "플레이 시간: "..string.format("%.1f", PlayTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
+
+    RenderCredits()
+end
+
+-- 제작자 표시 함수 (모든 화면에 공통 표시)
+function RenderCredits()
+    local Rect = RectTransform()
+    local GrayColor = Vector4(0.7, 0.7, 0.7, 1)  -- 회색
+
+    -- 배경 박스
+    local AnchorMin = Vector2D(0.02, 0.93)  -- 좌하단에서 2% 여백 (Y: 0=상단, 1=하단)
+    local AnchorMax = Vector2D(0.26, 0.98)  -- 24% 너비, 5% 높이
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 100
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.7)
+
+    -- 제작자 텍스트
+    AnchorMin = Vector2D(0.025, 0.935)  -- 박스 안쪽 패딩
+    AnchorMax = Vector2D(0.255, 0.975)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 101
+    DrawUIText(Rect, "제작자: 김상천, 김진철, 김호민, 김희준", GrayColor, 16, "Pretendard")
 end
 
 -- 랜덤 사망 문구 목록
@@ -261,12 +287,26 @@ function RenderDeathUI()
     local Rect = RectTransform()
     local Color = Vector4(1,0,0,1)
 
+    -- 낙사 텍스트 배경 박스
+    local AnchorMin = Vector2D(0.2, 0.47)
+    local AnchorMax = Vector2D(0.8, 0.58)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.5)
+
     -- 낙사 텍스트
-    local AnchorMin = Vector2D(0,0.4)
-    local AnchorMax = Vector2D(1,0.7)
+    AnchorMin = Vector2D(0.2, 0.47)
+    AnchorMax = Vector2D(0.8, 0.58)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, CurrentDeathMessage, Color, 80, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, CurrentDeathMessage, Color, 50, "THEFACESHOP INKLIPQUID")
+
+    -- 재시작 안내 배경 박스
+    AnchorMin = Vector2D(0, 0.25)
+    AnchorMax = Vector2D(1, 0.35)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.5)
 
     -- 재시작 안내 텍스트
     AnchorMin = Vector2D(0,0.2)
@@ -275,6 +315,8 @@ function RenderDeathUI()
     Rect.ZOrder = 1;
     local NeonPink = Vector4(1.0, 0.1, 0.7, 1.0)  -- 네온 핑크
     DrawUIText(Rect, "PRESS E TO RESTART", NeonPink, 40, "Platinum Sign")
+
+    RenderCredits()
 end
 
 -- 클리어 UI 출력
@@ -292,10 +334,20 @@ function RenderClearUI()
     -- -- Rect.Pivot = Vector2D(0.0,0.0)
     -- -- Rect.ZOrder = 0;
     -- -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
-    
+
+    -- 클리어 텍스트 배경 박스
+    AnchorMin = Vector2D(0.25, 0.35)
+    AnchorMax = Vector2D(0.75, 0.65)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.3)
+
+    -- 클리어 텍스트
     AnchorMin = Vector2D(0,0)
     AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
     DrawUIText(Rect, "클리어!\n"..string.format("%.1f", PlayTime).."초", Color, 80, "THEFACESHOP INKLIPQUID")
+
+    RenderCredits()
 end
