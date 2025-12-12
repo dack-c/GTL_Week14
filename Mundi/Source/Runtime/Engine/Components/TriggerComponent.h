@@ -25,6 +25,9 @@ public:
 	FVector4 DebugVolumeColor = FVector4(0.2f, 0.8f, 1.0f, 1.0f);
 	static FVector CharacterPos; //하드코딩 렛츠고
 
+private:
+	bool bWasInside = false;  // 이전 프레임에 트리거 내부에 있었는지
+
 public:
 
 };

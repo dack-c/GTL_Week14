@@ -25,11 +25,17 @@ void UTriggerComponent::OnRegister(UWorld* InWorld)
 
 void UTriggerComponent::TickComponent(float DeltaTime)
 {
-	//매 틱 CharacterActor의 위치를 가져와서 체크
+	// 매 틱 CharacterActor의 위치를 가져와서 체크
 	FMatrix WorldMatrix = GetWorldMatrix();
 	FMatrix InvWorld = WorldMatrix.Inverse();
 	FVector CharacterInTriggerLocal = CharacterPos * InvWorld;
-	if (abs(CharacterInTriggerLocal.X) <= BoxExtent.X && abs(CharacterInTriggerLocal.Y) <= BoxExtent.Y && abs(CharacterInTriggerLocal.Z) <= BoxExtent.Z)
+
+	bool bIsInside = (abs(CharacterInTriggerLocal.X) <= BoxExtent.X &&
+	                  abs(CharacterInTriggerLocal.Y) <= BoxExtent.Y &&
+	                  abs(CharacterInTriggerLocal.Z) <= BoxExtent.Z);
+
+	// 이전 프레임에는 밖에 있었고, 현재 프레임에 안에 들어왔을 때만 호출 (Begin Overlap)
+	if (bIsInside && !bWasInside)
 	{
 		auto Components = Owner->GetOwnedComponents();
 		for (UActorComponent* ActorComp : Components)
@@ -40,6 +46,8 @@ void UTriggerComponent::TickComponent(float DeltaTime)
 			}
 		}
 	}
+
+	bWasInside = bIsInside;
 }
 
 

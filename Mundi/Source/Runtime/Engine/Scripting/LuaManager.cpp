@@ -1,5 +1,8 @@
 ﻿#include "pch.h"
 #include "LuaManager.h"
+
+#include <random>
+
 #include "LuaComponentProxy.h"
 #include "GameObject.h"
 #include "ObjectIterator.h"
@@ -27,7 +30,10 @@ sol::object MakeCompProxy(sol::state_view SolState, void* Instance, UClass* Clas
 FLuaManager::FLuaManager()
 {
     Lua = new sol::state();
-    
+
+    // 랜덤 시드 초기화
+    srand(static_cast<uint32>(time(nullptr)));
+
     // Open essential standard libraries for gameplay scripts
     Lua->open_libraries(
         sol::lib::base,
@@ -314,6 +320,36 @@ FLuaManager::FLuaManager()
             GWorld->GetGameMode()->PlayerController->SetUseMovementInput(bEnabled);
         }
     );
+    SharedLib.set_function("SetTimeDilation",
+        [](float Dilation)
+        {
+            if (!GWorld)
+            {
+                return;
+            }
+            GWorld->SetTimeDilation(Dilation);
+        }
+    );
+    SharedLib.set_function("GetTimeDilation",
+        []() -> float
+        {
+            if (!GWorld)
+            {
+                return 1.0f;
+            }
+            return GWorld->GetTimeDilation();
+        }
+    );
+    SharedLib.set_function("SetViewTargetCamera",
+        [](UCameraComponent* Camera)
+        {
+            if (!GWorld || !GWorld->GetPlayerCameraManager() || !Camera)
+            {
+                return;
+            }
+            GWorld->GetPlayerCameraManager()->SetViewCamera(Camera);
+        }
+    );
     SharedLib.set_function("SetPlayerForward",
         [](FGameObject& GameObject, FVector Direction)
         {
@@ -530,6 +566,27 @@ FLuaManager::FLuaManager()
             FAudioDevice::PlaySound2DOneShotByFile(FilePath, Volume, Pitch);
         }
     ));
+
+    SharedLib.set_function("GetScreenSize", []() -> FVector2D {
+        UStatsOverlayD2D& Overlay = UStatsOverlayD2D::Get();
+        return Overlay.GetViewportSize();
+    });
+
+    SharedLib.set_function("GetViewportOffset", []() -> FVector2D {
+        UStatsOverlayD2D& Overlay = UStatsOverlayD2D::Get();
+        return Overlay.GetViewportLTop();
+    });
+
+    SharedLib.set_function("RandomInt", [](int32 Min, int32 Max) -> int32 {
+        if (Min > Max)
+        {
+            std::swap(Min, Max);
+        }
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_int_distribution<int32> dist(Min, Max);
+        return dist(gen);
+    });
 
     RegisterComponentProxy(*Lua);
     ExposeGlobalFunctions();

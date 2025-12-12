@@ -125,6 +125,10 @@ public:
     // Overlap pair de-duplication (per-frame)
     bool TryMarkOverlapPair(const AActor* A, const AActor* B);
 
+    // Time Dilation (슬로우 모션)
+    void SetTimeDilation(float NewDilation) { TimeDilation = NewDilation; }
+    float GetTimeDilation() const { return TimeDilation; }
+
     TMap<TWeakObjectPtr<AActor>, FActorTimeState> ActorTimingMap;
 
     /** === 필요한 엑터 게터 === */
