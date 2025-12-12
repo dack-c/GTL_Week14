@@ -1757,7 +1757,7 @@
           "PinCategory" : "float",
           "PinName" : "Value"
         }],
-      "Value" : 1.000000
+      "Value" : 1.200000
     }, {
       "ClassName" : "UK2Node_AnimTransition",
       "NodeID" : 121,
