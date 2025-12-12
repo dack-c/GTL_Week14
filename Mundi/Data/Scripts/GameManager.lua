@@ -87,30 +87,14 @@ function Tick(dt)
         PlayTime = PlayTime + dt
         RenderInGameUI()
 
-        -- 골 높이보다 낮게 떨어지면 낙사 처리 (골 클리어되지 않은 경우)
-        local PlayerPos = GetPlayer().Location
-        local GoalHeight = -34.777500  -- 골 지점의 Z 좌표
-        local GoalPosX = -31.036255
-        local GoalPosY = 190.940994
-        local GoalRadius = 15.0  -- 골 트리거 범위 (BoxExtent 10 + 여유 5)
-
-        -- 골 트리거 영역 밖에 있는지 체크
-        local DistanceToGoal = math.sqrt((PlayerPos.X - GoalPosX)^2 + (PlayerPos.Y - GoalPosY)^2)
-        local bIsOutsideGoalArea = DistanceToGoal > GoalRadius
-
-        -- 골 영역 밖에서 골 높이보다 낮으면 낙사
-        if GlobalConfig.bIsGameClear == false and bIsOutsideGoalArea and PlayerPos.Z < GoalHeight then
-            GlobalConfig.bIsPlayerDeath = true
-        end
-
-        -- 클리어
+        -- 클리어 체크가 먼저 (우선순위 높음)
         if GlobalConfig.bIsGameClear == true then
             GlobalConfig.GameState = "Clear"
             GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
 
             -- 플레이어 입력 차단
             SetPlayerInputEnabled(false)
-        -- 사망
+        -- 사망 체크
         elseif GlobalConfig.bIsPlayerDeath == true then
             GlobalConfig.GameState = "Death"
             GetComponent(GetPlayer(), "USkeletalMeshComponent"):SetRagdoll(true)
@@ -119,6 +103,23 @@ function Tick(dt)
 
             -- 플레이어 입력 차단
             SetPlayerInputEnabled(false)
+        -- 아직 클리어/사망 안 했을 때만 낙사 판정
+        else
+            -- 골 높이보다 낮게 떨어지면 낙사 처리
+            local PlayerPos = GetPlayer().Location
+            local GoalHeight = -34.777500  -- 골 지점의 Z 좌표
+            local GoalPosX = -31.036255
+            local GoalPosY = 190.940994
+            local GoalRadius = 35.0  -- 골 트리거 범위 (BoxExtent 30 + 여유 5)
+
+            -- 골 트리거 영역 밖에 있는지 체크
+            local DistanceToGoal = math.sqrt((PlayerPos.X - GoalPosX)^2 + (PlayerPos.Y - GoalPosY)^2)
+            local bIsOutsideGoalArea = DistanceToGoal > GoalRadius
+
+            -- 골 영역 밖에서 골 높이보다 낮으면 낙사
+            if bIsOutsideGoalArea and PlayerPos.Z < GoalHeight then
+                GlobalConfig.bIsPlayerDeath = true
+            end
         end
 
     elseif GlobalConfig.GameState == "Death" then
