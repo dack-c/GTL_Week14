@@ -29,6 +29,7 @@ public:
 	UCapsuleComponent* GetCapsuleComponent() const { return CapsuleComponent; }
 	UCharacterMovementComponent* GetCharacterMovement() const { return CharacterMovement; }
 	UParticleSystemComponent* GetSlidingParticleComponent() const { return SlidingParticleComponent; }
+	UParticleSystemComponent* GetLandingParticleComponent() const { return LandingParticleComponent; }
 
 	// APawn 인터페이스: 파생 클래스의 MovementComponent를 노출
 	virtual UPawnMovementComponent* GetMovementComponent() const override { return reinterpret_cast<UPawnMovementComponent*>(CharacterMovement); }
@@ -43,4 +44,5 @@ protected:
 	USkeletalMeshComponent* SkeletalMeshComp;
     UCharacterMovementComponent* CharacterMovement;
 	UParticleSystemComponent* SlidingParticleComponent;
+	UParticleSystemComponent* LandingParticleComponent;
 };

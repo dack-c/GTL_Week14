@@ -340,7 +340,16 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 				{
 					// 구르기 사운드
 					FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 3.0f, 1.0f);
+					if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+					{
+						CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
+					}
 				}
+			}
+			// 일반 착지
+			else if(CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+			{
+				CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
 			}
 			// SafeMoveUpdatedComponent에서 이미 SkinWidth 적용된 위치로 설정됨
 			// Hit.Location으로 덮어쓰면 경사면에 박힘
@@ -401,7 +410,16 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 				{
 					// 구르기 사운드
 					FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 0.3f, 1.0f);
+					if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+					{
+						CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
+					}
 				}
+			}
+			// 일반 착지
+			else if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+			{
+				CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
 			}
 
 			UE_LOG("[CharacterMovement] Landed on floor at Z=%.3f", FloorHit.ImpactPoint.Z);

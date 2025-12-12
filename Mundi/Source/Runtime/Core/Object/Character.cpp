@@ -62,6 +62,7 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		SkeletalMeshComp = nullptr;
         CharacterMovement = nullptr;
 		SlidingParticleComponent = nullptr;
+		LandingParticleComponent = nullptr;
 
         for (UActorComponent* Comp : GetOwnedComponents())
         {
@@ -84,6 +85,10 @@ void ACharacter::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 				{
 					SlidingParticleComponent = Particle;
 				}
+				else if (Comp->GetName() == "LandingParticle")
+				{
+					LandingParticleComponent = Particle;
+				}
 			}
         }
 
@@ -104,6 +109,7 @@ void ACharacter::DuplicateSubObjects()
 	SkeletalMeshComp = nullptr;
     CharacterMovement = nullptr;
 	SlidingParticleComponent = nullptr;
+	LandingParticleComponent = nullptr;
 
     for (UActorComponent* Comp : GetOwnedComponents())
     {
@@ -124,6 +130,10 @@ void ACharacter::DuplicateSubObjects()
 			if (Comp->GetName() == "SlidingParticle")
 			{
 				SlidingParticleComponent = Particle;
+			}
+			else if (Comp->GetName() == "LandingParticle")
+			{
+				LandingParticleComponent = Particle;
 			}
 		}
     }
