@@ -212,24 +212,40 @@ void UStatsOverlayD2D::ReadBitmap(const FWideString& FilePath)
 
 	ID2D1Bitmap* bitmap = nullptr;
 
-	// PNG/JPG를 WIC으로 읽기
+	// WIC Bitmap Source 생성 (파일 핸들 해제를 위해)
 	IWICBitmapDecoder* decoder = nullptr;
-	WICFactory->CreateDecoderFromFilename(
+	HRESULT hr = WICFactory->CreateDecoderFromFilename(
 		NormalizedPath.c_str(), nullptr,
 		GENERIC_READ, WICDecodeMetadataCacheOnLoad,
 		&decoder
 	);
 
+	if (FAILED(hr) || !decoder)
+	{
+		return;
+	}
+
 	// 프레임 가져오기
 	IWICBitmapFrameDecode* frame = nullptr;
-	decoder->GetFrame(0, &frame);
+	hr = decoder->GetFrame(0, &frame);
+	if (FAILED(hr) || !frame)
+	{
+		decoder->Release();
+		return;
+	}
 
-	// **WIC Format Converter**
+	// Format Converter 생성
 	IWICFormatConverter* converter = nullptr;
-	WICFactory->CreateFormatConverter(&converter);
+	hr = WICFactory->CreateFormatConverter(&converter);
+	if (FAILED(hr) || !converter)
+	{
+		frame->Release();
+		decoder->Release();
+		return;
+	}
 
 	// 프레임을 32bit PBGRA로 변환
-	converter->Initialize(
+	hr = converter->Initialize(
 		frame,
 		GUID_WICPixelFormat32bppPBGRA,
 		WICBitmapDitherTypeNone,
@@ -238,23 +254,52 @@ void UStatsOverlayD2D::ReadBitmap(const FWideString& FilePath)
 		WICBitmapPaletteTypeCustom
 	);
 
-	// D2D 비트맵 생성
-	HRESULT hr = D2DContext->CreateBitmapFromWicBitmap(
-		converter,
-		nullptr,
+	if (FAILED(hr))
+	{
+		converter->Release();
+		frame->Release();
+		decoder->Release();
+		return;
+	}
+
+	// 비트맵 크기 가져오기
+	UINT width = 0, height = 0;
+	converter->GetSize(&width, &height);
+
+	// 메모리로 픽셀 데이터 복사 (파일 핸들 해제를 위해)
+	UINT stride = width * 4;  // 32bpp = 4 bytes per pixel
+	UINT bufferSize = stride * height;
+	std::vector<BYTE> pixelBuffer(bufferSize);
+
+	hr = converter->CopyPixels(nullptr, stride, bufferSize, pixelBuffer.data());
+
+	// 즉시 WIC 리소스 해제 (파일 핸들 닫힘)
+	converter->Release();
+	frame->Release();
+	decoder->Release();
+
+	if (FAILED(hr))
+	{
+		return;
+	}
+
+	// 메모리 데이터로부터 D2D 비트맵 생성
+	D2D1_BITMAP_PROPERTIES bitmapProps = D2D1::BitmapProperties(
+		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+	);
+
+	hr = D2DContext->CreateBitmap(
+		D2D1::SizeU(width, height),
+		pixelBuffer.data(),
+		stride,
+		&bitmapProps,
 		&bitmap
 	);
 
 	if (FAILED(hr))
 	{
-		// 디버그 로그 넣으면 도움됨
-		// wprintf(L"Failed to create bitmap. HR = 0x%x\n", hr);
+		return;
 	}
-
-	// 메모리 해제
-	converter->Release();
-	frame->Release();
-	decoder->Release();
 
 	BitmapMap[FilePath] = bitmap;
 }

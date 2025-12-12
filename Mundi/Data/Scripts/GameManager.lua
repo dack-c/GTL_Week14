@@ -47,6 +47,12 @@ function InitGame()
         CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
         CharacterMoveComp:SetUseGravity(true)
     end
+
+    -- GameEvent 플래그 리셋 (재시작 시 클리어/사망 이벤트 재활성화)
+    if _G.GameEventFlags then
+        _G.GameEventFlags.bClearCalled = false
+        _G.GameEventFlags.bDeathCalled = false
+    end
 end
 
 
@@ -94,12 +100,16 @@ function Tick(dt)
 
             -- 플레이어 입력 차단
             SetPlayerInputEnabled(false)
-        -- 사망 체크
+        -- 사망
         elseif GlobalConfig.bIsPlayerDeath == true then
             GlobalConfig.GameState = "Death"
             GetComponent(GetPlayer(), "USkeletalMeshComponent"):SetRagdoll(true)
             GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
             PlaySound2DOneShotByFile("Data/Audio/Scream.wav")
+
+            -- 랜덤 사망 문구 선택
+            local RandomIndex = RandomInt(1, #DeathMessages)
+            CurrentDeathMessage = DeathMessages[RandomIndex]
 
             -- 플레이어 입력 차단
             SetPlayerInputEnabled(false)
@@ -127,6 +137,7 @@ function Tick(dt)
 
         if InputManager:IsKeyDown("E") then
             GlobalConfig.GameState = "Init"
+            CurrentDeathMessage = ""  -- 사망 메시지 리셋
         end
 
     elseif GlobalConfig.GameState == "Clear" then
@@ -135,6 +146,7 @@ function Tick(dt)
 
         if InputManager:IsKeyDown("E") then
             GlobalConfig.GameState = "Init"
+            CurrentDeathMessage = ""  -- 사망 메시지 리셋
         end
 
     end
@@ -186,25 +198,63 @@ function RenderInGameUI()
     local Rect = RectTransform()
     local Color = Vector4(0,1,0,1)
 
-    AnchorMin = Vector2D(0,0)
-    AnchorMax = Vector2D(0.3,0.2)
-    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
-    Rect.ZOrder = 1;
+    -- 화면 사이즈 및 뷰포트 오프셋 가져오기
+    local ScreenSize = GetScreenSize()
+    local ViewportOffset = GetViewportOffset()
+    local HorizontalPadding = 8  -- 좌우 패딩
+    local EdgeMargin = 50  -- 화면 가장자리 여백
+    local BoxHeight = 50
+    local TextHeight = 30
+    local VerticalCenter = (BoxHeight - TextHeight) / 2  -- 세로 중앙 정렬
 
     local RemainHeight = (-39 - GetPlayer().Location.Z) * -1;
     if RemainHeight < 0 then
         RemainHeight = 0
     end
+    local HeightText = "남은 높이: "..string.format("%.1f", RemainHeight).."m"
 
-    DrawUIText(Rect, "남은 높이: "..string.format("%.1f", RemainHeight).."m", Color, 30, "THEFACESHOP INKLIPQUID")
+    -- 남은 높이 배경
+    local LeftBoxWidth = 230
+    Rect.Pos = Vector2D(ViewportOffset.X + EdgeMargin, ViewportOffset.Y + 10)
+    Rect.Size = Vector2D(LeftBoxWidth, BoxHeight)
+    Rect.Pivot = Vector2D(0, 0)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
 
+    -- 남은 높이 텍스트 (세로 중앙 정렬)
+    Rect.Pos = Vector2D(ViewportOffset.X + EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + VerticalCenter)
+    Rect.Size = Vector2D(LeftBoxWidth - HorizontalPadding * 2, TextHeight)
+    Rect.ZOrder = 1
+    DrawUIText(Rect, HeightText, Color, 30, "THEFACESHOP INKLIPQUID")
 
-    AnchorMin = Vector2D(0.7,0)
-    AnchorMax = Vector2D(1,0.2)
-    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
+    -- 플레이 시간 배경
+    local RightBoxWidth = 260
+    Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10)
+    Rect.Size = Vector2D(RightBoxWidth, BoxHeight)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
+
+    -- 플레이 시간 텍스트 (세로 중앙 정렬)
+    Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + VerticalCenter)
+    Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
+    Rect.ZOrder = 1
     Color = Vector4(1,0.5,0.5,1)
     DrawUIText(Rect, "플레이 시간: "..string.format("%.1f", PlayTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
 end
+
+-- 랜덤 사망 문구 목록
+DeathMessages = {
+    "중력 체험 완료",
+    "지구와 강렬한 포옹",
+    "뉴턴이 당신을 기억합니다",
+    "무릎이 남아나질 않겠군요",
+    "날개는 챙기셨나요?",
+    "착지 점수: 0점",
+    "낙하산 미착용"
+}
+
+CurrentDeathMessage = ""
+DeathCount = 0  -- 사망 횟수 카운터
 
 -- 사망 UI 출력
 function RenderDeathUI()
@@ -216,7 +266,7 @@ function RenderDeathUI()
     local AnchorMax = Vector2D(1,0.7)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "낙사", Color, 100, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, CurrentDeathMessage, Color, 80, "THEFACESHOP INKLIPQUID")
 
     -- 재시작 안내 텍스트
     AnchorMin = Vector2D(0,0.2)
