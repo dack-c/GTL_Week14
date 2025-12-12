@@ -60,8 +60,23 @@ void UCharacterMovementComponent::TickComponent(float DeltaSeconds)
 		//UE_LOG("CapsuleOffset: %.2f, %.2f, %.2f", CapsuleOffset.X, CapsuleOffset.Y, CapsuleOffset.Z);
 	}
 
+	// 슬라이딩 중이 아니라면 슬라이딩 사운드 종료
+	if (!bIsSliding)
+	{
+		if (SlidingSound)
+		{
+			FAudioDevice::StopSound(SlidingSound);
+			SlidingSound = nullptr;
+		}
+	}
+
 	if (bIsSliding)
 	{
+		// 슬라이딩 시작 시 최초 1회 슬라이딩 사운드 재생
+		if (!SlidingSound)
+		{
+			SlidingSound = FAudioDevice::PlaySound2DByFile("Data/Audio/Sliding.wav", 1.0f, 1.0f);
+		}
 		PhysSliding(DeltaSeconds);
 	}
 	else if (bIsFalling)

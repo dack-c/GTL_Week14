@@ -172,4 +172,5 @@ protected:
 	const float SkinWidth = 0.00125;  // 통일된 SkinWidth
 
 	FVector LastVelocityBeforIgnoreInput = FVector::Zero();
+	class IXAudio2SourceVoice* SlidingSound;
 };
