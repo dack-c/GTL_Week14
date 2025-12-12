@@ -304,6 +304,16 @@ FLuaManager::FLuaManager()
             return GWorld->GetGameMode()->PlayerController->GetPawn()->GetGameObject();
         }
     );
+    SharedLib.set_function("SetPlayerInputEnabled",
+        [](bool bEnabled)
+        {
+            if (!GWorld || !GWorld->GetGameMode() || !GWorld->GetGameMode()->PlayerController)
+            {
+                return;
+            }
+            GWorld->GetGameMode()->PlayerController->SetUseMovementInput(bEnabled);
+        }
+    );
     SharedLib.set_function("SetPlayerForward",
         [](FGameObject& GameObject, FVector Direction)
         {
@@ -839,11 +849,60 @@ sol::protected_function FLuaManager::GetFunc(sol::environment& Env, const char* 
         return {};
 
     sol::object Object = Env[Name];
-    
+
     if (Object == sol::nil || Object.get_type() != sol::type::function)
         return {};
-    
+
     sol::protected_function Func = Object.as<sol::protected_function>();
-    
+
     return Func;
+}
+
+// Lua 전역 변수 가져오기 (GlobalConfig.GameState 등)
+FString FLuaManager::GetGlobalString(const FString& Path)
+{
+    if (!GWorld || !GWorld->GetLuaManager())
+    {
+        return "";
+    }
+
+    sol::state& Lua = GWorld->GetLuaManager()->GetState();
+
+    // Path를 '.'로 분할하여 중첩된 테이블 탐색 (예: "GlobalConfig.GameState")
+    sol::object Current = Lua.globals();
+
+    size_t Start = 0;
+    size_t Pos = 0;
+    while ((Pos = Path.find('.', Start)) != FString::npos)
+    {
+        FString Key = Path.substr(Start, Pos - Start);
+        if (Current.is<sol::table>())
+        {
+            Current = Current.as<sol::table>()[Key];
+        }
+        else
+        {
+            return "";
+        }
+        Start = Pos + 1;
+    }
+
+    // 마지막 키
+    FString LastKey = Path.substr(Start);
+    if (Current.is<sol::table>())
+    {
+        Current = Current.as<sol::table>()[LastKey];
+    }
+
+    // 문자열로 변환 (Lua string → std::string)
+    if (Current.is<const char*>())
+    {
+        return FString(Current.as<const char*>());
+    }
+    else if (Current.is<std::string>())
+    {
+        return Current.as<std::string>();
+    }
+
+    return "";
 }

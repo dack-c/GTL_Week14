@@ -20,10 +20,23 @@ local PlayTime = 0
 function InitGame()
     -- TODO: 플레이어 생성
     PlayTime = 0
-    GetComponent(GetPlayer(), "USkeletalMeshComponent"):SetRagdoll(false)
-    GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0.05
-    GetPlayer().Location = GetStartPosition()
-    GetComponent(GetPlayer(), "UCharacterMovementComponent"):ResetVelocity()
+
+    local Player = GetPlayer()
+    if Player == nil then
+        return
+    end
+
+    GetComponent(Player, "USkeletalMeshComponent"):SetRagdoll(false)
+    GetComponent(Player, "USpringArmComponent").CameraLagSpeed = 0.05
+    Player.Location = GetStartPosition()
+    GetComponent(Player, "UCharacterMovementComponent"):ResetVelocity()
+
+    -- Capsule Offset 초기화 (Player.lua의 로컬 함수 대신 직접 처리)
+    local CharacterMoveComp = GetComponent(Player, "UCharacterMovementComponent")
+    if CharacterMoveComp then
+        CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
+        CharacterMoveComp:SetUseGravity(true)
+    end
 end
 
 
@@ -57,6 +70,9 @@ function Tick(dt)
         GlobalConfig.bIsPlayerDeath = false
         GlobalConfig.GameState = "Playing"
 
+        -- 플레이어 입력 활성화
+        SetPlayerInputEnabled(true)
+
     elseif GlobalConfig.GameState == "Playing" then
         PlayTime = PlayTime + dt
         RenderInGameUI()
@@ -81,12 +97,18 @@ function Tick(dt)
         if GlobalConfig.bIsGameClear == true then
             GlobalConfig.GameState = "Clear"
             GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
+
+            -- 플레이어 입력 차단
+            SetPlayerInputEnabled(false)
         -- 사망
         elseif GlobalConfig.bIsPlayerDeath == true then
             GlobalConfig.GameState = "Death"
             GetComponent(GetPlayer(), "USkeletalMeshComponent"):SetRagdoll(true)
             GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
             PlaySound2DOneShotByFile("Data/Audio/Scream.wav")
+
+            -- 플레이어 입력 차단
+            SetPlayerInputEnabled(false)
         end
 
     elseif GlobalConfig.GameState == "Death" then
@@ -145,7 +167,7 @@ function RenderInitUI()
     AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "김상천, 김진철, 김호민, 김희준", Color, 60)
+    DrawUIText(Rect, "김상천, 김진철, 김호민, 김희준", Color, 60, "THEFACESHOP INKLIPQUID")
 end
 
 -- 인게임 UI 출력
@@ -163,14 +185,14 @@ function RenderInGameUI()
         RemainHeight = 0
     end
 
-    DrawUIText(Rect, "남은 높이: "..string.format("%.1f", RemainHeight).."m", Color, 30)
+    DrawUIText(Rect, "남은 높이: "..string.format("%.1f", RemainHeight).."m", Color, 30, "THEFACESHOP INKLIPQUID")
 
-    
+
     AnchorMin = Vector2D(0.7,0)
     AnchorMax = Vector2D(1,0.2)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Color = Vector4(1,0.5,0.5,1)
-    DrawUIText(Rect, "플레이 시간: "..string.format("%.1f", PlayTime).."초", Color, 30)
+    DrawUIText(Rect, "플레이 시간: "..string.format("%.1f", PlayTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
 end
 
 -- 사망 UI 출력
@@ -183,7 +205,7 @@ function RenderDeathUI()
     local AnchorMax = Vector2D(1,0.7)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "낙사", Color, 100)
+    DrawUIText(Rect, "낙사", Color, 100, "THEFACESHOP INKLIPQUID")
 
     -- 재시작 안내 텍스트
     AnchorMin = Vector2D(0,0.2)
@@ -214,5 +236,5 @@ function RenderClearUI()
     AnchorMax = Vector2D(1,1)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "클리어!\n"..string.format("%.1f", PlayTime).."초", Color, 80)
+    DrawUIText(Rect, "클리어!\n"..string.format("%.1f", PlayTime).."초", Color, 80, "THEFACESHOP INKLIPQUID")
 end

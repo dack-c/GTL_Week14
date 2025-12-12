@@ -8,6 +8,7 @@
 #include "Collision.h"
 #include "ParticleSystemComponent.h"
 #include "FAudioDevice.h"
+#include "Source/Runtime/Engine/Scripting/LuaManager.h"
 
 UCharacterMovementComponent::UCharacterMovementComponent()
 {
@@ -93,7 +94,11 @@ void UCharacterMovementComponent::DoJump()
 {
 	if (!bIsFalling)
 	{
- 		FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Jump.wav", 1.0f, 1.0f);
+		FString GameState = FLuaManager::GetGlobalString("GlobalConfig.GameState");
+		if (GameState == "Playing")
+		{
+			FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Jump.wav", 1.0f, 1.0f);
+		}
 
 		Velocity.Z = JumpZVelocity;
 		bIsJumping = true;
@@ -354,10 +359,14 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 				else
 				{
 					// 구르기 사운드
-					FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 3.0f, 1.0f);
-					if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+					FString GameState = FLuaManager::GetGlobalString("GlobalConfig.GameState");
+					if (GameState == "Playing")
 					{
-						CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
+						FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 3.0f, 1.0f);
+						if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+						{
+							CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
+						}	
 					}
 				}
 			}
@@ -423,11 +432,14 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 				}
 				else
 				{
-					// 구르기 사운드
-					FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 0.3f, 1.0f);
-					if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+					FString GameState = FLuaManager::GetGlobalString("GlobalConfig.GameState");
+					if (GameState == "Playing")
 					{
-						CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
+						FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 0.3f, 1.0f);
+						if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
+						{
+							CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
+						}	
 					}
 				}
 			}

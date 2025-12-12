@@ -22,10 +22,13 @@ public:
     
     // Env 테이블에서 Name(함수 이름) 키를 조회해서 함수로 캐스팅
     static sol::protected_function GetFunc(sol::environment& Env, const char* Name);
-    
+
+    // Lua 전역 변수 가져오기 (게임 상태 체크용)
+    static FString GetGlobalString(const FString& Path);
+
     void Tick(double DeltaSeconds);            // 내부에서 누적 TotalTime 관리
     void ShutdownBeforeLuaClose();             // 코루틴 abandon -> Tasks 비우기
-    
+
     class FLuaCoroutineScheduler& GetScheduler() { return CoroutineSchedular; }
 
 private:
