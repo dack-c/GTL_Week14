@@ -362,7 +362,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 					FString GameState = FLuaManager::GetGlobalString("GlobalConfig.GameState");
 					if (GameState == "Playing")
 					{
-						FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 3.0f, 1.0f);
+						FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 2.0f, 1.0f);
 						if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
 						{
 							CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
@@ -373,6 +373,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			// 일반 착지
 			else if(CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
 			{
+				FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Landing.wav", 2.0f, 1.0f);
 				CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
 			}
 			// SafeMoveUpdatedComponent에서 이미 SkinWidth 적용된 위치로 설정됨
@@ -435,7 +436,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 					FString GameState = FLuaManager::GetGlobalString("GlobalConfig.GameState");
 					if (GameState == "Playing")
 					{
-						FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 0.3f, 1.0f);
+						FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Roll.wav", 2.0f, 1.0f);
 						if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
 						{
 							CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
@@ -446,6 +447,7 @@ void UCharacterMovementComponent::PhysFalling(float DeltaSecond)
 			// 일반 착지
 			else if (CharacterOwner->GetLandingParticleComponent() && LandingParticleAirTime < AirTime)
 			{
+				FAudioDevice::PlaySound2DOneShotByFile("Data/Audio/Landing.wav", 2.0f, 1.0f);
 				CharacterOwner->GetLandingParticleComponent()->ResetAndActivate();
 			}
 
