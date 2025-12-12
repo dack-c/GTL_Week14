@@ -3,7 +3,8 @@ if not _G.GlobalConfig then
     _G.GlobalConfig = {
         GameState = "Init",
         bIsGameClear = false,
-        bIsPlayerDeath = false
+        bIsPlayerDeath = false,
+        bFirstClearDone = false  -- 첫 클리어 여부
     }
 end
 GlobalConfig = _G.GlobalConfig  -- 로컬 별칭
@@ -24,12 +25,14 @@ end
 function OnEndOverlap(OtherActor)
 end
 
-local PlayTime = 0
+local TotalPlayTime = 0        -- 총 플레이 타임 (첫 클리어까지 누적)
+local CurrentAttemptTime = 0   -- 현재 시도 시간 (사망 시 리셋)
 
 -- 게임 상태 초기화
 function InitGame()
     -- TODO: 플레이어 생성
-    PlayTime = 0
+    CurrentAttemptTime = 0  -- 현재 시도만 리셋
+    -- TotalPlayTime은 타이틀 복귀 시에만 리셋됨 (Clear state에서 E 누를 때)
 
     local Player = GetPlayer()
     if Player == nil then
@@ -90,12 +93,17 @@ function Tick(dt)
         SetPlayerInputEnabled(true)
 
     elseif GlobalConfig.GameState == "Playing" then
-        PlayTime = PlayTime + dt
+        -- 첫 클리어 전까지 총 플레이 타임 누적
+        if not GlobalConfig.bFirstClearDone then
+            TotalPlayTime = TotalPlayTime + dt
+        end
+        CurrentAttemptTime = CurrentAttemptTime + dt
         RenderInGameUI()
 
         -- 클리어 체크가 먼저 (우선순위 높음)
         if GlobalConfig.bIsGameClear == true then
             GlobalConfig.GameState = "Clear"
+            GlobalConfig.bFirstClearDone = true  -- 첫 클리어 완료 표시
             GetComponent(GetPlayer(), "USpringArmComponent").CameraLagSpeed = 0
 
             -- 플레이어 입력 차단
@@ -146,6 +154,9 @@ function Tick(dt)
 
         if InputManager:IsKeyDown("E") then
             GlobalConfig.GameState = "Init"
+            GlobalConfig.bFirstClearDone = false  -- 첫 클리어 플래그 리셋
+            TotalPlayTime = 0  -- 총 시간 리셋
+            CurrentAttemptTime = 0  -- 시도 시간 리셋
             CurrentDeathMessage = ""  -- 사망 메시지 리셋
         end
 
@@ -231,19 +242,32 @@ function RenderInGameUI()
     Rect.ZOrder = 1
     DrawUIText(Rect, HeightText, Color, 30, "THEFACESHOP INKLIPQUID")
 
-    -- 플레이 시간 배경
+    -- 총 플레이 시간 배경 (위쪽)
     local RightBoxWidth = 260
     Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10)
     Rect.Size = Vector2D(RightBoxWidth, BoxHeight)
     Rect.ZOrder = 0
     DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
 
-    -- 플레이 시간 텍스트 (세로 중앙 정렬)
+    -- 총 플레이 시간 텍스트 (세로 중앙 정렬)
     Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + VerticalCenter)
     Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
     Rect.ZOrder = 1
-    Color = Vector4(1,0.5,0.5,1)
-    DrawUIText(Rect, "플레이 시간: "..string.format("%.1f", PlayTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
+    Color = Vector4(1,0.8,0.5,1)  -- 주황색
+    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
+
+    -- 현재 시도 시간 배경 (아래쪽)
+    Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10 + BoxHeight + 5)
+    Rect.Size = Vector2D(RightBoxWidth, BoxHeight)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
+
+    -- 현재 시도 시간 텍스트 (세로 중앙 정렬)
+    Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + BoxHeight + 5 + VerticalCenter)
+    Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
+    Rect.ZOrder = 1
+    Color = Vector4(0.5,1,0.5,1)  -- 연두색
+    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
 
     RenderCredits()
 end
@@ -323,31 +347,51 @@ end
 function RenderClearUI()
     local Rect = RectTransform()
     local Color = Vector4(0,1,1,1)
+    local NeonCyan = Vector4(0.0, 1.0, 1.0, 1.0)
 
-    -- local AnchorMin = Vector2D(0,0)
-    -- local AnchorMax = Vector2D(1,1)
-    -- Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
-    -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
-
-    -- -- Rect.Pos = Vector2D(0.0,0.0)
-    -- -- Rect.Size = Vector2D(1264.0,848.0)
-    -- -- Rect.Pivot = Vector2D(0.0,0.0)
-    -- -- Rect.ZOrder = 0;
-    -- -- DrawUISprite(Rect, "Data/UI/Main.png", 1.0)
-
-    -- 클리어 텍스트 배경 박스
-    AnchorMin = Vector2D(0.25, 0.35)
-    AnchorMax = Vector2D(0.75, 0.65)
+    -- 클리어 텍스트 배경 박스 (클리어! + 타임 로그만 포함, 상단~중앙)
+    local AnchorMin = Vector2D(0.25, 0.3)
+    local AnchorMax = Vector2D(0.75, 0.6)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 0
-    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.3)
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.5)
 
-    -- 클리어 텍스트
-    AnchorMin = Vector2D(0,0)
-    AnchorMax = Vector2D(1,1)
-    Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
-    Rect.ZOrder = 1;
-    DrawUIText(Rect, "클리어!\n"..string.format("%.1f", PlayTime).."초", Color, 80, "THEFACESHOP INKLIPQUID")
+    -- 클리어 텍스트 (타이틀) - 박스 내 상단
+    AnchorMin = Vector2D(0, 0.32)
+    AnchorMax = Vector2D(1, 0.45)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 1
+    DrawUIText(Rect, "클리어!", Color, 80, "THEFACESHOP INKLIPQUID")
+
+    -- 총 플레이 시간 - 박스 내 중간
+    AnchorMin = Vector2D(0, 0.46)
+    AnchorMax = Vector2D(1, 0.53)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 1
+    local OrangeColor = Vector4(1, 0.8, 0.5, 1)
+    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", OrangeColor, 36, "THEFACESHOP INKLIPQUID")
+
+    -- 현재 시도 시간 - 박스 내 하단
+    AnchorMin = Vector2D(0, 0.53)
+    AnchorMax = Vector2D(1, 0.6)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 1
+    local GreenColor = Vector4(0.5, 1, 0.5, 1)
+    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", GreenColor, 36, "THEFACESHOP INKLIPQUID")
+
+    -- PRESS E TO RETURN TO TITLE 배경 박스 (하단)
+    AnchorMin = Vector2D(0, 0.63)
+    AnchorMax = Vector2D(1, 0.78)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.5)
+
+    -- PRESS E TO RETURN TO TITLE 텍스트
+    AnchorMin = Vector2D(0, 0.63)
+    AnchorMax = Vector2D(1, 0.78)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 1
+    DrawUIText(Rect, "PRESS E\nTO RETURN TO TITLE", NeonCyan, 32, "Platinum Sign")
 
     RenderCredits()
 end
