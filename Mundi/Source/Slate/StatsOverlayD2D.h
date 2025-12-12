@@ -21,6 +21,7 @@ public:
     void ReadBitmap(const FWideString& FilePath);
     void ReadBitmap(const FString& FilePath);
     void DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& InRect, const FVector4& Color, const float FontSize, const wchar_t* FontName = L"Segoe UI");
+    void DrawRect(const D2D1_RECT_F& InRect, const FVector4& Color, float StrokeWidth = 2.0f);
     void DrawBitmap(const D2D1_RECT_F& InRect, const FString& FilePath, const float Opacity = 1.0f) const;
     void DrawBitmap(const D2D1_RECT_F& InRect, const FWideString& FilePath, const float Opacity = 1.0f) const;
 
@@ -53,6 +54,7 @@ public:
     bool IsParticleVisible() const { return bShowParticle; }
 
     void RegisterTextUI(const FRectTransform& InRectTransform, const FString& Text, const FVector4& Color, const float InFontSize, const FString& InFontName = "Segoe UI");
+    void RegisterRectUI(const FRectTransform& InRectTransform, const FVector4& Color, float StrokeWidth = 2.0f);
     void RegisterSpriteUI(const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity = 1.0f);
 
     FVector2D GetViewportSize() const

@@ -56,6 +56,10 @@ public:
     FVector GetRight() const;
     FVector GetUp() const;
 
+    // WorldToScreen conversion
+    UFUNCTION(LuaBind, DisplayName = "WorldToScreen")
+    FVector2D WorldToScreen(const FVector& WorldPos) const;
+
     // ───── 복사 관련 ────────────────────────────
     void DuplicateSubObjects() override;
 

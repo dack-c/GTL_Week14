@@ -160,6 +160,35 @@ FVector UCameraComponent::GetUp() const
     return GetWorldTransform().Rotation.RotateVector(FVector(0, 0, 1)).GetNormalized();
 }
 
+FVector2D UCameraComponent::WorldToScreen(const FVector& WorldPos) const
+{
+    // Get view and projection matrices
+    FMatrix ViewMatrix = GetViewMatrix();
+    FMatrix ProjMatrix = GetProjectionMatrix();
+    FMatrix ViewProj = ViewMatrix * ProjMatrix;
+
+    // Transform world position to clip space (manual 4x4 matrix * vector multiplication)
+    FVector4 ClipPos;
+    ClipPos.X = WorldPos.X * ViewProj.M[0][0] + WorldPos.Y * ViewProj.M[1][0] + WorldPos.Z * ViewProj.M[2][0] + ViewProj.M[3][0];
+    ClipPos.Y = WorldPos.X * ViewProj.M[0][1] + WorldPos.Y * ViewProj.M[1][1] + WorldPos.Z * ViewProj.M[2][1] + ViewProj.M[3][1];
+    ClipPos.Z = WorldPos.X * ViewProj.M[0][2] + WorldPos.Y * ViewProj.M[1][2] + WorldPos.Z * ViewProj.M[2][2] + ViewProj.M[3][2];
+    ClipPos.W = WorldPos.X * ViewProj.M[0][3] + WorldPos.Y * ViewProj.M[1][3] + WorldPos.Z * ViewProj.M[2][3] + ViewProj.M[3][3];
+
+    // Perspective divide
+    if (ClipPos.W != 0.0f)
+    {
+        ClipPos.X /= ClipPos.W;
+        ClipPos.Y /= ClipPos.W;
+        ClipPos.Z /= ClipPos.W;
+    }
+
+    // Convert NDC [-1, 1] to screen coordinates [0, ScreenWidth/Height]
+    float ScreenX = (ClipPos.X * 0.5f + 0.5f) * CLIENTWIDTH;
+    float ScreenY = (1.0f - (ClipPos.Y * 0.5f + 0.5f)) * CLIENTHEIGHT;  // Y 반전 (NDC +Y는 위, Screen +Y는 아래)
+
+    return FVector2D(ScreenX, ScreenY);
+}
+
 void UCameraComponent::DuplicateSubObjects()
 {
     Super::DuplicateSubObjects();

@@ -490,6 +490,17 @@ FLuaManager::FLuaManager()
     SharedLib.set_function("DrawUISprite", [](const FRectTransform& InRectTransform, const FString& FilePath, const float Opacity)
         { UStatsOverlayD2D::Get().RegisterSpriteUI(InRectTransform, FilePath, Opacity); });
 
+    SharedLib.set_function("DrawUIRect", sol::overload(
+        [](const FRectTransform& InRectTransform, const FVector4& Color)
+        {
+            UStatsOverlayD2D::Get().RegisterRectUI(InRectTransform, Color, 2.0f);
+        },
+        [](const FRectTransform& InRectTransform, const FVector4& Color, float StrokeWidth)
+        {
+            UStatsOverlayD2D::Get().RegisterRectUI(InRectTransform, Color, StrokeWidth);
+        }
+    ));
+
     SharedLib.new_usertype<FLinearColor>("FLinearColor",
         sol::no_constructor,
         "R", &FLinearColor::R,

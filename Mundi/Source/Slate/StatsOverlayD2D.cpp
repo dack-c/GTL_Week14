@@ -283,6 +283,24 @@ void UStatsOverlayD2D::ReadBitmap(const FWideString& FilePath)
 		return;
 	}
 
+	// 화이트 픽셀 discard (투명 처리) - YellowBox.png에만 적용
+	if (NormalizedPath.find(L"YellowBox") != std::wstring::npos)
+	{
+		for (UINT i = 0; i < bufferSize; i += 4)
+		{
+			BYTE& b = pixelBuffer[i + 0];  // Blue
+			BYTE& g = pixelBuffer[i + 1];  // Green
+			BYTE& r = pixelBuffer[i + 2];  // Red
+			BYTE& a = pixelBuffer[i + 3];  // Alpha
+
+			// 흰색 픽셀 (RGB 모두 255)을 투명하게
+			if (r == 255 && g == 255 && b == 255)
+			{
+				a = 0;
+			}
+		}
+	}
+
 	// 메모리 데이터로부터 D2D 비트맵 생성
 	D2D1_BITMAP_PROPERTIES bitmapProps = D2D1::BitmapProperties(
 		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
@@ -340,6 +358,12 @@ void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& In
 		UITextFormat,
 		InRect,
 		UIColorBrush);
+}
+
+void UStatsOverlayD2D::DrawRect(const D2D1_RECT_F& InRect, const FVector4& Color, float StrokeWidth)
+{
+	UIColorBrush->SetColor(D2D1_COLOR_F(Color.X, Color.Y, Color.Z, Color.W));
+	D2DContext->DrawRectangle(InRect, UIColorBrush, StrokeWidth);
 }
 
 void UStatsOverlayD2D::DrawBitmap(const D2D1_RECT_F& InRect, const FString& FilePath, const float Opacity) const
@@ -679,6 +703,11 @@ void UStatsOverlayD2D::RegisterSpriteUI(const FRectTransform& InRectTransform, c
 {
 	ReadBitmap(FilePath);
 	DrawInfose.Push(new FDrawInfoSprite(InRectTransform, FilePath, Opacity));
+}
+
+void UStatsOverlayD2D::RegisterRectUI(const FRectTransform& InRectTransform, const FVector4& Color, float StrokeWidth)
+{
+	DrawInfose.Push(new FDrawInfoRect(InRectTransform, Color, StrokeWidth));
 }
 
 void UStatsOverlayD2D::LoadFontsFromDirectory(const FString& DirectoryPath)

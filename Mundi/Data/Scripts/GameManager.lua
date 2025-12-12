@@ -4,10 +4,42 @@ if not _G.GlobalConfig then
         GameState = "Init",
         bIsGameClear = false,
         bIsPlayerDeath = false,
-        bFirstClearDone = false  -- 첫 클리어 여부
+        bFirstClearDone = false,  -- 첫 클리어 여부
+
+        -- Score System
+        CurrentScore = 0,           -- 현재 시도 점수
+        TotalScore = 0,             -- 누적 최고 점수
+        CurrentState = "None",      -- 현재 동작 상태 (내부 추적용)
+        DisplayState = "None",      -- UI 표시용 State (점수 준 것만)
+        PreviousState = "None",     -- 이전 동작 상태
+        ComboCount = 0,             -- 연속 콤보 카운트
+        LastScoreTime = 0,          -- 마지막 점수 획득 시간
+        LastStateTransitionTime = 0, -- 마지막 State 전환 시간 (중복 방지)
+        LastTransitionedState = "None", -- 마지막 전환된 State (중복 방지)
+        StateHistory = {},          -- State 히스토리 큐 (최대 3개)
+        FallingStartTime = 0,       -- Falling 시작 시간
+        CurrentFallingScore = 0     -- 현재 Falling 중 실시간 점수
     }
 end
 GlobalConfig = _G.GlobalConfig  -- 로컬 별칭
+
+-- State별 점수 테이블 (Jump 제외, Falling은 시간 비례)
+local StateScores = {
+    ["Vault"] = 25,
+    ["Slide"] = 15,
+    ["Sliding Start"] = 10,
+    ["Roll"] = 20,
+    ["Climb"] = 30
+}
+
+-- 콤보 배율 (연속 동작 시)
+local ComboMultipliers = {
+    [1] = 1.0,   -- 1콤보
+    [2] = 1.2,   -- 2콤보: 1.2배
+    [3] = 1.5,   -- 3콤보: 1.5배
+    [4] = 2.0,   -- 4콤보: 2.0배
+    [5] = 2.5    -- 5콤보 이상: 2.5배
+}
 
 function BeginPlay()
     InitGame()
@@ -33,6 +65,17 @@ function InitGame()
     -- TODO: 플레이어 생성
     CurrentAttemptTime = 0  -- 현재 시도만 리셋
     -- TotalPlayTime은 타이틀 복귀 시에만 리셋됨 (Clear state에서 E 누를 때)
+
+    -- Score 시스템 초기화
+    GlobalConfig.CurrentScore = 0
+    GlobalConfig.CurrentState = "None"
+    GlobalConfig.DisplayState = "None"
+    GlobalConfig.PreviousState = "None"
+    GlobalConfig.ComboCount = 0
+    GlobalConfig.LastScoreTime = 0
+    GlobalConfig.StateHistory = {}  -- 히스토리 클리어
+    GlobalConfig.FallingStartTime = 0
+    GlobalConfig.CurrentFallingScore = 0
 
     local Player = GetPlayer()
     if Player == nil then
@@ -98,6 +141,10 @@ function Tick(dt)
             TotalPlayTime = TotalPlayTime + dt
         end
         CurrentAttemptTime = CurrentAttemptTime + dt
+
+        -- 플레이어 애니메이션 상태 감지 및 점수 계산
+        UpdatePlayerStateAndScore(dt)
+
         RenderInGameUI()
 
         -- 클리어 체크가 먼저 (우선순위 높음)
@@ -144,6 +191,7 @@ function Tick(dt)
         RenderDeathUI()
 
         if InputManager:IsKeyDown("E") then
+            InitGame()  -- 사망 시 게임 리셋 (스코어 포함)
             GlobalConfig.GameState = "Init"
             CurrentDeathMessage = ""  -- 사망 메시지 리셋
         end
@@ -158,8 +206,166 @@ function Tick(dt)
             TotalPlayTime = 0  -- 총 시간 리셋
             CurrentAttemptTime = 0  -- 시도 시간 리셋
             CurrentDeathMessage = ""  -- 사망 메시지 리셋
+
+            -- 스코어 시스템 완전 리셋
+            GlobalConfig.CurrentScore = 0
+            GlobalConfig.TotalScore = 0
+            GlobalConfig.CurrentState = "None"
+            GlobalConfig.DisplayState = "None"
+            GlobalConfig.PreviousState = "None"
+            GlobalConfig.ComboCount = 0
+            GlobalConfig.LastScoreTime = 0
+            GlobalConfig.StateHistory = {}  -- 히스토리 클리어
+            GlobalConfig.FallingStartTime = 0
+            GlobalConfig.CurrentFallingScore = 0
         end
 
+    end
+end
+
+-- 플레이어 애니메이션 상태 감지 및 점수 계산
+function UpdatePlayerStateAndScore(dt)
+    local Player = GetPlayer()
+    if not Player then
+        return
+    end
+
+    -- 플레이어의 스켈레탈 메쉬와 애니메이션 인스턴스 가져오기
+    local SkeletalMesh = GetComponent(Player, "USkeletalMeshComponent")
+    if not SkeletalMesh then
+        return
+    end
+
+    local AnimInstance = GetAnimInstanceOfSkeletal(SkeletalMesh)
+    if not AnimInstance then
+        return
+    end
+
+    -- 현재 애니메이션 상태 이름 가져오기
+    local CurrentState = AnimInstance:GetCurrentStateName()
+
+    -- 상태가 변경되었는지 체크
+    if CurrentState ~= GlobalConfig.CurrentState then
+        -- 중복 점수 가산 방지: 같은 이전 State에서 0.1초 내에 다시 점수를 주지 않음
+        local TimeSinceLastScore = TotalPlayTime - GlobalConfig.LastScoreTime
+        local WillScoreForState = GlobalConfig.CurrentState  -- 점수를 받을 State (이전 State)
+
+        -- Falling Idle은 Long Falling으로 기록됨
+        if GlobalConfig.CurrentState == "Falling Idle" then
+            local FallingDuration = TotalPlayTime - GlobalConfig.FallingStartTime
+            if FallingDuration > 1.0 then
+                WillScoreForState = "Long Falling"
+            else
+                WillScoreForState = nil  -- 1초 미만은 점수 없음
+            end
+        elseif not StateScores[GlobalConfig.CurrentState] then
+            WillScoreForState = nil  -- StateScores에 없으면 점수 없음
+        end
+
+        -- 같은 State에 대해 0.1초 내에 중복 점수 방지
+        if WillScoreForState and GlobalConfig.LastTransitionedState == WillScoreForState and TimeSinceLastScore < 0.1 then
+            return  -- 중복 점수 무시
+        end
+
+        -- Falling Idle 종료 시 시간 비례 점수 계산
+        if GlobalConfig.CurrentState == "Falling Idle" then
+            local FallingDuration = TotalPlayTime - GlobalConfig.FallingStartTime
+            if FallingDuration > 1.0 then  -- 1초 이후부터 점수
+                local ExtraTime = FallingDuration - 1.0
+                local BaseScore = math.floor(ExtraTime * 10)  -- 0.1초당 1점
+
+                -- 콤보 체크
+                local TimeSinceLastScore = TotalPlayTime - GlobalConfig.LastScoreTime
+                if TimeSinceLastScore <= 3.0 and GlobalConfig.ComboCount > 0 then
+                    GlobalConfig.ComboCount = GlobalConfig.ComboCount + 1
+                else
+                    GlobalConfig.ComboCount = 1
+                end
+
+                -- 콤보 배율 적용
+                local ComboLevel = math.min(GlobalConfig.ComboCount, 5)
+                local Multiplier = ComboMultipliers[ComboLevel]
+                local FinalScore = math.floor(BaseScore * Multiplier)
+
+                -- 점수 가산
+                GlobalConfig.CurrentScore = GlobalConfig.CurrentScore + FinalScore
+                GlobalConfig.LastScoreTime = TotalPlayTime
+                GlobalConfig.LastTransitionedState = "Long Falling"  -- 중복 방지용
+
+                -- State 히스토리에 추가
+                table.insert(GlobalConfig.StateHistory, 1, {
+                    StateName = "Long Falling",
+                    Score = FinalScore,
+                    Time = TotalPlayTime
+                })
+
+                if #GlobalConfig.StateHistory > 3 then
+                    table.remove(GlobalConfig.StateHistory)
+                end
+
+                -- DisplayState를 Long Falling으로 업데이트 (UI 표시용)
+                GlobalConfig.DisplayState = "Long Falling"
+            end
+        end
+
+        -- 이전 상태가 점수 테이블에 있고, None이 아니면 점수 부여
+        if GlobalConfig.CurrentState ~= "None" and StateScores[GlobalConfig.CurrentState] then
+            local BaseScore = StateScores[GlobalConfig.CurrentState]
+
+            -- 콤보 체크 (마지막 점수 획득 후 3초 이내면 콤보 유지)
+            local TimeSinceLastScore = TotalPlayTime - GlobalConfig.LastScoreTime
+            if TimeSinceLastScore <= 3.0 and GlobalConfig.ComboCount > 0 then
+                GlobalConfig.ComboCount = GlobalConfig.ComboCount + 1
+            else
+                GlobalConfig.ComboCount = 1
+            end
+
+            -- 콤보 배율 적용 (최대 5콤보)
+            local ComboLevel = math.min(GlobalConfig.ComboCount, 5)
+            local Multiplier = ComboMultipliers[ComboLevel]
+            local FinalScore = math.floor(BaseScore * Multiplier)
+
+            -- 점수 가산
+            GlobalConfig.CurrentScore = GlobalConfig.CurrentScore + FinalScore
+            GlobalConfig.LastScoreTime = TotalPlayTime
+            GlobalConfig.LastTransitionedState = GlobalConfig.CurrentState  -- 중복 방지용
+
+            -- State 히스토리에 추가 (최대 3개 유지)
+            table.insert(GlobalConfig.StateHistory, 1, {
+                StateName = GlobalConfig.CurrentState,
+                Score = FinalScore,
+                Time = TotalPlayTime
+            })
+
+            -- 3개 초과 시 제일 오래된 것 제거
+            if #GlobalConfig.StateHistory > 3 then
+                table.remove(GlobalConfig.StateHistory)
+            end
+
+            -- DisplayState 업데이트 (UI 표시용)
+            GlobalConfig.DisplayState = GlobalConfig.CurrentState
+        end
+
+        -- Falling Idle 시작 시 시간 기록
+        if CurrentState == "Falling Idle" then
+            GlobalConfig.FallingStartTime = TotalPlayTime
+        end
+
+        -- 상태 업데이트 (모든 State로 업데이트하여 중복 점수 방지)
+        GlobalConfig.PreviousState = GlobalConfig.CurrentState
+        GlobalConfig.CurrentState = CurrentState
+    end
+
+    -- 현재 Falling 중인 경우 실시간 점수 계산 (실제 애니메이션 State 체크)
+    if CurrentState == "Falling Idle" then
+        local FallingDuration = TotalPlayTime - GlobalConfig.FallingStartTime
+        GlobalConfig.CurrentFallingScore = 0
+        if FallingDuration > 1.0 then
+            local ExtraTime = FallingDuration - 1.0
+            GlobalConfig.CurrentFallingScore = math.floor(ExtraTime * 10)
+        end
+    else
+        GlobalConfig.CurrentFallingScore = 0
     end
 end
 
@@ -269,7 +475,100 @@ function RenderInGameUI()
     Color = Vector4(0.5,1,0.5,1)  -- 연두색
     DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
 
+    -- 플레이어 옆에 Score 표시
+    RenderPlayerScoreUI()
+
     RenderCredits()
+end
+
+-- 플레이어 옆에 Score UI 렌더링 (화면 우측, Anchor 비율 기반)
+function RenderPlayerScoreUI()
+    -- 시네마틱 모드에서는 Score UI 숨김
+    if _G.CinematicState and _G.CinematicState.bIsActive then
+        return
+    end
+
+    local Player = GetPlayer()
+    if not Player then
+        return
+    end
+
+    -- 0점일 때는 Score UI 표시하지 않음
+    if GlobalConfig.CurrentScore == 0 then
+        return
+    end
+
+    local Rect = RectTransform()
+    local AnchorMin, AnchorMax
+    local YellowColor = Vector4(1, 1, 0, 1)
+    local WhiteColor = Vector4(1, 1, 1, 1)
+    local BaseY = 0.45
+
+    -- 점수만 표시 (노란색, 왼쪽)
+    AnchorMin = Vector2D(0.60, BaseY)
+    AnchorMax = Vector2D(0.67, BaseY + 0.03)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 11
+    DrawUIText(Rect, string.format("%d", GlobalConfig.CurrentScore), YellowColor, 28, "Freesentation 8 ExtraBold")
+
+    -- 현재 State 표시 (흰색, 점수 옆 가로 배치)
+    -- 점수 준 State만 표시 (빈 칸 방지)
+    local DisplayStateName = GlobalConfig.DisplayState or "None"
+    if DisplayStateName ~= "None" then
+        AnchorMin = Vector2D(0.67, BaseY - 0.003)
+        AnchorMax = Vector2D(0.80, BaseY + 0.036)
+        Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+
+        -- 테두리 박스 (노란색, 텍스트 뒤)
+        Rect.ZOrder = 10
+        DrawUIRect(Rect, YellowColor, 2.0)
+
+        -- 텍스트 (테두리 위)
+        Rect.ZOrder = 11
+        DrawUIText(Rect, string.format("%s", DisplayStateName), WhiteColor, 24, "Freesentation 8 ExtraBold")
+    end
+
+    -- State 히스토리 큐 렌더링 (세로로 아래에 쌓임, 최근이 위)
+    local HistoryCount = #GlobalConfig.StateHistory
+    local LastHistoryY = BaseY  -- 마지막 히스토리 Y 위치 (기본은 현재 State 높이)
+
+    if HistoryCount > 0 then
+        -- 히스토리 항목 렌더링 (순서: 1→2→3, 최근이 현재 State 바로 위)
+        for i = 1, HistoryCount do
+            local HistoryItem = GlobalConfig.StateHistory[i]
+
+            -- Y 오프셋 계산 (박스 상단과 간격 유지 + 0.03씩 위로)
+            local YOffset = BaseY - 0.005 - (i * 0.03)
+            LastHistoryY = YOffset  -- 마지막 히스토리 Y 위치 기록
+
+            -- 투명도: 최신(1.0) → 중간(0.675) → 오래됨(0.35)
+            local Alpha = 1.0 - ((i - 1) * 0.325)
+
+            -- 글씨 크기: 최신(20) → 중간(18) → 오래됨(16)
+            local FontSize = 22 - (i * 2)
+
+            -- Anchor 기반 렌더링 (현재 State와 같은 X 위치)
+            AnchorMin = Vector2D(0.67, YOffset)
+            AnchorMax = Vector2D(0.80, YOffset + 0.03)
+            Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+            Rect.ZOrder = 11
+
+            local FadedColor = Vector4(1, 1, 1, Alpha)
+            local DisplayText = string.format("%s", HistoryItem.StateName)
+            DrawUIText(Rect, DisplayText, FadedColor, FontSize, "Freesentation 8 ExtraBold")
+        end
+    end
+
+    -- Falling 중 실시간 점수 표시 (현재 State 아래, State Box 오른쪽 정렬)
+    if GlobalConfig.CurrentFallingScore > 0 then
+        local ScoreY = BaseY + 0.04  -- 현재 State 박스 아래 (박스 하단 0.036 + 간격)
+        AnchorMin = Vector2D(0.74, ScoreY)  -- Right align (State Box 오른쪽 기준)
+        AnchorMax = Vector2D(0.80, ScoreY + 0.025)
+        Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+        Rect.ZOrder = 11
+        local GreenColor = Vector4(0, 1, 0, 1)
+        DrawUIText(Rect, string.format("+%d", GlobalConfig.CurrentFallingScore), GreenColor, 18, "Freesentation 8 ExtraBold")
+    end
 end
 
 -- 제작자 표시 함수 (모든 화면에 공통 표시)
@@ -349,35 +648,43 @@ function RenderClearUI()
     local Color = Vector4(0,1,1,1)
     local NeonCyan = Vector4(0.0, 1.0, 1.0, 1.0)
 
-    -- 클리어 텍스트 배경 박스 (클리어! + 타임 로그만 포함, 상단~중앙)
-    local AnchorMin = Vector2D(0.25, 0.3)
-    local AnchorMax = Vector2D(0.75, 0.6)
+    -- 클리어 텍스트 배경 박스 (클리어! + 타임 로그 + 스코어, 상단~중앙)
+    local AnchorMin = Vector2D(0.25, 0.28)
+    local AnchorMax = Vector2D(0.75, 0.62)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 0
     DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.5)
 
     -- 클리어 텍스트 (타이틀) - 박스 내 상단
-    AnchorMin = Vector2D(0, 0.32)
-    AnchorMax = Vector2D(1, 0.45)
+    AnchorMin = Vector2D(0, 0.3)
+    AnchorMax = Vector2D(1, 0.42)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
     DrawUIText(Rect, "클리어!", Color, 80, "THEFACESHOP INKLIPQUID")
 
-    -- 총 플레이 시간 - 박스 내 중간
-    AnchorMin = Vector2D(0, 0.46)
-    AnchorMax = Vector2D(1, 0.53)
+    -- 총 플레이 시간
+    AnchorMin = Vector2D(0, 0.43)
+    AnchorMax = Vector2D(1, 0.49)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
     local OrangeColor = Vector4(1, 0.8, 0.5, 1)
-    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", OrangeColor, 36, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", OrangeColor, 34, "THEFACESHOP INKLIPQUID")
 
-    -- 현재 시도 시간 - 박스 내 하단
-    AnchorMin = Vector2D(0, 0.53)
-    AnchorMax = Vector2D(1, 0.6)
+    -- 현재 시도 시간
+    AnchorMin = Vector2D(0, 0.49)
+    AnchorMax = Vector2D(1, 0.55)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
     local GreenColor = Vector4(0.5, 1, 0.5, 1)
-    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", GreenColor, 36, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", GreenColor, 34, "THEFACESHOP INKLIPQUID")
+
+    -- 최종 스코어
+    AnchorMin = Vector2D(0, 0.55)
+    AnchorMax = Vector2D(1, 0.61)
+    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    Rect.ZOrder = 1
+    local YellowColor = Vector4(1, 1, 0, 1)
+    DrawUIText(Rect, "SCORE: "..string.format("%d", GlobalConfig.CurrentScore), YellowColor, 34, "THEFACESHOP INKLIPQUID")
 
     -- PRESS E TO RETURN TO TITLE 배경 박스 (하단)
     AnchorMin = Vector2D(0, 0.63)

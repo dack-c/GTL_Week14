@@ -1,6 +1,27 @@
 {
   "ObjectName" : "캐릭터_0",
   "OwnedComponents" : [{
+      "CameraLagSpeed" : 0.050000,
+      "GrowSpeed" : 5.000000,
+      "Id" : 14812,
+      "ObjectName" : "USpringArmComponent_1",
+      "ParentId" : 14817,
+      "ProbeSize" : 0.100000,
+      "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+      "RelativeRotationEuler" : [0.000000, 35.000000, 0.000000],
+      "RelativeScale" : [1.000000, 1.000000, 1.000000],
+      "ShrinkSpeed" : 15.000000,
+      "SocketOffset" : [0.000000, 0.000000, 0.000000],
+      "TargetArmLength" : 6.000000,
+      "TargetOffset" : [0.000000, 0.000000, 0.000000],
+      "Type" : "USpringArmComponent",
+      "bDoCollisionTest" : true,
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bIsVisible" : true,
+      "bTickEnabled" : true,
+      "bUsePawnControlRotation" : true
+    }, {
       "CapsuleOffset" : [0.000000, 0.000000, 0.000000],
       "MinFloorNormalZ" : 0.700000,
       "MinSlidingSpeed" : 0.200000,
@@ -13,35 +34,42 @@
       "bIsActive" : true,
       "bTickEnabled" : true
     }, {
-      "ObjectName" : "ULuaScriptComponent_4",
-      "ScriptFilePath" : "Data/Scripts/PlayerCamera.lua",
-      "Type" : "ULuaScriptComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bTickEnabled" : true
-    }, {
-      "AspectRatio" : 1.000000,
-      "FarClip" : 500.000000,
-      "FieldOfView" : 60.000038,
-      "Id" : 5637,
-      "NearClip" : 0.100000,
-      "ObjectName" : "UCameraComponent_7",
-      "ParentId" : 5642,
-      "ProjectionMode" : 0,
-      "RelativeLocation" : [-9.999996, 0.000000, 0.000002],
-      "RelativeRotationEuler" : [-0.000108, 0.000717, -0.000847],
+      "AnimGraphPath" : "Data/Graphs/GameJem.graph",
+      "CollisionEnabled_Internal" : 2,
+      "Id" : 14819,
+      "MaterialSlots" : [{
+          "Type" : "None"
+        }, {
+          "AssetPath" : "Ch06_body",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_eyelashes",
+          "Type" : "UMaterial"
+        }, {
+          "AssetPath" : "Ch06_body1",
+          "Type" : "UMaterial"
+        }],
+      "ObjectName" : "USkeletalMeshComponent_1",
+      "ParentId" : 14817,
+      "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
+      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
+      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "Type" : "UCameraComponent",
-      "ZoomFactor" : 1.000000,
+      "SkeletalMesh" : "Data/FBX/James_Mixamo_Idle.fbx",
+      "Type" : "USkeletalMeshComponent",
+      "bBlockComponent" : false,
+      "bCastShadows" : true,
+      "bGenerateOverlapEvents" : true,
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bIsVisible" : true,
+      "bOverrideCollisionSetting" : false,
       "bTickEnabled" : true
     }, {
       "CollisionEnabled_Internal" : 0,
-      "Id" : 5640,
+      "Id" : 14814,
       "ObjectName" : "SlidingParticle",
-      "ParentId" : 5638,
+      "ParentId" : 14817,
       "RelativeLocation" : [0.223943, 0.000000, -0.900000],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
@@ -59,13 +87,27 @@
       "bUseAsyncSimulation" : true,
       "bUseGpuInstancing" : false
     }, {
+      "ObjectName" : "ULuaScriptComponent_4",
+      "ScriptFilePath" : "Data/Scripts/PlayerCamera.lua",
+      "Type" : "ULuaScriptComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
+      "ObjectName" : "ULuaScriptComponent_1",
+      "ScriptFilePath" : "Data/Scripts/Player.lua",
+      "Type" : "ULuaScriptComponent",
+      "bHiddenInGame" : false,
+      "bIsActive" : true,
+      "bTickEnabled" : true
+    }, {
       "CapsuleHalfHeight" : 1.000000,
       "CapsuleRadius" : 0.300000,
       "CollisionEnabled_Internal" : 0,
-      "Id" : 5638,
+      "Id" : 14817,
       "ObjectName" : "UCapsuleComponent_1",
       "ParentId" : 0,
-      "RelativeLocation" : [-8.723465, 1.722959, 80.300941],
+      "RelativeLocation" : [-8.723465, 1.724963, 80.300941],
       "RelativeRotationEuler" : [0.000000, -0.000000, 93.255432],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
       "Type" : "UCapsuleComponent",
@@ -79,70 +121,28 @@
       "bShapeIsVisible" : true,
       "bTickEnabled" : true
     }, {
-      "ObjectName" : "ULuaScriptComponent_1",
-      "ScriptFilePath" : "Data/Scripts/Player.lua",
-      "Type" : "ULuaScriptComponent",
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bTickEnabled" : true
-    }, {
-      "CameraLagSpeed" : 0.050000,
-      "GrowSpeed" : 5.000000,
-      "Id" : 5642,
-      "ObjectName" : "USpringArmComponent_1",
-      "ParentId" : 5638,
-      "ProbeSize" : 0.100000,
-      "RelativeLocation" : [0.000000, 0.000000, 2.000046],
-      "RelativeRotationEuler" : [0.000000, 30.000000, 0.000000],
+      "AspectRatio" : 1.000000,
+      "FarClip" : 500.000000,
+      "FieldOfView" : 60.000038,
+      "Id" : 14818,
+      "NearClip" : 0.100000,
+      "ObjectName" : "UCameraComponent_7",
+      "ParentId" : 14812,
+      "ProjectionMode" : 0,
+      "RelativeLocation" : [-9.999996, 0.000000, 0.000002],
+      "RelativeRotationEuler" : [-0.000108, 0.000717, -0.000847],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "ShrinkSpeed" : 15.000000,
-      "SocketOffset" : [0.000000, 0.000000, 0.000000],
-      "TargetArmLength" : 6.000000,
-      "TargetOffset" : [0.000000, 0.000000, 0.000000],
-      "Type" : "USpringArmComponent",
-      "bDoCollisionTest" : true,
+      "Type" : "UCameraComponent",
+      "ZoomFactor" : 1.000000,
       "bHiddenInGame" : false,
       "bIsActive" : true,
       "bIsVisible" : true,
-      "bTickEnabled" : true,
-      "bUsePawnControlRotation" : true
-    }, {
-      "AnimGraphPath" : "Data/Graphs/GameJem.graph",
-      "CollisionEnabled_Internal" : 2,
-      "Id" : 5643,
-      "MaterialSlots" : [{
-          "Type" : "None"
-        }, {
-          "AssetPath" : "Ch06_body",
-          "Type" : "UMaterial"
-        }, {
-          "AssetPath" : "Ch06_eyelashes",
-          "Type" : "UMaterial"
-        }, {
-          "AssetPath" : "Ch06_body1",
-          "Type" : "UMaterial"
-        }],
-      "ObjectName" : "USkeletalMeshComponent_1",
-      "ParentId" : 5638,
-      "PhysicsAssetOverridePath" : "Data/Physics/ttt1.phys",
-      "RelativeLocation" : [0.000000, 0.000000, -1.000000],
-      "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
-      "RelativeScale" : [1.000000, 1.000000, 1.000000],
-      "SkeletalMesh" : "Data/FBX/James_Mixamo_Idle.fbx",
-      "Type" : "USkeletalMeshComponent",
-      "bBlockComponent" : false,
-      "bCastShadows" : true,
-      "bGenerateOverlapEvents" : true,
-      "bHiddenInGame" : false,
-      "bIsActive" : true,
-      "bIsVisible" : true,
-      "bOverrideCollisionSetting" : false,
       "bTickEnabled" : true
     }, {
       "CollisionEnabled_Internal" : 2,
-      "Id" : 5967,
+      "Id" : 15143,
       "ObjectName" : "LandingParticle",
-      "ParentId" : 5638,
+      "ParentId" : 14817,
       "RelativeLocation" : [0.000000, 0.000000, -0.947609],
       "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
       "RelativeScale" : [1.000000, 1.000000, 1.000000],
@@ -160,7 +160,7 @@
       "bUseAsyncSimulation" : true,
       "bUseGpuInstancing" : false
     }],
-  "RootComponentId" : 5638,
+  "RootComponentId" : 14817,
   "Tag" : "",
   "Type" : "ACharacter",
   "bActorHiddenInGame" : false,

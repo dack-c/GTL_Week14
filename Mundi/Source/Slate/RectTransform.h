@@ -26,18 +26,18 @@ public:
         {
             Rect.left = ViewportLTop.X + AnchorMin.X * ViewportSize.X;
             Rect.right = ViewportLTop.X + AnchorMax.X * ViewportSize.X;
-            Rect.bottom = ViewportLTop.Y + AnchorMin.Y * ViewportSize.Y;
-            Rect.top = ViewportLTop.Y + AnchorMax.Y * ViewportSize.Y;
+            Rect.top = ViewportLTop.Y + AnchorMin.Y * ViewportSize.Y;
+            Rect.bottom = ViewportLTop.Y + AnchorMax.Y * ViewportSize.Y;
             return Rect;
         }
-        else 
+        else
         {
             FVector2D AnchorPos = FVector2D(ViewportSize.X * Anchor.X, ViewportSize.Y * Anchor.Y) + ViewportLTop;
             FVector2D PivotPos = AnchorPos + Pos;
             Rect.left = PivotPos.X - Pivot.X * Size.X;
             Rect.right = PivotPos.X + (1 - Pivot.X) * Size.X;
-            Rect.bottom = PivotPos.Y - Pivot.Y * Size.Y;
-            Rect.top = PivotPos.Y + (1 - Pivot.Y) * Size.Y;
+            Rect.top = PivotPos.Y - Pivot.Y * Size.Y;
+            Rect.bottom = PivotPos.Y + (1 - Pivot.Y) * Size.Y;
             return Rect;
         }
     }
@@ -83,9 +83,19 @@ struct FDrawInfoSprite : public FDrawInfo
     FWideString SpritePath;
     float Opacity = 1.0f;
     ~FDrawInfoSprite() override = default;
-    FDrawInfoSprite(const FRectTransform& InRT, const FWideString& InFilePath, const float InOpacity = 1.0f) : 
+    FDrawInfoSprite(const FRectTransform& InRT, const FWideString& InFilePath, const float InOpacity = 1.0f) :
         FDrawInfo(InRT), SpritePath(InFilePath), Opacity (InOpacity){}
     FDrawInfoSprite(const FRectTransform& InRT, const FString& InFilePath, const float InOpacity = 1.0f) :
         FDrawInfo(InRT), SpritePath(UTF8ToWide(InFilePath)), Opacity(InOpacity) {}
+    void DrawUI() const override;
+};
+
+struct FDrawInfoRect : public FDrawInfo
+{
+    FVector4 Color;
+    float StrokeWidth = 2.0f;
+    ~FDrawInfoRect() override = default;
+    FDrawInfoRect(const FRectTransform& InRT, const FVector4& InColor, float InStrokeWidth = 2.0f) :
+        FDrawInfo(InRT), Color(InColor), StrokeWidth(InStrokeWidth) {}
     void DrawUI() const override;
 };

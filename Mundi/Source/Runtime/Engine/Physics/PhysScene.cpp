@@ -1177,8 +1177,8 @@ bool FPhysScene::OverlapCapsuleWithMTD(
 
         // 2단계: 각 겹치는 shape에 대해 MTD 계산
         PxU32 NumHits = OverlapBuffer.getNbAnyHits();
-        UE_LOG("[PhysScene] OverlapCapsuleWithMTD: Found %u overlapping shapes at (%.2f, %.2f, %.2f)",
-            NumHits, Position.X, Position.Y, Position.Z);
+        // UE_LOG("[PhysScene] OverlapCapsuleWithMTD: Found %u overlapping shapes at (%.2f, %.2f, %.2f)",
+        //     NumHits, Position.X, Position.Y, Position.Z);
 
         for (PxU32 i = 0; i < NumHits; ++i)
         {
