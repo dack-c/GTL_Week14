@@ -320,6 +320,36 @@ FLuaManager::FLuaManager()
             GWorld->GetGameMode()->PlayerController->SetUseMovementInput(bEnabled);
         }
     );
+    SharedLib.set_function("SetTimeDilation",
+        [](float Dilation)
+        {
+            if (!GWorld)
+            {
+                return;
+            }
+            GWorld->SetTimeDilation(Dilation);
+        }
+    );
+    SharedLib.set_function("GetTimeDilation",
+        []() -> float
+        {
+            if (!GWorld)
+            {
+                return 1.0f;
+            }
+            return GWorld->GetTimeDilation();
+        }
+    );
+    SharedLib.set_function("SetViewTargetCamera",
+        [](UCameraComponent* Camera)
+        {
+            if (!GWorld || !GWorld->GetPlayerCameraManager() || !Camera)
+            {
+                return;
+            }
+            GWorld->GetPlayerCameraManager()->SetViewCamera(Camera);
+        }
+    );
     SharedLib.set_function("SetPlayerForward",
         [](FGameObject& GameObject, FVector Direction)
         {
