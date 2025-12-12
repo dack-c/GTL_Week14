@@ -1,3 +1,13 @@
+-- 전역 GlobalConfig 테이블을 전역에 초기화
+if not _G.GlobalConfig then
+    _G.GlobalConfig = {
+        GameState = "Init",
+        bIsGameClear = false,
+        bIsPlayerDeath = false
+    }
+end
+GlobalConfig = _G.GlobalConfig  -- 로컬 별칭
+
 function BeginPlay()
     InitGame()
     GlobalConfig.GameState = "Init"

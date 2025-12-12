@@ -868,8 +868,8 @@ FString FLuaManager::GetGlobalString(const FString& Path)
 
     sol::state& Lua = GWorld->GetLuaManager()->GetState();
 
-    // Path를 '.'로 분할하여 중첩된 테이블 탐색 (예: "GlobalConfig.GameState")
-    sol::object Current = Lua.globals();
+    // _G에서 시작
+    sol::object Current = Lua["_G"];
 
     size_t Start = 0;
     size_t Pos = 0;
@@ -879,6 +879,10 @@ FString FLuaManager::GetGlobalString(const FString& Path)
         if (Current.is<sol::table>())
         {
             Current = Current.as<sol::table>()[Key];
+            if (!Current.valid())
+            {
+                return "";
+            }
         }
         else
         {
@@ -892,6 +896,10 @@ FString FLuaManager::GetGlobalString(const FString& Path)
     if (Current.is<sol::table>())
     {
         Current = Current.as<sol::table>()[LastKey];
+        if (!Current.valid())
+        {
+            return "";
+        }
     }
 
     // 문자열로 변환 (Lua string → std::string)
