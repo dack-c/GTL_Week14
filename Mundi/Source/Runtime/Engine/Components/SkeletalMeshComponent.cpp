@@ -1399,6 +1399,27 @@ void USkeletalMeshComponent::SetRagdoll(bool bIsActive)
     }
 }
 
+void USkeletalMeshComponent::ResetAnimToIdle()
+{
+    if (AnimInstance && AnimInstance->GetStateMachine())
+    {
+        auto* StateMachine = AnimInstance->GetStateMachine();
+        const auto& States = StateMachine->GetStates();
+
+        // "Idle" 상태 시도
+        if (StateMachine->FindState("Idle"))
+        {
+            StateMachine->SetInitialState("Idle");
+        }
+        // 첫 번째 상태로 폴백
+        else if (States.size() > 0)
+        {
+            StateMachine->SetInitialState(States[0].Name);
+            UE_LOG("ResetAnimToIdle: Using first state '%s'", States[0].Name.ToString().c_str());
+        }
+    }
+}
+
 void USkeletalMeshComponent::SetAnimInstance(UAnimInstance* InAnimInstance)
 {
     AnimInstance = InAnimInstance;

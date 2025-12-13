@@ -97,14 +97,24 @@ function InitGame()
     GetComponent(Player, "USkeletalMeshComponent"):SetRagdoll(false)
     GetComponent(Player, "USpringArmComponent").CameraLagSpeed = 0.05
     Player.Location = GetStartPosition()
-    GetComponent(Player, "UCharacterMovementComponent"):ResetVelocity()
 
-    -- Capsule Offset 초기화 (Player.lua의 로컬 함수 대신 직접 처리)
+    -- 이동 상태 완전 초기화
     local CharacterMoveComp = GetComponent(Player, "UCharacterMovementComponent")
     if CharacterMoveComp then
+        CharacterMoveComp:ResetVelocity()
+        CharacterMoveComp:ResetMovementState()
         CharacterMoveComp.CapsuleOffset = Vector(0,0,0)
         CharacterMoveComp:SetUseGravity(true)
     end
+
+    -- 애니메이션을 Idle로 강제 리셋
+    local SkeletalMesh = GetComponent(Player, "USkeletalMeshComponent")
+    if SkeletalMesh then
+        SkeletalMesh:ResetAnimToIdle()
+    end
+
+    -- Player.lua의 상태 변수 리셋
+    ResetPlayerState()
 
     -- GameEvent 플래그 리셋 (재시작 시 클리어/사망 이벤트 재활성화)
     if _G.GameEventFlags then

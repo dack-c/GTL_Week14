@@ -155,6 +155,9 @@ public:
     UFUNCTION(LuaBind, DisplayName = "SetRagdoll")
     void SetRagdoll(bool bIsActive);
 
+    UFUNCTION(LuaBind, DisplayName = "ResetAnimToIdle")
+    void ResetAnimToIdle();
+
     /**
      * @brief AnimInstance 설정 (선택적)
      */

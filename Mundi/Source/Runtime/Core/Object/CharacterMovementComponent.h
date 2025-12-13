@@ -41,6 +41,16 @@ public:
 		Acceleration = FVector::Zero();
 	}
 
+	UFUNCTION(LuaBind, DisplayName = "ResetMovementState")
+	void ResetMovementState()
+	{
+		bIsJumping = false;
+		bIsFalling = false;
+		bIsSliding = false;
+		bNeedRolling = false;
+		AirTime = 0.0f;
+	}
+
 	// 상태 제어 
 	void DoJump();
 	void StopJump();

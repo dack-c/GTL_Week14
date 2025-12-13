@@ -2,6 +2,7 @@
 #include "Object.h"
 #include "AnimTypes.h"
 //#include "AnimStateTypes.h"
+#include "AnimationStateMachine.h"
 #include "UAnimInstance.generated.h"
 
 // Forward declarations
@@ -213,6 +214,18 @@ public:
      * @brief 상태머신 설정
      */
     void SetStateMachine(UAnimationStateMachine* InStateMachine);
+
+    /**
+     * @brief 애니메이션을 Idle 상태로 강제 리셋
+     */
+    UFUNCTION(LuaBind, DisplayName = "ForceIdleState")
+    void ForceIdleState()
+    {
+        if (AnimStateMachine)
+        {
+            AnimStateMachine->SetInitialState("Idle");
+        }
+    }
 
     /**
      * @brief 이동 속도 설정 (상태머신 전이 조건용)

@@ -68,6 +68,16 @@ function EndPlay()
   -- StopAllSounds()
 end
 
+function ResetPlayerState()
+  PreAnimStateStr = ""
+  bChangedFromClimb = false
+  PostDelta = 0.0
+  print("Player.lua: State reset")
+end
+
+-- 전역 함수로 노출
+_G.ResetPlayerState = ResetPlayerState
+
 function OnBeginOverlap(OtherActor)
 print("beginoverlap")
 end
