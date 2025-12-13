@@ -6,6 +6,8 @@
 #include "Source/Runtime/Core/Object/ObjectMacros.h"
 #include "Source/Runtime/Engine/Scripting/LuaBindHelpers.h"
 
+#include "Vector.h"
+
 // ===== Class Factory Registration (IMPLEMENT_CLASS) =====
 
 // IMPLEMENT_CLASS(UCameraComponent) expansion
@@ -52,5 +54,7 @@ LUA_BIND_BEGIN(UCameraComponent)
         T, "SetFOV", &UCameraComponent::SetFOV);
     AddMethodR<float, UCameraComponent>(
         T, "GetFOV", &UCameraComponent::GetFOV);
+    AddMethodR<FVector2D, UCameraComponent, const FVector&>(
+        T, "WorldToScreen", &UCameraComponent::WorldToScreen);
 }
 LUA_BIND_END()
