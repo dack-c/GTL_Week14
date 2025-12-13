@@ -43,9 +43,11 @@ bool UAnimSequenceBase::IsNotifyAvailable() const
 
 TArray<FAnimNotifyEvent>& UAnimSequenceBase::GetAnimNotifyEvents()
 {
-    // Lazy-load meta if empty and sidecar exists
-    if (Notifies.Num() == 0)
+    // Lazy-load meta if empty and sidecar exists (단 한 번만 시도)
+    if (Notifies.Num() == 0 && !bMetaLoadAttempted)
     {
+        bMetaLoadAttempted = true;  // 로드 시도 플래그 설정 (파일이 비어있어도 재시도 안 함)
+
         FString FileName = "AnimNotifies";
         const FString Src = GetFilePath();
         if (!Src.empty())
@@ -60,13 +62,9 @@ TArray<FAnimNotifyEvent>& UAnimSequenceBase::GetAnimNotifyEvents()
         std::filesystem::path MetaPath(UTF8ToWide(MetaPathUtf8));
         std::error_code ec;
 
-        //UE_LOG("GetAnimNotifyEvents - FilePath: %s, MetaPath: %s, Exists: %d",
-            //Src.c_str(), MetaPathUtf8.c_str(), std::filesystem::exists(MetaPath, ec) ? 1 : 0);
-
         if (std::filesystem::exists(MetaPath, ec))
         {
             LoadMeta(MetaPathUtf8);
-            //UE_LOG("GetAnimNotifyEvents - Loaded %d notifies from %s", Notifies.Num(), MetaPathUtf8.c_str());
         }
     }
     return Notifies;

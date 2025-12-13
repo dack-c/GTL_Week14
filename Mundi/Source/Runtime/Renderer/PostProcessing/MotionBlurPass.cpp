@@ -1,10 +1,7 @@
 ﻿#include "pch.h"
 #include "MotionBlurPass.h"
-#include "../SceneView.h"
-#include "../../RHI/SwapGuard.h"
-#include "../../RHI/ConstantBufferType.h"
-#include "../../RHI/D3D11RHI.h"
-#include "../../AssetManagement/ResourceManager.h"
+
+#include "SwapGuard.h"
 
 void FMotionBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D3D11RHI* RHIDevice)
 {
@@ -46,9 +43,16 @@ void FMotionBlurPass::Execute(const FPostProcessModifier& M, FSceneView* View, D
 
     // 5) 상수 버퍼 업데이트
     FMotionBlurBufferType MotionBlurConstant;
+    const FViewportRect& ViewportRect = View->ViewRect;
+    const float CenterX = static_cast<float>(ViewportRect.MinX + ViewportRect.MaxX) * 0.5f;
+    const float CenterY = static_cast<float>(ViewportRect.MinY + ViewportRect.MaxY) * 0.5f;
+    
+    const UINT SwapChainWidth = RHIDevice->GetSwapChainWidth();
+    const UINT SwapChainHeight = RHIDevice->GetSwapChainHeight();
+    
     MotionBlurConstant.Center = FVector2D(
-        M.Payload.Params0.X,  // Center X (기본 0.5)
-        M.Payload.Params0.Y   // Center Y (기본 0.5)
+         CenterX / static_cast<float>(SwapChainWidth),
+         CenterY / static_cast<float>(SwapChainHeight)
     );
     MotionBlurConstant.Intensity = M.Payload.Params0.Z;  // Intensity (0~1)
     MotionBlurConstant.SampleCount = static_cast<int32>(M.Payload.Params0.W);  // Sample Count (기본 16)

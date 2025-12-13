@@ -44,6 +44,7 @@ public:
 protected:
     
     TArray<FAnimNotifyEvent> Notifies;
+    bool bMetaLoadAttempted = false;  // 메타 파일 로드 시도 여부 (매 프레임 재로드 방지)
 
     //TArray<FAnimNotifyTrack> AnimNotifyTracks;
 
