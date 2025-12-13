@@ -1,0 +1,352 @@
+{
+  "Actors" : {
+    "2860" : {
+      "ObjectName" : "GameManager",
+      "OwnedComponents" : [{
+          "Id" : 2861,
+          "ObjectName" : "USceneComponent_19",
+          "ParentId" : 0,
+          "RelativeLocation" : [-3.152301, 30.377277, 97.064301],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "USceneComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }, {
+          "ObjectName" : "ULuaScriptComponent_21",
+          "ScriptFilePath" : "Data/Scripts/GameManager.lua",
+          "Type" : "ULuaScriptComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2861,
+      "Tag" : "",
+      "Type" : "AEmptyActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2873" : {
+      "ObjectName" : "DeathTrigger",
+      "OwnedComponents" : [{
+          "BoxExtent" : [98.000000, 231.600006, 10.000000],
+          "Id" : 2876,
+          "LuaFunctionName" : "DoDeath",
+          "ObjectName" : "UTriggerComponent_7",
+          "ParentId" : 0,
+          "RelativeLocation" : [-38.305077, 118.033981, -69.055168],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "UTriggerComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }, {
+          "ObjectName" : "ULuaScriptComponent_24",
+          "ScriptFilePath" : "Data/Scripts/GameEvent.lua",
+          "Type" : "ULuaScriptComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2876,
+      "Tag" : "",
+      "Type" : "ATriggerActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2878" : {
+      "ObjectName" : "ClearTrigger",
+      "OwnedComponents" : [{
+          "ObjectName" : "ULuaScriptComponent_24",
+          "ScriptFilePath" : "Data/Scripts/GameEvent.lua",
+          "Type" : "ULuaScriptComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bTickEnabled" : true
+        }, {
+          "BoxExtent" : [30.000000, 30.000000, 30.000000],
+          "Id" : 2882,
+          "LuaFunctionName" : "DoClear",
+          "ObjectName" : "UTriggerComponent_7",
+          "ParentId" : 0,
+          "RelativeLocation" : [-31.036255, 190.940994, -34.777500],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "UTriggerComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2882,
+      "Tag" : "",
+      "Type" : "ATriggerActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2901" : {
+      "ObjectName" : "플레이어 시작 위치_2",
+      "OwnedComponents" : [{
+          "CollisionEnabled_Internal" : 2,
+          "Id" : 2903,
+          "ObjectName" : "UBillboardComponent_29",
+          "ParentId" : 0,
+          "RelativeLocation" : [-3.569819, -1.025875, 81.508835],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Texture" : "Data/Icon/PlayerStart_64.dds",
+          "Type" : "UBillboardComponent",
+          "bBlockComponent" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : true,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bTickEnabled" : true
+        }],
+      "PlayerStartTag" : "Invalid",
+      "RootComponentId" : 2903,
+      "Tag" : "",
+      "Type" : "APlayerStart",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2944" : {
+      "ObjectName" : "ADirectionalLightActor_1",
+      "OwnedComponents" : [{
+          "CascadedAreaColorDebugValue" : 0.000000,
+          "CascadedAreaShadowDebugValue" : -1,
+          "CascadedCount" : 8,
+          "CascadedLinearBlendingValue" : 0.500000,
+          "CascadedOverlapValue" : 0.150000,
+          "Id" : 2946,
+          "Intensity" : 1.000000,
+          "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
+          "ObjectName" : "UDirectionalLightComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [-62.900280, 16.769619, -62.900280],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "ShadowBias" : 0.000010,
+          "ShadowResolutionScale" : 4096,
+          "ShadowSharpen" : 0.500000,
+          "ShadowSlopeBias" : 0.000010,
+          "Temperature" : 6500.000000,
+          "Type" : "UDirectionalLightComponent",
+          "bCascaded" : true,
+          "bCastShadows" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2946,
+      "Tag" : "",
+      "Type" : "ADirectionalLightActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2947" : {
+      "ObjectName" : "AAmbientLightActor_1",
+      "OwnedComponents" : [{
+          "Id" : 2949,
+          "Intensity" : 0.100000,
+          "LightColor" : [1.000000, 1.000000, 1.000000, 1.000000],
+          "ObjectName" : "UAmbientLightComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "ShadowBias" : 0.000010,
+          "ShadowResolutionScale" : 1024,
+          "ShadowSharpen" : 0.500000,
+          "ShadowSlopeBias" : 0.000010,
+          "Temperature" : 6500.000000,
+          "Type" : "UAmbientLightComponent",
+          "bCastShadows" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2949,
+      "Tag" : "",
+      "Type" : "AAmbientLightActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2950" : {
+      "ObjectName" : "APlayerCameraManager_1",
+      "OwnedComponents" : [{
+          "Id" : 2951,
+          "ObjectName" : "USceneComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "USceneComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2951,
+      "Tag" : "",
+      "Type" : "APlayerCameraManager",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2952" : {
+      "ObjectName" : "스태틱 메시_0",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 4,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 2954,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "Type" : "None"
+            }, {
+              "Overrides" : {
+                "Scalars" : {
+
+                },
+                "Textures" : {
+                  "0" : "Data/Untracked/FBX/fbx/textures/Hotel_Hous_AO.png"
+                },
+                "Vectors" : {
+
+                }
+              },
+              "ParentPath" : "ground",
+              "Type" : "UMaterialInstanceDynamic"
+            }, {
+              "Overrides" : {
+                "Scalars" : {
+
+                },
+                "Textures" : {
+                  "0" : "Data/Untracked/FBX/fbx/textures/fire extinguisher_ref.jpg",
+                  "1" : "Data/Untracked/FBX/fbx/textures/AussenWand_N.jpg"
+                },
+                "Vectors" : {
+
+                }
+              },
+              "ParentPath" : "hotel_glas",
+              "Type" : "UMaterialInstanceDynamic"
+            }],
+          "ObjectName" : "UStaticMeshComponent_1",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [1.431494, -1.724316, -1.776552],
+          "RelativeRotationEuler" : [0.000000, -90.000000, -0.000005],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Untracked/FBX/fbx/Residential Buildings 009.fbx",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : true,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2954,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2986" : {
+      "ObjectName" : "ADecalActor_1",
+      "OwnedComponents" : [{
+          "CollisionEnabled_Internal" : 2,
+          "DecalOpacity" : 1.000000,
+          "DecalTexture" : "Data/Textures/Arrow.png",
+          "FadeSpeed" : 2.000000,
+          "Id" : 2988,
+          "ObjectName" : "UDecalComponent_1",
+          "ParentId" : 0,
+          "RelativeLocation" : [-2.000246, 1.596819, 79.370422],
+          "RelativeRotationEuler" : [0.000000, 90.000000, -90.000000],
+          "RelativeScale" : [0.149265, 3.000000, 3.000000],
+          "Type" : "UDecalComponent",
+          "bBlockComponent" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2988,
+      "Tag" : "",
+      "Type" : "ADecalActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "2989" : {
+      "ObjectName" : "Skybox",
+      "OwnedComponents" : [{
+          "Id" : 2990,
+          "ObjectName" : "USceneComponent_4",
+          "ParentId" : 0,
+          "RelativeLocation" : [51.578754, 49.874226, 78.476791],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "USceneComponent",
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bTickEnabled" : true
+        }, {
+          "CollisionEnabled_Internal" : 2,
+          "Id" : 2991,
+          "ObjectName" : "USkyBoxComponent_1",
+          "ParentId" : 2990,
+          "RelativeLocation" : [0.000000, 0.000000, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "USkyBoxComponent",
+          "bBlockComponent" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 2990,
+      "Tag" : "",
+      "Type" : "AEmptyActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    }
+  },
+  "NextUUID" : 43175,
+  "PerspectiveCamera" : {
+    "FOV" : [60.000000],
+    "FarClip" : [8019.000000],
+    "Location" : [-8.172684, 5.516703, 96.095055],
+    "NearClip" : [0.100000],
+    "Rotation" : [0.000000, 65.000023, -81.558731]
+  },
+  "Version" : 1
+}
