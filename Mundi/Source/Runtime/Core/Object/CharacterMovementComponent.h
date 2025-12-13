@@ -51,6 +51,12 @@ public:
 		AirTime = 0.0f;
 	}
 
+	UFUNCTION(LuaBind, DisplayName = "GetSpeed")
+	float GetSpeed() const
+	{
+		return Velocity.Size();
+	}
+
 	// 상태 제어 
 	void DoJump();
 	void StopJump();

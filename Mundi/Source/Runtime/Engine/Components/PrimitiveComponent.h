@@ -4,7 +4,7 @@
 #include "Material.h"
 #include "UPrimitiveComponent.generated.h"
 
-struct FBodyInstance;
+class FBodyInstance;
 struct FSceneCompData;
 
 class URenderer;

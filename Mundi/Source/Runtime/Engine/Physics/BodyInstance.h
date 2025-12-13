@@ -4,7 +4,7 @@
 
 class UPrimitiveComponent;
 class UBodySetup;
-struct FPhysScene;
+class FPhysScene;
 
 // PhysX의 PxRigidActor 전방 선언
 namespace physx

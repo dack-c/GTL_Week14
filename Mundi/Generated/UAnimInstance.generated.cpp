@@ -46,6 +46,8 @@ LUA_BIND_BEGIN(UAnimInstance)
 {
     AddMethodR<FString, UAnimInstance>(
         T, "GetCurrentStateName", &UAnimInstance::GetCurrentStateName);
+    AddAlias<UAnimInstance>(
+        T, "ForceIdleState", &UAnimInstance::ForceIdleState);
     AddMethodR<float, UAnimInstance>(
         T, "GetCurrentPlayTime", &UAnimInstance::GetCurrentPlayTime);
 }

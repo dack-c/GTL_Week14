@@ -26,6 +26,8 @@ public:
     virtual void TickComponent(float DeltaSeconds) override;
 
     void SetVelocity(const FVector& NewVelocity);
+
+    UFUNCTION(LuaBind, DisplayName = "GetVelocity")
     FVector GetVelocity() const { return Velocity; }
 
     void SetAcceleration(const FVector& NewAcceleration);

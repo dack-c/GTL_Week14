@@ -6,6 +6,8 @@
 #include "Source/Runtime/Core/Object/ObjectMacros.h"
 #include "Source/Runtime/Engine/Scripting/LuaBindHelpers.h"
 
+#include "Vector.h"
+
 // ===== Class Factory Registration (IMPLEMENT_CLASS) =====
 
 // IMPLEMENT_CLASS(UMovementComponent) expansion
@@ -44,7 +46,7 @@ extern "C" void LuaBind_Anchor_UMovementComponent() {}
 
 LUA_BIND_BEGIN(UMovementComponent)
 {
-    // No functions to bind
+    AddMethodR<FVector, UMovementComponent>(
+        T, "GetVelocity", &UMovementComponent::GetVelocity);
 }
 LUA_BIND_END()
-

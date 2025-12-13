@@ -51,6 +51,10 @@ LUA_BIND_BEGIN(UCharacterMovementComponent)
 {
     AddAlias<UCharacterMovementComponent>(
         T, "ResetVelocity", &UCharacterMovementComponent::ResetVelocity);
+    AddAlias<UCharacterMovementComponent>(
+        T, "ResetMovementState", &UCharacterMovementComponent::ResetMovementState);
+    AddMethodR<float, UCharacterMovementComponent>(
+        T, "GetSpeed", &UCharacterMovementComponent::GetSpeed);
     AddAlias<UCharacterMovementComponent, bool>(
         T, "SetUseGravity", &UCharacterMovementComponent::SetUseGravity);
     AddMethodR<bool, UCharacterMovementComponent>(

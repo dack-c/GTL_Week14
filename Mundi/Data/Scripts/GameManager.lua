@@ -19,8 +19,11 @@ if not _G.GlobalConfig then
 
         MotionBlurActive = false,
         MotionBlurIntensity = 0.0,
+        CurrentMotionBlurIntensity = 0.0,  -- 현재 적용 중인 intensity (이징용)
+        TargetMotionBlurIntensity = 0.0,   -- 목표 intensity
         MotionBlurStartTime = 0,
-        MotionBlurDuration = 0.3
+        MotionBlurDuration = 0.3,
+        MotionBlurLerpSpeed = 5.0  -- 초당 Lerp 속도
     }
 end
 GlobalConfig = _G.GlobalConfig
@@ -29,7 +32,7 @@ GlobalConfig = _G.GlobalConfig
 local StateScores = {
     ["Vault"] = 25,
     ["Slide"] = 15,
-    ["Sliding Start"] = 10,
+    ["Sliding"] = 10,
     ["Roll"] = 20,
     ["Climb"] = 30
 }
@@ -42,19 +45,11 @@ local ComboMultipliers = {
     [5] = 2.5
 }
 
-local MotionBlurIntensities = {
-    ["Vault"] = 1.2,
-    ["Slide"] = 1.0,
-    ["Sliding Start"] = 0.8,
-    ["Sliding"] = 0.9,
-    ["Roll"] = 1.1,
-    ["Dash"] = 1.5
-}
-
-local PlayerMaxSpeed = 3500.0
-local SpeedBlurThreshold = PlayerMaxSpeed * 0.70
-local SpeedBlurMaxSpeed = PlayerMaxSpeed
-local SpeedBlurMaxIntensity = 1.2
+-- 속도 기반 모션 블러 설정
+local SpeedBlurStartSpeed = 8.0      -- 블러 시작 속도 (달리기 최대 속도)
+local SpeedBlurMaxSpeed = 20.0       -- 최대 블러 도달 속도
+local SpeedBlurMinIntensity = 0.2    -- 시작 블러 강도 (8.0 속도에서)
+local SpeedBlurMaxIntensity = 1.2    -- 최대 블러 강도 (20.0 속도에서)
 
 function BeginPlay()
     InitGame()
@@ -169,71 +164,33 @@ function Tick(dt)
             end
         end
 
-        if GlobalConfig.MotionBlurActive then
-            local Player = GetPlayer()
-            local CurrentStateBlurIntensity = nil
+        -- 속도 기반 모션 블러 계산
+        local TargetIntensity = 0.0
+        local Player = GetPlayer()
 
-            if Player then
-                local SkeletalMesh = GetComponent(Player, "USkeletalMeshComponent")
-                if SkeletalMesh then
-                    local AnimInstance = GetAnimInstanceOfSkeletal(SkeletalMesh)
-                    if AnimInstance then
-                        local CurrentState = AnimInstance:GetCurrentStateName()
-                        CurrentStateBlurIntensity = MotionBlurIntensities[CurrentState]
-                    end
+        if Player then
+            local CharacterMoveComp = GetComponent(Player, "UCharacterMovementComponent")
+            if CharacterMoveComp then
+                local Speed = CharacterMoveComp:GetSpeed()
+
+                -- 8.0 이상 속도부터 블러 시작 (옅게), 20.0에서 최대 강도
+                if Speed >= SpeedBlurStartSpeed then
+                    local SpeedRatio = math.min((Speed - SpeedBlurStartSpeed) / (SpeedBlurMaxSpeed - SpeedBlurStartSpeed), 1.0)
+                    TargetIntensity = SpeedBlurMinIntensity + SpeedRatio * (SpeedBlurMaxIntensity - SpeedBlurMinIntensity)
                 end
             end
+        end
 
-            if CurrentStateBlurIntensity and CurrentStateBlurIntensity > 0 then
-                -- 지속 상태 (예: Sliding): 블러 유지
-                local CameraManager = GetCameraManager()
-                if CameraManager then
-                    CameraManager:StartMotionBlur(CurrentStateBlurIntensity)
-                end
-            else
-                local BlurElapsed = TotalPlayTime - GlobalConfig.MotionBlurStartTime
-                if BlurElapsed < GlobalConfig.MotionBlurDuration then
-                    -- 페이드아웃 중: 강도를 선형 감소
-                    local Progress = BlurElapsed / GlobalConfig.MotionBlurDuration
-                    local CurrentIntensity = GlobalConfig.MotionBlurIntensity * (1.0 - Progress)
+        -- Lerp로 자연스럽게 전환 (이징 처리)
+        GlobalConfig.TargetMotionBlurIntensity = TargetIntensity
+        local LerpAlpha = math.min(dt * GlobalConfig.MotionBlurLerpSpeed, 1.0)
+        GlobalConfig.CurrentMotionBlurIntensity = GlobalConfig.CurrentMotionBlurIntensity +
+            (GlobalConfig.TargetMotionBlurIntensity - GlobalConfig.CurrentMotionBlurIntensity) * LerpAlpha
 
-                    local CameraManager = GetCameraManager()
-                    if CameraManager then
-                        CameraManager:StartMotionBlur(CurrentIntensity)
-                    end
-                else
-                    GlobalConfig.MotionBlurActive = false
-                    GlobalConfig.MotionBlurIntensity = 0.0
-
-                    local CameraManager = GetCameraManager()
-                    if CameraManager then
-                        CameraManager:StartMotionBlur(0.0)
-                    end
-                end
-            end
-        -- State 기반 블러가 없을 때: 속도 기반 블러 체크
-        else
-            local Player = GetPlayer()
-            if Player then
-                local Vel = Player.Velocity
-                -- 수평 속도 계산 (XY 평면, Z 제외)
-                local HorizontalSpeed = math.sqrt(Vel.X * Vel.X + Vel.Y * Vel.Y)
-
-                if HorizontalSpeed > SpeedBlurThreshold then
-                    local SpeedRatio = math.min((HorizontalSpeed - SpeedBlurThreshold) / (SpeedBlurMaxSpeed - SpeedBlurThreshold), 1.0)
-                    local SpeedBasedIntensity = SpeedRatio * SpeedBlurMaxIntensity
-
-                    local CameraManager = GetCameraManager()
-                    if CameraManager then
-                        CameraManager:StartMotionBlur(SpeedBasedIntensity)
-                    end
-                else
-                    local CameraManager = GetCameraManager()
-                    if CameraManager then
-                        CameraManager:StartMotionBlur(0.0)
-                    end
-                end
-            end
+        -- 최종 적용
+        local CameraManager = GetCameraManager()
+        if CameraManager then
+            CameraManager:StartMotionBlur(GlobalConfig.CurrentMotionBlurIntensity)
         end
 
         RenderInGameUI()
@@ -412,18 +369,7 @@ function UpdatePlayerStateAndScore(dt)
         -- 상태 업데이트 (모든 State로 업데이트하여 중복 점수 방지)
         GlobalConfig.PreviousState = GlobalConfig.CurrentState
         GlobalConfig.CurrentState = CurrentState
-
-        local BlurIntensity = MotionBlurIntensities[CurrentState]
-        if BlurIntensity and BlurIntensity > 0 then
-            GlobalConfig.MotionBlurActive = true
-            GlobalConfig.MotionBlurIntensity = BlurIntensity
-            GlobalConfig.MotionBlurStartTime = TotalPlayTime
-
-            local CameraManager = GetCameraManager()
-            if CameraManager then
-                CameraManager:StartMotionBlur(BlurIntensity)
-            end
-        end
+        -- 모션 블러는 Tick()에서 Lerp 처리
     end
 
     if CurrentState == "Falling Idle" then
@@ -502,6 +448,25 @@ function RenderInGameUI()
     Rect.Size = Vector2D(LeftBoxWidth - HorizontalPadding * 2, TextHeight)
     Rect.ZOrder = 1
     DrawUIText(Rect, HeightText, Color, 30, "THEFACESHOP INKLIPQUID")
+
+    -- 플레이어 속도 표시
+    local CharacterMoveComp = GetComponent(GetPlayer(), "UCharacterMovementComponent")
+    local Speed = 0
+    if CharacterMoveComp then
+        Speed = CharacterMoveComp:GetSpeed()
+    end
+    local SpeedText = "속도: "..string.format("%.1f", Speed).."m/s"
+
+    Rect.Pos = Vector2D(ViewportOffset.X + EdgeMargin, ViewportOffset.Y + 10 + BoxHeight + 5)
+    Rect.Size = Vector2D(LeftBoxWidth, BoxHeight)
+    Rect.ZOrder = 0
+    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
+
+    Rect.Pos = Vector2D(ViewportOffset.X + EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + BoxHeight + 5 + VerticalCenter)
+    Rect.Size = Vector2D(LeftBoxWidth - HorizontalPadding * 2, TextHeight)
+    Rect.ZOrder = 1
+    Color = Vector4(1, 0.5, 0.8, 1)
+    DrawUIText(Rect, SpeedText, Color, 30, "THEFACESHOP INKLIPQUID")
 
     local RightBoxWidth = 260
     Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10)
