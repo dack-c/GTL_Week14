@@ -144,6 +144,18 @@ struct alignas(16) FDOFRecombineBufferType
 };
 static_assert(sizeof(FDOFRecombineBufferType) % 16 == 0, "CB must be 16-byte aligned");
 
+// Motion Blur Pass (b2)
+struct alignas(16) FMotionBlurBufferType
+{
+    FVector2D Center;              // 블러 중심점 (0.5, 0.5 = 화면 중앙)
+    float Intensity;               // 블러 강도 (0~1)
+    int32 SampleCount;             // 샘플 개수 (8~32)
+
+    float Weight;                  // 전체 효과 가중치 (0~1)
+    FVector _Pad0;
+};
+static_assert(sizeof(FMotionBlurBufferType) % 16 == 0, "CB must be 16-byte aligned");
+
 struct FXAABufferType // b2
 {
     FVector2D InvScreenSize; // 1.0f / ScreenSize (픽셀 하나의 크기)
@@ -326,6 +338,7 @@ MACRO(FXAABufferType)               \
 MACRO(FDOFSetupBufferType)          \
 MACRO(FDOFBlurBufferType)           \
 MACRO(FDOFRecombineBufferType)      \
+MACRO(FMotionBlurBufferType)        \
 MACRO(FPixelConstBufferType)        \
 MACRO(ViewProjBufferType)           \
 MACRO(ColorBufferType)              \
@@ -356,6 +369,7 @@ CONSTANT_BUFFER_INFO(FXAABufferType, 2, false, true)
 CONSTANT_BUFFER_INFO(FDOFSetupBufferType, 2, false, true)      // b2, PS only (DOF Setup Pass)
 CONSTANT_BUFFER_INFO(FDOFBlurBufferType, 2, false, true)       // b2, PS only (DOF Blur Pass)
 CONSTANT_BUFFER_INFO(FDOFRecombineBufferType, 2, false, true)  // b2, PS only (DOF Recombine Pass)
+CONSTANT_BUFFER_INFO(FMotionBlurBufferType, 2, false, true)    // b2, PS only (Motion Blur Pass)
 CONSTANT_BUFFER_INFO(ColorBufferType, 3, true, true)   // b3 color
 CONSTANT_BUFFER_INFO(FPixelConstBufferType, 4, true, true) // GOURAUD에도 사용되므로 VS도 true
 CONSTANT_BUFFER_INFO(DecalBufferType, 6, true, true)

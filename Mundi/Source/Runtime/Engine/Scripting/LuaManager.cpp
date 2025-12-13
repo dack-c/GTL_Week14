@@ -879,7 +879,31 @@ void FLuaManager::ExposeGlobalFunctions()
             {
                 Self->StartDOF(FocalDistance, FocalRegion, NearTransitionRegion, FarTransitionRegion, MaxNearBlurSize, MaxFarBlurSize, InPriority);
             }
-        }
+        },
+
+        // --- Motion Blur (Radial Blur) ---
+        "StartMotionBlur", sol::overload(
+            // (Full) 5개 인수
+            [](APlayerCameraManager* Self, float Intensity, float CenterX, float CenterY, int32 SampleCount, int32 InPriority)
+            {
+                if (Self) Self->StartMotionBlur(Intensity, CenterX, CenterY, SampleCount, InPriority);
+            },
+            // (Priority 기본값) 4개 인수
+            [](APlayerCameraManager* Self, float Intensity, float CenterX, float CenterY, int32 SampleCount)
+            {
+                if (Self) Self->StartMotionBlur(Intensity, CenterX, CenterY, SampleCount);
+            },
+            // (SampleCount, Priority 기본값) 3개 인수
+            [](APlayerCameraManager* Self, float Intensity, float CenterX, float CenterY)
+            {
+                if (Self) Self->StartMotionBlur(Intensity, CenterX, CenterY);
+            },
+            // (Center, SampleCount, Priority 기본값) 1개 인수
+            [](APlayerCameraManager* Self, float Intensity)
+            {
+                if (Self) Self->StartMotionBlur(Intensity);
+            }
+        )
     );
 }
 

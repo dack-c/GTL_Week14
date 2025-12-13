@@ -3,6 +3,7 @@
 
 // FSceneRenderer가 사용하는 모든 헤더 포함
 #include "World.h"
+#include "PlayerCameraManager.h"
 #include "CameraActor.h"
 #include "FViewport.h"
 #include "FViewportClient.h"
@@ -1235,6 +1236,13 @@ void FSceneRenderer::RenderPostProcessingPasses()
 {
 	// Ensure first post-process pass samples from the current scene output
  	TArray<FPostProcessModifier> PostProcessModifiers = View->Modifiers;
+
+	// Camera Modifier System 통합 (Fade, Vignette, DOF, MotionBlur 등)
+	if (APlayerCameraManager* PCM = World->GetPlayerCameraManager())
+	{
+		TArray<FPostProcessModifier> CameraModifiers = PCM->GetModifiers();
+		PostProcessModifiers.Append(CameraModifiers);
+	}
 
 	// TODO : 다른 데에서 하기, 맨 앞으로 넘기기
 	// Register Height Fog Modifiers, 첫번째만 등록 된다.

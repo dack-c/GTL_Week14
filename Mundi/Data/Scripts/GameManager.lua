@@ -18,7 +18,13 @@ if not _G.GlobalConfig then
         LastTransitionedState = "None", -- 마지막 전환된 State (중복 방지)
         StateHistory = {},          -- State 히스토리 큐 (최대 3개)
         FallingStartTime = 0,       -- Falling 시작 시간
-        CurrentFallingScore = 0     -- 현재 Falling 중 실시간 점수
+        CurrentFallingScore = 0,    -- 현재 Falling 중 실시간 점수
+
+        -- Motion Blur System
+        MotionBlurActive = false,   -- 모션 블러 활성화 여부
+        MotionBlurIntensity = 0.0,  -- 현재 블러 강도 (0~1)
+        MotionBlurStartTime = 0,    -- 블러 시작 시간
+        MotionBlurDuration = 0.3    -- 블러 지속 시간 (초)
     }
 end
 GlobalConfig = _G.GlobalConfig  -- 로컬 별칭
@@ -40,6 +46,22 @@ local ComboMultipliers = {
     [4] = 2.0,   -- 4콤보: 2.0배
     [5] = 2.5    -- 5콤보 이상: 2.5배
 }
+
+-- State별 모션 블러 강도 (0~1)
+local MotionBlurIntensities = {
+    ["Vault"] = 1.2,
+    ["Slide"] = 1.0,
+    ["Sliding Start"] = 0.8,
+    ["Sliding"] = 0.9,       -- 슬라이딩 중 지속 블러
+    ["Roll"] = 1.1,
+    ["Dash"] = 1.5
+}
+
+-- 속도 기반 모션 블러 설정
+local PlayerMaxSpeed = 3500.0               -- 플레이어 최대 속도 (추정치)
+local SpeedBlurThreshold = PlayerMaxSpeed * 0.70  -- 최대 속도의 70% (2450)
+local SpeedBlurMaxSpeed = PlayerMaxSpeed    -- 최대 강도 속도
+local SpeedBlurMaxIntensity = 1.2           -- 최대 강도
 
 function BeginPlay()
     InitGame()
@@ -144,6 +166,89 @@ function Tick(dt)
 
         -- 플레이어 애니메이션 상태 감지 및 점수 계산
         UpdatePlayerStateAndScore(dt)
+
+        -- [TEST] 상시 Motion Blur 테스트 (Q 키)
+        if InputManager:IsKeyPressed("B") then
+            local CameraManager = GetCameraManager()
+            if CameraManager then
+                CameraManager:StartMotionBlur(1.0)  -- 최대 강도
+                print("[DEBUG] Motion Blur triggered manually (Intensity: 1.0)")
+            end
+        end
+
+        -- Motion Blur 업데이트 (State 기반)
+        if GlobalConfig.MotionBlurActive then
+            -- 현재 State가 여전히 블러 대상인지 확인
+            local Player = GetPlayer()
+            local CurrentStateBlurIntensity = nil
+
+            if Player then
+                local SkeletalMesh = GetComponent(Player, "USkeletalMeshComponent")
+                if SkeletalMesh then
+                    local AnimInstance = GetAnimInstanceOfSkeletal(SkeletalMesh)
+                    if AnimInstance then
+                        local CurrentState = AnimInstance:GetCurrentStateName()
+                        CurrentStateBlurIntensity = MotionBlurIntensities[CurrentState]
+                    end
+                end
+            end
+
+            -- 현재 State가 블러 대상이면 유지, 아니면 페이드아웃
+            if CurrentStateBlurIntensity and CurrentStateBlurIntensity > 0 then
+                -- 지속 상태 (예: Sliding): 블러 유지
+                local CameraManager = GetCameraManager()
+                if CameraManager then
+                    CameraManager:StartMotionBlur(CurrentStateBlurIntensity)
+                end
+            else
+                -- 블러 대상이 아닌 State: 페이드아웃
+                local BlurElapsed = TotalPlayTime - GlobalConfig.MotionBlurStartTime
+                if BlurElapsed < GlobalConfig.MotionBlurDuration then
+                    -- 페이드아웃 중: 강도를 선형 감소
+                    local Progress = BlurElapsed / GlobalConfig.MotionBlurDuration
+                    local CurrentIntensity = GlobalConfig.MotionBlurIntensity * (1.0 - Progress)
+
+                    local CameraManager = GetCameraManager()
+                    if CameraManager then
+                        CameraManager:StartMotionBlur(CurrentIntensity)
+                    end
+                else
+                    -- 페이드아웃 완료: 블러 비활성화
+                    GlobalConfig.MotionBlurActive = false
+                    GlobalConfig.MotionBlurIntensity = 0.0
+
+                    local CameraManager = GetCameraManager()
+                    if CameraManager then
+                        CameraManager:StartMotionBlur(0.0)  -- 완전히 끔
+                    end
+                end
+            end
+        -- State 기반 블러가 없을 때: 속도 기반 블러 체크
+        else
+            local Player = GetPlayer()
+            if Player then
+                local Vel = Player.Velocity
+                -- 수평 속도 계산 (XY 평면, Z 제외)
+                local HorizontalSpeed = math.sqrt(Vel.X * Vel.X + Vel.Y * Vel.Y)
+
+                if HorizontalSpeed > SpeedBlurThreshold then
+                    -- 속도 비율 계산 (0~1)
+                    local SpeedRatio = math.min((HorizontalSpeed - SpeedBlurThreshold) / (SpeedBlurMaxSpeed - SpeedBlurThreshold), 1.0)
+                    local SpeedBasedIntensity = SpeedRatio * SpeedBlurMaxIntensity
+
+                    local CameraManager = GetCameraManager()
+                    if CameraManager then
+                        CameraManager:StartMotionBlur(SpeedBasedIntensity)
+                    end
+                else
+                    -- 속도가 임계값 이하: 블러 끔
+                    local CameraManager = GetCameraManager()
+                    if CameraManager then
+                        CameraManager:StartMotionBlur(0.0)
+                    end
+                end
+            end
+        end
 
         RenderInGameUI()
 
@@ -354,6 +459,20 @@ function UpdatePlayerStateAndScore(dt)
         -- 상태 업데이트 (모든 State로 업데이트하여 중복 점수 방지)
         GlobalConfig.PreviousState = GlobalConfig.CurrentState
         GlobalConfig.CurrentState = CurrentState
+
+        -- Motion Blur 트리거 (새 State에 블러 강도가 정의되어 있으면 활성화)
+        local BlurIntensity = MotionBlurIntensities[CurrentState]
+        if BlurIntensity and BlurIntensity > 0 then
+            GlobalConfig.MotionBlurActive = true
+            GlobalConfig.MotionBlurIntensity = BlurIntensity
+            GlobalConfig.MotionBlurStartTime = TotalPlayTime
+
+            -- 카메라 매니저를 통해 Motion Blur 활성화
+            local CameraManager = GetCameraManager()
+            if CameraManager then
+                CameraManager:StartMotionBlur(BlurIntensity)  -- (Intensity, CenterX, CenterY 기본값 사용)
+            end
+        end
     end
 
     -- 현재 Falling 중인 경우 실시간 점수 계산 (실제 애니메이션 State 체크)

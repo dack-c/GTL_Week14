@@ -55,7 +55,15 @@ public:
 		float MaxNearBlurSize = 32.0f,       // pixels
 		float MaxFarBlurSize = 32.0f,        // pixels
 		int32 InPriority = 0
-	); 
+	);
+
+	void StartMotionBlur(
+		float Intensity = 1.0f,              // 블러 강도 (0~1)
+		float CenterX = 0.5f,                // 블러 중심점 X (0~1, 기본 화면 중앙)
+		float CenterY = 0.5f,                // 블러 중심점 Y (0~1, 기본 화면 중앙)
+		int32 SampleCount = 16,              // 샘플 개수 (8~32)
+		int32 InPriority = 0
+	);
 
 public:
 	TArray<UCameraModifierBase*> ActiveModifiers;

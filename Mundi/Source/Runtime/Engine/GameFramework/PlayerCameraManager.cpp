@@ -7,6 +7,7 @@
 #include "Camera/CamMod_Vignette.h"
 #include "Camera/CamMod_Gamma.h"
 #include "Camera/CamMod_DOF.h"
+#include "Camera/CamMod_MotionBlur.h"
 #include "SceneView.h"
 #include "CameraActor.h"
 #include "World.h"
@@ -355,6 +356,41 @@ void APlayerCameraManager::StartDOF(
 	DOFModifier->MaxFarBlurSize = MaxFarBlurSize;
 
 	ActiveModifiers.Add(DOFModifier);
+}
+
+void APlayerCameraManager::StartMotionBlur(
+	float Intensity,
+	float CenterX,
+	float CenterY,
+	int32 SampleCount,
+	int32 InPriority)
+{
+	// 기존 MotionBlur Modifier 제거 (중복 방지)
+	for (int32 i = ActiveModifiers.Num() - 1; i >= 0; --i)
+	{
+		if (UCamMod_MotionBlur* ExistingMB = Cast<UCamMod_MotionBlur>(ActiveModifiers[i]))
+		{
+			DeleteObject(ExistingMB);
+			ActiveModifiers.RemoveAt(i);
+		}
+	}
+
+	UCamMod_MotionBlur* MotionBlurModifier = NewObject<UCamMod_MotionBlur>();
+	if (!MotionBlurModifier)
+	{
+		UE_LOG("StartMotionBlur: Failed to create UCamMod_MotionBlur! Check if CamMod_MotionBlur.cpp is in the project.\n");
+		return;
+	}
+
+	MotionBlurModifier->Priority = InPriority;
+	MotionBlurModifier->bEnabled = true;
+
+	MotionBlurModifier->Intensity = std::max(0.0f, std::min(1.0f, Intensity));
+	MotionBlurModifier->CenterX = std::max(0.0f, std::min(1.0f, CenterX));
+	MotionBlurModifier->CenterY = std::max(0.0f, std::min(1.0f, CenterY));
+	MotionBlurModifier->SampleCount = std::max(8, std::min(32, SampleCount));
+
+	ActiveModifiers.Add(MotionBlurModifier);
 }
 
 // CurrentViewInfo를 현재 카메라를 기준으로 설정 (트렌지션 중에는 사이 값으로 설정)
