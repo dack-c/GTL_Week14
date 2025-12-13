@@ -214,5 +214,6 @@ FString UAnimSequence::GetMetaPath() const
     FWideString WString = UTF8ToWide(NormalizePath(Path));
     std::filesystem::path p(WString);
     FString stem = WideToUTF8(p.stem().wstring());
+    std::replace(stem.begin(), stem.end(), '|', '_');
     return NormalizePath(GDataDir + "/" + stem + ".animseq.json");
 }

@@ -1463,7 +1463,7 @@
         }],
       "StateName" : "Vault"
     }, {
-      "AnimPath" : "Data/animations/Parkour/P_Jumping.fbx_mixamo.com",
+      "AnimPath" : "Data/animations/Parkour/P_Jumping.fbx_Armature|Armature|mixamo.com|Layer0",
       "ClassName" : "UK2Node_AnimSequence",
       "NodeID" : 99,
       "NodePosX" : 3763.000000,

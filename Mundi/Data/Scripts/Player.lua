@@ -101,6 +101,7 @@ function Tick(Delta)
     PreAnimStateStr = "Vault"
     if AnimInstance:GetCurrentPlayTime() > 0.4 then
       CharacterMoveComp.CapsuleOffset = Vector(0.5,0,0.5)
+      CharacterMoveComp:SetUseGravity(false)
     else
       CharacterMoveComp.CapsuleOffset = Vector(0.0,0,0.0)
     end
