@@ -6,7 +6,7 @@ local OriginFOV
 local CurSpeed
 local LastPos
 
-local FOVLerpValue = 0.05
+local FOVLerpValue = 0.01
 local MaxAdditionalFOV = 14
 local MinFOVSpeed = 0.05
 local MaxFOVSpeed = 0.2 --최대속도가 아니라 fov가 최대가 되는 속도
