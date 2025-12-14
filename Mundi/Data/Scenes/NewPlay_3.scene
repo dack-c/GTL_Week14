@@ -33000,7 +33000,7 @@
           "ObjectName" : "UStaticMeshComponent_65",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [449.968781, -93.358932, -6.887866],
+          "RelativeLocation" : [449.968781, -93.358932, -2.799976],
           "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "RestitutionCombineModeOverride" : 2,
@@ -33408,7 +33408,7 @@
           "ObjectName" : "UStaticMeshComponent_133",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [306.480682, 334.053741, 0.000000],
+          "RelativeLocation" : [306.480682, 332.023987, 0.000000],
           "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "RestitutionCombineModeOverride" : 2,
@@ -33493,7 +33493,7 @@
           "ObjectName" : "UStaticMeshComponent_66",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [286.070129, 185.373230, 0.000000],
+          "RelativeLocation" : [286.070129, 188.110779, 0.000000],
           "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "RestitutionCombineModeOverride" : 2,
@@ -33578,7 +33578,7 @@
           "ObjectName" : "UStaticMeshComponent_66",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [362.049835, 186.179108, 0.000000],
+          "RelativeLocation" : [362.049835, 187.075745, 0.000000],
           "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "RestitutionCombineModeOverride" : 2,
@@ -33788,18 +33788,2525 @@
           "LinearDampingOverride" : 0.010000,
           "MassOverride" : 10.000000,
           "MaterialSlots" : [{
-              "AssetPath" : "texture",
+              "AssetPath" : "hirise2.001",
               "Type" : "UMaterial"
             }],
           "ObjectName" : "UStaticMeshComponent_67",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [284.996490, -1.191371, 259.856537],
+          "RelativeLocation" : [65.960327, 118.340912, 0.000000],
+          "RelativeRotationEuler" : [-90.000008, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/highrise/high-rise.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1293663,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1293664" : {
+      "ObjectName" : "AStaticMeshActor_22",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1293665,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "hirise2.001",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_67",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-152.175415, 342.002991, 0.000000],
+          "RelativeRotationEuler" : [-90.000008, -0.000000, -90.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/highrise/high-rise.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1293665,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1293666" : {
+      "ObjectName" : "AStaticMeshActor_23",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1293667,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-123.449295, 161.818359, 0.000000],
           "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "RestitutionCombineModeOverride" : 2,
           "SphereRadius" : 50.000000,
-          "StaticMesh" : "Data/cube-tex.obj",
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1293667,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1293668" : {
+      "ObjectName" : "AStaticMeshActor_24",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1293669,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-123.449295, 210.308502, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1293669,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1293670" : {
+      "ObjectName" : "AStaticMeshActor_25",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1293671,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-194.526871, 210.308502, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1293671,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1293672" : {
+      "ObjectName" : "AStaticMeshActor_26",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1293673,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-194.526871, 164.671661, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1293673,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1293674" : {
+      "ObjectName" : "AStaticMeshActor_27",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1293675,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-90.220055, 109.523514, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [2.000000, 2.000000, 2.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_8.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1293675,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1315227" : {
+      "ObjectName" : "AStaticMeshActor_28",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1315228,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [329.837891, 180.241180, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1315228,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1315229" : {
+      "ObjectName" : "AStaticMeshActor_29",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1315230,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [414.322937, 100.900444, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1315230,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1315231" : {
+      "ObjectName" : "AStaticMeshActor_30",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1315232,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [301.704498, 46.834858, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1315232,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1321360" : {
+      "ObjectName" : "AStaticMeshActor_31",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1321361,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "hirise2.001",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_67",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [184.289032, -57.559734, 0.000000],
+          "RelativeRotationEuler" : [-90.000008, 0.000000, -179.999985],
+          "RelativeScale" : [0.700000, 0.700000, 0.700000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/highrise/high-rise.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1321361,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1321362" : {
+      "ObjectName" : "AStaticMeshActor_32",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1321363,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [253.317429, -341.851135, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [2.000000, 2.000000, 2.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_8.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1321363,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1321364" : {
+      "ObjectName" : "AStaticMeshActor_33",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1321365,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "hirise2.001",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_67",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [399.137054, -344.944061, 0.000000],
+          "RelativeRotationEuler" : [-90.000008, 0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/highrise/high-rise.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1321365,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1321366" : {
+      "ObjectName" : "AStaticMeshActor_34",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1321367,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [66.258110, 474.900818, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_11.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1321367,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328786" : {
+      "ObjectName" : "AStaticMeshActor_35",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328787,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [336.219971, 397.742950, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328787,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328788" : {
+      "ObjectName" : "AStaticMeshActor_36",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328789,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [269.607208, 398.635803, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328789,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328790" : {
+      "ObjectName" : "AStaticMeshActor_37",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328791,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [269.607208, 434.485962, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328791,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328792" : {
+      "ObjectName" : "AStaticMeshActor_38",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328793,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [200.244522, 415.409271, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328793,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328794" : {
+      "ObjectName" : "AStaticMeshActor_39",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328795,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [609.450256, 254.581177, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.200000, 1.200000, 1.200000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_6.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328795,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328796" : {
+      "ObjectName" : "AStaticMeshActor_40",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328797,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [787.605591, 268.388916, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328797,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328798" : {
+      "ObjectName" : "AStaticMeshActor_41",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328799,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [787.605591, 332.197388, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328799,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328800" : {
+      "ObjectName" : "AStaticMeshActor_42",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328801,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [787.605591, 452.330353, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328801,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328802" : {
+      "ObjectName" : "AStaticMeshActor_43",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328803,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [837.457764, 452.330353, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328803,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328804" : {
+      "ObjectName" : "AStaticMeshActor_44",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328805,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [837.457764, 379.887756, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328805,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328806" : {
+      "ObjectName" : "AStaticMeshActor_45",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328807,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [837.457764, 299.859650, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328807,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1328808" : {
+      "ObjectName" : "AStaticMeshActor_46",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1328809,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [586.792480, 453.545654, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [2.000000, 2.000000, 2.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_8.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1328809,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339815" : {
+      "ObjectName" : "AStaticMeshActor_47",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339816,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [692.373840, 103.624519, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339816,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339817" : {
+      "ObjectName" : "AStaticMeshActor_48",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339818,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [757.860779, 148.615906, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339818,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339819" : {
+      "ObjectName" : "AStaticMeshActor_49",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339820,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [757.860779, 224.288269, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339820,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339821" : {
+      "ObjectName" : "AStaticMeshActor_50",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339822,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [483.182373, -59.617764, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_1.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339822,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339823" : {
+      "ObjectName" : "AStaticMeshActor_51",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339824,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "hirise2.001",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_67",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [479.049652, 25.365688, 0.000000],
+          "RelativeRotationEuler" : [-90.000008, -0.000000, 90.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/highrise/high-rise.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339824,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339825" : {
+      "ObjectName" : "AStaticMeshActor_52",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339826,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [569.443726, -36.558552, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339826,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339827" : {
+      "ObjectName" : "AStaticMeshActor_53",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339828,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [524.608643, 4.247475, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339828,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339829" : {
+      "ObjectName" : "AStaticMeshActor_54",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339830,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [564.340637, 33.091812, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339830,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339831" : {
+      "ObjectName" : "AStaticMeshActor_55",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339832,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-46.236950, -187.358688, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.700000, 1.700000, 1.700000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_8.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339832,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339833" : {
+      "ObjectName" : "AStaticMeshActor_56",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 4,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339834,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [39.089939, -199.346222, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.500000, 1.500000, 1.500000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_8.obj",
           "Type" : "UStaticMeshComponent",
           "bBlockComponent" : false,
           "bCastShadows" : true,
@@ -33812,7 +36319,1369 @@
           "bSimulatePhysics" : false,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 1293663,
+      "RootComponentId" : 1339834,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339835" : {
+      "ObjectName" : "AStaticMeshActor_57",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339836,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [340.457397, -347.759918, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339836,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339837" : {
+      "ObjectName" : "AStaticMeshActor_58",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339838,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [419.681976, -347.759918, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339838,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339839" : {
+      "ObjectName" : "AStaticMeshActor_59",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339840,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [485.106476, -347.759918, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339840,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339841" : {
+      "ObjectName" : "AStaticMeshActor_60",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339842,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [456.052551, -382.466064, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339842,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339843" : {
+      "ObjectName" : "AStaticMeshActor_61",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339844,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [385.644653, -382.466064, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339844,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339845" : {
+      "ObjectName" : "AStaticMeshActor_62",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339846,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [462.103302, -185.155182, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_1.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339846,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339847" : {
+      "ObjectName" : "AStaticMeshActor_63",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339848,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [599.605835, -409.819183, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.809830],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_6.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339848,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1339849" : {
+      "ObjectName" : "AStaticMeshActor_64",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1339850,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [390.272675, -195.239990, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_4.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1339850,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362554" : {
+      "ObjectName" : "AStaticMeshActor_65",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362555,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-165.158157, 410.701996, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362555,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362556" : {
+      "ObjectName" : "AStaticMeshActor_66",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362557,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-165.158157, 444.475464, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362557,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362558" : {
+      "ObjectName" : "AStaticMeshActor_67",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362559,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-77.115837, 469.327179, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [2.000000, 2.000000, 2.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_8.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362559,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362560" : {
+      "ObjectName" : "AStaticMeshActor_68",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362561,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [-19.170563, 410.701996, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362561,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362562" : {
+      "ObjectName" : "AStaticMeshActor_69",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362563,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [203.116577, 468.713013, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362563,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362564" : {
+      "ObjectName" : "AStaticMeshActor_70",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362565,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [171.765671, 468.713013, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 90.000008],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362565,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362566" : {
+      "ObjectName" : "AStaticMeshActor_71",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362567,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [308.884033, -40.917442, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -179.999985],
+          "RelativeScale" : [0.900000, 0.900000, 0.900000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_1.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362567,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362568" : {
+      "ObjectName" : "AStaticMeshActor_72",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [25.749851, 4.137677, 25.808683],
+          "CapsuleHalfHeight" : 25.808683,
+          "CapsuleRadius" : 12.904342,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362569,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "Type" : "None"
+            }, {
+              "AssetPath" : "UV",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "frame",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "CONCRETE",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "BUCKET",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "GLASS",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "IRON",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "ROPE",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_51",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [379.746033, -68.128212, -0.325791],
+          "RelativeRotationEuler" : [0.000000, -0.000000, -49.391628],
+          "RelativeScale" : [1.000000, 1.000000, 1.300000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 25.808683,
+          "StaticMesh" : "Data/Model/TowerCrane/Tower_crane.fbx",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362569,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362570" : {
+      "ObjectName" : "AStaticMeshActor_73",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362571,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "1",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [454.871094, -127.068810, 0.000000],
+          "RelativeRotationEuler" : [0.000000, -0.000000, 0.456060],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/PlayBuilding/PlayBuilding_9.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362571,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362572" : {
+      "ObjectName" : "AStaticMeshActor_74",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362573,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [390.520538, -36.896732, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, -0.919539],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362573,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
+    },
+    "1362574" : {
+      "ObjectName" : "AStaticMeshActor_75",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 1362575,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "05_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "06_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "02_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "03_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "01_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "04_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Wall_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "Metal",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "14_-_Polished_Aluminum",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "13_-_Brushed_Metal_#2",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "12_-_Car_Paint",
+              "Type" : "UMaterial"
+            }, {
+              "AssetPath" : "11_-_Default",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_66",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [461.598358, -74.056458, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, -0.919539],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Apartment/ApartMent.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : false,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 1362575,
       "Tag" : "",
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
@@ -34457,7 +38326,7 @@
           "ObjectName" : "UStaticMeshComponent_133",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [89.123505, -1.361437, 0.000000],
+          "RelativeLocation" : [88.495148, -1.361437, 0.000000],
           "RelativeRotationEuler" : [0.000000, 0.000000, -90.000008],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "RestitutionCombineModeOverride" : 2,
@@ -34641,8 +38510,8 @@
           "ObjectName" : "UStaticMeshComponent_133",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [148.952698, 5.442286, 0.000000],
-          "RelativeRotationEuler" : [0.000000, -0.000000, -90.000008],
+          "RelativeLocation" : [146.708420, 5.442286, 0.000000],
+          "RelativeRotationEuler" : [0.000000, 0.000000, -90.000008],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "RestitutionCombineModeOverride" : 2,
           "SphereRadius" : 50.000000,
@@ -35722,13 +39591,13 @@
       "bActorIsActive" : true
     }
   },
-  "NextUUID" : 1293664,
+  "NextUUID" : 1362576,
   "PerspectiveCamera" : {
     "FOV" : [60.000000],
     "FarClip" : [1928.000000],
-    "Location" : [286.695526, -9.365108, 265.361389],
+    "Location" : [246.125381, -34.602039, 294.502533],
     "NearClip" : [0.100000],
-    "Rotation" : [0.000000, 33.400230, 101.742668]
+    "Rotation" : [0.000000, 54.300148, -3.657038]
   },
   "Version" : 1
 }
