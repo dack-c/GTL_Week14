@@ -339,7 +339,7 @@ void UStatsOverlayD2D::DrawOnlyText(const wchar_t* InText, const D2D1_RECT_F& In
 			DWRITE_FONT_STYLE_NORMAL,
 			DWRITE_FONT_STRETCH_NORMAL,
 			FontSize,
-			L"en-us",
+			L"ko-kr",
 			&UITextFormat);
 
 		if (UITextFormat)

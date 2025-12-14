@@ -447,7 +447,7 @@ function RenderInGameUI()
     Rect.Pos = Vector2D(ViewportOffset.X + EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + VerticalCenter)
     Rect.Size = Vector2D(LeftBoxWidth - HorizontalPadding * 2, TextHeight)
     Rect.ZOrder = 1
-    DrawUIText(Rect, HeightText, Color, 30, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, HeightText, Color, 20, "Cafe24 PRO UP")
 
     -- 플레이어 속도 표시
     local CharacterMoveComp = GetComponent(GetPlayer(), "UCharacterMovementComponent")
@@ -466,7 +466,7 @@ function RenderInGameUI()
     Rect.Size = Vector2D(LeftBoxWidth - HorizontalPadding * 2, TextHeight)
     Rect.ZOrder = 1
     Color = Vector4(1, 0.5, 0.8, 1)
-    DrawUIText(Rect, SpeedText, Color, 30, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, SpeedText, Color, 20, "Cafe24 PRO UP")
 
     local RightBoxWidth = 260
     Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10)
@@ -478,7 +478,7 @@ function RenderInGameUI()
     Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
     Rect.ZOrder = 1
     Color = Vector4(1,0.8,0.5,1)
-    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", Color, 20, "Cafe24 PRO UP")
 
     Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10 + BoxHeight + 5)
     Rect.Size = Vector2D(RightBoxWidth, BoxHeight)
@@ -489,7 +489,7 @@ function RenderInGameUI()
     Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
     Rect.ZOrder = 1
     Color = Vector4(0.5,1,0.5,1)
-    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", Color, 30, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", Color, 20, "Cafe24 PRO UP")
 
     RenderPlayerScoreUI()
     RenderCredits()
@@ -619,7 +619,7 @@ function RenderDeathUI()
     AnchorMax = Vector2D(0.8, 0.58)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, CurrentDeathMessage, Color, 50, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, CurrentDeathMessage, Color, 50, "Cafe24 PRO UP")
 
     AnchorMin = Vector2D(0, 0.25)
     AnchorMax = Vector2D(1, 0.35)
@@ -652,28 +652,28 @@ function RenderClearUI()
     AnchorMax = Vector2D(1, 0.42)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
-    DrawUIText(Rect, "클리어!", Color, 80, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "클리어!", Color, 80, "Cafe24 PRO UP")
 
     AnchorMin = Vector2D(0, 0.43)
     AnchorMax = Vector2D(1, 0.49)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
     local OrangeColor = Vector4(1, 0.8, 0.5, 1)
-    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", OrangeColor, 34, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", OrangeColor, 34, "Cafe24 PRO UP")
 
     AnchorMin = Vector2D(0, 0.49)
     AnchorMax = Vector2D(1, 0.55)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
     local GreenColor = Vector4(0.5, 1, 0.5, 1)
-    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", GreenColor, 34, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "시도 시간: "..string.format("%.1f", CurrentAttemptTime).."초", GreenColor, 34, "Cafe24 PRO UP")
 
     AnchorMin = Vector2D(0, 0.55)
     AnchorMax = Vector2D(1, 0.61)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
     local YellowColor = Vector4(1, 1, 0, 1)
-    DrawUIText(Rect, "SCORE: "..string.format("%d", GlobalConfig.CurrentScore), YellowColor, 34, "THEFACESHOP INKLIPQUID")
+    DrawUIText(Rect, "SCORE: "..string.format("%d", GlobalConfig.CurrentScore), YellowColor, 34, "Cafe24 PRO UP")
 
     AnchorMin = Vector2D(0, 0.63)
     AnchorMax = Vector2D(1, 0.78)
