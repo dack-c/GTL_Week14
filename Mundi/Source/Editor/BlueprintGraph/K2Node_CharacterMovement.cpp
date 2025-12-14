@@ -209,6 +209,49 @@ void UK2Node_GetNeedRolling::GetMenuActions(FBlueprintActionDatabaseRegistrar& A
 }
 
 // ----------------------------------------------------------------
+//	[GetAirTime] 
+// ----------------------------------------------------------------
+
+IMPLEMENT_CLASS(UK2Node_GetAirTime)
+
+UK2Node_GetAirTime::UK2Node_GetAirTime()
+{
+    TitleColor = ImColor(100, 200, 100);
+}
+
+void UK2Node_GetAirTime::AllocateDefaultPins()
+{
+    CreatePin(EEdGraphPinDirection::EGPD_Output, FEdGraphPinCategory::Float, "AirTime");
+}
+
+FBlueprintValue UK2Node_GetAirTime::EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context)
+{
+    auto* MoveComp = GetMovementFromContext(Context);
+
+    if (!MoveComp)
+    {
+        return FBlueprintValue(0.0f);
+    }
+
+    float AirTime = MoveComp->GetAirTime();
+
+    if (OutputPin->PinName == "AirTime")
+    {
+        return FBlueprintValue(AirTime);
+    }
+
+    return FBlueprintValue(0.0f);
+}
+
+void UK2Node_GetAirTime::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+{
+    UBlueprintNodeSpawner* Spawner = UBlueprintNodeSpawner::Create(GetClass());
+    Spawner->MenuName = GetNodeTitle();
+    Spawner->Category = GetMenuCategory();
+    ActionRegistrar.AddAction(Spawner);
+}
+
+// ----------------------------------------------------------------
 //	[GetVelocity] 
 // ----------------------------------------------------------------
 

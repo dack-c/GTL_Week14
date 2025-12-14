@@ -66,6 +66,7 @@ public:
 	bool IsJumping() const { return bIsJumping; }
 	bool NeedRolling() const { return bNeedRolling; }
 	bool IsOnGround() const { return !bIsFalling; }
+	float GetAirTime() const { return AirTime; }
 	const FHitResult& GetCurrentFloorResult() const { return CurrentFloor; }
 
 	UFUNCTION(LuaBind, DisplayName = "SetUseGravity")

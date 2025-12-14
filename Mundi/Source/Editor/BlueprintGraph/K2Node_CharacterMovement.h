@@ -66,9 +66,9 @@ public:
 };
 
 // ----------------------------------------------------------------
-//	[GetIsJumping] 캐릭터 슬라이딩 상태 확인 노드
+//	[GetIsJumping] 캐릭터 점프 상태 확인 노드
 // ----------------------------------------------------------------
-UCLASS(DisplayName = "Is Jumping", Description = "캐릭터가 현재 공중에 떠있는지(낙하 중인지) 확인합니다.")
+UCLASS(DisplayName = "Is Jumping", Description = "캐릭터가 점프 중인지 확인합니다.")
 class UK2Node_GetIsJumping : public UK2Node
 {
     DECLARE_CLASS(UK2Node_GetIsJumping, UK2Node);
@@ -90,9 +90,9 @@ public:
 };
 
 // ----------------------------------------------------------------
-//	[GetNeedRolling] 캐릭터 슬라이딩 상태 확인 노드
+//	[GetNeedRolling] 캐릭터 구르기 필요 상태 확인 노드
 // ----------------------------------------------------------------
-UCLASS(DisplayName = "Need Rolling", Description = "캐릭터가 현재 공중에 떠있는지(낙하 중인지) 확인합니다.")
+UCLASS(DisplayName = "Need Rolling", Description = "캐릭터가 구르기가 필요한지 확인합니다.")
 class UK2Node_GetNeedRolling : public UK2Node
 {
     DECLARE_CLASS(UK2Node_GetNeedRolling, UK2Node);
@@ -103,6 +103,30 @@ public:
     // --- UEdGraphNode 인터페이스 ---
 public:
     virtual FString GetNodeTitle() const override { return "Need Rolling"; }
+    virtual bool IsNodePure() const override { return true; }
+    virtual void AllocateDefaultPins() override;
+    virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
+
+    // --- UK2Node 인터페이스 ---
+public:
+    virtual FString GetMenuCategory() const override { return "캐릭터 무브먼트"; };
+    virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
+};
+
+// ----------------------------------------------------------------
+//	[GetAirTime] 체공 시간 반환 노드
+// ----------------------------------------------------------------
+UCLASS(DisplayName = "Get AirTime", Description = "캐릭터의 체공 시간을 반환합니다.")
+class UK2Node_GetAirTime : public UK2Node
+{
+    DECLARE_CLASS(UK2Node_GetAirTime, UK2Node);
+
+public:
+    UK2Node_GetAirTime();
+
+    // --- UEdGraphNode 인터페이스 ---
+public:
+    virtual FString GetNodeTitle() const override { return "Get AirTime"; }
     virtual bool IsNodePure() const override { return true; }
     virtual void AllocateDefaultPins() override;
     virtual FBlueprintValue EvaluatePin(const UEdGraphPin* OutputPin, FBlueprintContext* Context) override;
