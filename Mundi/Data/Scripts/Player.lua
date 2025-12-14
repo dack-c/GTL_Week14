@@ -103,7 +103,7 @@ function Tick(Delta)
       bChangedFromClimb = false
       PostDelta = 0.0
     else
-      CharacterMoveComp.CapsuleOffset = Vector(0.3,0,1.0)
+      CharacterMoveComp.CapsuleOffset = Vector(1.0,0,1.0)
     end
   end
 
