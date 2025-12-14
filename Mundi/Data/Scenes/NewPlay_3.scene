@@ -37840,12 +37840,12 @@
     "3311" : {
       "ObjectName" : "ClearTrigger",
       "OwnedComponents" : [{
-          "BoxExtent" : [30.000000, 30.000000, 30.000000],
-          "Id" : 3315,
+          "BoxExtent" : [10.000000, 10.000000, 10.000000],
+          "Id" : 3314,
           "LuaFunctionName" : "DoClear",
           "ObjectName" : "UTriggerComponent_7",
           "ParentId" : 0,
-          "RelativeLocation" : [-31.036255, 190.940994, -34.777500],
+          "RelativeLocation" : [408.000000, 208.546158, 48.281513],
           "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "Type" : "UTriggerComponent",
@@ -37861,7 +37861,7 @@
           "bIsActive" : true,
           "bTickEnabled" : true
         }],
-      "RootComponentId" : 3315,
+      "RootComponentId" : 3314,
       "Tag" : "",
       "Type" : "ATriggerActor",
       "bActorHiddenInGame" : false,
@@ -37874,7 +37874,7 @@
           "Id" : 3318,
           "ObjectName" : "UBillboardComponent_29",
           "ParentId" : 0,
-          "RelativeLocation" : [9.458528, 0.000000, 188.000000],
+          "RelativeLocation" : [402.000000, 49.000000, 89.000000],
           "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
           "RelativeScale" : [1.000000, 1.000000, 1.000000],
           "Texture" : "Data/Icon/PlayerStart_64.dds",
@@ -38234,7 +38234,7 @@
           "ObjectName" : "UStaticMeshComponent_133",
           "ParentId" : 0,
           "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [408.048767, 205.855499, 0.000000],
+          "RelativeLocation" : [408.048767, 205.855499, -3.678196],
           "RelativeRotationEuler" : [0.000000, -0.000000, 0.000000],
           "RelativeScale" : [0.610000, 0.610000, 0.610000],
           "RestitutionCombineModeOverride" : 2,
@@ -38667,43 +38667,6 @@
           "bTickEnabled" : true
         }, {
           "AngularDampingOverride" : 0.050000,
-          "BoxExtent" : [0.819965, 6.120141, 0.029076],
-          "CapsuleHalfHeight" : 0.029076,
-          "CapsuleRadius" : 3.060071,
-          "CollisionEnabled_Internal" : 2,
-          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
-          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
-          "CollisionType" : 1,
-          "FrictionCombineModeOverride" : 2,
-          "Id" : 3402,
-          "LinearDampingOverride" : 0.010000,
-          "MassOverride" : 10.000000,
-          "MaterialSlots" : [{
-              "AssetPath" : "01",
-              "Type" : "UMaterial"
-            }],
-          "ObjectName" : "UStaticMeshComponent_133",
-          "ParentId" : 0,
-          "PhysMaterialPreset" : 0,
-          "RelativeLocation" : [205.000000, 28.649269, 133.964157],
-          "RelativeRotationEuler" : [31.608376, -0.000000, 0.000000],
-          "RelativeScale" : [1.000000, 1.000000, 1.000000],
-          "RestitutionCombineModeOverride" : 2,
-          "SphereRadius" : 6.120141,
-          "StaticMesh" : "Data/Model/Bridge/Bridge_Long_Plane.obj",
-          "Type" : "UStaticMeshComponent",
-          "bBlockComponent" : false,
-          "bCastShadows" : true,
-          "bEnableCollision" : true,
-          "bGenerateOverlapEvents" : true,
-          "bHiddenInGame" : false,
-          "bIsActive" : true,
-          "bIsVisible" : true,
-          "bOverrideCollisionSetting" : false,
-          "bSimulatePhysics" : false,
-          "bTickEnabled" : true
-        }, {
-          "AngularDampingOverride" : 0.050000,
           "BoxExtent" : [50.000000, 0.000000, 0.000000],
           "CapsuleHalfHeight" : 44.000000,
           "CapsuleRadius" : 22.000000,
@@ -38728,6 +38691,43 @@
           "RestitutionCombineModeOverride" : 2,
           "SphereRadius" : 50.000000,
           "StaticMesh" : "Data/Model/Bridge/Bridge_Long_Side.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : true,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }, {
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [0.819965, 6.120141, 0.029076],
+          "CapsuleHalfHeight" : 0.029076,
+          "CapsuleRadius" : 3.060071,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 1,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 3402,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "AssetPath" : "01",
+              "Type" : "UMaterial"
+            }],
+          "ObjectName" : "UStaticMeshComponent_133",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [205.000000, 28.649269, 133.964157],
+          "RelativeRotationEuler" : [31.608376, -0.000000, 0.000000],
+          "RelativeScale" : [1.000000, 1.000000, 1.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 6.120141,
+          "StaticMesh" : "Data/Model/Bridge/Bridge_Long_Plane.obj",
           "Type" : "UStaticMeshComponent",
           "bBlockComponent" : false,
           "bCastShadows" : true,
@@ -39589,15 +39589,72 @@
       "Type" : "AStaticMeshActor",
       "bActorHiddenInGame" : false,
       "bActorIsActive" : true
+    },
+    "3964" : {
+      "ObjectName" : "AStaticMeshActor_0",
+      "OwnedComponents" : [{
+          "AngularDampingOverride" : 0.050000,
+          "BoxExtent" : [50.000000, 0.000000, 0.000000],
+          "CapsuleHalfHeight" : 44.000000,
+          "CapsuleRadius" : 22.000000,
+          "CollisionEnabled_Internal" : 2,
+          "CollisionOffset" : [0.000000, 0.000000, 0.000000],
+          "CollisionRotation" : [0.000000, 0.000000, 0.000000],
+          "CollisionType" : 4,
+          "FrictionCombineModeOverride" : 2,
+          "Id" : 3965,
+          "LinearDampingOverride" : 0.010000,
+          "MassOverride" : 10.000000,
+          "MaterialSlots" : [{
+              "Overrides" : {
+                "Scalars" : {
+
+                },
+                "Textures" : {
+
+                },
+                "Vectors" : {
+                  "EmissiveColor" : [0.000000, 0.211765, 0.000000, 1.000000]
+                }
+              },
+              "ParentPath" : "GatlingGun_Turret_Mat",
+              "Type" : "UMaterialInstanceDynamic"
+            }],
+          "ObjectName" : "UStaticMeshComponent_215",
+          "ParentId" : 0,
+          "PhysMaterialPreset" : 0,
+          "RelativeLocation" : [408.071075, 205.374832, 37.707363],
+          "RelativeRotationEuler" : [179.271622, -0.000000, -0.000000],
+          "RelativeScale" : [7.000000, 7.000000, 7.000000],
+          "RestitutionCombineModeOverride" : 2,
+          "SphereRadius" : 50.000000,
+          "StaticMesh" : "Data/Model/Gun.obj",
+          "Type" : "UStaticMeshComponent",
+          "bBlockComponent" : false,
+          "bCastShadows" : true,
+          "bEnableCollision" : true,
+          "bGenerateOverlapEvents" : true,
+          "bHiddenInGame" : false,
+          "bIsActive" : true,
+          "bIsVisible" : true,
+          "bOverrideCollisionSetting" : false,
+          "bSimulatePhysics" : false,
+          "bTickEnabled" : true
+        }],
+      "RootComponentId" : 3965,
+      "Tag" : "",
+      "Type" : "AStaticMeshActor",
+      "bActorHiddenInGame" : false,
+      "bActorIsActive" : true
     }
   },
-  "NextUUID" : 36047,
+  "NextUUID" : 34169,
   "PerspectiveCamera" : {
     "FOV" : [60.000000],
     "FarClip" : [1928.000000],
-    "Location" : [210.782288, 0.367815, 248.912933],
+    "Location" : [358.947906, 187.580078, 60.970421],
     "NearClip" : [0.100000],
-    "Rotation" : [0.000000, 38.400135, -178.557114]
+    "Rotation" : [0.000000, 30.500082, 14.443248]
   },
   "Version" : 1
 }
