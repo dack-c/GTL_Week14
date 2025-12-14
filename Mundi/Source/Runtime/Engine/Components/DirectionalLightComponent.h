@@ -56,6 +56,9 @@ private:
 	UPROPERTY(EditAnywhere, Category="ShadowMap", Range="0, 1")
 	float CascadedLinearBlendingValue = 0.5f;
 
+	UPROPERTY(EditAnywhere, Category = "ShadowMap", Range = "0.1, 0.95", DisplayName = "캐스케이드 분할 람다", Tooltip="첫 N-1 캐스케이드와 마지막 캐스케이드의 분할 비율을 결정합니다.")
+	float CascadeSplitLambda = 0.5f;
+
 	UPROPERTY(EditAnywhere, Category="ShadowMap", Range="0, 0.5")
 	float CascadedOverlapValue = 0.2f;
 
@@ -68,4 +71,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="ShadowMap", Range="-1, 8")
 	int CascadedAreaShadowDebugValue = -1;
+
+	UPROPERTY(EditAnywhere, Category="ShadowMap", DisplayName="최대 그림자 거리", Tooltip="그림자가 렌더링될 최대 거리입니다. 0 이하일 경우 카메라 FarClip을 따릅니다.")
+	float MaxShadowDistance = 5000.0f; // 0 이하일 경우 카메라 FarClip 사용
 };

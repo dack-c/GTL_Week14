@@ -39,9 +39,11 @@ BEGIN_PROPERTIES(UDirectionalLightComponent)
     ADD_PROPERTY(bool, bCascaded, "ShadowMap", true)
     ADD_PROPERTY_RANGE(int, CascadedCount, "ShadowMap", 1.0f, 8.0f, true)
     ADD_PROPERTY_RANGE(float, CascadedLinearBlendingValue, "ShadowMap", 0.0f, 1.0f, true)
+    ADD_PROPERTY_RANGE(float, CascadeSplitLambda, "ShadowMap", 0.1f, 0.95f, true, "첫 N-1 캐스케이드와 마지막 캐스케이드의 분할 비율을 결정합니다.")
     ADD_PROPERTY_RANGE(float, CascadedOverlapValue, "ShadowMap", 0.0f, 0.5f, true)
     ADD_PROPERTY_RANGE(float, CascadedAreaColorDebugValue, "ShadowMap", 0.0f, 1.0f, true)
     ADD_PROPERTY_RANGE(int, CascadedAreaShadowDebugValue, "ShadowMap", -1.0f, 8.0f, true)
+    ADD_PROPERTY(float, MaxShadowDistance, "ShadowMap", true, "그림자가 렌더링될 최대 거리입니다. 0 이하일 경우 카메라 FarClip을 따릅니다.")
 END_PROPERTIES()
 
 // ===== Lua Binding =====

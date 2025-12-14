@@ -22,19 +22,56 @@
 
 namespace
 {
-	TArray<float> GetCascadedSliceDepth(int CascadedCount, float LinearBlending, float NearClip, float FarClip)
+	TArray<float> GetCascadedSliceDepth(int CascadedCount, float LinearBlending, float SplitLambda, float NearClip, float FarClip)
 	{
 		TArray<float> CascadedSliceDepth;
 		CascadedSliceDepth.reserve(CascadedCount + 1);
-		LinearBlending = LinearBlending < 0 ? 0 : (LinearBlending > 1 ? 1 : LinearBlending); //clamp(0,1,LinearBlending);
+
+		LinearBlending = FMath::Clamp(LinearBlending, 0.0f, 1.0f);
+		SplitLambda = FMath::Clamp(SplitLambda, 0.0f, 1.0f);
+
+		if (CascadedCount == 0)
+		{
+			CascadedSliceDepth.Add(NearClip);
+			CascadedSliceDepth.Add(FarClip);
+			return CascadedSliceDepth;
+		}
+
+		// Practical CSM Split
+		// N-1개의 캐스케이드를 앞쪽 람다 비율만큼에 분배하고, 마지막 캐스케이드는 나머지 전체를 담당
+		for (int i = 0; i < CascadedCount; i++)
+		{
+			float IDM = (float)i / (float)CascadedCount;
+			float LogValue = NearClip * powf(FarClip / NearClip, IDM);
+			float LinearValue = NearClip + (FarClip - NearClip) * IDM;
+			float SplitPos = LinearValue * SplitLambda + LogValue * (1.0f - SplitLambda);
+			CascadedSliceDepth.Add(SplitPos);
+		}
+		CascadedSliceDepth.Add(FarClip);
+
+
+		// 최종적으로 계산된 값들을 선형/로그 혼합
+		TArray<float> FinalDepths;
+		FinalDepths.reserve(CascadedCount + 1);
 		for (int i = 0; i < CascadedCount + 1; i++)
 		{
-			float CurDepth = 0;
-			float LogValue = NearClip * pow((FarClip / NearClip), (float)i / CascadedCount);
-			float LinearValue = NearClip + (FarClip - NearClip) * (float)i / CascadedCount;
-			CascadedSliceDepth.push_back((1 - LinearBlending) * LogValue + LinearBlending * LinearValue);
+			float IDM = (float)i / (float)CascadedCount;
+			float LogValue = NearClip * powf(FarClip / NearClip, IDM);
+			float LinearValue = NearClip + (FarClip - NearClip) * IDM;
+			float FinalDepth = LinearValue * LinearBlending + LogValue * (1.0f - LinearBlending);
+			
+			// Practical Split 값을 최종 혼합에 다시 적용
+			if (i > 0)
+			{
+				FinalDepth = FMath::Lerp(FinalDepth, CascadedSliceDepth[i], SplitLambda);
+			}
+			FinalDepths.Add(FinalDepth);
 		}
-		return CascadedSliceDepth;
+		FinalDepths[0] = NearClip;
+		FinalDepths[CascadedCount] = FarClip;
+
+
+		return FinalDepths;
 	}
 
 	TArray<FVector> GetFrustumVertices(ECameraProjectionMode ProjectionMode, FViewportRect ViewRect, float FieldOfView, float AspectRatio, float Near, float Far, float ZoomFactor)
@@ -113,7 +150,7 @@ void UDirectionalLightComponent::GetShadowRenderRequests(FSceneView* View, TArra
 		// 라이트 스페이스 AABB XY와 바운딩 서클 중 큰 값 사용
 		FVector AABBSize = CameraFrustumAABB.Max - CameraFrustumAABB.Min;
 		float MaxXYLightSpace = FMath::Max(AABBSize.X, AABBSize.Y);
-		float MaxXY = FMath::Max(MaxXYLightSpace, BoundingCircleDiameter);
+		float MaxXY = FMath::Max(MaxXYLightSpace, BoundingCircleDiameter) * 1.05f;
 
 		float HalfXY = MaxXY * 0.5f;
 		float WorldSizePerTexel = MaxXY / ShadowResolutionScale;
@@ -142,7 +179,8 @@ void UDirectionalLightComponent::GetShadowRenderRequests(FSceneView* View, TArra
 	}
 	else
 	{
-		CascadedSliceDepth = GetCascadedSliceDepth(CascadedCount, CascadedLinearBlendingValue, View->NearClip, View->FarClip);
+		float EffectiveFarClip = (MaxShadowDistance > 0.0f) ? FMath::Min(View->FarClip, MaxShadowDistance) : View->FarClip;
+		CascadedSliceDepth = GetCascadedSliceDepth(CascadedCount, CascadedLinearBlendingValue, CascadeSplitLambda, View->NearClip, EffectiveFarClip);
 		for (int i = 0; i < CascadedCount; i++)
 		{
 			float Near = CascadedSliceDepth[i];
@@ -174,7 +212,7 @@ void UDirectionalLightComponent::GetShadowRenderRequests(FSceneView* View, TArra
 			// 라이트 스페이스 AABB XY와 바운딩 서클 중 큰 값 사용
 			FVector AABBSize = CameraFrustumAABB.Max - CameraFrustumAABB.Min;
 			float MaxXYLightSpace = FMath::Max(AABBSize.X, AABBSize.Y);
-			float MaxXY = FMath::Max(MaxXYLightSpace, BoundingCircleDiameter);
+			float MaxXY = FMath::Max(MaxXYLightSpace, BoundingCircleDiameter) * 1.05f;
 
 			float HalfXY = MaxXY * 0.5f;
 			float WorldSizePerTexel = MaxXY / ShadowResolutionScale;
