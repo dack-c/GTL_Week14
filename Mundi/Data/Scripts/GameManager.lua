@@ -54,7 +54,7 @@ local SpeedBlurMaxIntensity = 1.2    -- 최대 블러 강도 (20.0 속도에서)
 function BeginPlay()
     InitGame()
     GlobalConfig.GameState = "Init"
-    PlaySound2DByFile("Data/Audio/pakourBGM.wav")
+    -- PlaySound2DByFile("Data/Audio/pakourBGM.wav")
 end
 
 function EndPlay()
@@ -469,23 +469,23 @@ function RenderInGameUI()
     DrawUIText(Rect, SpeedText, Color, 20, "Cafe24 PRO UP")
 
     local RightBoxWidth = 260
+    -- Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10)
+    -- Rect.Size = Vector2D(RightBoxWidth, BoxHeight)
+    -- Rect.ZOrder = 0
+    -- DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
+
+    -- Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + VerticalCenter)
+    -- Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
+    -- Rect.ZOrder = 1
+    -- Color = Vector4(1,0.8,0.5,1)
+    -- DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", Color, 20, "Cafe24 PRO UP")
+
     Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10)
     Rect.Size = Vector2D(RightBoxWidth, BoxHeight)
     Rect.ZOrder = 0
     DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
 
     Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + VerticalCenter)
-    Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
-    Rect.ZOrder = 1
-    Color = Vector4(1,0.8,0.5,1)
-    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", Color, 20, "Cafe24 PRO UP")
-
-    Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin, ViewportOffset.Y + 10 + BoxHeight + 5)
-    Rect.Size = Vector2D(RightBoxWidth, BoxHeight)
-    Rect.ZOrder = 0
-    DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.6)
-
-    Rect.Pos = Vector2D(ViewportOffset.X + ScreenSize.X - RightBoxWidth - EdgeMargin + HorizontalPadding, ViewportOffset.Y + 10 + BoxHeight + 5 + VerticalCenter)
     Rect.Size = Vector2D(RightBoxWidth - HorizontalPadding * 2, TextHeight)
     Rect.ZOrder = 1
     Color = Vector4(0.5,1,0.5,1)
@@ -654,12 +654,12 @@ function RenderClearUI()
     Rect.ZOrder = 1
     DrawUIText(Rect, "클리어!", Color, 80, "Cafe24 PRO UP")
 
-    AnchorMin = Vector2D(0, 0.43)
-    AnchorMax = Vector2D(1, 0.49)
-    Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
-    Rect.ZOrder = 1
-    local OrangeColor = Vector4(1, 0.8, 0.5, 1)
-    DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", OrangeColor, 34, "Cafe24 PRO UP")
+    -- AnchorMin = Vector2D(0, 0.43)
+    -- AnchorMax = Vector2D(1, 0.49)
+    -- Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
+    -- Rect.ZOrder = 1
+    -- local OrangeColor = Vector4(1, 0.8, 0.5, 1)
+    -- DrawUIText(Rect, "총 시간: "..string.format("%.1f", TotalPlayTime).."초", OrangeColor, 34, "Cafe24 PRO UP")
 
     AnchorMin = Vector2D(0, 0.49)
     AnchorMax = Vector2D(1, 0.55)
