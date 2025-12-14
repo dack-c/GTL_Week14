@@ -7,11 +7,13 @@ if not _G.CinematicState then
         bIsActive = false,
         OriginalCamera = nil,
         CinematicDuration = 0.0,
-        ElapsedTime = 0.0
+        ElapsedTime = 0.0,
+        OriginalMotionBlurIntensity = 0.0
     }
 end
 
 local CinematicCameraName = "TargetCameraActor"  -- 시네마틱 카메라 이름
+local CinematicCameraComponentName = "TargetCameraComponent" -- FIXME: GetComponent가 동작하지 않아 이름으로 직접 찾음
 local SlowMotionScale = 0.3              -- 슬로우 모션 배율 (0.3 = 30% 속도)
 local Duration = 1.0                      -- 시네마틱 지속 시간 (초)
 local CameraOffset = Vector(-50, -150, 80)   -- 카메라 오프셋 (플레이어 기준: 뒤쪽, 왼쪽, 위쪽)
@@ -54,41 +56,14 @@ function StartCinematic()
     -- 원래 카메라 저장
     _G.CinematicState.OriginalCamera = GetCamera()
 
-    -- 시네마틱 카메라 찾기
-    local CinematicCameraActor = FindObjectByName(CinematicCameraName)
-    if CinematicCameraActor == nil then
-        print("[Cinematic] Error: Camera actor not found - " .. CinematicCameraName)
+    -- FIXME: GetComponent가 동작하지 않아 이름으로 직접 찾음
+    local CinematicCamera = FindComponentByName(CinematicCameraComponentName)
+    if CinematicCamera == nil then
+        print("[Cinematic] Error: Camera component not found by name - " .. CinematicCameraComponentName)
+        -- 시네마틱 실패 시 플래그 원상 복구
+        GlobalConfig.bIsCinematicActive = false
         return
     end
-
-    print("[Cinematic] Camera actor found: " .. CinematicCameraName)
-    print("[Cinematic] Camera Actor Location: X=" .. CinematicCameraActor.Location.X .. ", Y=" .. CinematicCameraActor.Location.Y .. ", Z=" .. CinematicCameraActor.Location.Z)
-    print("[Cinematic] Camera Actor Rotation: X=" .. CinematicCameraActor.Rotation.X .. ", Y=" .. CinematicCameraActor.Rotation.Y .. ", Z=" .. CinematicCameraActor.Rotation.Z)
-
-    local Player = GetPlayer()
-    if Player then
-        print("[Cinematic] Player Location: X=" .. Player.Location.X .. ", Y=" .. Player.Location.Y .. ", Z=" .. Player.Location.Z)
-    end
-
-    -- FindComponentByName으로 직접 찾기 시도
-    local CinematicCamera = FindComponentByName("UCameraComponent_9")
-    if CinematicCamera == nil then
-        print("[Cinematic] Error: UCameraComponent_9 not found by name")
-
-        -- GetComponent로도 시도
-        CinematicCamera = GetComponent(CinematicCameraActor, "UCameraComponent")
-        if CinematicCamera == nil then
-            print("[Cinematic] Error: UCameraComponent not found by GetComponent")
-            return
-        else
-            print("[Cinematic] UCameraComponent found by GetComponent")
-        end
-    else
-        print("[Cinematic] UCameraComponent_9 found by name")
-    end
-
-    -- 카메라 액터 저장 (씬에 배치한 위치 그대로 사용)
-    _G.CinematicState.CinematicCameraActor = CinematicCameraActor
 
     -- 카메라 전환
     SetViewTargetCamera(CinematicCamera)
@@ -101,7 +76,7 @@ function StartCinematic()
     _G.CinematicState.CinematicDuration = Duration
     _G.CinematicState.ElapsedTime = 0.0
 
-    print("Cinematic: Camera switched, SlowMotion " .. SlowMotionScale .. "x")
+    print("Cinematic: Camera switched, SlowMotion " .. SlowMotionScale .. "x, Motion Blur OFF")
 end
 
 function EndCinematic()
