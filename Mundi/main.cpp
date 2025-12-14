@@ -1,6 +1,14 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "EditorEngine.h"
 #include "Source/Runtime/Debug/CrashHandler.h"
+
+extern "C" {
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
+
+extern "C" {
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #   define _CRTDBG_MAP_ALLOC
