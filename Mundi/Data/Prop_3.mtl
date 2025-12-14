@@ -8,8 +8,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Dark02_BaseColor_5.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Dark02_BaseColor_5.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Dark02_BaseColor_5.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Dark02_BaseColor_5.png
 
 newmtl MI_Decal01_Light01
 Ns 200.000000
@@ -18,8 +18,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Light01_BaseColor_11.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Light01_BaseColor_11.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Light01_BaseColor_11.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Decal01_Light01_BaseColor_11.png
 
 newmtl MI_Emissive_Unlit
 Ns 200.000000
@@ -29,7 +29,7 @@ Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 d 1.000000
 illum 3
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Emissive_Unlit_EmissiveColor_13.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_Emissive_Unlit_EmissiveColor_13.png
 
 newmtl MI_Panel02_DarkGray
 Ns 200.000000
@@ -38,8 +38,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_DarkGray_BaseColor_16.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_DarkGray_BaseColor_16.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_DarkGray_BaseColor_16.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_DarkGray_BaseColor_16.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Tile_Panel02/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_Panel02_ExtraMetallic
@@ -49,8 +49,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_ExtraMetallic_BaseColor_14.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_ExtraMetallic_BaseColor_14.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_ExtraMetallic_BaseColor_14.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_ExtraMetallic_BaseColor_14.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Tile_Panel02/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_Panel02_Gray
@@ -60,8 +60,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_Gray_BaseColor_9.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_Gray_BaseColor_9.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_Gray_BaseColor_9.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Panel02_Gray_BaseColor_9.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Tile_Panel02/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_Panel_Gray_Text
@@ -71,8 +71,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel_Gray_Text_BaseColor_20.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Panel_Gray_Text_BaseColor_20.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Panel_Gray_Text_BaseColor_20.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Panel_Gray_Text_BaseColor_20.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Panel_Plain/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_RoadBarriers
@@ -81,9 +81,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_RoadBarriers_BaseColor_0.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_RoadBarriers_EmissiveColor_0.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_RoadBarriers_BaseColor_0.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_RoadBarriers_BaseColor_0.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_RoadBarriers_EmissiveColor_0.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_RoadBarriers_BaseColor_0.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Meshes/Road_Barriers/SM_RoadBarrierPaint_DefaultMaterial_Normal.png
 
 newmtl MI_SquarePanel_Basic_Blue
@@ -93,8 +93,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_SquarePanel_Basic_Blue_BaseColor_8.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_SquarePanel_Basic_Blue_BaseColor_8.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_SquarePanel_Basic_Blue_BaseColor_8.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_SquarePanel_Basic_Blue_BaseColor_8.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Panel_Plain/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_StreetTrim.001
@@ -103,9 +103,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_BaseColor_4.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_EmissiveColor_4.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_BaseColor_4.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_BaseColor_4.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_EmissiveColor_4.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_BaseColor_4.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Trim_StreetTrim/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_StreetTrim_DarkGray
@@ -114,9 +114,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_DarkGray_BaseColor_12.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_DarkGray_EmissiveColor_12.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_DarkGray_BaseColor_12.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_DarkGray_BaseColor_12.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_DarkGray_EmissiveColor_12.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_DarkGray_BaseColor_12.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Trim_StreetTrim/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_StreetTrim_MatteWhite
@@ -125,9 +125,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_MatteWhite_BaseColor_7.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_MatteWhite_EmissiveColor_7.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_MatteWhite_BaseColor_7.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_MatteWhite_BaseColor_7.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_MatteWhite_EmissiveColor_7.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_StreetTrim_MatteWhite_BaseColor_7.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Trim_StreetTrim/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_TileStack_DarkGray
@@ -137,8 +137,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_TileStack_DarkGray_BaseColor_1.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_TileStack_DarkGray_BaseColor_1.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_TileStack_DarkGray_BaseColor_1.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_TileStack_DarkGray_BaseColor_1.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Tile_Stack/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_TriangleGlass
@@ -148,8 +148,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_TriangleGlass_BaseColor_10.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_TriangleGlass_BaseColor_10.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_TriangleGlass_BaseColor_10.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_TriangleGlass_BaseColor_10.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Tile_TriangleGlass/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_UtilityTrim.001
@@ -158,9 +158,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_UtilityTrim_BaseColor_2.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_UtilityTrim_EmissiveColor_2.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_UtilityTrim_BaseColor_2.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_UtilityTrim_BaseColor_2.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_UtilityTrim_EmissiveColor_2.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_UtilityTrim_BaseColor_2.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Trim_UtilityTrim/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_Window01_Black_LitCool
@@ -169,9 +169,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Black_LitCool_BaseColor_15.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Black_LitCool_EmissiveColor_15.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Black_LitCool_BaseColor_15.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Black_LitCool_BaseColor_15.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Black_LitCool_EmissiveColor_15.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Black_LitCool_BaseColor_15.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Trim_Window01/Blinds/plane_divided_DefaultMaterial_Normal.png
 
 newmtl MI_Window01_Gray
@@ -180,9 +180,9 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Gray_BaseColor_6.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Gray_EmissiveColor_6.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Gray_BaseColor_6.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Gray_BaseColor_6.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Gray_EmissiveColor_6.png
+map_d Data/Untracked/FBX/TokyoBuilding2/MI_Window01_Gray_BaseColor_6.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Trim_Window01/Blinds/plane_divided_DefaultMaterial_Normal.png
 
 newmtl M_Decal01
@@ -192,8 +192,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_Decal01_BaseColor_18.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_Decal01_BaseColor_18.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/M_Decal01_BaseColor_18.png
+map_d Data/Untracked/FBX/TokyoBuilding2/M_Decal01_BaseColor_18.png
 
 newmtl M_RoadFences_Master
 Ns 200.000000
@@ -202,8 +202,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_BaseColor_3.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_BaseColor_3.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_BaseColor_3.png
+map_d Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_BaseColor_3.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Meshes/Road_Fences/SM_RoadFences_Paint_DefaultMaterial_Normal.png
 
 newmtl M_RoadFences_Master_YellowAll
@@ -213,8 +213,8 @@ Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_YellowAll_BaseColor_17.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_YellowAll_BaseColor_17.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_YellowAll_BaseColor_17.png
+map_d Data/Untracked/FBX/TokyoBuilding2/M_RoadFences_Master_YellowAll_BaseColor_17.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Meshes/Road_Fences/SM_RoadFences_Paint_DefaultMaterial_Normal.png
 
 newmtl M_Window01.001
@@ -223,7 +223,7 @@ Ka 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ni 1.500000
 illum 3
-map_Kd C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_Window01_BaseColor_19.png
-map_Ke C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_Window01_EmissiveColor_19.png
-map_d C:/Users/Jungle/Desktop/git/Week14/GTL_Week14/Mundi/Data/Untracked/FBX/TokyoBuilding2/M_Window01_BaseColor_19.png
+map_Kd Data/Untracked/FBX/TokyoBuilding2/M_Window01_BaseColor_19.png
+map_Ke Data/Untracked/FBX/TokyoBuilding2/M_Window01_EmissiveColor_19.png
+map_d Data/Untracked/FBX/TokyoBuilding2/M_Window01_BaseColor_19.png
 map_Bump -bm 1.000000 C:/Users/Jungle/Joshua/Desktop/TOKYO/Assets/Materials/Trim_Window01/Blinds/plane_divided_DefaultMaterial_Normal.png
