@@ -136,7 +136,7 @@ function Tick(dt)
     if GlobalConfig.GameState == "Init" then
         RenderInitUI()
 
-        if InputManager:IsKeyDown("Q") then
+        if InputManager:IsKeyDown("R") then
             GlobalConfig.GameState = "Start"
             InitGame()
         end
@@ -213,7 +213,7 @@ function Tick(dt)
         -- 아직 클리어/사망 안 했을 때만 낙사 판정
         else
             local PlayerPos = GetPlayer().Location
-            local GoalHeight = -34.777500
+            local GoalHeight = 30.0
             local GoalPosX = -31.036255
             local GoalPosY = 190.940994
             local GoalRadius = 35.0
@@ -229,7 +229,7 @@ function Tick(dt)
     elseif GlobalConfig.GameState == "Death" then
         RenderDeathUI()
 
-        if InputManager:IsKeyDown("E") then
+        if InputManager:IsKeyDown("R") then
             InitGame()
             GlobalConfig.GameState = "Init"
             CurrentDeathMessage = ""
@@ -238,7 +238,7 @@ function Tick(dt)
     elseif GlobalConfig.GameState == "Clear" then
         RenderClearUI()
 
-        if InputManager:IsKeyDown("E") then
+        if InputManager:IsKeyDown("R") then
             GlobalConfig.GameState = "Init"
             GlobalConfig.bFirstClearDone = false
             TotalPlayTime = 0
@@ -414,7 +414,7 @@ function RenderInitUI()
     AnchorMax = Vector2D(1,0.8)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
-    DrawUIText(Rect, "PRESS Q TO START", NeonCyan, 40, "Platinum Sign")
+    DrawUIText(Rect, "PRESS R TO START", NeonCyan, 40, "Platinum Sign")
 
     RenderCredits()
 end
@@ -431,7 +431,7 @@ function RenderInGameUI()
     local TextHeight = 30
     local VerticalCenter = (BoxHeight - TextHeight) / 2
 
-    local RemainHeight = (-39 - GetPlayer().Location.Z) * -1;
+    local RemainHeight = (-39 - GetPlayer().Location.Z) * -1 - 80;
     if RemainHeight < 0 then
         RemainHeight = 0
     end
@@ -580,13 +580,13 @@ function RenderCredits()
     local GrayColor = Vector4(0.7, 0.7, 0.7, 1)
 
     local AnchorMin = Vector2D(0.02, 0.93)
-    local AnchorMax = Vector2D(0.26, 0.98)
+    local AnchorMax = Vector2D(0.20, 0.98)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 100
     DrawUISprite(Rect, "Data/UI/BlackBox.png", 0.7)
 
-    AnchorMin = Vector2D(0.025, 0.935)
-    AnchorMax = Vector2D(0.255, 0.975)
+    AnchorMin = Vector2D(0.02, 0.935)
+    AnchorMax = Vector2D(0.2, 0.975)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 101
     DrawUIText(Rect, "제작자: 김상천, 김진철, 김호민, 김희준", GrayColor, 16, "Pretendard")
@@ -632,7 +632,7 @@ function RenderDeathUI()
     Rect = FRectTransform.CreateAnchorRange(AnchorMin,AnchorMax)
     Rect.ZOrder = 1;
     local NeonPink = Vector4(1.0, 0.1, 0.7, 1.0)
-    DrawUIText(Rect, "PRESS E TO RESTART", NeonPink, 40, "Platinum Sign")
+    DrawUIText(Rect, "PRESS R TO RESTART", NeonPink, 40, "Platinum Sign")
 
     RenderCredits()
 end
@@ -685,7 +685,7 @@ function RenderClearUI()
     AnchorMax = Vector2D(1, 0.78)
     Rect = FRectTransform.CreateAnchorRange(AnchorMin, AnchorMax)
     Rect.ZOrder = 1
-    DrawUIText(Rect, "PRESS E\nTO RETURN TO TITLE", NeonCyan, 32, "Platinum Sign")
+    DrawUIText(Rect, "PRESS R\nTO RETURN TO TITLE", NeonCyan, 32, "Platinum Sign")
 
     RenderCredits()
 end

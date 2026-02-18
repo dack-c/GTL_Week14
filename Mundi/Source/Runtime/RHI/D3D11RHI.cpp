@@ -797,8 +797,8 @@ void D3D11RHI::CreateRasterizerState()
     // -5: 약 -0.0000003의 작은 음수 바이어스 (Z-fighting 방지, 앞 물체 뚫지 않음)
     // 0: Z-fighting 발생
     // 양수: 데칼을 뒤로 밀어 안 보이게 함
-    DecalRasterizerDesc.DepthBias = -5; // 작은 음수 바이어스로 Z-fighting 방지
-    DecalRasterizerDesc.SlopeScaledDepthBias = -0.02f; // 경사진 표면에서 Z-fighting 방지
+    DecalRasterizerDesc.DepthBias = -50; // 작은 음수 바이어스로 Z-fighting 방지
+    DecalRasterizerDesc.SlopeScaledDepthBias = -0.2f; // 경사진 표면에서 Z-fighting 방지
     DecalRasterizerDesc.DepthBiasClamp = 0.0f; // 바이어스 최댓값
 
     Device->CreateRasterizerState(&DecalRasterizerDesc, &DecalRasterizerState);
