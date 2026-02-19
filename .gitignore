@@ -18,7 +18,6 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
 
 # Fortran module files
 *.mod
@@ -447,7 +446,6 @@ GEMINI.md
 
 # Untracked Data Files
 /Mundi/DerivedDataCache/**
-/Mundi/ThirdParty/**
 **/Untracked/**
 
 # imgui-node-editor는 수정이 필요하므로 제외
