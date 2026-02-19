@@ -212,8 +212,10 @@ bool UGameEngine::Startup(HINSTANCE hInstance)
     GWorld->PhysScene = std::make_unique<FPhysScene>();
     GWorld->PhysScene->Initialize();
 
-    GWorld->bPie = true;
     ///////////////////////////////////
+
+    // Pie를 false 한 상태로 레벨 로드 후 true로 변경
+    GWorld->bPie = false;
 
     // 시작 scene(level)을 직접 로드 
     const FString StartupScenePath = GDataDir + "/Scenes/PlayMap.scene";
@@ -222,6 +224,8 @@ bool UGameEngine::Startup(HINSTANCE hInstance)
         UE_LOG("Failed to load startup scene: %s", StartupScenePath.c_str());
         return false;
     }
+
+    GWorld->bPie = true;
 
     AGameModeBase* GameMode = nullptr;
     if (GWorld->GetGameMode() == nullptr)

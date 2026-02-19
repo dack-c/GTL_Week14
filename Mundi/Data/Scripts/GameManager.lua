@@ -54,7 +54,7 @@ local SpeedBlurMaxIntensity = 1.2    -- 최대 블러 강도 (20.0 속도에서)
 function BeginPlay()
     InitGame()
     GlobalConfig.GameState = "Init"
-    -- PlaySound2DByFile("Data/Audio/pakourBGM.wav")
+    PlaySound2DByFile("Data/Audio/pakourBGM.wav")
 end
 
 function EndPlay()
